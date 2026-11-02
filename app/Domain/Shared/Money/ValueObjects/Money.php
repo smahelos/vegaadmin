@@ -65,11 +65,14 @@ class Money
     public static function fromString(string $amount, string $currency): self
     {
         self::assertCurrency($currency);
-        if (! preg_match('/^\d+\.?\d{0,8}$/', $amount)) {
+        if (!preg_match('/^\d+\.?\d{0,8}$/', $amount)) {
             throw new InvalidArgumentException('Invalid money amount format: ' . $amount);
         }
 
-        return new self(self::normalizeStringAmount($amount), $currency);
+        return new self(
+            self::normalizeStringAmount($amount),
+            $currency,
+        );
     }
 
     /**
@@ -164,7 +167,10 @@ class Money
             $result = $product;
         }
 
-        return new self(self::normalizeStringAmount($result), $this->currency);
+        return new self(
+            self::normalizeStringAmount($result),
+            $this->currency,
+        );
     }
 
     /**
@@ -236,7 +242,10 @@ class Money
             $result = $quotient;
         }
 
-        return new self(self::normalizeStringAmount($result), $this->currency);
+        return new self(
+            self::normalizeStringAmount($result),
+            $this->currency,
+        );
     }
 
     /**
@@ -258,11 +267,13 @@ class Money
         if ($scale < 0 || $scale > 8) {
             throw new InvalidArgumentException('Scale must be between 0 and 8');
         }
-        if (! in_array(
-            $strategy,
-            [self::ROUND_HALF_UP, self::ROUND_BANKERS],
-            true,
-        )) {
+        if (
+            !in_array(
+                $strategy,
+                [self::ROUND_HALF_UP, self::ROUND_BANKERS],
+                true,
+            )
+        ) {
             throw new InvalidArgumentException('Invalid rounding strategy: ' . $strategy);
         }
         [$int, $frac] = $this->splitDecimal($this->amount);
@@ -350,19 +361,24 @@ class Money
         ) : 0; // digit after kept part
         $hasFurther = $remainder > 0 || strlen($fullFraction) > $scale + 1; // indicates more non-zero info beyond rounding digit
 
-        if ($this->shouldRoundUp(
-            $strategy,
-            $roundingDigit,
-            $keptFraction,
-            $hasFurther,
-            $integer,
-            $scale,
-        )) {
+        if (
+            $this->shouldRoundUp(
+                $strategy,
+                $roundingDigit,
+                $keptFraction,
+                $hasFurther,
+                $integer,
+                $scale,
+            )
+        ) {
             [$integer, $keptFraction] = $this->incrementDecimal($integer, $keptFraction);
         }
         $result = $integer . ($keptFraction !== '' ? '.' . $keptFraction : '');
 
-        return new self(self::normalizeStringAmount($result), $this->currency);
+        return new self(
+            self::normalizeStringAmount($result),
+            $this->currency,
+        );
     }
 
     /** Decide if rounding up is needed based on strategy. */
@@ -442,7 +458,9 @@ class Money
     private function assertSameCurrency(Money $other): void
     {
         if ($this->currency !== $other->currency) {
-            throw new InvalidArgumentException('Currency mismatch: ' . $this->currency . ' vs ' . $other->currency);
+            throw new InvalidArgumentException(
+                'Currency mismatch: ' . $this->currency . ' vs ' . $other->currency,
+            );
         }
     }
 
@@ -451,7 +469,10 @@ class Money
     {
         [$ai, $af] = $this->splitDecimal($a);
         [$bi, $bf] = $this->splitDecimal($b);
-        $scale = max(strlen($af), strlen($bf));
+        $scale = max(
+            strlen($af),
+            strlen($bf),
+        );
         $af = str_pad(
             $af,
             $scale,
@@ -491,7 +512,10 @@ class Money
     {
         [$ai, $af] = $this->splitDecimal($a);
         [$bi, $bf] = $this->splitDecimal($b);
-        $scale = max(strlen($af), strlen($bf));
+        $scale = max(
+            strlen($af),
+            strlen($bf),
+        );
         $af = str_pad(
             $af,
             $scale,
@@ -537,7 +561,10 @@ class Money
         if ($ai !== $bi) {
             return $ai < $bi ? -1 : 1;
         }
-        $scale = max(strlen($af), strlen($bf));
+        $scale = max(
+            strlen($af),
+            strlen($bf),
+        );
         $afP = str_pad(
             $af,
             $scale,
@@ -560,7 +587,7 @@ class Money
     /** Split decimal into integer & fractional parts. */
     private function splitDecimal(string $value): array
     {
-        if (! str_contains($value, '.')) {
+        if (!str_contains($value, '.')) {
             return [$value, ''];
         }
         [$i, $f] = explode(
@@ -651,7 +678,12 @@ class Money
     /** Validate ISO currency code (A-Z, length 3). */
     private static function assertCurrency(string $currency): void
     {
-        if (! preg_match('/^[A-Z]{3}$/', strtoupper($currency))) {
+        if (
+            !preg_match(
+                '/^[A-Z]{3}$/',
+                strtoupper($currency),
+            )
+        ) {
             throw new InvalidArgumentException('Invalid ISO currency code: ' . $currency);
         }
     }
@@ -672,7 +704,10 @@ class Money
             $amount = '0' . $amount;
         }
         if (str_contains($amount, '.')) {
-            $amount = rtrim(rtrim($amount, '0'), '.');
+            $amount = rtrim(
+                rtrim($amount, '0'),
+                '.',
+            );
             if ($amount === '') {
                 $amount = '0';
             }
@@ -696,30 +731,51 @@ class Money
         if ($scale < 0 || $scale > 8) {
             throw new InvalidArgumentException('Scale must be between 0 and 8');
         }
-        if (! in_array(
-            $strategy,
-            [self::ROUND_HALF_UP, self::ROUND_BANKERS],
-            true,
-        )) {
+        if (
+            !in_array(
+                $strategy,
+                [self::ROUND_HALF_UP, self::ROUND_BANKERS],
+                true,
+            )
+        ) {
             throw new InvalidArgumentException('Invalid rounding strategy: ' . $strategy);
         }
         $rate = $exchange->getExchangeRate($this->currency, $targetCurrency);
         if ($rate === null || $rate <= 0) {
             throw new InvalidArgumentException('Unable to obtain valid exchange rate for conversion');
         }
-        $rateStr = rtrim(rtrim(number_format($rate, 8, '.', ''), '0'), '.');
+        $rateStr = rtrim(
+            rtrim(
+                number_format(
+                    $rate,
+                    8,
+                    '.',
+                    '',
+                ),
+                '0',
+            ),
+            '.',
+        );
         if ($rateStr === '') {
             $rateStr = '0';
         }
-        if ($rateStr === '0' && ! $this->equals(new self('0', $this->currency))) {
+        if (
+            $rateStr === '0'
+            && !$this->equals(
+                new self('0', $this->currency),
+            )
+        ) {
             throw new InvalidArgumentException('Invalid exchange rate format');
         }
 
-        return new self($this->multiplyAndRound(
-            $rateStr,
-            $scale,
-            $strategy,
-        ), $targetCurrency);
+        return new self(
+            $this->multiplyAndRound(
+                $rateStr,
+                $scale,
+                $strategy,
+            ),
+            $targetCurrency,
+        );
     }
 
     /**
@@ -734,25 +790,30 @@ class Money
         int $scale = 2,
         string $strategy = self::ROUND_HALF_UP,
     ): self {
-        if (! preg_match('/^\d+(\.\d+)?$/', $factor)) {
+        if (!preg_match('/^\d+(\.\d+)?$/', $factor)) {
             throw new InvalidArgumentException('Invalid multiplication factor: ' . $factor);
         }
         if ($scale < 0 || $scale > 8) {
             throw new InvalidArgumentException('Scale must be between 0 and 8');
         }
-        if (! in_array(
-            $strategy,
-            [self::ROUND_HALF_UP, self::ROUND_BANKERS],
-            true,
-        )) {
+        if (
+            !in_array(
+                $strategy,
+                [self::ROUND_HALF_UP, self::ROUND_BANKERS],
+                true,
+            )
+        ) {
             throw new InvalidArgumentException('Invalid rounding strategy: ' . $strategy);
         }
 
-        return new self($this->multiplyAndRound(
-            self::normalizeStringAmount($factor),
-            $scale,
-            $strategy,
-        ), $this->currency);
+        return new self(
+            $this->multiplyAndRound(
+                self::normalizeStringAmount($factor),
+                $scale,
+                $strategy,
+            ),
+            $this->currency,
+        );
     }
 
     /** Exact product of the amount and a normalized decimal factor, rounded to scale digits. */
@@ -813,19 +874,21 @@ class Money
             ) : 0;
             $hasFurther = strlen($fracPart) > 1;
             $keptFraction = '';
-            if ($this->shouldRoundUp(
-                $strategy,
-                $roundDigit,
-                $keptFraction,
-                $hasFurther,
-                $intPart,
-                0,
-            )) {
+            if (
+                $this->shouldRoundUp(
+                    $strategy,
+                    $roundDigit,
+                    $keptFraction,
+                    $hasFurther,
+                    $intPart,
+                    0,
+                )
+            ) {
                 [$intPart, $keptFraction] = $this->incrementDecimal($intPart, $keptFraction);
             }
             $result = $intPart;
         } else {
-            if (! str_contains($normalizedRaw, '.')) {
+            if (!str_contains($normalizedRaw, '.')) {
                 $intPart = $normalizedRaw;
                 $fracFull = '';
             } else {
@@ -857,14 +920,16 @@ class Money
                 1,
             );
             $hasFurther = strlen($fracFull) > $scale + 1;
-            if ($this->shouldRoundUp(
-                $strategy,
-                $roundDigit,
-                $kept,
-                $hasFurther,
-                $intPart,
-                $scale,
-            )) {
+            if (
+                $this->shouldRoundUp(
+                    $strategy,
+                    $roundDigit,
+                    $kept,
+                    $hasFurther,
+                    $intPart,
+                    $scale,
+                )
+            ) {
                 [$intPart, $kept] = $this->incrementDecimal($intPart, $kept);
             }
             $result = $intPart . ($kept !== '' ? '.' . $kept : '');
@@ -900,7 +965,10 @@ class Money
             }
             $res[$i] += $carry;
         }
-        $out = ltrim(implode('', $res), '0');
+        $out = ltrim(
+            implode('', $res),
+            '0',
+        );
 
         return $out === '' ? '0' : $out;
     }

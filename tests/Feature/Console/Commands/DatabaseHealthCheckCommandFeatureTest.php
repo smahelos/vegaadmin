@@ -47,7 +47,9 @@ class DatabaseHealthCheckCommandFeatureTest extends TestCase
 
         // Command should provide some health information
         $this->assertIsString($output);
-        $this->assertNotEmpty(trim($output));
+        $this->assertNotEmpty(
+            trim($output),
+        );
     }
 
     #[Test]

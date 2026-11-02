@@ -81,7 +81,10 @@ class AdminSelect2FieldsTest extends TestCase
             'user_id',
             'bpFieldInitBillexSelect2Ajax',
         );
-        $this->assertStringContainsString('data-source="' . url('api/admin/user/search') . '"', $content);
+        $this->assertStringContainsString(
+            'data-source="' . url('api/admin/user/search') . '"',
+            $content,
+        );
         $this->assertStringContainsString('data-minimum-input-length="2"', $content);
     }
 
@@ -90,12 +93,17 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         $contact = Contact::factory()->create(['name' => 'Contact ' . uniqid()]);
-        $expense = Expense::factory()->create(['user_id' => $contact->user_id, 'contact_id' => $contact->id]);
+        $expense = Expense::factory()->create(
+            ['user_id' => $contact->user_id, 'contact_id' => $contact->id],
+        );
 
         $response = $this->get("/admin/expense/{$expense->id}/edit");
 
         $response->assertOk();
-        $response->assertSee('<option value="' . $contact->id . '" selected>' . $contact->name . '</option>', false);
+        $response->assertSee(
+            '<option value="' . $contact->id . '" selected>' . $contact->name . '</option>',
+            false,
+        );
     }
 
     #[Test]
@@ -105,8 +113,14 @@ class AdminSelect2FieldsTest extends TestCase
 
         $content = $this->get('/admin/invoice/create')->assertOk()->getContent();
 
-        $this->assertStringContainsString('name="issue_date" value="' . date('Y-m-d') . '" data-datepicker-value', $content);
-        $this->assertStringContainsString('name="tax_point_date" value="' . date('Y-m-d') . '" data-datepicker-value', $content);
+        $this->assertStringContainsString(
+            'name="issue_date" value="' . date('Y-m-d') . '" data-datepicker-value',
+            $content,
+        );
+        $this->assertStringContainsString(
+            'name="tax_point_date" value="' . date('Y-m-d') . '" data-datepicker-value',
+            $content,
+        );
         $this->assertSelect2Field(
             $content,
             'payment_method_id',
@@ -128,15 +142,20 @@ class AdminSelect2FieldsTest extends TestCase
     public function invoice_edit_form_keeps_stored_payment_values(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->adminUser->id,
-            'tax_point_date' => '2026-09-30',
-            'due_in' => 21,
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->adminUser->id,
+                'tax_point_date' => '2026-09-30',
+                'due_in' => 21,
+            ],
+        );
 
         $content = $this->get("/admin/invoice/{$invoice->id}/edit")->assertOk()->getContent();
 
-        $this->assertStringContainsString('name="tax_point_date" value="2026-09-30" data-datepicker-value', $content);
+        $this->assertStringContainsString(
+            'name="tax_point_date" value="2026-09-30" data-datepicker-value',
+            $content,
+        );
         $this->assertMatchesRegularExpression('/<option value="21"\s+selected/', $content);
     }
 
@@ -147,7 +166,10 @@ class AdminSelect2FieldsTest extends TestCase
 
         $content = $this->get('/admin/expense/create')->assertOk()->getContent();
 
-        $this->assertSame(1, preg_match_all('/\sname="(payment_method_id|paymentMethod)"/', $content));
+        $this->assertSame(
+            1,
+            preg_match_all('/\sname="(payment_method_id|paymentMethod)"/', $content),
+        );
     }
 
     private function assertSelect2Field(

@@ -19,10 +19,13 @@ final class LimitDTOTest extends TestCase
             allowed: true,
         );
 
-        $this->assertSame([
-            'limit' => 10,
-            'current_usage' => 3,
-            'allowed' => true,
-        ], $dto->toArray());
+        $this->assertSame(
+            [
+                'limit' => 10,
+                'current_usage' => 3,
+                'allowed' => true,
+            ],
+            $dto->toArray(),
+        );
     }
 }

@@ -37,13 +37,19 @@ class StatusRequestFeatureTest extends TestCase
         $this->statusCategory = StatusCategory::factory()->create();
 
         // Define test routes
-        Route::post('/test-status', function (StatusRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-status',
+            function (StatusRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-status/{id}', function (StatusRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-status/{id}',
+            function (StatusRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     /**
@@ -158,10 +164,12 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create existing status
-        $existingStatus = Status::factory()->create([
-            'slug' => 'existing-slug',
-            'category_id' => $this->statusCategory->id,
-        ]);
+        $existingStatus = Status::factory()->create(
+            [
+                'slug' => 'existing-slug',
+                'category_id' => $this->statusCategory->id,
+            ],
+        );
 
         $invalidData = [
             'name' => 'Test Status',
@@ -183,10 +191,12 @@ class StatusRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $status = Status::factory()->create([
-            'slug' => 'test-slug',
-            'category_id' => $this->statusCategory->id,
-        ]);
+        $status = Status::factory()->create(
+            [
+                'slug' => 'test-slug',
+                'category_id' => $this->statusCategory->id,
+            ],
+        );
 
         $updateData = [
             'name' => 'Updated Status Name',
@@ -330,9 +340,12 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Temporary route to capture generated slug
-        Route::post('/test-status-slug', function (StatusRequest $request) {
-            return response()->json(['slug' => $request->slug]);
-        })->middleware('web');
+        Route::post(
+            '/test-status-slug',
+            function (StatusRequest $request) {
+                return response()->json(['slug' => $request->slug]);
+            },
+        )->middleware('web');
 
         $data = [
             'name' => 'My Custom Status Name',
@@ -343,6 +356,9 @@ class StatusRequestFeatureTest extends TestCase
         $response = $this->postJson('/test-status-slug', $data);
         $response->assertStatus(200);
         $expected = Str::slug($data['name']);
-        $this->assertEquals($expected, $response->json('slug'));
+        $this->assertEquals(
+            $expected,
+            $response->json('slug'),
+        );
     }
 }

@@ -14,7 +14,7 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
     public function isWebAdmin(int $userId): bool
     {
         $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasRole')) {
+        if (!$user || !method_exists($user, 'hasRole')) {
             return false;
         }
         try {
@@ -27,7 +27,7 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
     public function isBackpackAdmin(int $userId): bool
     {
         $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasRole')) {
+        if (!$user || !method_exists($user, 'hasRole')) {
             return false;
         }
         try {
@@ -40,7 +40,7 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
     public function hasBackpackPermission(int $userId, string $permission): bool
     {
         $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasPermissionTo')) {
+        if (!$user || !method_exists($user, 'hasPermissionTo')) {
             return false;
         }
         try {
@@ -53,7 +53,7 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
     public function hasBackpackViewPermission(int $userId, string $entityType): bool
     {
         $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasPermissionTo')) {
+        if (!$user || !method_exists($user, 'hasPermissionTo')) {
             return false;
         }
         try {
@@ -66,7 +66,7 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
     public function hasFrontendUserRole(int $userId): bool
     {
         $user = User::query()->find($userId);
-        if (! $user || ! method_exists($user, 'hasRole')) {
+        if (!$user || !method_exists($user, 'hasRole')) {
             return false;
         }
         try {

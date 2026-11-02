@@ -37,7 +37,9 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function listActiveForUser(UserId $userId): array
     {
-        return $this->list($this->ofUser($userId)->whereNull('archived_at'));
+        return $this->list(
+            $this->ofUser($userId)->whereNull('archived_at'),
+        );
     }
 
     public function listLatestActiveForUser(UserId $userId, int $limit): array
@@ -92,7 +94,10 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         );
 
         return new PaginatedResult(
-            array_map(fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business), $found->items()),
+            array_map(
+                fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
+                $found->items(),
+            ),
             $found->total(),
             $found->perPage(),
             $found->currentPage(),
@@ -179,7 +184,9 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
             ->orderBy('name')
             ->orderBy('id')
             ->get()
-            ->map(fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business))
+            ->map(
+                fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
+            )
             ->values()
             ->all();
     }

@@ -9,7 +9,8 @@ return new class extends Migration
 {
     public function up(): void
     {
-        DB::statement(<<<'SQL'
+        DB::statement(
+            <<<'SQL'
             CREATE OR REPLACE VIEW user_activity_summary AS
             SELECT
                 u.id AS user_id,
@@ -28,9 +29,11 @@ return new class extends Migration
             LEFT JOIN suppliers s ON u.id = s.user_id
             LEFT JOIN products p ON u.id = p.user_id
             GROUP BY u.id, u.name, u.email
-            SQL);
+            SQL,
+        );
 
-        DB::statement(<<<'SQL'
+        DB::statement(
+            <<<'SQL'
             CREATE OR REPLACE VIEW database_size_monitor AS
             SELECT
                 TABLE_NAME AS table_name,
@@ -42,7 +45,8 @@ return new class extends Migration
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
             ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
-            SQL);
+            SQL,
+        );
     }
 
     public function down(): void

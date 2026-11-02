@@ -23,13 +23,17 @@ final class ContactCrudControllerTest extends TestCase
     {
         parent::setUp();
         $this->admin = User::factory()->create();
-        $this->admin->assignRole(Role::findByName('admin', 'backpack'));
+        $this->admin->assignRole(
+            Role::findByName('admin', 'backpack'),
+        );
     }
 
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/contact')->assertRedirect(route('backpack.auth.login'));
+        $this->get('/admin/contact')->assertRedirect(
+            route('backpack.auth.login'),
+        );
     }
 
     #[Test]
@@ -38,13 +42,16 @@ final class ContactCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/contact', [
-                'user_id' => $owner->id,
-                'name' => 'Admin Kontakt',
-                'contact_person' => 'Eva',
-                'country' => 'CZ',
-                '_save_action' => 'save_and_back',
-            ])
+            ->post(
+                '/admin/contact',
+                [
+                    'user_id' => $owner->id,
+                    'name' => 'Admin Kontakt',
+                    'contact_person' => 'Eva',
+                    'country' => 'CZ',
+                    '_save_action' => 'save_and_back',
+                ],
+            )
             ->assertRedirect();
 
         $contact = Contact::query()->where('user_id', $owner->id)->sole();
@@ -58,14 +65,20 @@ final class ContactCrudControllerTest extends TestCase
         $this->limitActive('contact', 0);
 
         $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/contact', [
-                'user_id' => $owner->id,
-                'name' => 'Nad limit',
-                'country' => 'CZ',
-            ])
+            ->post(
+                '/admin/contact',
+                [
+                    'user_id' => $owner->id,
+                    'name' => 'Nad limit',
+                    'country' => 'CZ',
+                ],
+            )
             ->assertRedirect();
 
-        $this->assertSame(0, Contact::query()->where('user_id', $owner->id)->count());
+        $this->assertSame(
+            0,
+            Contact::query()->where('user_id', $owner->id)->count(),
+        );
     }
 
     #[Test]
@@ -74,11 +87,15 @@ final class ContactCrudControllerTest extends TestCase
         $contact = Contact::factory()->create(['user_id' => $this->frontendUser()->id]);
 
         $this->actingAs($this->admin, 'backpack')
-            ->post(route('admin.contacts.archive', ['id' => $contact->id]))
+            ->post(
+                route('admin.contacts.archive', ['id' => $contact->id]),
+            )
             ->assertRedirect();
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $this->post(route('admin.contacts.restore', ['id' => $contact->id]))->assertRedirect();
+        $this->post(
+            route('admin.contacts.restore', ['id' => $contact->id]),
+        )->assertRedirect();
         $this->assertNull($contact->fresh()?->archived_at);
     }
 

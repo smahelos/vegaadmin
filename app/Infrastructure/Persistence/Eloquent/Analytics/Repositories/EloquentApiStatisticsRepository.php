@@ -42,7 +42,10 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
                 DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
                 DB::raw('SUM(invoices.payment_amount) as total'),
             )
-            ->selectRaw('SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid', [InvoiceStatus::PAID->value])
+            ->selectRaw(
+                'SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid',
+                [InvoiceStatus::PAID->value],
+            )
             ->leftJoin(
                 'statuses',
                 'invoices.payment_status_id',
@@ -108,7 +111,14 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
                 '>=',
                 $from->format('Y-m-d'),
             )
-            ->when($to !== null, fn (Builder $query) => $query->where('expenses.expense_date', '<=', $to?->format('Y-m-d')))
+            ->when(
+                $to !== null,
+                fn (Builder $query) => $query->where(
+                    'expenses.expense_date',
+                    '<=',
+                    $to?->format('Y-m-d'),
+                ),
+            )
             ->select(
                 DB::raw('DATE_FORMAT(expenses.expense_date, "%Y-%m") as month'),
                 DB::raw('SUM(expenses.amount) as amount'),
@@ -202,11 +212,21 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
                 '>=',
                 $from->format('Y-m-d'),
             )
-            ->when($to !== null, fn (Builder $query) => $query->where('invoices.issue_date', '<=', $to?->format('Y-m-d')))
-            ->when($contactIds !== [], fn (Builder $query) => $query->whereIn(
-                'invoices.contact_id',
-                array_map(static fn (ContactId $id): int => $id->value, $contactIds),
-            ));
+            ->when(
+                $to !== null,
+                fn (Builder $query) => $query->where(
+                    'invoices.issue_date',
+                    '<=',
+                    $to?->format('Y-m-d'),
+                ),
+            )
+            ->when(
+                $contactIds !== [],
+                fn (Builder $query) => $query->whereIn(
+                    'invoices.contact_id',
+                    array_map(static fn (ContactId $id): int => $id->value, $contactIds),
+                ),
+            );
     }
 
     /**
@@ -215,9 +235,11 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
      */
     private function rows(Builder $query): array
     {
-        return array_values(array_map(
-            static fn (object $row): array => (array) $row,
-            $query->toBase()->get()->all(),
-        ));
+        return array_values(
+            array_map(
+                static fn (object $row): array => (array) $row,
+                $query->toBase()->get()->all(),
+            ),
+        );
     }
 }

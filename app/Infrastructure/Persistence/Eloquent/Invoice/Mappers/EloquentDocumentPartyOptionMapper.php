@@ -24,14 +24,18 @@ final class EloquentDocumentPartyOptionMapper
                 $record->id,
                 self::label($record),
                 $owner?->default_bank_account_id === $record->id,
-                account: DocumentAccountDTO::fromBankAccount(EloquentBankAccountMapper::toDTO($record)),
+                account: DocumentAccountDTO::fromBankAccount(
+                    EloquentBankAccountMapper::toDTO($record),
+                ),
             );
         }
 
         return new DocumentPartyOptionDTO(
             $record->id,
             $record->name,
-            profile: DocumentPartyDTO::fromProfile(EloquentPartyProfileMapper::toProfile($record)),
+            profile: DocumentPartyDTO::fromProfile(
+                EloquentPartyProfileMapper::toProfile($record),
+            ),
             logo: $record->logo,
         );
     }

@@ -13,16 +13,21 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_product_category(): void
     {
-        $category = ProductCategory::factory()->create([
-            'name' => 'Electronics',
-            'description' => 'Electronic products and devices',
-        ]);
+        $category = ProductCategory::factory()->create(
+            [
+                'name' => 'Electronics',
+                'description' => 'Electronic products and devices',
+            ],
+        );
 
-        $this->assertDatabaseHas('product_categories', [
-            'id' => $category->id,
-            'name' => 'Electronics',
-            'description' => 'Electronic products and devices',
-        ]);
+        $this->assertDatabaseHas(
+            'product_categories',
+            [
+                'id' => $category->id,
+                'name' => 'Electronics',
+                'description' => 'Electronic products and devices',
+            ],
+        );
     }
 
     #[Test]
@@ -41,8 +46,12 @@ class ProductCategoryFeatureTest extends TestCase
 
         $products = $category->products;
         $this->assertCount(2, $products);
-        $this->assertTrue($products->contains($product1));
-        $this->assertTrue($products->contains($product2));
+        $this->assertTrue(
+            $products->contains($product1),
+        );
+        $this->assertTrue(
+            $products->contains($product2),
+        );
     }
 
     #[Test]

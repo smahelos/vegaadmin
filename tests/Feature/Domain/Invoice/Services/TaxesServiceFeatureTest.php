@@ -74,9 +74,11 @@ class TaxesServiceFeatureTest extends TestCase
 
         // Before TTL: add new tax but expect cached result (no new id)
         $this->travel(4)->minutes();
-        $t2 = Model::withoutEvents(function () {
-            return Tax::factory()->create(['name' => 'New Tax']);
-        });
+        $t2 = Model::withoutEvents(
+            function () {
+                return Tax::factory()->create(['name' => 'New Tax']);
+            },
+        );
         $beforeExpire = $this->service->getAllTaxesForSelect();
         $this->assertEquals($initial, $beforeExpire);
         $this->assertArrayNotHasKey($t2->id, $beforeExpire);

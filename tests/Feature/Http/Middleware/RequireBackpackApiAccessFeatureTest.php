@@ -18,7 +18,9 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
     {
         parent::setUp();
         $this->middleware = new RequireBackpackApiAccess;
-        Permission::firstOrCreate(['name' => 'backpack.api.access', 'guard_name' => 'backpack']);
+        Permission::firstOrCreate(
+            ['name' => 'backpack.api.access', 'guard_name' => 'backpack'],
+        );
         Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
         $role = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
         $role->givePermissionTo(['backpack.access', 'backpack.api.access']);
@@ -38,7 +40,10 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(401, $response->getStatusCode());
         $json = json_decode($response->getContent(), true);
         $this->assertEquals(401, $json['code']);
@@ -60,7 +65,10 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(403, $response->getStatusCode());
         $json = json_decode($response->getContent(), true);
         $this->assertEquals(403, $json['code']);
@@ -75,11 +83,14 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/api/resource');
         $passed = false;
-        $this->middleware->handle($request, function () use (&$passed) {
-            $passed = true;
+        $this->middleware->handle(
+            $request,
+            function () use (&$passed) {
+                $passed = true;
 
-            return response('OK');
-        });
+                return response('OK');
+            },
+        );
         $this->assertTrue($passed);
     }
 }

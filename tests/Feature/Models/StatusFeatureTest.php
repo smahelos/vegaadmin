@@ -34,11 +34,14 @@ class StatusFeatureTest extends TestCase
         $this->assertNotNull($status->category_id);
         $this->assertIsBool($status->is_active);
 
-        $this->assertDatabaseHas('statuses', [
-            'id' => $status->id,
-            'name' => $status->name,
-            'slug' => $status->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'id' => $status->id,
+                'name' => $status->name,
+                'slug' => $status->slug,
+            ],
+        );
     }
 
     #[Test]
@@ -99,11 +102,14 @@ class StatusFeatureTest extends TestCase
             'slug' => 'updated-name',
         ]);
 
-        $this->assertDatabaseHas('statuses', [
-            'id' => $status->id,
-            'name' => 'Updated Name',
-            'slug' => 'updated-name',
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'id' => $status->id,
+                'name' => 'Updated Name',
+                'slug' => 'updated-name',
+            ],
+        );
 
         $this->assertDatabaseMissing('statuses', [
             'id' => $status->id,
@@ -147,9 +153,15 @@ class StatusFeatureTest extends TestCase
         $category1Statuses = Status::where('category_id', $category1->id)->get();
 
         $this->assertCount(2, $category1Statuses);
-        $this->assertTrue($category1Statuses->contains($status1));
-        $this->assertTrue($category1Statuses->contains($status2));
-        $this->assertFalse($category1Statuses->contains($status3));
+        $this->assertTrue(
+            $category1Statuses->contains($status1),
+        );
+        $this->assertTrue(
+            $category1Statuses->contains($status2),
+        );
+        $this->assertFalse(
+            $category1Statuses->contains($status3),
+        );
     }
 
     #[Test]
@@ -197,34 +209,46 @@ class StatusFeatureTest extends TestCase
     {
         $category = StatusCategory::factory()->create();
 
-        Status::create([
-            'name' => 'Payment Due',
-            'slug' => 'payment-due',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Payment Due',
+                'slug' => 'payment-due',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
-        Status::create([
-            'name' => 'Pending Payment',
-            'slug' => 'pending-payment-test',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Pending Payment',
+                'slug' => 'pending-payment-test',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
-        Status::create([
-            'name' => 'Cancelled Status',
-            'slug' => 'cancelled-status-test',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Cancelled Status',
+                'slug' => 'cancelled-status-test',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
         // Use case insensitive search for "payment"
         $searchResults = Status::whereRaw('LOWER(name) LIKE ?', ['%payment%'])->get();
 
         $this->assertCount(2, $searchResults);
-        $this->assertTrue($searchResults->pluck('name')->contains('Payment Due'));
-        $this->assertTrue($searchResults->pluck('name')->contains('Pending Payment'));
-        $this->assertFalse($searchResults->pluck('name')->contains('Cancelled Status'));
+        $this->assertTrue(
+            $searchResults->pluck('name')->contains('Payment Due'),
+        );
+        $this->assertTrue(
+            $searchResults->pluck('name')->contains('Pending Payment'),
+        );
+        $this->assertFalse(
+            $searchResults->pluck('name')->contains('Cancelled Status'),
+        );
     }
 
     #[Test]
@@ -256,17 +280,22 @@ class StatusFeatureTest extends TestCase
     {
         $category = StatusCategory::factory()->create();
 
-        $status = Status::create([
-            'name' => 'Minimal Status',
-            'slug' => 'minimal-status',
-            'category_id' => $category->id,
-        ]);
+        $status = Status::create(
+            [
+                'name' => 'Minimal Status',
+                'slug' => 'minimal-status',
+                'category_id' => $category->id,
+            ],
+        );
 
-        $this->assertDatabaseHas('statuses', [
-            'name' => 'Minimal Status',
-            'slug' => 'minimal-status',
-            'category_id' => $category->id,
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'name' => 'Minimal Status',
+                'slug' => 'minimal-status',
+                'category_id' => $category->id,
+            ],
+        );
 
         $this->assertNotNull($status->id);
         $this->assertEquals('Minimal Status', $status->name);
@@ -293,7 +322,10 @@ class StatusFeatureTest extends TestCase
     {
         $status = Status::factory()->create(['name' => 'Paid <b>', 'color' => 'green']);
 
-        $this->assertSame('<span class="badge bg-green text-green-fg">Paid &lt;b&gt;</span>', $status->color_preview);
+        $this->assertSame(
+            '<span class="badge bg-green text-green-fg">Paid &lt;b&gt;</span>',
+            $status->color_preview,
+        );
     }
 
     #[Test]

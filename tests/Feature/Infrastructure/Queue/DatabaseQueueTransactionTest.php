@@ -21,11 +21,13 @@ final class DatabaseQueueTransactionTest extends TestCase
     #[Test]
     public function a_job_is_stored_inside_the_transaction_that_dispatches_it(): void
     {
-        $this->transactions()->transaction(function (): void {
-            $this->dispatchJob();
+        $this->transactions()->transaction(
+            function (): void {
+                $this->dispatchJob();
 
-            $this->assertSame(1, $this->storedJobs());
-        });
+                $this->assertSame(1, $this->storedJobs());
+            },
+        );
 
         $this->assertSame(1, $this->storedJobs());
     }
@@ -34,11 +36,13 @@ final class DatabaseQueueTransactionTest extends TestCase
     public function a_rolled_back_transaction_leaves_no_job(): void
     {
         try {
-            $this->transactions()->transaction(function (): void {
-                $this->dispatchJob();
+            $this->transactions()->transaction(
+                function (): void {
+                    $this->dispatchJob();
 
-                throw new RuntimeException('Use case failed');
-            });
+                    throw new RuntimeException('Use case failed');
+                },
+            );
         } catch (RuntimeException) {
         }
 

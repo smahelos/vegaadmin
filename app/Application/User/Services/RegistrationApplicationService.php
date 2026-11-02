@@ -33,19 +33,21 @@ final class RegistrationApplicationService
         BusinessWriteData $business,
         ?BankAccountWriteData $bankAccount,
     ): UserDTO {
-        return $this->transactions->transaction(function () use ($user, $business, $bankAccount): UserDTO {
-            $created = $this->users->create($user);
-            $userId = UserId::fromInt($created->id);
+        return $this->transactions->transaction(
+            function () use ($user, $business, $bankAccount): UserDTO {
+                $created = $this->users->create($user);
+                $userId = UserId::fromInt($created->id);
 
-            // The role carries the plan's limits, so it comes before the business that counts against them
-            $this->users->assignRole($userId, self::REGISTRATION_ROLE);
-            $this->businesses->create(
-                $userId,
-                $business,
-                $bankAccount,
-            );
+                // The role carries the plan's limits, so it comes before the business that counts against them
+                $this->users->assignRole($userId, self::REGISTRATION_ROLE);
+                $this->businesses->create(
+                    $userId,
+                    $business,
+                    $bankAccount,
+                );
 
-            return $created;
-        });
+                return $created;
+            },
+        );
     }
 }

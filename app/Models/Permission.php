@@ -15,12 +15,16 @@ class Permission extends BasePermission
         parent::boot();
 
         // Clear cache when Permission is saved or deleted
-        static::saved(function (): void {
-            Artisan::call('cache:clear');
-        });
+        static::saved(
+            function (): void {
+                Artisan::call('cache:clear');
+            },
+        );
 
-        static::deleted(function (): void {
-            Artisan::call('cache:clear');
-        });
+        static::deleted(
+            function (): void {
+                Artisan::call('cache:clear');
+            },
+        );
     }
 }

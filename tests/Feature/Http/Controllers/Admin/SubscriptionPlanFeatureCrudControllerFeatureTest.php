@@ -121,11 +121,14 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         // HTTP update has complex Backpack dependencies similar to other CRUD operations
         $feature->update($updateData);
 
-        $this->assertDatabaseHas('subscription_plan_features', [
-            'id' => $feature->id,
-            'name' => 'Updated Feature Name',
-            'slug' => 'updated-feature',
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plan_features',
+            [
+                'id' => $feature->id,
+                'name' => 'Updated Feature Name',
+                'slug' => 'updated-feature',
+            ],
+        );
     }
 
     #[Test]
@@ -242,7 +245,9 @@ class SubscriptionPlanFeatureCrudControllerFeatureTest extends TestCase
         // If the page loads successfully, the model is correctly set
         // We can verify by checking the response contains subscription-related content
         $response->assertStatus(200);
-        $response->assertSee(__('subscriptions.features.entity.plural'));
+        $response->assertSee(
+            __('subscriptions.features.entity.plural'),
+        );
     }
 
     #[Test]

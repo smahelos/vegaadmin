@@ -21,11 +21,13 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
         $allCommands = Artisan::all();
         ksort($allCommands);
         foreach ($allCommands as $name => $command) {
-            if (substr(
-                $name,
-                0,
-                1,
-            ) === '_') {
+            if (
+                substr(
+                    $name,
+                    0,
+                    1,
+                ) === '_'
+            ) {
                 continue; // Skip internal underscore-prefixed commands
             }
             $description = $command->getDescription();
@@ -47,7 +49,7 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
             $category = ArtisanCommandCategory::where('slug', $categorySlug)
                 ->where('is_active', true)
                 ->first();
-            if (! $category) {
+            if (!$category) {
                 return [];
             }
             $query->where('category_id', $category->id);
@@ -61,11 +63,13 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
             $allCommands = $this->getAllCommands();
             $categorizedCommands = ArtisanCommand::pluck('command')->toArray();
             foreach ($allCommands as $command => $description) {
-                if (! in_array(
-                    $command,
-                    $categorizedCommands,
-                    true,
-                )) {
+                if (
+                    !in_array(
+                        $command,
+                        $categorizedCommands,
+                        true,
+                    )
+                ) {
                     $result[$command] = $description;
                 }
             }
@@ -98,11 +102,13 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
         $allCommands = Artisan::all();
         ksort($allCommands);
         foreach ($allCommands as $name => $command) {
-            if (substr(
-                $name,
-                0,
-                1,
-            ) === '_') {
+            if (
+                substr(
+                    $name,
+                    0,
+                    1,
+                ) === '_'
+            ) {
                 continue;
             }
             $commands[$name] = [

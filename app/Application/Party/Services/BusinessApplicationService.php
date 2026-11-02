@@ -54,11 +54,13 @@ final class BusinessApplicationService
         BusinessWriteData $data,
         ?BankAccountWriteData $firstAccount,
     ): BusinessDTO {
-        return $this->transactions->transaction(fn (): BusinessDTO => $this->creator->create(
-            $userId,
-            $data,
-            $firstAccount,
-        ));
+        return $this->transactions->transaction(
+            fn (): BusinessDTO => $this->creator->create(
+                $userId,
+                $data,
+                $firstAccount,
+            ),
+        );
     }
 
     public function update(
@@ -66,13 +68,17 @@ final class BusinessApplicationService
         BusinessId $id,
         BusinessWriteData $data,
     ): BusinessDTO {
-        return $this->transactions->transaction(function () use ($userId, $id, $data): BusinessDTO {
-            $this->get($userId, $id);
-            $business = $this->businessWriter->update($id, $data);
-            $this->events->publish(new BusinessUpdated($id, $userId));
+        return $this->transactions->transaction(
+            function () use ($userId, $id, $data): BusinessDTO {
+                $this->get($userId, $id);
+                $business = $this->businessWriter->update($id, $data);
+                $this->events->publish(
+                    new BusinessUpdated($id, $userId),
+                );
 
-            return $business;
-        });
+                return $business;
+            },
+        );
     }
 
     /**
@@ -87,26 +93,32 @@ final class BusinessApplicationService
         BusinessId $id,
         ?BusinessId $newDefault,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $id, $newDefault): void {
-            $this->users->lockForUpdate($userId);
-            if ($this->get($userId, $id)->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $id, $newDefault): void {
+                $this->users->lockForUpdate($userId);
+                if ($this->get($userId, $id)->isArchived()) {
+                    return;
+                }
 
-            $default = $this->businesses->findDefaultIdForUser($userId);
-            if ($default !== null && $default->equals($id)) {
-                $replacement = $this->replacementDefault(
-                    $userId,
-                    $id,
-                    $newDefault,
+                $default = $this->businesses->findDefaultIdForUser($userId);
+                if ($default !== null && $default->equals($id)) {
+                    $replacement = $this->replacementDefault(
+                        $userId,
+                        $id,
+                        $newDefault,
+                    );
+                    $this->businessWriter->setDefaultForUser($userId, $replacement);
+                    $this->events->publish(
+                        new DefaultBusinessChanged($replacement, $userId),
+                    );
+                }
+
+                $this->businessWriter->archive($id, $this->clock->now());
+                $this->events->publish(
+                    new BusinessArchived($id, $userId),
                 );
-                $this->businessWriter->setDefaultForUser($userId, $replacement);
-                $this->events->publish(new DefaultBusinessChanged($replacement, $userId));
-            }
-
-            $this->businessWriter->archive($id, $this->clock->now());
-            $this->events->publish(new BusinessArchived($id, $userId));
-        });
+            },
+        );
     }
 
     /**
@@ -115,22 +127,28 @@ final class BusinessApplicationService
      */
     public function restore(UserId $userId, BusinessId $id): void
     {
-        $this->transactions->transaction(function () use ($userId, $id): void {
-            if (! $this->get($userId, $id)->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $id): void {
+                if (!$this->get($userId, $id)->isArchived()) {
+                    return;
+                }
 
-            $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
-            $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
+                $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
+                $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
 
-            $this->businessWriter->restore($id);
-            $this->events->publish(new BusinessRestored($id, $userId));
+                $this->businessWriter->restore($id);
+                $this->events->publish(
+                    new BusinessRestored($id, $userId),
+                );
 
-            if ($isFirstActive) {
-                $this->businessWriter->setDefaultForUser($userId, $id);
-                $this->events->publish(new DefaultBusinessChanged($id, $userId));
-            }
-        });
+                if ($isFirstActive) {
+                    $this->businessWriter->setDefaultForUser($userId, $id);
+                    $this->events->publish(
+                        new DefaultBusinessChanged($id, $userId),
+                    );
+                }
+            },
+        );
     }
 
     /**
@@ -138,15 +156,19 @@ final class BusinessApplicationService
      */
     public function setDefault(UserId $userId, BusinessId $id): void
     {
-        $this->transactions->transaction(function () use ($userId, $id): void {
-            $this->users->lockForUpdate($userId);
-            if ($this->get($userId, $id)->isArchived()) {
-                throw new BusinessArchivedException($id);
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $id): void {
+                $this->users->lockForUpdate($userId);
+                if ($this->get($userId, $id)->isArchived()) {
+                    throw new BusinessArchivedException($id);
+                }
 
-            $this->businessWriter->setDefaultForUser($userId, $id);
-            $this->events->publish(new DefaultBusinessChanged($id, $userId));
-        });
+                $this->businessWriter->setDefaultForUser($userId, $id);
+                $this->events->publish(
+                    new DefaultBusinessChanged($id, $userId),
+                );
+            },
+        );
     }
 
     /**
@@ -196,11 +218,14 @@ final class BusinessApplicationService
         PartyProfile $profile,
         ?BusinessId $except,
     ): array {
-        return $this->duplicates->find($profile, $this->businesses->listPossibleDuplicates(
-            $userId,
+        return $this->duplicates->find(
             $profile,
-            $except,
-        ));
+            $this->businesses->listPossibleDuplicates(
+                $userId,
+                $profile,
+                $except,
+            ),
+        );
     }
 
     private function replacementDefault(

@@ -56,7 +56,7 @@ class DddGuardMustNotExistTest extends TestCase
     {
         $forbidden = base_path('app/Repositories');
         // Create directory + dummy file
-        if (! is_dir($forbidden)) {
+        if (!is_dir($forbidden)) {
             $this->files->makeDirectory(
                 $forbidden,
                 0777,
@@ -64,7 +64,10 @@ class DddGuardMustNotExistTest extends TestCase
             );
         }
         $dummy = $forbidden . '/DummyRepository.php';
-        file_put_contents($dummy, "<?php\n// dummy legacy repo file for guard regression test\n");
+        file_put_contents(
+            $dummy,
+            "<?php\n// dummy legacy repo file for guard regression test\n",
+        );
 
         try {
             $exitCode = Artisan::call('ddd:guard');

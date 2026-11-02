@@ -89,7 +89,7 @@ class CronTask extends Model
 
         // Sestavíme kompletní příkaz
         $fullCommand = $baseCommand;
-        if (! empty($params)) {
+        if (!empty($params)) {
             $fullCommand .= ' ' . trim($params);
         }
 
@@ -124,7 +124,7 @@ class CronTask extends Model
     {
         try {
             $expression = $this->getCronExpression();
-            if (! $expression) {
+            if (!$expression) {
                 return null; // Pokud není platný CRON výraz
             }
             $cron = new CronExpression($expression);
@@ -158,7 +158,10 @@ class CronTask extends Model
                 $result = \Artisan::call($this->command);
             }
 
-            $executionTime = round(microtime(true) - $startTime, 2);
+            $executionTime = round(
+                microtime(true) - $startTime,
+                2,
+            );
 
             // Aktualizace informací o posledním spuštění
             $this->last_run = now();

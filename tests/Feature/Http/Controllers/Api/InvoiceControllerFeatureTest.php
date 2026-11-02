@@ -69,7 +69,9 @@ class InvoiceControllerFeatureTest extends TestCase
         $foreign = $this->stub->invoices[2]; // owned by admin
         $response = $this->actingAs($this->frontendUser, 'web')
             ->getJson('/api/invoice/' . $foreign->id);
-        $response->assertStatus(403)->assertJson(['error' => __('users.auth.unauthorized')]);
+        $response->assertStatus(403)->assertJson(
+            ['error' => __('users.auth.unauthorized')],
+        );
     }
 
     #[Test]
@@ -77,7 +79,9 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $response = $this->actingAs($this->frontendUser, 'web')
             ->getJson('/api/invoice/999999');
-        $response->assertStatus(404)->assertJson(['error' => __('invoices.messages.not_found')]);
+        $response->assertStatus(404)->assertJson(
+            ['error' => __('invoices.messages.not_found')],
+        );
     }
 
     #[Test]
@@ -85,7 +89,9 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[0];
         $response = $this->getJson('/api/invoice/' . $invoice->id);
-        $response->assertStatus(401)->assertJson(['error' => __('users.auth.unauthenticated')]);
+        $response->assertStatus(401)->assertJson(
+            ['error' => __('users.auth.unauthenticated')],
+        );
     }
 
     // ---------------------------------------------------------------
@@ -96,7 +102,9 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $response = $this->actingAs($this->frontendUser, 'web')
             ->getJson('/api/invoice');
-        $response->assertStatus(400)->assertJson(['error' => __('invoices.messages.id_required')]);
+        $response->assertStatus(400)->assertJson(
+            ['error' => __('invoices.messages.id_required')],
+        );
     }
 
     #[Test]
@@ -126,13 +134,17 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function logs_error_and_returns_404_when_service_throws(): void
     {
-        Log::shouldReceive('error')->once()->withArgs(function ($msg, $ctx) {
-            return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
-        });
+        Log::shouldReceive('error')->once()->withArgs(
+            function ($msg, $ctx) {
+                return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
+            },
+        );
         $this->stub->failOnId = 123456; // configure stub
         $response = $this->actingAs($this->frontendUser, 'web')
             ->getJson('/api/invoice/123456');
-        $response->assertStatus(404)->assertJson(['error' => __('invoices.messages.not_found')]);
+        $response->assertStatus(404)->assertJson(
+            ['error' => __('invoices.messages.not_found')],
+        );
     }
 }
 

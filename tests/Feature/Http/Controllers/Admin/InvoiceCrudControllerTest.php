@@ -36,7 +36,9 @@ final class InvoiceCrudControllerTest extends TestCase
     public function admin_creation_consumes_the_owners_allowance_and_then_refuses_another_invoice(): void
     {
         $owner = User::factory()->create();
-        $owner->assignRole(Role::findByName('frontend_user', 'web'));
+        $owner->assignRole(
+            Role::findByName('frontend_user', 'web'),
+        );
         EntityLimit::where('entity_type', 'invoice')->update(['limit_value' => 1]);
         [$business, $account] = $this->issuerOf($owner);
         $data = $this->invoiceInput(
@@ -44,15 +46,24 @@ final class InvoiceCrudControllerTest extends TestCase
             $account,
             ['user_id' => $owner->id, 'payment_amount' => '100'],
         );
-        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->actingAs(
+            $this->backendUser('can_create_invoice'),
+            'backpack',
+        );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
-        $this->assertDatabaseHas('entity_limit_usage', [
-            'user_id' => $owner->id,
-            'entity_type' => 'invoice',
-            'current_value' => 1,
-        ]);
-        $this->post('/admin/invoice', array_replace($data, ['invoice_vs' => 'BLOCKED']))->assertRedirect();
+        $this->assertDatabaseHas(
+            'entity_limit_usage',
+            [
+                'user_id' => $owner->id,
+                'entity_type' => 'invoice',
+                'current_value' => 1,
+            ],
+        );
+        $this->post(
+            '/admin/invoice',
+            array_replace($data, ['invoice_vs' => 'BLOCKED']),
+        )->assertRedirect();
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'BLOCKED']);
     }
 
@@ -65,10 +76,16 @@ final class InvoiceCrudControllerTest extends TestCase
             $account,
             ['user_id' => $this->regularUser->id, 'payment_amount' => '100'],
         );
-        $this->actingAs($this->backendUser('can_create_invoice'), 'backpack');
+        $this->actingAs(
+            $this->backendUser('can_create_invoice'),
+            'backpack',
+        );
         $this->post('/admin/invoice', $data)->assertRedirect();
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
-        $this->actingAs($this->backendUser('can_create_invoice', 'can_create_invoice_unlimited'), 'backpack');
+        $this->actingAs(
+            $this->backendUser('can_create_invoice', 'can_create_invoice_unlimited'),
+            'backpack',
+        );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertDatabaseHas('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
@@ -88,7 +105,9 @@ final class InvoiceCrudControllerTest extends TestCase
     public function a_new_contact_is_copied_and_the_typed_customer_is_ignored(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id, 'name' => 'Selected customer']);
+        $contact = Contact::factory()->create(
+            ['user_id' => $this->regularUser->id, 'name' => 'Selected customer'],
+        );
         $address = Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
         $data = $this->invoiceInput(
             $business,
@@ -102,16 +121,19 @@ final class InvoiceCrudControllerTest extends TestCase
             ],
         );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
-        $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => $data['invoice_vs'],
-            'user_id' => $this->regularUser->id,
-            'business_id' => $business->id,
-            'contact_id' => $contact->id,
-            'supplier_name' => $business->name,
-            'customer_name' => $contact->name,
-            'customer_street' => $address->street,
-            'account_number' => $account->number,
-        ]);
+        $this->assertDatabaseHas(
+            'invoices',
+            [
+                'invoice_vs' => $data['invoice_vs'],
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+                'supplier_name' => $business->name,
+                'customer_name' => $contact->name,
+                'customer_street' => $address->street,
+                'account_number' => $account->number,
+            ],
+        );
     }
 
     #[Test]
@@ -119,19 +141,28 @@ final class InvoiceCrudControllerTest extends TestCase
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'business_id' => $business->id,
-            'contact_id' => $contact->id,
-            'bank_account_id' => $account->id,
-        ]);
-        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
-            'user_id' => $this->regularUser->id,
-            'invoice_vs' => $invoice->invoice_vs,
-            'contact_id' => $contact->id,
-            'customer_name' => 'Corrected name',
-            'payment_amount' => '0',
-        ]))->assertSessionHasNoErrors()->assertRedirect();
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+                'bank_account_id' => $account->id,
+            ],
+        );
+        $this->put(
+            '/admin/invoice/' . $invoice->id,
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->regularUser->id,
+                    'invoice_vs' => $invoice->invoice_vs,
+                    'contact_id' => $contact->id,
+                    'customer_name' => 'Corrected name',
+                    'payment_amount' => '0',
+                ],
+            ),
+        )->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame('Corrected name', $invoice->fresh()->customer_name);
         $this->assertSame($contact->name, $contact->fresh()->name);
     }
@@ -143,18 +174,27 @@ final class InvoiceCrudControllerTest extends TestCase
         $old = Contact::factory()->create(['user_id' => $this->regularUser->id]);
         $new = Contact::factory()->create(['user_id' => $this->regularUser->id]);
         Address::factory()->create(['business_id' => null, 'contact_id' => $new->id]);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'business_id' => $business->id,
-            'contact_id' => $old->id,
-        ]);
-        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
-            'user_id' => $this->regularUser->id,
-            'invoice_vs' => $invoice->invoice_vs,
-            'contact_id' => $new->id,
-            'customer_name' => 'Ignored name',
-            'payment_amount' => '0',
-        ]))->assertSessionHasNoErrors()->assertRedirect();
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'contact_id' => $old->id,
+            ],
+        );
+        $this->put(
+            '/admin/invoice/' . $invoice->id,
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->regularUser->id,
+                    'invoice_vs' => $invoice->invoice_vs,
+                    'contact_id' => $new->id,
+                    'customer_name' => 'Ignored name',
+                    'payment_amount' => '0',
+                ],
+            ),
+        )->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame($new->name, $invoice->fresh()->customer_name);
     }
 
@@ -163,11 +203,18 @@ final class InvoiceCrudControllerTest extends TestCase
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $contact = Contact::factory()->create();
-        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
-            'user_id' => $this->adminUser->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => '0',
-        ]))->assertSessionHasErrors(['business_id', 'contact_id']);
+        $this->post(
+            '/admin/invoice',
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'contact_id' => $contact->id,
+                    'payment_amount' => '0',
+                ],
+            ),
+        )->assertSessionHasErrors(['business_id', 'contact_id']);
     }
 
     #[Test]
@@ -184,23 +231,35 @@ final class InvoiceCrudControllerTest extends TestCase
             ],
         );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
-        $this->assertDatabaseHas('invoices', [
-            'invoice_vs' => $data['invoice_vs'],
-            'bank_account_id' => null,
-            'account_number' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'invoices',
+            [
+                'invoice_vs' => $data['invoice_vs'],
+                'bank_account_id' => null,
+                'account_number' => null,
+            ],
+        );
     }
 
     #[Test]
     public function an_archived_contact_cannot_be_newly_selected(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $contact = Contact::factory()->create(['user_id' => $this->regularUser->id, 'archived_at' => now()]);
-        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
-            'user_id' => $this->regularUser->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => '0',
-        ]))->assertSessionHasErrors('contact_id');
+        $contact = Contact::factory()->create(
+            ['user_id' => $this->regularUser->id, 'archived_at' => now()],
+        );
+        $this->post(
+            '/admin/invoice',
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->regularUser->id,
+                    'contact_id' => $contact->id,
+                    'payment_amount' => '0',
+                ],
+            ),
+        )->assertSessionHasErrors('contact_id');
     }
 
     #[Test]
@@ -208,11 +267,18 @@ final class InvoiceCrudControllerTest extends TestCase
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $contact = Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
-            'user_id' => $this->regularUser->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => '123.45',
-        ]))->assertSessionHasErrors('contact_id');
+        $this->post(
+            '/admin/invoice',
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->regularUser->id,
+                    'contact_id' => $contact->id,
+                    'payment_amount' => '123.45',
+                ],
+            ),
+        )->assertSessionHasErrors('contact_id');
         $this->assertDatabaseMissing('invoices', ['contact_id' => $contact->id]);
     }
 
@@ -232,7 +298,10 @@ final class InvoiceCrudControllerTest extends TestCase
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
         $this->assertSame('1234.56', $invoice->payment_amount);
-        $this->put('/admin/invoice/' . $invoice->id, array_replace($data, ['payment_amount' => '2345.67']))
+        $this->put(
+            '/admin/invoice/' . $invoice->id,
+            array_replace($data, ['payment_amount' => '2345.67']),
+        )
             ->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame('2345.67', $invoice->fresh()->payment_amount);
         $this->assertSame(0, $invoice->invoiceProducts()->count());
@@ -242,20 +311,24 @@ final class InvoiceCrudControllerTest extends TestCase
     public function editing_a_document_with_lines_keeps_the_lines_and_their_total(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'business_id' => $business->id,
-            'payment_currency' => 'CZK',
-        ]);
-        $line = InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'currency' => 'CZK',
-            'quantity' => '2',
-            'price' => '100',
-            'tax_rate' => '21',
-            'tax_amount' => '42',
-            'total_price' => '242',
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'payment_currency' => 'CZK',
+            ],
+        );
+        $line = InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'currency' => 'CZK',
+                'quantity' => '2',
+                'price' => '100',
+                'tax_rate' => '21',
+                'tax_amount' => '42',
+                'total_price' => '242',
+            ],
+        );
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -268,31 +341,43 @@ final class InvoiceCrudControllerTest extends TestCase
         unset($data['invoice-products']);
         $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame('242.00', $invoice->fresh()->payment_amount);
-        $this->assertSame([$line->id], $invoice->invoiceProducts()->pluck('id')->all());
+        $this->assertSame(
+            [$line->id],
+            $invoice->invoiceProducts()->pluck('id')->all(),
+        );
     }
 
     #[Test]
     public function editing_an_invoice_identifies_an_unlabelled_bank_account_by_its_number(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $account->update([
-            'label' => null,
-            'iban' => null,
-            'number' => '2001234561',
-        ]);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'business_id' => $business->id,
-            'bank_account_id' => $account->id,
-        ]);
+        $account->update(
+            [
+                'label' => null,
+                'iban' => null,
+                'number' => '2001234561',
+            ],
+        );
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'bank_account_id' => $account->id,
+            ],
+        );
         $this->get('/admin/invoice/' . $invoice->id . '/edit')->assertOk()
-            ->assertSee('<option value="' . $account->id . '" selected>2001234561</option>', false);
+            ->assertSee(
+                '<option value="' . $account->id . '" selected>2001234561</option>',
+                false,
+            );
     }
 
     #[Test]
     public function show_uses_the_saved_names(): void
     {
-        $invoice = Invoice::factory()->create(['supplier_name' => 'Saved supplier', 'customer_name' => 'Saved customer']);
+        $invoice = Invoice::factory()->create(
+            ['supplier_name' => 'Saved supplier', 'customer_name' => 'Saved customer'],
+        );
         $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk()->assertSee('Saved supplier')->assertSee('Saved customer');
     }
 
@@ -300,7 +385,9 @@ final class InvoiceCrudControllerTest extends TestCase
     public function guests_and_admin_users_without_permission_cannot_write_invoices(): void
     {
         auth('backpack')->logout();
-        $this->post('/admin/invoice', [])->assertRedirect(route('backpack.auth.login'));
+        $this->post('/admin/invoice', [])->assertRedirect(
+            route('backpack.auth.login'),
+        );
         $this->actingAs($this->regularUser, 'backpack')->post('/admin/invoice', [])->assertForbidden();
     }
 }

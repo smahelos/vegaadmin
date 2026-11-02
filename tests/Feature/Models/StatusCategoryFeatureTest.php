@@ -20,43 +20,56 @@ class StatusCategoryFeatureTest extends TestCase
         $statusCategory = StatusCategory::factory()->create();
 
         $this->assertInstanceOf(StatusCategory::class, $statusCategory);
-        $this->assertDatabaseHas('status_categories', [
-            'id' => $statusCategory->id,
-            'name' => $statusCategory->name,
-            'slug' => $statusCategory->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'status_categories',
+            [
+                'id' => $statusCategory->id,
+                'name' => $statusCategory->name,
+                'slug' => $statusCategory->slug,
+            ],
+        );
     }
 
     #[Test]
     public function status_category_can_be_created_with_minimal_data(): void
     {
-        $statusCategory = StatusCategory::factory()->create([
-            'name' => 'Test Category',
-            'slug' => 'test-category',
-            'description' => null,
-        ]);
+        $statusCategory = StatusCategory::factory()->create(
+            [
+                'name' => 'Test Category',
+                'slug' => 'test-category',
+                'description' => null,
+            ],
+        );
 
-        $this->assertDatabaseHas('status_categories', [
-            'name' => 'Test Category',
-            'slug' => 'test-category',
-            'description' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'status_categories',
+            [
+                'name' => 'Test Category',
+                'slug' => 'test-category',
+                'description' => null,
+            ],
+        );
     }
 
     #[Test]
     public function status_category_can_be_created_with_all_fields(): void
     {
-        $statusCategory = StatusCategory::factory()->create([
-            'name' => 'Complete Category',
-            'slug' => 'complete-category',
-            'description' => 'A complete category with description',
-        ]);
+        $statusCategory = StatusCategory::factory()->create(
+            [
+                'name' => 'Complete Category',
+                'slug' => 'complete-category',
+                'description' => 'A complete category with description',
+            ],
+        );
 
-        $this->assertDatabaseHas('status_categories', [
-            'name' => 'Complete Category',
-            'slug' => 'complete-category',
-            'description' => 'A complete category with description',
-        ]);
+        $this->assertDatabaseHas(
+            'status_categories',
+            [
+                'name' => 'Complete Category',
+                'slug' => 'complete-category',
+                'description' => 'A complete category with description',
+            ],
+        );
     }
 
     #[Test]
@@ -99,9 +112,15 @@ class StatusCategoryFeatureTest extends TestCase
         $status3 = Status::factory()->create(['category_id' => $statusCategory->id]);
 
         $this->assertCount(3, $statusCategory->statuses);
-        $this->assertTrue($statusCategory->statuses->contains($status1));
-        $this->assertTrue($statusCategory->statuses->contains($status2));
-        $this->assertTrue($statusCategory->statuses->contains($status3));
+        $this->assertTrue(
+            $statusCategory->statuses->contains($status1),
+        );
+        $this->assertTrue(
+            $statusCategory->statuses->contains($status2),
+        );
+        $this->assertTrue(
+            $statusCategory->statuses->contains($status3),
+        );
     }
 
     #[Test]
@@ -149,24 +168,31 @@ class StatusCategoryFeatureTest extends TestCase
     #[Test]
     public function status_category_can_be_updated(): void
     {
-        $statusCategory = StatusCategory::factory()->create([
-            'name' => 'Original Name',
-            'slug' => 'original-slug',
-            'description' => 'Original description',
-        ]);
+        $statusCategory = StatusCategory::factory()->create(
+            [
+                'name' => 'Original Name',
+                'slug' => 'original-slug',
+                'description' => 'Original description',
+            ],
+        );
 
-        $statusCategory->update([
-            'name' => 'Updated Name',
-            'slug' => 'updated-slug',
-            'description' => 'Updated description',
-        ]);
+        $statusCategory->update(
+            [
+                'name' => 'Updated Name',
+                'slug' => 'updated-slug',
+                'description' => 'Updated description',
+            ],
+        );
 
-        $this->assertDatabaseHas('status_categories', [
-            'id' => $statusCategory->id,
-            'name' => 'Updated Name',
-            'slug' => 'updated-slug',
-            'description' => 'Updated description',
-        ]);
+        $this->assertDatabaseHas(
+            'status_categories',
+            [
+                'id' => $statusCategory->id,
+                'name' => 'Updated Name',
+                'slug' => 'updated-slug',
+                'description' => 'Updated description',
+            ],
+        );
     }
 
     #[Test]
@@ -189,10 +215,13 @@ class StatusCategoryFeatureTest extends TestCase
         $status = Status::factory()->create(['category_id' => $statusCategory->id]);
 
         // Verify status is linked to category
-        $this->assertDatabaseHas('statuses', [
-            'id' => $status->id,
-            'category_id' => $statusCategory->id,
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'id' => $status->id,
+                'category_id' => $statusCategory->id,
+            ],
+        );
 
         // Delete category
         $statusCategory->delete();
@@ -219,16 +248,21 @@ class StatusCategoryFeatureTest extends TestCase
     #[Test]
     public function status_category_name_and_description_can_contain_unicode(): void
     {
-        $statusCategory = StatusCategory::factory()->create([
-            'name' => 'Kategorie s česky',
-            'slug' => 'kategorie-s-cesky',
-            'description' => 'Popis kategorie s česky znaky: čšžýáíé',
-        ]);
+        $statusCategory = StatusCategory::factory()->create(
+            [
+                'name' => 'Kategorie s česky',
+                'slug' => 'kategorie-s-cesky',
+                'description' => 'Popis kategorie s česky znaky: čšžýáíé',
+            ],
+        );
 
-        $this->assertDatabaseHas('status_categories', [
-            'name' => 'Kategorie s česky',
-            'description' => 'Popis kategorie s česky znaky: čšžýáíé',
-        ]);
+        $this->assertDatabaseHas(
+            'status_categories',
+            [
+                'name' => 'Kategorie s česky',
+                'description' => 'Popis kategorie s česky znaky: čšžýáíé',
+            ],
+        );
     }
 
     #[Test]
@@ -271,6 +305,8 @@ class StatusCategoryFeatureTest extends TestCase
         $this->assertIsInt($statusCategory->id);
         $this->assertIsString($statusCategory->name);
         $this->assertIsString($statusCategory->slug);
-        $this->assertTrue(is_string($statusCategory->description) || is_null($statusCategory->description));
+        $this->assertTrue(
+            is_string($statusCategory->description) || is_null($statusCategory->description),
+        );
     }
 }

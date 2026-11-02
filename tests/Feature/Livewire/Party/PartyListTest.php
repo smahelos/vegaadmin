@@ -61,16 +61,20 @@ final class PartyListTest extends TestCase
     #[Test]
     public function searches_the_name_short_name_company_number_and_email(): void
     {
-        Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Nakladatelství',
-            'short_name' => 'NAK',
-        ]);
-        Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Tiskárna',
-            'email' => 'tisk@example.test',
-        ]);
+        Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Nakladatelství',
+                'short_name' => 'NAK',
+            ],
+        );
+        Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Tiskárna',
+                'email' => 'tisk@example.test',
+            ],
+        );
 
         Livewire::test(ContactList::class)
             ->set('search', 'NAK')
@@ -98,7 +102,9 @@ final class PartyListTest extends TestCase
         $this->user->forceFill(['default_business_id' => $business->id])->save();
 
         Livewire::test(BusinessList::class)
-            ->assertSeeInOrder(['Default One', __('businesses.fields.default')]);
+            ->assertSeeInOrder(
+                ['Default One', __('businesses.fields.default')],
+            );
     }
 
     #[Test]
@@ -114,17 +120,25 @@ final class PartyListTest extends TestCase
     public function pagination_uses_the_shared_controls_and_resets_after_filtering(): void
     {
         for ($index = 1; $index <= 11; $index++) {
-            Contact::factory()->create([
-                'user_id' => $this->user->id,
-                'name' => sprintf('Contact %02d', $index),
-            ]);
+            Contact::factory()->create(
+                [
+                    'user_id' => $this->user->id,
+                    'name' => sprintf('Contact %02d', $index),
+                ],
+            );
         }
 
         Livewire::test(ContactList::class)
             ->assertSee('Contact 01')->assertDontSee('Contact 11')
-            ->assertSee('aria-label="' . __('general.pagination.navigation') . '"', false)
+            ->assertSee(
+                'aria-label="' . __('general.pagination.navigation') . '"',
+                false,
+            )
             ->call('setPage', 2)->assertSee('Contact 11')->assertDontSee('Contact 01')
             ->set('search', 'Contact 01')->assertSee('Contact 01')
-            ->assertViewHas('contacts', fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1);
+            ->assertViewHas(
+                'contacts',
+                fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1,
+            );
     }
 }

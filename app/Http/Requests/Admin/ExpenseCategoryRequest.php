@@ -25,7 +25,7 @@ class ExpenseCategoryRequest extends FormRequest
     {
         // Determine current ID (if updating) using route parameter; fall back to NULL for create.
         $id = $this->route('id');
-        if (! $id && $this->has('id')) {
+        if (!$id && $this->has('id')) {
             $id = $this->get('id');
         }
         $id = $id ?: 'NULL';
@@ -62,9 +62,11 @@ class ExpenseCategoryRequest extends FormRequest
     {
         // Generate slug if not provided
         if (empty($this->slug)) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 }

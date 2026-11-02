@@ -108,16 +108,23 @@ final class InvoiceItemInput
             mixed $value,
             Closure $fail,
         ) use (&$allowed): void {
-            if (! is_numeric($value)) {
+            if (!is_numeric($value)) {
                 return;
             }
             $allowed ??= self::allowedTaxRates();
-            if (! in_array(
-                self::normalizedRate((string) $value),
-                $allowed,
-                true,
-            )) {
-                $fail(__('invoices.validation.tax_rate', ['rates' => self::formattedRates($allowed)]));
+            if (
+                !in_array(
+                    self::normalizedRate((string) $value),
+                    $allowed,
+                    true,
+                )
+            ) {
+                $fail(
+                    __(
+                        'invoices.validation.tax_rate',
+                        ['rates' => self::formattedRates($allowed)],
+                    ),
+                );
             }
         };
     }
@@ -129,9 +136,13 @@ final class InvoiceItemInput
     {
         $rates = array_map(
             fn (int|float|string $rate): string => self::normalizedRate((string) $rate),
-            ['0', ...array_values(app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown())],
+            ['0', ...array_values(
+                app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown(),
+            )],
         );
-        $rates = array_values(array_unique($rates));
+        $rates = array_values(
+            array_unique($rates),
+        );
         sort($rates, SORT_NUMERIC);
 
         return $rates;
@@ -142,22 +153,31 @@ final class InvoiceItemInput
      */
     private static function formattedRates(array $rates): string
     {
-        return implode(', ', array_map(
-            fn (string $rate): string => (string) Number::percentage(
-                (float) $rate,
-                maxPrecision: 2,
-                locale: app()->getLocale(),
+        return implode(
+            ', ',
+            array_map(
+                fn (string $rate): string => (string) Number::percentage(
+                    (float) $rate,
+                    maxPrecision: 2,
+                    locale: app()->getLocale(),
+                ),
+                $rates,
             ),
-            $rates,
-        ));
+        );
     }
 
     /** "21", "21.0" and "21.00" are the same rate. */
     private static function normalizedRate(string $rate): string
     {
-        $rate = ltrim(trim($rate), '+');
+        $rate = ltrim(
+            trim($rate),
+            '+',
+        );
         if (str_contains($rate, '.')) {
-            $rate = rtrim(rtrim($rate, '0'), '.');
+            $rate = rtrim(
+                rtrim($rate, '0'),
+                '.',
+            );
         }
 
         return $rate === '' ? '0' : $rate;

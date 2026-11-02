@@ -26,12 +26,15 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $log = DatabaseMaintenanceLog::create($data);
 
         $this->assertInstanceOf(DatabaseMaintenanceLog::class, $log);
-        $this->assertDatabaseHas('database_maintenance_logs', [
-            'task_type' => 'optimize',
-            'table_name' => 'users',
-            'status' => 'pending',
-            'description' => 'Optimizing users table',
-        ]);
+        $this->assertDatabaseHas(
+            'database_maintenance_logs',
+            [
+                'task_type' => 'optimize',
+                'table_name' => 'users',
+                'status' => 'pending',
+                'description' => 'Optimizing users table',
+            ],
+        );
     }
 
     #[Test]
@@ -114,7 +117,10 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Carbon::class, $log->started_at);
-        $this->assertEquals('2023-01-01 10:00:00', $log->started_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2023-01-01 10:00:00',
+            $log->started_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
@@ -126,7 +132,10 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Carbon::class, $log->completed_at);
-        $this->assertEquals('2023-01-01 11:00:00', $log->completed_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2023-01-01 11:00:00',
+            $log->completed_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
@@ -136,10 +145,12 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
         $startedAt = Carbon::parse('2023-01-01 10:00:00');
         $completedAt = Carbon::parse('2023-01-01 10:05:00');
 
-        $log = DatabaseMaintenanceLog::factory()->create([
-            'started_at' => $startedAt,
-            'completed_at' => $completedAt,
-        ]);
+        $log = DatabaseMaintenanceLog::factory()->create(
+            [
+                'started_at' => $startedAt,
+                'completed_at' => $completedAt,
+            ],
+        );
 
         $duration = $log->duration;
         $this->assertNotNull($duration);

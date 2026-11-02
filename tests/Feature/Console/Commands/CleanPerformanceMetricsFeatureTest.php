@@ -27,26 +27,32 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     private function createTestMetrics(): void
     {
         // Create some old metrics (older than 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(5)->create([
-            'measured_at' => now()->subDays(100),
-            'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
-        ]);
+        PerformanceMetric::factory()->count(5)->create(
+            [
+                'measured_at' => now()->subDays(100),
+                'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
+            ],
+        );
 
         // Create some recent metrics (within 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(3)->create([
-            'measured_at' => now()->subDays(30),
-            'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
-        ]);
+        PerformanceMetric::factory()->count(3)->create(
+            [
+                'measured_at' => now()->subDays(30),
+                'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
+            ],
+        );
 
         // Create some sample metrics (with generated metadata) with process-specific identifiers
-        PerformanceMetric::factory()->count(2)->create([
-            'metadata' => [
-                'generated' => true,
-                'type' => 'sample',
-                'test_process' => $this->processId,
-                'category' => 'sample',
+        PerformanceMetric::factory()->count(2)->create(
+            [
+                'metadata' => [
+                    'generated' => true,
+                    'type' => 'sample',
+                    'test_process' => $this->processId,
+                    'category' => 'sample',
+                ],
             ],
-        ]);
+        );
     }
 
     #[Test]
@@ -169,11 +175,14 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_shows_configuration_info(): void
     {
-        Artisan::call('db:clean-metrics', [
-            '--type' => 'old',
-            '--days' => 60,
-            '--dry-run' => true,
-        ]);
+        Artisan::call(
+            'db:clean-metrics',
+            [
+                '--type' => 'old',
+                '--days' => 60,
+                '--dry-run' => true,
+            ],
+        );
 
         $output = Artisan::output();
 

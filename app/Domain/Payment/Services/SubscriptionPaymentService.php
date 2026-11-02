@@ -74,82 +74,92 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
         array $paymentData,
     ): array {
         try {
-            return $this->tx->transaction(function () use ($subscriptionId, $gateway, $paymentData) {
-                $gatewayInstance = $this->registry->get($gateway);
-                if (! $gatewayInstance) {
-                    throw new \InvalidArgumentException("Unsupported gateway: {$gateway}");
-                }
+            return $this->tx->transaction(
+                function () use ($subscriptionId, $gateway, $paymentData) {
+                    $gatewayInstance = $this->registry->get($gateway);
+                    if (!$gatewayInstance) {
+                        throw new \InvalidArgumentException("Unsupported gateway: {$gateway}");
+                    }
 
-                // Load subscription
-                $subscription = $this->subscriptionsRead->findById($subscriptionId);
-                if (! $subscription) {
-                    return [
-                        'success' => false,
-                        'error' => 'Subscription not found',
-                    ];
-                }
+                    // Load subscription
+                    $subscription = $this->subscriptionsRead->findById($subscriptionId);
+                    if (!$subscription) {
+                        return [
+                            'success' => false,
+                            'error' => 'Subscription not found',
+                        ];
+                    }
 
-                // Create payment record
-                $payment = $this->paymentsWrite->create(new PaymentWriteData(
-                    subscription_id: $subscriptionId,
-                    amount: $paymentData['amount'] ?? (float) ($subscription->amount ?? 0.0),
-                    currency: $paymentData['currency'] ?? (string) ($subscription->currency ?? 'CZK'),
-                    gateway: $gateway,
-                    status: 'pending',
-                    gateway_payment_id: null,
-                ));
+                    // Create payment record
+                    $payment = $this->paymentsWrite->create(
+                        new PaymentWriteData(
+                            subscription_id: $subscriptionId,
+                            amount: $paymentData['amount'] ?? (float) ($subscription->amount ?? 0.0),
+                            currency: $paymentData['currency'] ?? (string) ($subscription->currency ?? 'CZK'),
+                            gateway: $gateway,
+                            status: 'pending',
+                            gateway_payment_id: null,
+                        ),
+                    );
 
-                // Create payment through gateway
-                $payload = array_merge($paymentData, [
-                    'order_id' => $payment->id,
-                    'plan_name' => optional($subscription->subscriptionPlan)->name,
-                ]);
-                $result = $gatewayInstance->createPayment($payload);
+                    // Create payment through gateway
+                    $payload = array_merge(
+                        $paymentData,
+                        [
+                            'order_id' => $payment->id,
+                            'plan_name' => optional($subscription->subscriptionPlan)->name,
+                        ],
+                    );
+                    $result = $gatewayInstance->createPayment($payload);
 
-                if ($result['success'] ?? false) {
-                    $this->paymentsWrite->updateById($payment->id, new PaymentWriteData(
-                        gateway_payment_id: $result['payment_id'] ?? null,
-                        status: $result['status'] ?? 'pending',
-                    ));
+                    if ($result['success'] ?? false) {
+                        $this->paymentsWrite->updateById(
+                            $payment->id,
+                            new PaymentWriteData(
+                                gateway_payment_id: $result['payment_id'] ?? null,
+                                status: $result['status'] ?? 'pending',
+                            ),
+                        );
+
+                        $this->logger->log(
+                            'info',
+                            'Subscription payment initiated successfully',
+                            [
+                                'payment_id' => $payment->id,
+                                'subscription_id' => $subscriptionId,
+                                'gateway' => $gateway,
+                                'amount' => $payment->amount,
+                            ],
+                        );
+
+                        return [
+                            'success' => true,
+                            'payment_id' => $payment->id,
+                            'gateway_payment_id' => $result['payment_id'] ?? null,
+                            'subscription_id' => $subscriptionId,
+                            'gateway' => $gateway,
+                            'redirect_url' => $result['redirect_url'] ?? ($result['payment_url'] ?? null),
+                            'status' => $result['status'] ?? 'pending',
+                        ];
+                    }
 
                     $this->logger->log(
-                        'info',
-                        'Subscription payment initiated successfully',
+                        'error',
+                        'Subscription payment failed',
                         [
                             'payment_id' => $payment->id,
                             'subscription_id' => $subscriptionId,
                             'gateway' => $gateway,
-                            'amount' => $payment->amount,
+                            'error' => $result['error'] ?? 'Unknown error',
                         ],
                     );
 
                     return [
-                        'success' => true,
-                        'payment_id' => $payment->id,
-                        'gateway_payment_id' => $result['payment_id'] ?? null,
-                        'subscription_id' => $subscriptionId,
-                        'gateway' => $gateway,
-                        'redirect_url' => $result['redirect_url'] ?? ($result['payment_url'] ?? null),
-                        'status' => $result['status'] ?? 'pending',
+                        'success' => false,
+                        'error' => $result['error'] ?? 'Payment processing failed',
                     ];
-                }
-
-                $this->logger->log(
-                    'error',
-                    'Subscription payment failed',
-                    [
-                        'payment_id' => $payment->id,
-                        'subscription_id' => $subscriptionId,
-                        'gateway' => $gateway,
-                        'error' => $result['error'] ?? 'Unknown error',
-                    ],
-                );
-
-                return [
-                    'success' => false,
-                    'error' => $result['error'] ?? 'Payment processing failed',
-                ];
-            });
+                },
+            );
         } catch (\Exception $e) {
             $this->logger->log(
                 'error',
@@ -176,14 +186,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         try {
             $gatewayInstance = $this->registry->get($gateway);
-            if (! $gatewayInstance) {
+            if (!$gatewayInstance) {
                 throw new \InvalidArgumentException("Unsupported gateway: {$gateway}");
             }
 
             // Use the contract method implemented by gateways
             $result = $gatewayInstance->processPaymentReturn($callbackData);
 
-            if (! ($result['success'] ?? false)) {
+            if (!($result['success'] ?? false)) {
                 $this->logger->log(
                     'warning',
                     'Payment callback handling failed',
@@ -209,7 +219,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 $payment = $this->paymentsRead->findByGatewayPaymentId($gatewayPaymentId);
             }
 
-            if (! $payment) {
+            if (!$payment) {
                 $this->logger->log(
                     'error',
                     'Payment not found for callback',
@@ -231,10 +241,13 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             $newStatus = $result['status'] ?? 'unknown';
 
             // Update payment status
-            $this->paymentsWrite->updateById($payment->id, new PaymentWriteData(
-                status: $newStatus,
-                gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
-            ));
+            $this->paymentsWrite->updateById(
+                $payment->id,
+                new PaymentWriteData(
+                    status: $newStatus,
+                    gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
+                ),
+            );
 
             // Handle subscription status updates
             if ($payment->subscription_id && $newStatus === 'completed' && $oldStatus !== 'completed') {
@@ -293,7 +306,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     {
         // Read subscription to determine plan duration using read repository
         $subscription = $this->subscriptionsRead->findById($subscriptionId);
-        if (! $subscription) {
+        if (!$subscription) {
             $this->logger->log(
                 'error',
                 'Subscription not found for activation',
@@ -351,9 +364,12 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     $result = $gateway->cancelPayment($payment->gateway_payment_id);
                     $success = (is_bool($result) && $result === true) || (is_array($result) && (array_key_exists('success', $result) ? (bool) $result['success'] : false));
                     if ($success) {
-                        $this->paymentsWrite->updateById($payment->id, new PaymentWriteData(
-                            status: 'cancelled',
-                        ));
+                        $this->paymentsWrite->updateById(
+                            $payment->id,
+                            new PaymentWriteData(
+                                status: 'cancelled',
+                            ),
+                        );
                     } else {
                         $allCancelled = false;
                         $error = is_array($result) ? ($result['error'] ?? 'Unknown error') : 'Gateway error';
@@ -368,9 +384,12 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     }
                 } else {
                     // Mark as cancelled if no gateway payment ID
-                    $this->paymentsWrite->updateById($payment->id, new PaymentWriteData(
-                        status: 'cancelled',
-                    ));
+                    $this->paymentsWrite->updateById(
+                        $payment->id,
+                        new PaymentWriteData(
+                            status: 'cancelled',
+                        ),
+                    );
                 }
             }
 
@@ -422,7 +441,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
     public function supportsRecurringPayments(string $gateway): bool
     {
         $gatewayInstance = $this->getGateway($gateway);
-        if (! $gatewayInstance) {
+        if (!$gatewayInstance) {
             return false;
         }
 

@@ -66,13 +66,15 @@ final class CurrencyServiceFeatureTest extends TestCase
         Cache::flush();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         $result = $this->service->getAllCurrencies();
-        foreach ([
-            'USD',
-            'EUR',
-            'CZK',
-            'GBP',
-            'PLN',
-        ] as $code) {
+        foreach (
+            [
+                'USD',
+                'EUR',
+                'CZK',
+                'GBP',
+                'PLN',
+            ] as $code
+        ) {
             $this->assertArrayHasKey($code, $result);
             $this->assertEquals($code, $result[$code]);
         }
@@ -120,12 +122,15 @@ final class CurrencyServiceFeatureTest extends TestCase
         $this->app->instance(HttpClientInterface::class, $client);
         Cache::flush();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
-        $this->assertEquals([
-            'AUD',
-            'EUR',
-            'USD',
-            'ZAR',
-        ], array_keys($this->service->getAllCurrencies()));
+        $this->assertEquals(
+            [
+                'AUD',
+                'EUR',
+                'USD',
+                'ZAR',
+            ],
+            array_keys($this->service->getAllCurrencies()),
+        );
     }
 
     #[Test]
@@ -166,12 +171,14 @@ final class CurrencyServiceFeatureTest extends TestCase
         Cache::flush();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         $result = $this->service->getAllCurrencies();
-        foreach ([
-            'CZK',
-            'EUR',
-            'USD',
-            'GBP',
-        ] as $code) {
+        foreach (
+            [
+                'CZK',
+                'EUR',
+                'USD',
+                'GBP',
+            ] as $code
+        ) {
             $this->assertArrayHasKey($code, $result);
         }
     }
@@ -354,15 +361,17 @@ final class CurrencyServiceFeatureTest extends TestCase
         Cache::flush();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         $subset = $this->service->getCommonCurrencies();
-        foreach ([
-            'CZK',
-            'EUR',
-            'USD',
-            'GBP',
-            'PLN',
-            'HUF',
-            'CHF',
-        ] as $c) {
+        foreach (
+            [
+                'CZK',
+                'EUR',
+                'USD',
+                'GBP',
+                'PLN',
+                'HUF',
+                'CHF',
+            ] as $c
+        ) {
             $this->assertArrayHasKey($c, $subset);
         }
         $this->assertArrayNotHasKey('JPY', $subset);
@@ -410,19 +419,23 @@ final class CurrencyServiceFeatureTest extends TestCase
         Cache::flush();
         $this->service = $this->app->make(CurrencyServiceInterface::class);
         $res = $this->service->getCommonCurrencies();
-        foreach ([
-            'USD',
-            'EUR',
-            'CZK',
-        ] as $c) {
+        foreach (
+            [
+                'USD',
+                'EUR',
+                'CZK',
+            ] as $c
+        ) {
             $this->assertArrayHasKey($c, $res);
         }
-        foreach ([
-            'GBP',
-            'PLN',
-            'HUF',
-            'CHF',
-        ] as $c) {
+        foreach (
+            [
+                'GBP',
+                'PLN',
+                'HUF',
+                'CHF',
+            ] as $c
+        ) {
             $this->assertArrayNotHasKey($c, $res);
         }
     }

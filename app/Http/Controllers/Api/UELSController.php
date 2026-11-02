@@ -37,7 +37,7 @@ final class UELSController extends Controller
             'product',
             'invoice',
         ];
-        if (! in_array($entity, $validEntities)) {
+        if (!in_array($entity, $validEntities)) {
             return response()->json(['error' => 'Invalid entity type'], 400);
         }
 
@@ -46,39 +46,41 @@ final class UELSController extends Controller
             $entityInfo = $this->uels->getEntityLimitInfo($user?->id, $entity);
             $canCreateEntity = (bool) ($entityInfo['can_create'] ?? ($entityInfo['has_permission'] ?? false));
 
-            if (! $canCreateEntity) {
-                return response()->json([
-                    'entity' => $entity,
-                    'current_usage' => 0,
-                    'limit' => 0,
-                    'remaining_count' => 0,
-                    'percentage_used' => 0,
-                    'is_at_limit' => true,
-                    'status' => 'no_permission',
-                    'user_id' => $user?->id,
-                    'user_name' => $user?->name ?? 'Anonymous',
-                    'message' => 'No permission to create this entity type',
-                    'best_stats_period' => null,
-                    'overview' => [
-                        'currentUsage' => 0,
+            if (!$canCreateEntity) {
+                return response()->json(
+                    [
+                        'entity' => $entity,
+                        'current_usage' => 0,
                         'limit' => 0,
+                        'remaining_count' => 0,
+                        'percentage_used' => 0,
+                        'is_at_limit' => true,
+                        'status' => 'no_permission',
+                        'user_id' => $user?->id,
+                        'user_name' => $user?->name ?? 'Anonymous',
+                        'message' => 'No permission to create this entity type',
+                        'best_stats_period' => null,
+                        'overview' => [
+                            'currentUsage' => 0,
+                            'limit' => 0,
+                        ],
+                        'currentUsage' => [
+                            'today' => 0,
+                            'thisWeek' => 0,
+                            'thisMonth' => 0,
+                            'total' => 0,
+                        ],
+                        'recentActivity' => [],
+                        'permissions' => [],
                     ],
-                    'currentUsage' => [
-                        'today' => 0,
-                        'thisWeek' => 0,
-                        'thisMonth' => 0,
-                        'total' => 0,
-                    ],
-                    'recentActivity' => [],
-                    'permissions' => [],
-                ]);
+                );
             }
 
             // Normalize permissions to array whether it's a Collection or plain array
             $activePermissions = is_array($entityInfo['user_permissions'])
                 ? $entityInfo['user_permissions']
                 : ($entityInfo['user_permissions']?->toArray() ?? []);
-            if (! empty($activePermissions)) {
+            if (!empty($activePermissions)) {
                 $limitPeriod['daily'] = $this->findKey('daily', $activePermissions);
                 $limitPeriod['weekly'] = $this->findKey('weekly', $activePermissions);
                 $limitPeriod['monthly'] = $this->findKey('monthly', $activePermissions);
@@ -153,11 +155,14 @@ final class UELSController extends Controller
             foreach ($statsWithPeriods as $period => $stats) {
                 if ($stats && $stats['limit'] > 0) {
                     $effectiveLimit = $this->calculateEffectiveLimit($stats['limit'], $period);
-                    Log::info('UELS: Calculating effective limit', [
-                        'period' => $period,
-                        'original_limit' => $stats['limit'],
-                        'effective_limit' => $effectiveLimit,
-                    ]);
+                    Log::info(
+                        'UELS: Calculating effective limit',
+                        [
+                            'period' => $period,
+                            'original_limit' => $stats['limit'],
+                            'effective_limit' => $effectiveLimit,
+                        ],
+                    );
 
                     if ($effectiveLimit > $highestEffectiveLimit) {
                         $highestEffectiveLimit = $effectiveLimit;
@@ -170,39 +175,41 @@ final class UELSController extends Controller
             $primaryStats = $bestStats;
 
             // If no limit > 0 found, use the first available stat as fallback
-            if (! $primaryStats) {
+            if (!$primaryStats) {
                 $primaryStats = $dailyStats ?: $weeklyStats ?: $monthlyStats ?: $yearlyStats ?: $lifetimeStats;
             }
 
-            if (! $primaryStats) {
+            if (!$primaryStats) {
                 // Fallback - user has permissions but no limits configured
-                return response()->json([
-                    'entity' => $entity,
-                    'current_usage' => 0,
-                    'limit' => -1,
-                    'remaining_count' => -1,
-                    'percentage_used' => 0,
-                    'is_at_limit' => false,
-                    'status' => 'unlimited',
-                    'user_id' => $user?->id,
-                    'user_name' => $user?->name ?? 'Anonymous',
-                    'message' => 'Unlimited access for this entity type',
-                    'best_stats_period' => $bestStatsPeriod,
-                    'overview' => [
-                        'currentUsage' => 0,
+                return response()->json(
+                    [
+                        'entity' => $entity,
+                        'current_usage' => 0,
                         'limit' => -1,
+                        'remaining_count' => -1,
+                        'percentage_used' => 0,
+                        'is_at_limit' => false,
+                        'status' => 'unlimited',
+                        'user_id' => $user?->id,
+                        'user_name' => $user?->name ?? 'Anonymous',
+                        'message' => 'Unlimited access for this entity type',
+                        'best_stats_period' => $bestStatsPeriod,
+                        'overview' => [
+                            'currentUsage' => 0,
+                            'limit' => -1,
+                        ],
+                        'currentUsage' => [
+                            'today' => 0,
+                            'thisWeek' => 0,
+                            'thisMonth' => 0,
+                            'total' => 0,
+                        ],
+                        'recentActivity' => [],
+                        'permissions' => is_array($entityInfo['user_permissions'])
+                            ? $entityInfo['user_permissions']
+                            : ($entityInfo['user_permissions']?->toArray() ?? []),
                     ],
-                    'currentUsage' => [
-                        'today' => 0,
-                        'thisWeek' => 0,
-                        'thisMonth' => 0,
-                        'total' => 0,
-                    ],
-                    'recentActivity' => [],
-                    'permissions' => is_array($entityInfo['user_permissions'])
-                        ? $entityInfo['user_permissions']
-                        : ($entityInfo['user_permissions']?->toArray() ?? []),
-                ]);
+                );
             }
 
             $currentUsage = $primaryStats['current_usage'] ?? 0;
@@ -211,48 +218,53 @@ final class UELSController extends Controller
             $percentageUsed = $primaryStats['usage_percentage'] ?? 0;
             $primaryCanCreate = $primaryStats['can_create'] ?? ($limit > $currentUsage);
 
-            return response()->json([
-                'entity' => $entity,
-                'current_usage' => $currentUsage,
-                'limit' => $limit,
-                'remaining_count' => $remaining,
-                'percentage_used' => $percentageUsed,
-                'is_at_limit' => ! $primaryCanCreate,
-                'status' => $this->getStatusLevel($percentageUsed, $primaryCanCreate),
-                'period_start' => $primaryStats['period_start'] ?? null,
-                'period_end' => $primaryStats['period_end'] ?? null,
-                'user_id' => $user?->id,
-                'user_name' => $user?->name ?? 'Anonymous',
-                'message' => $this->getStatusMessage(
-                    $percentageUsed,
-                    $primaryStats['can_create'],
-                    $entity,
-                ),
-                'best_stats_period' => $bestStatsPeriod,
-                // Modal data structure
-                'overview' => [
-                    'currentUsage' => $currentUsage,
+            return response()->json(
+                [
+                    'entity' => $entity,
+                    'current_usage' => $currentUsage,
                     'limit' => $limit,
+                    'remaining_count' => $remaining,
+                    'percentage_used' => $percentageUsed,
+                    'is_at_limit' => !$primaryCanCreate,
+                    'status' => $this->getStatusLevel($percentageUsed, $primaryCanCreate),
+                    'period_start' => $primaryStats['period_start'] ?? null,
+                    'period_end' => $primaryStats['period_end'] ?? null,
+                    'user_id' => $user?->id,
+                    'user_name' => $user?->name ?? 'Anonymous',
+                    'message' => $this->getStatusMessage(
+                        $percentageUsed,
+                        $primaryStats['can_create'],
+                        $entity,
+                    ),
+                    'best_stats_period' => $bestStatsPeriod,
+                    // Modal data structure
+                    'overview' => [
+                        'currentUsage' => $currentUsage,
+                        'limit' => $limit,
+                    ],
+                    'currentUsage' => [
+                        'today' => $dailyStats['current_usage'] ?? 0,
+                        'thisWeek' => $weeklyStats['current_usage'] ?? 0,
+                        'thisMonth' => $monthlyStats['current_usage'] ?? 0,
+                        'thisYear' => $yearlyStats['current_usage'] ?? 0,
+                        'lifetime' => $lifetimeStats['current_usage'] ?? 0,
+                        'total' => $currentUsage,
+                    ],
+                    'recentActivity' => $this->getRecentActivity($user, $entity),
+                    'permissions' => is_array($entityInfo['user_permissions'])
+                        ? $entityInfo['user_permissions']
+                        : ($entityInfo['user_permissions']?->toArray() ?? []),
+                    'all_limits' => $entityInfo['limits'],
                 ],
-                'currentUsage' => [
-                    'today' => $dailyStats['current_usage'] ?? 0,
-                    'thisWeek' => $weeklyStats['current_usage'] ?? 0,
-                    'thisMonth' => $monthlyStats['current_usage'] ?? 0,
-                    'thisYear' => $yearlyStats['current_usage'] ?? 0,
-                    'lifetime' => $lifetimeStats['current_usage'] ?? 0,
-                    'total' => $currentUsage,
-                ],
-                'recentActivity' => $this->getRecentActivity($user, $entity),
-                'permissions' => is_array($entityInfo['user_permissions'])
-                    ? $entityInfo['user_permissions']
-                    : ($entityInfo['user_permissions']?->toArray() ?? []),
-                'all_limits' => $entityInfo['limits'],
-            ]);
+            );
 
         } catch (Throwable $e) {
             Log::error('Loading UELS data failed', ['exception' => $e]);
 
-            return response()->json(['message' => __('entity_limits.modal.error')], 500);
+            return response()->json(
+                ['message' => __('entity_limits.modal.error')],
+                500,
+            );
         }
     }
 
@@ -293,12 +305,14 @@ final class UELSController extends Controller
             $data[$entity] = $response->getData(true);
         }
 
-        return response()->json([
-            'entities' => $data,
-            'user_id' => $user?->id,
-            'user_name' => $user?->name,
-            'timestamp' => now()->toISOString(),
-        ]);
+        return response()->json(
+            [
+                'entities' => $data,
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+                'timestamp' => now()->toISOString(),
+            ],
+        );
     }
 
     /**
@@ -306,7 +320,7 @@ final class UELSController extends Controller
      */
     private function getStatusLevel(float $percentageUsed, bool $canCreate): string
     {
-        if (! $canCreate) {
+        if (!$canCreate) {
             return 'danger';
         }
 
@@ -327,7 +341,7 @@ final class UELSController extends Controller
         bool $canCreate,
         string $entity,
     ): string {
-        if (! $canCreate) {
+        if (!$canCreate) {
             return "You have reached your {$entity} limit for this period.";
         }
 

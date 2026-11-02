@@ -60,7 +60,10 @@ final class BankAccountsTest extends TestCase
             ->call('save')
             ->assertHasErrors(['account.iban']);
 
-        $this->assertSame(0, BankAccount::query()->where('business_id', $business->id)->count());
+        $this->assertSame(
+            0,
+            BankAccount::query()->where('business_id', $business->id)->count(),
+        );
     }
 
     #[Test]
@@ -81,11 +84,13 @@ final class BankAccountsTest extends TestCase
     {
         $business = Business::factory()->create(['user_id' => $this->user->id]);
         $default = BankAccount::factory()->ownedBy($business)->create();
-        $other = BankAccount::factory()->ownedBy($business)->create([
-            'number' => '1234567899',
-            'bank_code' => '0100',
-            'iban' => 'CZ9501000000001234567899',
-        ]);
+        $other = BankAccount::factory()->ownedBy($business)->create(
+            [
+                'number' => '1234567899',
+                'bank_code' => '0100',
+                'iban' => 'CZ9501000000001234567899',
+            ],
+        );
         $business->forceFill(['default_bank_account_id' => $default->id])->save();
 
         $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
@@ -118,7 +123,9 @@ final class BankAccountsTest extends TestCase
         $this->user->givePermissionTo('frontend.can_view_business');
 
         Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->assertDontSee(__('parties.bank_accounts.actions.add'))
+            ->assertDontSee(
+                __('parties.bank_accounts.actions.add'),
+            )
             ->call('add')
             ->assertForbidden();
     }
@@ -128,12 +135,14 @@ final class BankAccountsTest extends TestCase
     {
         foreach (['business', 'contact'] as $context) {
             foreach (['business', 'contact'] as $target) {
-                foreach ([
-                    'edit',
-                    'archive',
-                    'restore',
-                    'makeDefault',
-                ] as $action) {
+                foreach (
+                    [
+                        'edit',
+                        'archive',
+                        'restore',
+                        'makeDefault',
+                    ] as $action
+                ) {
                     yield $context . '-' . $target . '-' . $action => [
                         $context,
                         $target,
@@ -152,10 +161,12 @@ final class BankAccountsTest extends TestCase
         string $action,
     ): void {
         $this->user->removeRole('frontend_user');
-        $this->user->givePermissionTo([
-            'frontend.can_view_' . $context,
-            'frontend.can_update_' . $context,
-        ]);
+        $this->user->givePermissionTo(
+            [
+                'frontend.can_view_' . $context,
+                'frontend.can_update_' . $context,
+            ],
+        );
         $model = $context === 'business' ? Business::class : Contact::class;
         $owner = $model::factory()->create(['user_id' => $this->user->id]);
         $targetModel = $target === 'business' ? Business::class : Contact::class;

@@ -55,7 +55,9 @@ class UserControllerFeatureTest extends TestCase
             $this->testUser2 ?? null,
             $this->testUser3 ?? null,
         ];
-        $this->userServiceStub->seedFromModels(array_filter($models));
+        $this->userServiceStub->seedFromModels(
+            array_filter($models),
+        );
         app()->instance(UserServiceInterface::class, $this->userServiceStub);
     }
 
@@ -65,20 +67,26 @@ class UserControllerFeatureTest extends TestCase
     private function createTestUsers(): void
     {
         // Create test users for testing endpoints
-        $this->testUser1 = User::factory()->create([
-            'name' => 'Test User One',
-            'email' => 'testuser1@example.com',
-        ]);
+        $this->testUser1 = User::factory()->create(
+            [
+                'name' => 'Test User One',
+                'email' => 'testuser1@example.com',
+            ],
+        );
 
-        $this->testUser2 = User::factory()->create([
-            'name' => 'Test User Two',
-            'email' => 'testuser2@example.com',
-        ]);
+        $this->testUser2 = User::factory()->create(
+            [
+                'name' => 'Test User Two',
+                'email' => 'testuser2@example.com',
+            ],
+        );
 
-        $this->testUser3 = User::factory()->create([
-            'name' => 'Another Name',
-            'email' => 'testuser3@example.com',
-        ]);
+        $this->testUser3 = User::factory()->create(
+            [
+                'name' => 'Another Name',
+                'email' => 'testuser3@example.com',
+            ],
+        );
     }
 
     // ========================================================================
@@ -100,11 +108,13 @@ class UserControllerFeatureTest extends TestCase
                 'created_at',
                 'updated_at',
             ])
-            ->assertJson([
-                'id' => $this->testUser1->id,
-                'name' => $this->testUser1->name,
-                'email' => $this->testUser1->email,
-            ]);
+            ->assertJson(
+                [
+                    'id' => $this->testUser1->id,
+                    'name' => $this->testUser1->name,
+                    'email' => $this->testUser1->email,
+                ],
+            );
     }
 
     #[Test]
@@ -115,9 +125,11 @@ class UserControllerFeatureTest extends TestCase
             ->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(403)
-            ->assertJson([
-                'error' => __('users.auth.unauthorized'),
-            ]);
+            ->assertJson(
+                [
+                    'error' => __('users.auth.unauthorized'),
+                ],
+            );
     }
 
     #[Test]
@@ -127,9 +139,11 @@ class UserControllerFeatureTest extends TestCase
             ->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(401)
-            ->assertJson([
-                'error' => __('users.auth.unauthenticated'),
-            ]);
+            ->assertJson(
+                [
+                    'error' => __('users.auth.unauthenticated'),
+                ],
+            );
     }
 
     #[Test]
@@ -142,9 +156,11 @@ class UserControllerFeatureTest extends TestCase
             ->getJson("/api/admin/user/{$nonExistentId}");
 
         $response->assertStatus(404)
-            ->assertJson([
-                'error' => __('users.messages.not_found'),
-            ]);
+            ->assertJson(
+                [
+                    'error' => __('users.messages.not_found'),
+                ],
+            );
     }
 
     #[Test]
@@ -172,9 +188,15 @@ class UserControllerFeatureTest extends TestCase
         $users = $response->json();
         $this->assertIsArray($users);
         $ids = collect($users)->pluck('id');
-        $this->assertTrue($ids->contains($this->testUser1->id));
-        $this->assertTrue($ids->contains($this->testUser2->id));
-        $this->assertTrue($ids->contains($this->testUser3->id));
+        $this->assertTrue(
+            $ids->contains($this->testUser1->id),
+        );
+        $this->assertTrue(
+            $ids->contains($this->testUser2->id),
+        );
+        $this->assertTrue(
+            $ids->contains($this->testUser3->id),
+        );
     }
 
     #[Test]
@@ -245,7 +267,10 @@ class UserControllerFeatureTest extends TestCase
         $payload = $response->json();
         $this->assertEquals(10, $payload['per_page']);
         $this->assertGreaterThan(10, $payload['total']);
-        $this->assertLessThanOrEqual(10, count($payload['data']));
+        $this->assertLessThanOrEqual(
+            10,
+            count($payload['data']),
+        );
     }
 
     #[Test]
@@ -257,10 +282,12 @@ class UserControllerFeatureTest extends TestCase
 
         $this->assertSame(2, $second['current_page']);
         $this->assertNotEmpty($second['data']);
-        $this->assertEmpty(array_intersect(
-            array_column($first['data'], 'id'),
-            array_column($second['data'], 'id'),
-        ));
+        $this->assertEmpty(
+            array_intersect(
+                array_column($first['data'], 'id'),
+                array_column($second['data'], 'id'),
+            ),
+        );
     }
 
     #[Test]
@@ -269,7 +296,9 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->unauthorizedAdmin, 'backpack')
             ->getJson('/api/admin/user/search?q=Test')
             ->assertStatus(403)
-            ->assertJson(['error' => __('users.auth.unauthorized')]);
+            ->assertJson(
+                ['error' => __('users.auth.unauthorized')],
+            );
     }
 
     // ========================================================================
@@ -343,7 +372,9 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $response = $this->getJson('/api/admin/user/search?q=%C5%A0p%C3%AB%C4%8Di%C3%A1l');
         $response->assertStatus(200);
-        $names = collect($response->json('data'))->pluck('name')->toArray();
+        $names = collect(
+            $response->json('data'),
+        )->pluck('name')->toArray();
         $this->assertContains('User with Špëčiál Ćháräçtërs', $names);
     }
 
@@ -378,14 +409,16 @@ class UserControllerFeatureTest extends TestCase
             ->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200)
-            ->assertJsonStructure([
-                'id',
-                'name',
-                'email',
-                'email_verified_at',
-                'created_at',
-                'updated_at',
-            ]);
+            ->assertJsonStructure(
+                [
+                    'id',
+                    'name',
+                    'email',
+                    'email_verified_at',
+                    'created_at',
+                    'updated_at',
+                ],
+            );
 
         // Verify data types
         $data = $response->json();
@@ -417,7 +450,10 @@ class UserControllerFeatureTest extends TestCase
         }
 
         // Response contains all users
-        $this->assertGreaterThanOrEqual(2, count($data));
+        $this->assertGreaterThanOrEqual(
+            2,
+            count($data),
+        );
 
         // Verify first user structure
         $firstUser = $data[0];
@@ -461,10 +497,12 @@ class UserControllerFeatureTest extends TestCase
         // Expect an error log invocation with correct message and context
         Log::shouldReceive('error')
             ->once()
-            ->withArgs(function ($message, $context) {
-                return str_contains($message, 'UserController@getUserAdmin error')
-                    && isset($context['user_id']);
-            });
+            ->withArgs(
+                function ($message, $context) {
+                    return str_contains($message, 'UserController@getUserAdmin error')
+                        && isset($context['user_id']);
+                },
+            );
         // Configure stub to throw for specific id (handled inside stub)
         $failingId = 777777;
         $this->userServiceStub->failOnId = $failingId;
@@ -540,7 +578,7 @@ class InMemoryUserServiceStub implements UserServiceInterface
         if ($this->failOnId === $id) {
             throw new \Exception('Simulated failure');
         }
-        if (! isset($this->users[$id])) {
+        if (!isset($this->users[$id])) {
             throw (new ModelNotFoundException)->setModel(User::class, [$id]);
         }
         $data = $this->users[$id];
@@ -560,13 +598,18 @@ class InMemoryUserServiceStub implements UserServiceInterface
 
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult
     {
-        $filtered = array_values(array_filter($this->users, function ($u) use ($term) {
-            if (! $term) {
-                return true;
-            }
+        $filtered = array_values(
+            array_filter(
+                $this->users,
+                function ($u) use ($term) {
+                    if (!$term) {
+                        return true;
+                    }
 
-            return mb_stripos($u['name'], (string) $term) !== false;
-        }));
+                    return mb_stripos($u['name'], (string) $term) !== false;
+                },
+            ),
+        );
         $total = count($filtered);
         $perPage = $page->perPage();
         $currentPage = $page->page();

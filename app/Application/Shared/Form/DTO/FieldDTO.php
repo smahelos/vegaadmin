@@ -54,14 +54,16 @@ class FieldDTO
         ];
 
         // Remove only null-valued optional keys to keep payload lean.
-        foreach ([
-            'entity',
-            'attribute',
-            'model',
-            'accept',
-            'default',
-        ] as $maybeNull) {
-            if (! array_key_exists($maybeNull, $data)) {
+        foreach (
+            [
+                'entity',
+                'attribute',
+                'model',
+                'accept',
+                'default',
+            ] as $maybeNull
+        ) {
+            if (!array_key_exists($maybeNull, $data)) {
                 continue;
             }
             if ($data[$maybeNull] === null) {

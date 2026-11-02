@@ -43,7 +43,11 @@ class ProductApplicationService implements ProductApplicationServiceInterface
 
         $writeData = ProductWriteData::fromArray($data);
 
-        return DB::transaction(fn () => $this->productDomainService->createProduct($writeData, UserId::fromInt($userId)),
+        return DB::transaction(
+            fn () => $this->productDomainService->createProduct(
+                $writeData,
+                UserId::fromInt($userId),
+            ),
         );
     }
 
@@ -56,7 +60,10 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         $data['user_id'] = $userId;
 
         // Verify product exists and user has access (do not rely on global auth())
-        $product = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
+        $product = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($productId),
+            UserId::fromInt($userId),
+        );
 
         $this->validationService->validateProductBusinessRules(
             $data,
@@ -67,18 +74,23 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         $writeData = ProductWriteData::fromArray($data);
         $id = ProductId::fromInt($productId);
 
-        return DB::transaction(fn () => $this->productDomainService->updateProduct($id, $writeData),
+        return DB::transaction(
+            fn () => $this->productDomainService->updateProduct($id, $writeData),
         );
     }
 
     public function deleteProduct(int $productId, int $userId): void
     {
         // Verify product exists and user has access
-        $product = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
+        $product = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($productId),
+            UserId::fromInt($userId),
+        );
 
         $id = ProductId::fromInt($productId);
 
-        DB::transaction(fn () => $this->productDomainService->deleteProduct($id),
+        DB::transaction(
+            fn () => $this->productDomainService->deleteProduct($id),
         );
 
         // The file goes only once the product is gone, so a refused delete keeps the image
@@ -96,7 +108,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
             ? $this->productDomainService->findProductAny($productId)
             : $this->productDomainService->findProductForUser($productId, $userVO);
 
-        if (! $product) {
+        if (!$product) {
             throw new ModelNotFoundException('Product not found');
         }
 
@@ -108,13 +120,16 @@ class ProductApplicationService implements ProductApplicationServiceInterface
      */
     public function authorizeViewProduct(int $userId, int $productId): void
     {
-        $productDto = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
+        $productDto = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($productId),
+            UserId::fromInt($userId),
+        );
 
         if ($productDto === null) {
             abort(404, 'Product not found');
         }
 
-        if (! $this->authService->canViewProduct($userId, $productDto->user_id)) {
+        if (!$this->authService->canViewProduct($userId, $productDto->user_id)) {
             abort(403, 'Unauthorized to view this product');
         }
     }
@@ -124,9 +139,12 @@ class ProductApplicationService implements ProductApplicationServiceInterface
      */
     public function authorizeUpdateProduct(int $userId, int $productId): void
     {
-        $productDto = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
+        $productDto = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($productId),
+            UserId::fromInt($userId),
+        );
 
-        if (! $this->authService->canUpdateProduct($userId, $productDto->user_id)) {
+        if (!$this->authService->canUpdateProduct($userId, $productDto->user_id)) {
             abort(403, 'Unauthorized to update this product');
         }
     }
@@ -136,13 +154,16 @@ class ProductApplicationService implements ProductApplicationServiceInterface
      */
     public function authorizeDeleteProduct(int $userId, int $productId): void
     {
-        $productDto = $this->productDomainService->findProductForUser(ProductId::fromInt($productId), UserId::fromInt($userId));
+        $productDto = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($productId),
+            UserId::fromInt($userId),
+        );
 
         if ($productDto === null) {
             abort(404, 'Product not found');
         }
 
-        if (! $this->authService->canDeleteProduct($userId, $productDto->user_id)) {
+        if (!$this->authService->canDeleteProduct($userId, $productDto->user_id)) {
             throw new AuthorizationException('User cannot delete this product');
         }
     }

@@ -14,8 +14,10 @@ final class PublicDocumentLogoStorage implements DocumentLogoStorageInterface
 {
     public function copy(string $source): string
     {
-        $path = $this->path(pathinfo($source, PATHINFO_EXTENSION));
-        if (! Storage::disk('public')->copy($source, $path)) {
+        $path = $this->path(
+            pathinfo($source, PATHINFO_EXTENSION),
+        );
+        if (!Storage::disk('public')->copy($source, $path)) {
             throw new RuntimeException('The document logo could not be copied');
         }
 
@@ -26,7 +28,7 @@ final class PublicDocumentLogoStorage implements DocumentLogoStorageInterface
     {
         $path = $this->path($file->extension);
         $contents = file_get_contents($file->path);
-        if ($contents === false || ! Storage::disk('public')->put($path, $contents)) {
+        if ($contents === false || !Storage::disk('public')->put($path, $contents)) {
             throw new RuntimeException('The document logo could not be stored');
         }
 

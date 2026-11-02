@@ -55,7 +55,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
             ];
         }
         $paymentId = $data['payment_id'] ?? $data['id'] ?? null;
-        if (! $paymentId) {
+        if (!$paymentId) {
             return [
                 'success' => false,
                 'error' => 'missing-payment-id',
@@ -74,7 +74,7 @@ class FakePaymentGateway implements PaymentGatewayInterface
 
     public function cancelPayment(string $paymentId): bool
     {
-        if (! isset($this->statuses[$paymentId])) {
+        if (!isset($this->statuses[$paymentId])) {
             return false;
         }
         $this->statuses[$paymentId] = 'cancelled';

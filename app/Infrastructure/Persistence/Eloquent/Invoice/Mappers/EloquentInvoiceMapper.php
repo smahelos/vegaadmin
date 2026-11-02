@@ -29,32 +29,36 @@ class EloquentInvoiceMapper
         // Include items using computed accessor; repository will eager-load relation to avoid N+1
         // This returns an array shape like: [ ['name'=>..., 'quantity'=>..., 'price'=>..., 'currency'=>..., 'tax_rate'=>..., 'tax_amount'=>..., 'total_price'=>...], ... ]
         $items = $model->getAttribute('invoice_products_data') ?? $model->invoice_products_data ?? [];
-        if (! is_array($items)) {
+        if (!is_array($items)) {
             $items = [];
         }
 
-        return InvoiceDTO::fromArray([
-            'id' => InvoiceId::fromInt((int) $model->getAttribute('id')),
-            'user_id' => (int) $model->getAttribute('user_id'),
-            'parties' => EloquentDocumentPartiesMapper::toDocumentParties($model),
-            'number' => $model->getAttribute('invoice_vs'),
-            'payment_reference' => $model->getAttribute('invoice_ss'),
-            'constant_code' => $model->getAttribute('invoice_ks'),
-            'issue_date' => $model->getAttribute('issue_date'),
-            'tax_point_date' => $model->tax_point_date?->format('Y-m-d'),
-            'due_in' => $model->getAttribute('due_in') !== null ? (int) $model->getAttribute('due_in') : null,
-            'subtotal' => $subtotal,
-            'total_tax' => $totalTax,
-            'payment_method_id' => $model->payment_method_id,
-            'invoice_text' => $model->invoice_text,
-            'total_amount' => $totalAmount,
-            'currency' => $model->getAttribute('payment_currency') ?? null,
-            'template' => $model->getAttribute('template') ?? null,
-            'items' => $items,
-            'created_at' => $model->getAttribute('created_at'),
-            'updated_at' => $model->getAttribute('updated_at'),
-            'status' => $status,
-        ]);
+        return InvoiceDTO::fromArray(
+            [
+                'id' => InvoiceId::fromInt(
+                    (int) $model->getAttribute('id'),
+                ),
+                'user_id' => (int) $model->getAttribute('user_id'),
+                'parties' => EloquentDocumentPartiesMapper::toDocumentParties($model),
+                'number' => $model->getAttribute('invoice_vs'),
+                'payment_reference' => $model->getAttribute('invoice_ss'),
+                'constant_code' => $model->getAttribute('invoice_ks'),
+                'issue_date' => $model->getAttribute('issue_date'),
+                'tax_point_date' => $model->tax_point_date?->format('Y-m-d'),
+                'due_in' => $model->getAttribute('due_in') !== null ? (int) $model->getAttribute('due_in') : null,
+                'subtotal' => $subtotal,
+                'total_tax' => $totalTax,
+                'payment_method_id' => $model->payment_method_id,
+                'invoice_text' => $model->invoice_text,
+                'total_amount' => $totalAmount,
+                'currency' => $model->getAttribute('payment_currency') ?? null,
+                'template' => $model->getAttribute('template') ?? null,
+                'items' => $items,
+                'created_at' => $model->getAttribute('created_at'),
+                'updated_at' => $model->getAttribute('updated_at'),
+                'status' => $status,
+            ],
+        );
     }
 
     /**

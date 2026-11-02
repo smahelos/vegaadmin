@@ -58,7 +58,7 @@ class InvoiceWriteData
                         ['', '.'],
                         trim($s),
                     );
-                    if (! preg_match('/^\d+(?:\.\d+)?$/', $s)) {
+                    if (!preg_match('/^\d+(?:\.\d+)?$/', $s)) {
                         return number_format(
                             (float) $s,
                             2,
@@ -105,7 +105,10 @@ class InvoiceWriteData
                 $amount = $value['amount'] ?? null;
                 $curr = $value['currency'] ?? $fallbackCurrency ?? null;
                 if ($amount !== null && is_string($curr)) {
-                    return Money::fromString($normalizeAmount($amount), strtoupper($curr));
+                    return Money::fromString(
+                        $normalizeAmount($amount),
+                        strtoupper($curr),
+                    );
                 }
 
                 return null;
@@ -113,7 +116,10 @@ class InvoiceWriteData
             if (is_string($value) || is_numeric($value)) {
                 $curr = $fallbackCurrency ?? 'CZK';
 
-                return Money::fromString($normalizeAmount($value), strtoupper($curr));
+                return Money::fromString(
+                    $normalizeAmount($value),
+                    strtoupper($curr),
+                );
             }
 
             return null;

@@ -35,7 +35,9 @@ final class CheckInvoicePaymentStatus extends Command
         }
         try {
             $result = $reminders->sendReminders($daysBefore, $daysAfter);
-            $this->info("Notifications sent: {$result->upcoming} upcoming, {$result->dueToday} today, {$result->overdue} overdue.");
+            $this->info(
+                "Notifications sent: {$result->upcoming} upcoming, {$result->dueToday} today, {$result->overdue} overdue.",
+            );
         } catch (Throwable $exception) {
             $this->error('Error while checking invoices: ' . $exception->getMessage());
             Log::error('Invoice reminder check failed', ['exception' => $exception]);

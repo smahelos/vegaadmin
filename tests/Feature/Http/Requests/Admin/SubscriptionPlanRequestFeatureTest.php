@@ -247,6 +247,9 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         );
 
         $this->assertTrue($validator->fails());
-        $this->assertStringContainsString(__('subscriptions.plans.fields.price'), $validator->errors()->first('price'));
+        $this->assertStringContainsString(
+            __('subscriptions.plans.fields.price'),
+            $validator->errors()->first('price'),
+        );
     }
 }

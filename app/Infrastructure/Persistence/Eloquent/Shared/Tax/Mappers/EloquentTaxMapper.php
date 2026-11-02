@@ -16,15 +16,17 @@ class EloquentTaxMapper
      */
     public function toDto(Tax $model): TaxDTO
     {
-        return TaxDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'slug' => $model->getAttribute('slug'),
-            'rate' => (float) $model->getAttribute('rate'),
-            'description' => $model->getAttribute('description'),
-            'is_active' => (bool) $model->getAttribute('is_active'),
-            'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-            'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
-        ]);
+        return TaxDTO::fromArray(
+            [
+                'id' => $model->getAttribute('id'),
+                'name' => $model->getAttribute('name'),
+                'slug' => $model->getAttribute('slug'),
+                'rate' => (float) $model->getAttribute('rate'),
+                'description' => $model->getAttribute('description'),
+                'is_active' => (bool) $model->getAttribute('is_active'),
+                'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
+                'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
+            ],
+        );
     }
 }

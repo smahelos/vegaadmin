@@ -36,13 +36,21 @@ class PageServiceCategoriesFeatureTest extends TestCase
         $categories = $this->service->getCategoriesWithPages();
 
         $this->assertInstanceOf(Collection::class, $categories);
-        $this->assertTrue($categories->contains('id', $catWithPages->id));
-        $this->assertFalse($categories->contains('id', $catEmpty->id));
-        $this->assertFalse($categories->contains('id', $catWithDraftOnly->id));
+        $this->assertTrue(
+            $categories->contains('id', $catWithPages->id),
+        );
+        $this->assertFalse(
+            $categories->contains('id', $catEmpty->id),
+        );
+        $this->assertFalse(
+            $categories->contains('id', $catWithDraftOnly->id),
+        );
 
         // Eager loaded pages are only published and ordered
         $returned = $categories->firstWhere('id', $catWithPages->id);
         $this->assertCount(2, $returned->pages);
-        $this->assertTrue($returned->pages->every(fn ($p) => $p->published));
+        $this->assertTrue(
+            $returned->pages->every(fn ($p) => $p->published),
+        );
     }
 }

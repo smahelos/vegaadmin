@@ -43,26 +43,30 @@ class MysqlOptimizationLogFactory extends Factory
 
         return [
             'setting_name' => $this->faker->randomElement($settings),
-            'current_value' => $this->faker->randomElement([
-                '128M',
-                '256M',
-                '512M',
-                '1G',
-                '2G',
-                '100',
-                '200',
-                '300',
-            ]),
-            'recommended_value' => $this->faker->randomElement([
-                '256M',
-                '512M',
-                '1G',
-                '2G',
-                '4G',
-                '150',
-                '300',
-                '500',
-            ]),
+            'current_value' => $this->faker->randomElement(
+                [
+                    '128M',
+                    '256M',
+                    '512M',
+                    '1G',
+                    '2G',
+                    '100',
+                    '200',
+                    '300',
+                ],
+            ),
+            'recommended_value' => $this->faker->randomElement(
+                [
+                    '256M',
+                    '512M',
+                    '1G',
+                    '2G',
+                    '4G',
+                    '150',
+                    '300',
+                    '500',
+                ],
+            ),
             'description' => $this->faker->sentence(),
             'priority' => $this->faker->randomElement($priorities),
             'applied' => $this->faker->boolean(30), // 30% chance of being applied
@@ -124,13 +128,15 @@ class MysqlOptimizationLogFactory extends Factory
      */
     public function bufferPoolSize(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'setting_name' => 'innodb_buffer_pool_size',
-            'current_value' => '128M',
-            'recommended_value' => '1G',
-            'description' => 'InnoDB buffer pool size should be increased for better performance',
-            'priority' => 'high',
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'setting_name' => 'innodb_buffer_pool_size',
+                'current_value' => '128M',
+                'recommended_value' => '1G',
+                'description' => 'InnoDB buffer pool size should be increased for better performance',
+                'priority' => 'high',
+            ],
+        );
     }
 
     /**
@@ -138,12 +144,14 @@ class MysqlOptimizationLogFactory extends Factory
      */
     public function maxConnections(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'setting_name' => 'max_connections',
-            'current_value' => '151',
-            'recommended_value' => '300',
-            'description' => 'Maximum connections should be increased to handle more concurrent users',
-            'priority' => 'medium',
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'setting_name' => 'max_connections',
+                'current_value' => '151',
+                'recommended_value' => '300',
+                'description' => 'Maximum connections should be increased to handle more concurrent users',
+                'priority' => 'medium',
+            ],
+        );
     }
 }

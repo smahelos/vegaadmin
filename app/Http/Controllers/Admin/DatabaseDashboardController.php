@@ -43,14 +43,17 @@ class DatabaseDashboardController extends CrudController
 
         // Removed user activity stats - moved to main dashboard
 
-        return view('admin.database.dashboard', compact(
-            'databaseStats',
-            'recentTasks',
-            'performanceTrends',
-            'availableMetricTypes',
-            'archiveStats',
-            'healthStatus',
-        ));
+        return view(
+            'admin.database.dashboard',
+            compact(
+                'databaseStats',
+                'recentTasks',
+                'performanceTrends',
+                'availableMetricTypes',
+                'archiveStats',
+                'healthStatus',
+            ),
+        );
     }
 
     /**
@@ -60,7 +63,9 @@ class DatabaseDashboardController extends CrudController
     {
         try {
             // Get table sizes from our monitoring view
-            $tableSizes = DB::select('SELECT * FROM database_size_monitor ORDER BY size_mb DESC LIMIT 10');
+            $tableSizes = DB::select(
+                'SELECT * FROM database_size_monitor ORDER BY size_mb DESC LIMIT 10',
+            );
 
             // Get total database size
             $totalSize = collect($tableSizes)->sum('size_mb');
@@ -114,15 +119,17 @@ class DatabaseDashboardController extends CrudController
                 ->groupBy('metric_type')
                 ->orderBy('count', 'desc')
                 ->get()
-                ->map(function ($metric) {
-                    return [
-                        'type' => $metric->metric_type,
-                        'count' => $metric->count,
-                        'label' => $this->getMetricTypeLabel($metric->metric_type),
-                        'last_measured' => $metric->last_measured,
-                        'first_measured' => $metric->first_measured,
-                    ];
-                });
+                ->map(
+                    function ($metric) {
+                        return [
+                            'type' => $metric->metric_type,
+                            'count' => $metric->count,
+                            'label' => $this->getMetricTypeLabel($metric->metric_type),
+                            'last_measured' => $metric->last_measured,
+                            'first_measured' => $metric->first_measured,
+                        ];
+                    },
+                );
 
             return $metricTypes;
         } catch (\Exception $e) {
@@ -149,7 +156,13 @@ class DatabaseDashboardController extends CrudController
             'index_usage' => __('admin/database.metrics.index_usage'),
         ];
 
-        return $labels[$metricType] ?? ucfirst(str_replace('_', ' ', $metricType));
+        return $labels[$metricType] ?? ucfirst(
+            str_replace(
+                '_',
+                ' ',
+                $metricType,
+            ),
+        );
     }
 
     /**
@@ -170,10 +183,12 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Failed to get performance trends by type', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.failed_to_load_trends'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.failed_to_load_trends'),
+                ],
+            );
         }
     }
 
@@ -200,9 +215,11 @@ class DatabaseDashboardController extends CrudController
 
             if ($metrics->isNotEmpty()) {
                 // Group metrics by date for better visualization
-                $groupedMetrics = $metrics->groupBy(function ($metric) {
-                    return $metric->measured_at->format('Y-m-d');
-                });
+                $groupedMetrics = $metrics->groupBy(
+                    function ($metric) {
+                        return $metric->measured_at->format('Y-m-d');
+                    },
+                );
 
                 foreach ($groupedMetrics as $date => $dayMetrics) {
                     $labels[] = Carbon::parse($date)->format('M d');
@@ -212,15 +229,20 @@ class DatabaseDashboardController extends CrudController
                     $data[] = round($dayAverage, 2);
                 }
 
-                if (! empty($data)) {
-                    $avgValue = round(array_sum($data) / count($data), 2);
+                if (!empty($data)) {
+                    $avgValue = round(
+                        array_sum($data) / count($data),
+                        2,
+                    );
                 }
 
                 // Get unit from first metric
                 $unit = $metrics->first()->metric_unit ?? 'units';
             } else {
                 // Generate sample data if no metrics exist for this type
-                Log::warning("No performance metrics found for type: {$metricType}, generating sample data");
+                Log::warning(
+                    "No performance metrics found for type: {$metricType}, generating sample data",
+                );
 
                 for ($i = $days - 1; $i >= 0; $i--) {
                     $date = now()->subDays($i);
@@ -260,7 +282,10 @@ class DatabaseDashboardController extends CrudController
             return [
                 'labels' => $labels,
                 'data' => $data,
-                'avg_value' => round(array_sum($data) / count($data), 2),
+                'avg_value' => round(
+                    array_sum($data) / count($data),
+                    2,
+                ),
                 'metric_type' => $metricType,
                 'metric_label' => $this->getMetricTypeLabel($metricType),
                 'unit' => $this->getDefaultUnitForMetricType($metricType),
@@ -674,18 +699,22 @@ class DatabaseDashboardController extends CrudController
             Artisan::call('db:health-check', $commandOptions);
             $output = Artisan::output();
 
-            return response()->json([
-                'success' => true,
-                'message' => __('admin/database.dashboard.health_check_completed'),
-                'output' => $output,
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => __('admin/database.dashboard.health_check_completed'),
+                    'output' => $output,
+                ],
+            );
         } catch (\Exception $e) {
             Log::error('Database health check failed', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.health_check_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.health_check_failed'),
+                ],
+            );
         }
     }
 
@@ -700,18 +729,23 @@ class DatabaseDashboardController extends CrudController
             ]);
             $output = \Artisan::output();
 
-            return response()->json([
-                'success' => true,
-                'message' => __('admin/database.dashboard.monitoring_completed'),
-                'output' => $output,
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => __('admin/database.dashboard.monitoring_completed'),
+                    'output' => $output,
+                ],
+            );
         } catch (\Exception $e) {
             Log::error('Database monitoring failed', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.monitoring_failed'),
-            ], 500);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.monitoring_failed'),
+                ],
+                500,
+            );
         }
     }
 
@@ -743,23 +777,31 @@ class DatabaseDashboardController extends CrudController
             \Artisan::call($command, $parameters);
             $output = \Artisan::output();
 
-            return response()->json([
-                'success' => true,
-                'message' => __('admin/database.dashboard.optimization_completed'),
-                'output' => $output,
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => __('admin/database.dashboard.optimization_completed'),
+                    'output' => $output,
+                ],
+            );
         } catch (\Exception $e) {
-            Log::error('Database optimization failed', [
-                'exception' => $e,
-                'table' => $table,
-                'analyze' => $analyze,
-                'repair' => $repair,
-            ]);
+            Log::error(
+                'Database optimization failed',
+                [
+                    'exception' => $e,
+                    'table' => $table,
+                    'analyze' => $analyze,
+                    'repair' => $repair,
+                ],
+            );
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.optimization_failed'),
-            ], 500);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.optimization_failed'),
+                ],
+                500,
+            );
         }
     }
 
@@ -780,18 +822,22 @@ class DatabaseDashboardController extends CrudController
             Artisan::call('db:archive', $commandOptions);
             $output = Artisan::output();
 
-            return response()->json([
-                'success' => true,
-                'message' => __('admin/database.dashboard.archive_completed'),
-                'output' => $output,
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => __('admin/database.dashboard.archive_completed'),
+                    'output' => $output,
+                ],
+            );
         } catch (\Exception $e) {
             Log::error('Database archive failed', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.archive_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.archive_failed'),
+                ],
+            );
         }
     }
 
@@ -819,19 +865,23 @@ class DatabaseDashboardController extends CrudController
                 case 'metrics-stats':
                     return $this->getMetricsStats($request);
                 default:
-                    return response()->json([
-                        'success' => false,
-                        'message' => __('admin/database.dashboard.unknown_command'),
-                        'error' => 'Unknown command: ' . $command,
-                    ]);
+                    return response()->json(
+                        [
+                            'success' => false,
+                            'message' => __('admin/database.dashboard.unknown_command'),
+                            'error' => 'Unknown command: ' . $command,
+                        ],
+                    );
             }
         } catch (\Exception $e) {
             Log::error('Database command failed', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.command_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.command_failed'),
+                ],
+            );
         }
     }
 
@@ -844,29 +894,31 @@ class DatabaseDashboardController extends CrudController
             $tasks = DatabaseMaintenanceLog::orderBy('created_at', 'desc')
                 ->limit(5)
                 ->get()
-                ->map(function ($task) {
-                    // Calculate space savings from results JSON
-                    $spaceSavings = $this->calculateSpaceSavings($task->results);
+                ->map(
+                    function ($task) {
+                        // Calculate space savings from results JSON
+                        $spaceSavings = $this->calculateSpaceSavings($task->results);
 
-                    // Calculate duration in seconds
-                    $durationSeconds = 0;
-                    if ($task->started_at && $task->completed_at) {
-                        $durationSeconds = $task->completed_at->diffInSeconds($task->started_at);
-                    }
+                        // Calculate duration in seconds
+                        $durationSeconds = 0;
+                        if ($task->started_at && $task->completed_at) {
+                            $durationSeconds = $task->completed_at->diffInSeconds($task->started_at);
+                        }
 
-                    return [
-                        'id' => $task->id,
-                        'task_type' => $task->task_type,
-                        'table_name' => $task->table_name,
-                        'status' => $task->status,
-                        'space_savings' => $spaceSavings,
-                        'duration_seconds' => $durationSeconds,
-                        'started_at' => $task->started_at,
-                        'completed_at' => $task->completed_at,
-                        'description' => $task->description,
-                        'results' => $task->results,
-                    ];
-                });
+                        return [
+                            'id' => $task->id,
+                            'task_type' => $task->task_type,
+                            'table_name' => $task->table_name,
+                            'status' => $task->status,
+                            'space_savings' => $spaceSavings,
+                            'duration_seconds' => $durationSeconds,
+                            'started_at' => $task->started_at,
+                            'completed_at' => $task->completed_at,
+                            'description' => $task->description,
+                            'results' => $task->results,
+                        ];
+                    },
+                );
 
             return $tasks;
         } catch (\Exception $e) {
@@ -919,31 +971,40 @@ class DatabaseDashboardController extends CrudController
                     break;
 
                 default:
-                    return response()->json([
-                        'success' => false,
-                        'message' => __('admin/database.dashboard.invalid_cleanup_type'),
-                    ]);
+                    return response()->json(
+                        [
+                            'success' => false,
+                            'message' => __('admin/database.dashboard.invalid_cleanup_type'),
+                        ],
+                    );
             }
 
-            Log::info('Performance metrics cleanup completed', [
-                'type' => $cleanupType,
-                'deleted_count' => $deletedCount,
-                'days' => $days,
-            ]);
+            Log::info(
+                'Performance metrics cleanup completed',
+                [
+                    'type' => $cleanupType,
+                    'deleted_count' => $deletedCount,
+                    'days' => $days,
+                ],
+            );
 
-            return response()->json([
-                'success' => true,
-                'message' => $message,
-                'deleted_count' => $deletedCount,
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => $message,
+                    'deleted_count' => $deletedCount,
+                ],
+            );
 
         } catch (\Exception $e) {
             Log::error('Failed to clean performance metrics', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.cleanup_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.cleanup_failed'),
+                ],
+            );
         }
     }
 
@@ -953,12 +1014,14 @@ class DatabaseDashboardController extends CrudController
     private function removeDuplicateMetrics(): void
     {
         // Get duplicate metrics (more than one per day per type)
-        $duplicates = DB::select('
+        $duplicates = DB::select(
+            '
             SELECT metric_type, DATE(measured_at) as date, COUNT(*) as count
             FROM performance_metrics 
             GROUP BY metric_type, DATE(measured_at)
             HAVING COUNT(*) > 1
-        ');
+        ',
+        );
 
         foreach ($duplicates as $duplicate) {
             // Keep only the latest metric for each day/type combination
@@ -991,9 +1054,13 @@ class DatabaseDashboardController extends CrudController
                     ->selectRaw('COUNT(*) as count')
                     ->groupBy('metric_type')
                     ->get(),
-                'metrics_by_day' => PerformanceMetric::select(DB::raw('DATE(measured_at) as date'))
+                'metrics_by_day' => PerformanceMetric::select(
+                    DB::raw('DATE(measured_at) as date'),
+                )
                     ->selectRaw('COUNT(*) as count')
-                    ->groupBy(DB::raw('DATE(measured_at)'))
+                    ->groupBy(
+                        DB::raw('DATE(measured_at)'),
+                    )
                     ->orderBy('date', 'desc')
                     ->limit(30)
                     ->get(),
@@ -1007,10 +1074,12 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Failed to get metrics stats', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.stats_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.stats_failed'),
+                ],
+            );
         }
     }
 
@@ -1019,7 +1088,7 @@ class DatabaseDashboardController extends CrudController
      */
     private function calculateSpaceSavings(?array $results): array
     {
-        if (! $results || ! is_array($results)) {
+        if (!$results || !is_array($results)) {
             return [
                 'amount' => 0,
                 'unit' => 'MB',
@@ -1086,17 +1155,21 @@ class DatabaseDashboardController extends CrudController
             $alert = DatabaseHealthAlert::findOrFail($alertId);
             $alert->resolve();
 
-            return response()->json([
-                'success' => true,
-                'message' => __('admin/database.dashboard.alert_resolved_successfully'),
-            ]);
+            return response()->json(
+                [
+                    'success' => true,
+                    'message' => __('admin/database.dashboard.alert_resolved_successfully'),
+                ],
+            );
         } catch (\Exception $e) {
             Log::error('Failed to resolve alert', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('admin/database.dashboard.alert_resolve_failed'),
-            ]);
+            return response()->json(
+                [
+                    'success' => false,
+                    'message' => __('admin/database.dashboard.alert_resolve_failed'),
+                ],
+            );
         }
     }
 }

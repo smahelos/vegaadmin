@@ -23,14 +23,16 @@ class PaymentFactory extends Factory
      */
     public function definition(): array
     {
-        $status = $this->faker->randomElement([
-            'pending',
-            'processing',
-            'completed',
-            'failed',
-            'cancelled',
-            'refunded',
-        ]);
+        $status = $this->faker->randomElement(
+            [
+                'pending',
+                'processing',
+                'completed',
+                'failed',
+                'cancelled',
+                'refunded',
+            ],
+        );
         $gateways = [
             'gopay',
             'paypal',

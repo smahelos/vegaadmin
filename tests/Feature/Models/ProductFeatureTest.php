@@ -25,12 +25,15 @@ class ProductFeatureTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'name' => $product->name,
-            'slug' => $product->slug,
-            'price' => $product->price,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'price' => $product->price,
+            ],
+        );
     }
 
     #[Test]
@@ -63,11 +66,13 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $product = Product::factory()->create([
-            'price' => '123.45',
-            'is_default' => 1,
-            'is_active' => 0,
-        ]);
+        $product = Product::factory()->create(
+            [
+                'price' => '123.45',
+                'is_default' => 1,
+                'is_active' => 0,
+            ],
+        );
 
         // Price is cast to decimal which is a string in Laravel
         $this->assertIsString($product->price);
@@ -124,10 +129,12 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function slug_is_generated_from_name(): void
     {
-        $product = Product::factory()->create([
-            'name' => 'Test Product Name',
-            'slug' => null, // Let sluggable generate it
-        ]);
+        $product = Product::factory()->create(
+            [
+                'name' => 'Test Product Name',
+                'slug' => null, // Let sluggable generate it
+            ],
+        );
 
         // Refresh to get generated slug
         $product->refresh();
@@ -217,10 +224,13 @@ class ProductFeatureTest extends TestCase
 
         $product->update($newData);
 
-        $this->assertDatabaseHas('products', array_merge(
-            ['id' => $product->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'products',
+            array_merge(
+                ['id' => $product->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
@@ -255,8 +265,12 @@ class ProductFeatureTest extends TestCase
         $fileUrl = $product->getFileUrl('image');
         $thumbUrl = $product->getImageThumbUrl();
 
-        $this->assertTrue(is_string($fileUrl) || is_null($fileUrl));
-        $this->assertTrue(is_string($thumbUrl) || is_null($thumbUrl));
+        $this->assertTrue(
+            is_string($fileUrl) || is_null($fileUrl),
+        );
+        $this->assertTrue(
+            is_string($thumbUrl) || is_null($thumbUrl),
+        );
     }
 
     #[Test]
@@ -294,7 +308,9 @@ class ProductFeatureTest extends TestCase
         $product = Product::factory()->make();
 
         // Test that setImageAttribute method exists and can be called
-        $this->assertTrue(method_exists($product, 'setImageAttribute'));
+        $this->assertTrue(
+            method_exists($product, 'setImageAttribute'),
+        );
 
         // Test setting image value
         $product->setImageAttribute('test-image.jpg');

@@ -18,11 +18,14 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     {
         $category = ArtisanCommandCategory::factory()->create();
 
-        $this->assertDatabaseHas('artisan_command_categories', [
-            'id' => $category->id,
-            'name' => $category->name,
-            'slug' => $category->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_command_categories',
+            [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ],
+        );
     }
 
     #[Test]
@@ -92,7 +95,10 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
         $slugs = $categories->pluck('slug')->toArray();
         $uniqueSlugs = array_unique($slugs);
 
-        $this->assertEquals(count($slugs), count($uniqueSlugs));
+        $this->assertEquals(
+            count($slugs),
+            count($uniqueSlugs),
+        );
     }
 
     #[Test]
@@ -118,10 +124,13 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
 
         $category->update($newData);
 
-        $this->assertDatabaseHas('artisan_command_categories', array_merge(
-            ['id' => $category->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'artisan_command_categories',
+            array_merge(
+                ['id' => $category->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
@@ -163,8 +172,12 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
         ]);
 
         $this->assertCount(2, $category->commands);
-        $this->assertTrue($category->commands->contains($command1));
-        $this->assertTrue($category->commands->contains($command2));
+        $this->assertTrue(
+            $category->commands->contains($command1),
+        );
+        $this->assertTrue(
+            $category->commands->contains($command2),
+        );
     }
 
     #[Test]
@@ -190,7 +203,10 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
         }
 
         $categoriesWithCommands = ArtisanCommandCategory::with('commands')
-            ->whereIn('id', $categories->pluck('id'))
+            ->whereIn(
+                'id',
+                $categories->pluck('id'),
+            )
             ->get();
 
         $this->assertCount(2, $categoriesWithCommands);

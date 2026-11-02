@@ -23,9 +23,12 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
     public function unpaidForReminders(): iterable
     {
         $statuses = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::unpaid());
-        $invoices = Invoice::query()->whereHas('paymentStatus', static function ($query) use ($statuses): void {
-            $query->whereIn('slug', $statuses);
-        })->lazyById();
+        $invoices = Invoice::query()->whereHas(
+            'paymentStatus',
+            static function ($query) use ($statuses): void {
+                $query->whereIn('slug', $statuses);
+            },
+        )->lazyById();
 
         foreach ($invoices as $invoice) {
             yield EloquentReminderInvoiceMapper::toDTO($invoice);

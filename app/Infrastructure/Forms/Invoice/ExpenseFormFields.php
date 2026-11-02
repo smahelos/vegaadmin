@@ -21,13 +21,15 @@ final class ExpenseFormFields
     {
         $fields = [];
         $half = ['class' => 'form-group col-12 col-md-6'];
-        foreach ([
-            'expense_date' => 'datepicker',
-            'reference_number' => 'text',
-            'amount' => 'number',
-            'tax_amount' => 'number',
-            'description' => 'textarea',
-        ] as $name => $type) {
+        foreach (
+            [
+                'expense_date' => 'datepicker',
+                'reference_number' => 'text',
+                'amount' => 'number',
+                'tax_amount' => 'number',
+                'description' => 'textarea',
+            ] as $name => $type
+        ) {
             $field = [
                 'name' => $name,
                 'label' => __('expenses.fields.' . $name),
@@ -43,15 +45,20 @@ final class ExpenseFormFields
             'name' => 'currency',
             'label' => __('expenses.fields.currency'),
             'type' => 'select2_from_array',
-            'options' => array_combine(array_column(Currency::cases(), 'value'), array_column(Currency::cases(), 'value')),
+            'options' => array_combine(
+                array_column(Currency::cases(), 'value'),
+                array_column(Currency::cases(), 'value'),
+            ),
             'default' => Currency::CZK->value,
             'wrapper' => $half,
         ];
-        foreach ([
-            'category_id' => ['category', ExpenseCategory::class],
-            'payment_method_id' => ['paymentMethod', PaymentMethod::class],
-            'status_id' => ['status', Status::class],
-        ] as $name => [$entity, $model]) {
+        foreach (
+            [
+                'category_id' => ['category', ExpenseCategory::class],
+                'payment_method_id' => ['paymentMethod', PaymentMethod::class],
+                'status_id' => ['status', Status::class],
+            ] as $name => [$entity, $model]
+        ) {
             $field = [
                 'name' => $name,
                 'label' => __('expenses.fields.' . $name),
@@ -62,7 +69,10 @@ final class ExpenseFormFields
                 'wrapper' => $half,
             ];
             if ($name === 'status_id') {
-                $field['options'] = fn ($query) => $query->whereHas('category', fn ($category) => $category->where('slug', 'expense-statuses'))->where('is_active', true)->get();
+                $field['options'] = fn ($query) => $query->whereHas(
+                    'category',
+                    fn ($category) => $category->where('slug', 'expense-statuses'),
+                )->where('is_active', true)->get();
             }
             $fields[] = $field;
         }
@@ -97,33 +107,57 @@ final class ExpenseFormFields
         $fields['description']['wrapper'] = ['class' => 'form-group col-12'];
 
         return [
-            AdminDocumentFormFields::section('selection', __('parties.sections.document_parties')),
+            AdminDocumentFormFields::section(
+                'selection',
+                __('parties.sections.document_parties'),
+            ),
             ...AdminDocumentFormFields::parties('supplier', $document),
-            AdminDocumentFormFields::section('document', __('expenses.sections.document')),
+            AdminDocumentFormFields::section(
+                'document',
+                __('expenses.sections.document'),
+            ),
             $fields['expense_date'],
             $fields['reference_number'],
             $fields['payment_method_id'],
-            AdminDocumentFormFields::section('business', __('expenses.fields.customer')),
+            AdminDocumentFormFields::section(
+                'business',
+                __('expenses.fields.customer'),
+            ),
             AdminDocumentFormFields::businessPreview('customer', $document),
-            AdminDocumentFormFields::section('counterparty', __('expenses.fields.supplier')),
+            AdminDocumentFormFields::section(
+                'counterparty',
+                __('expenses.fields.supplier'),
+            ),
             ...AdminDocumentFormFields::counterparty('supplier', $countries),
             AdminDocumentFormFields::supplierLogo('contact', $document),
-            AdminDocumentFormFields::section('account', __('parties.sections.supplier_account')),
+            AdminDocumentFormFields::section(
+                'account',
+                __('parties.sections.supplier_account'),
+            ),
             [
                 'name' => 'document_account_mode',
                 'type' => 'document_account_mode',
             ],
             ...AdminDocumentFormFields::accountFields($countries, true),
-            AdminDocumentFormFields::section('amounts', __('expenses.sections.amounts')),
+            AdminDocumentFormFields::section(
+                'amounts',
+                __('expenses.sections.amounts'),
+            ),
             $fields['amount'],
             $fields['currency'],
             $fields['tax_rate'],
             $fields['tax_included'],
             $fields['tax_amount'],
-            AdminDocumentFormFields::section('status', __('expenses.sections.status')),
+            AdminDocumentFormFields::section(
+                'status',
+                __('expenses.sections.status'),
+            ),
             $fields['status_id'],
             $fields['category_id'],
-            AdminDocumentFormFields::section('other', __('expenses.sections.other')),
+            AdminDocumentFormFields::section(
+                'other',
+                __('expenses.sections.other'),
+            ),
             $fields['description'],
             $fields['attachments'],
         ];

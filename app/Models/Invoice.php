@@ -59,19 +59,21 @@ class Invoice extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'invoice_products')
-            ->withPivot([
-                'name',
-                'quantity',
-                'price',
-                'currency',
-                'unit',
-                'category',
-                'description',
-                'is_custom_product',
-                'tax_rate',
-                'tax_amount',
-                'total_price',
-            ])
+            ->withPivot(
+                [
+                    'name',
+                    'quantity',
+                    'price',
+                    'currency',
+                    'unit',
+                    'category',
+                    'description',
+                    'is_custom_product',
+                    'tax_rate',
+                    'tax_amount',
+                    'total_price',
+                ],
+            )
             ->withTimestamps();
     }
 
@@ -122,19 +124,23 @@ class Invoice extends Model
 
     protected function dueDate(): Attribute
     {
-        return Attribute::get(function (): ?CarbonImmutable {
-            if ($this->issue_date === null || $this->due_in === null) {
-                return null;
-            }
-            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
+        return Attribute::get(
+            function (): ?CarbonImmutable {
+                if ($this->issue_date === null || $this->due_in === null) {
+                    return null;
+                }
+                $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-            return CarbonImmutable::instance($dueDate->date());
-        });
+                return CarbonImmutable::instance($dueDate->date());
+            },
+        );
     }
 
     protected function paid(): Attribute
     {
-        return Attribute::get(fn (): bool => $this->invoiceStatus() === InvoiceStatus::PAID);
+        return Attribute::get(
+            fn (): bool => $this->invoiceStatus() === InvoiceStatus::PAID,
+        );
     }
 
     /**
@@ -142,15 +148,17 @@ class Invoice extends Model
      */
     protected function overdue(): Attribute
     {
-        return Attribute::get(function (): bool {
-            $status = $this->invoiceStatus();
-            if ($status === null || ! $status->isUnpaid() || $this->issue_date === null || $this->due_in === null) {
-                return false;
-            }
-            $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
+        return Attribute::get(
+            function (): bool {
+                $status = $this->invoiceStatus();
+                if ($status === null || !$status->isUnpaid() || $this->issue_date === null || $this->due_in === null) {
+                    return false;
+                }
+                $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-            return $dueDate->daysUntil(CarbonImmutable::today()->toDateTimeImmutable()) < 0;
-        });
+                return $dueDate->daysUntil(CarbonImmutable::today()->toDateTimeImmutable()) < 0;
+            },
+        );
     }
 
     private function invoiceStatus(): ?InvoiceStatus
@@ -199,7 +207,7 @@ class Invoice extends Model
             ];
 
             // Add product details if this is not a custom product
-            if (! $invoiceProduct->is_custom_product && $invoiceProduct->product) {
+            if (!$invoiceProduct->is_custom_product && $invoiceProduct->product) {
                 $productData['product'] = [
                     'id' => $invoiceProduct->product->id,
                     'name' => $invoiceProduct->product->name,
@@ -267,7 +275,10 @@ class Invoice extends Model
         ) : '0';
         $currency = $this->payment_currency ?: 'CZK';
 
-        return Money::fromString($amount, strtoupper($currency));
+        return Money::fromString(
+            $amount,
+            strtoupper($currency),
+        );
     }
 
     public function getSubtotalMoneyAttribute(): Money
@@ -283,12 +294,22 @@ class Invoice extends Model
     /** Totals from the stored lines: base recomputed through Money, VAT as stored with each line. */
     private function totals(): InvoiceTotals
     {
-        $totals = InvoiceTotals::zero(Currency::from(strtoupper($this->payment_currency ?: Currency::CZK->value)));
+        $totals = InvoiceTotals::zero(
+            Currency::from(
+                strtoupper($this->payment_currency ?: Currency::CZK->value),
+            ),
+        );
         foreach ($this->invoiceProducts as $line) {
-            $price = Money::fromString((string) $line->price, strtoupper($line->currency));
+            $price = Money::fromString(
+                (string) $line->price,
+                strtoupper($line->currency),
+            );
             $totals = $totals->withLine(
                 $price->multiplyBy((string) $line->quantity),
-                Money::fromString((string) $line->tax_amount, strtoupper($line->currency)),
+                Money::fromString(
+                    (string) $line->tax_amount,
+                    strtoupper($line->currency),
+                ),
             );
         }
 

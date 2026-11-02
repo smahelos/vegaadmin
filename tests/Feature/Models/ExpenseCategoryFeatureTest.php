@@ -13,22 +13,27 @@ class ExpenseCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_expense_category(): void
     {
-        $category = ExpenseCategory::factory()->create([
-            'name' => 'Travel',
-            'slug' => 'travel',
-            'description' => 'Travel and transportation expenses',
-            'color' => '#FF5722',
-            'is_active' => true,
-        ]);
+        $category = ExpenseCategory::factory()->create(
+            [
+                'name' => 'Travel',
+                'slug' => 'travel',
+                'description' => 'Travel and transportation expenses',
+                'color' => '#FF5722',
+                'is_active' => true,
+            ],
+        );
 
-        $this->assertDatabaseHas('expense_categories', [
-            'id' => $category->id,
-            'name' => 'Travel',
-            'slug' => 'travel',
-            'description' => 'Travel and transportation expenses',
-            'color' => '#FF5722',
-            'is_active' => true,
-        ]);
+        $this->assertDatabaseHas(
+            'expense_categories',
+            [
+                'id' => $category->id,
+                'name' => 'Travel',
+                'slug' => 'travel',
+                'description' => 'Travel and transportation expenses',
+                'color' => '#FF5722',
+                'is_active' => true,
+            ],
+        );
     }
 
     #[Test]
@@ -47,8 +52,12 @@ class ExpenseCategoryFeatureTest extends TestCase
 
         $expenses = $category->expenses;
         $this->assertCount(2, $expenses);
-        $this->assertTrue($expenses->contains($expense1));
-        $this->assertTrue($expenses->contains($expense2));
+        $this->assertTrue(
+            $expenses->contains($expense1),
+        );
+        $this->assertTrue(
+            $expenses->contains($expense2),
+        );
     }
 
     #[Test]
@@ -90,10 +99,12 @@ class ExpenseCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_inactive_category(): void
     {
-        $category = ExpenseCategory::factory()->create([
-            'name' => 'Deprecated Category',
-            'is_active' => false,
-        ]);
+        $category = ExpenseCategory::factory()->create(
+            [
+                'name' => 'Deprecated Category',
+                'is_active' => false,
+            ],
+        );
 
         $this->assertFalse($category->is_active);
     }
@@ -101,17 +112,21 @@ class ExpenseCategoryFeatureTest extends TestCase
     #[Test]
     public function can_update_category_attributes(): void
     {
-        $category = ExpenseCategory::factory()->create([
-            'name' => 'Old Name',
-            'color' => '#000000',
-            'is_active' => true,
-        ]);
+        $category = ExpenseCategory::factory()->create(
+            [
+                'name' => 'Old Name',
+                'color' => '#000000',
+                'is_active' => true,
+            ],
+        );
 
-        $category->update([
-            'name' => 'Updated Name',
-            'color' => '#FFFFFF',
-            'is_active' => false,
-        ]);
+        $category->update(
+            [
+                'name' => 'Updated Name',
+                'color' => '#FFFFFF',
+                'is_active' => false,
+            ],
+        );
 
         $this->assertEquals('Updated Name', $category->name);
         $this->assertEquals('#FFFFFF', $category->color);

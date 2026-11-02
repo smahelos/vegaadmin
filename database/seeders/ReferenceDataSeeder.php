@@ -270,17 +270,19 @@ final class ReferenceDataSeeder extends Seeder
 
     public function run(): void
     {
-        DB::transaction(function (): void {
-            $this->seedStatuses();
-            $this->seedTaxes();
-            $this->seedPaymentMethods();
-            $this->seedBanks();
-            $this->seedExpenseCategories();
-            $this->seedProductCategories();
-            $this->seedArtisanCommands();
-            $this->seedArchivePolicies();
-            $this->seedEntityLimits();
-        });
+        DB::transaction(
+            function (): void {
+                $this->seedStatuses();
+                $this->seedTaxes();
+                $this->seedPaymentMethods();
+                $this->seedBanks();
+                $this->seedExpenseCategories();
+                $this->seedProductCategories();
+                $this->seedArtisanCommands();
+                $this->seedArchivePolicies();
+                $this->seedEntityLimits();
+            },
+        );
     }
 
     private function seedStatuses(): void
@@ -352,11 +354,13 @@ final class ReferenceDataSeeder extends Seeder
 
     private function seedExpenseCategories(): void
     {
-        foreach (self::EXPENSE_CATEGORIES as $slug => [
-            $name,
-            $description,
-            $color,
-        ]) {
+        foreach (
+            self::EXPENSE_CATEGORIES as $slug => [
+                $name,
+                $description,
+                $color,
+            ]
+        ) {
             $this->upsert(
                 'expense_categories',
                 ['slug' => $slug],
@@ -430,12 +434,14 @@ final class ReferenceDataSeeder extends Seeder
 
     private function seedEntityLimits(): void
     {
-        foreach (self::ENTITY_LIMITS as $permission => [
-            $entityType,
-            $period,
-            $metric,
-            $limit,
-        ]) {
+        foreach (
+            self::ENTITY_LIMITS as $permission => [
+                $entityType,
+                $period,
+                $metric,
+                $limit,
+            ]
+        ) {
             Permission::findOrCreate($permission, 'web');
             $this->upsert(
                 'entity_limits',
@@ -474,6 +480,8 @@ final class ReferenceDataSeeder extends Seeder
             return;
         }
 
-        DB::table($table)->insert($key + $values + ['created_at' => $now, 'updated_at' => $now]);
+        DB::table($table)->insert(
+            $key + $values + ['created_at' => $now, 'updated_at' => $now],
+        );
     }
 }

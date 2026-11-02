@@ -31,30 +31,36 @@ class CheckMissingTranslations extends Command
         $compareLocale = $this->option('compare');
 
         // Validate locale names
-        if (empty($locale) || ! preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $locale)) {
-            $this->error("Invalid locale format: '{$locale}'. Expected format: 'en' or 'en-US'");
+        if (empty($locale) || !preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $locale)) {
+            $this->error(
+                "Invalid locale format: '{$locale}'. Expected format: 'en' or 'en-US'",
+            );
 
             return 1;
         }
 
-        if (empty($compareLocale) || ! preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $compareLocale)) {
-            $this->error("Invalid compare locale format: '{$compareLocale}'. Expected format: 'en' or 'en-US'");
+        if (empty($compareLocale) || !preg_match('/^[a-z]{2}(-[A-Z]{2})?$/', $compareLocale)) {
+            $this->error(
+                "Invalid compare locale format: '{$compareLocale}'. Expected format: 'en' or 'en-US'",
+            );
 
             return 1;
         }
 
-        $this->info("Checking missing translations in '{$locale}' compared to '{$compareLocale}'...");
+        $this->info(
+            "Checking missing translations in '{$locale}' compared to '{$compareLocale}'...",
+        );
 
         $localePath = lang_path($locale);
         $comparePath = lang_path($compareLocale);
 
-        if (! File::exists($localePath)) {
+        if (!File::exists($localePath)) {
             $this->error("Locale directory '{$localePath}' does not exist.");
 
             return 1;
         }
 
-        if (! File::exists($comparePath)) {
+        if (!File::exists($comparePath)) {
             $this->error("Compare locale directory '{$comparePath}' does not exist.");
 
             return 1;
@@ -66,7 +72,7 @@ class CheckMissingTranslations extends Command
             $filename = $file->getFilename();
             $localeFile = $localePath . '/' . $filename;
 
-            if (! File::exists($localeFile)) {
+            if (!File::exists($localeFile)) {
                 $this->warn("Missing file: {$filename} in {$locale} locale.");
 
                 continue;
@@ -105,7 +111,7 @@ class CheckMissingTranslations extends Command
             $currentKey = $prefix ? "{$prefix}.{$key}" : $key;
 
             if (is_array($value)) {
-                if (! isset($locale[$key]) || ! is_array($locale[$key])) {
+                if (!isset($locale[$key]) || !is_array($locale[$key])) {
                     $this->warn("Missing key: {$currentKey} in {$file}");
                 } else {
                     $this->checkMissingKeys(
@@ -116,7 +122,7 @@ class CheckMissingTranslations extends Command
                     );
                 }
             } else {
-                if (! isset($locale[$key])) {
+                if (!isset($locale[$key])) {
                     $this->warn("Missing key: {$currentKey} in {$file}");
                 }
             }

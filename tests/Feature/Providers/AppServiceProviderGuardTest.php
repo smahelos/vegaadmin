@@ -45,11 +45,14 @@ class AppServiceProviderGuardTest extends TestCase
                     break;
                 }
             }
-            if (! $whitelisted) {
+            if (!$whitelisted) {
                 $violations[] = $match;
             }
         }
 
-        $this->assertEmpty($violations, 'AppServiceProvider should not contain domain contract bindings. Found: ' . implode(', ', $violations));
+        $this->assertEmpty(
+            $violations,
+            'AppServiceProvider should not contain domain contract bindings. Found: ' . implode(', ', $violations),
+        );
     }
 }

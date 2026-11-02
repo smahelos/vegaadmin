@@ -29,7 +29,9 @@ final class InvoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can($this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice') === true;
+        return backpack_user()?->can(
+            $this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice',
+        ) === true;
     }
 
     /** @return array<string, mixed> */
@@ -40,17 +42,26 @@ final class InvoiceRequest extends FormRequest
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where('user_id', $this->integer('user_id')),
+                Rule::exists('businesses', 'id')->where(
+                    'user_id',
+                    $this->integer('user_id'),
+                ),
             ],
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where('user_id', $this->integer('user_id')),
+                Rule::exists('contacts', 'id')->where(
+                    'user_id',
+                    $this->integer('user_id'),
+                ),
             ],
             'bank_account_id' => $this->paysByBankTransfer() ? [
                 'required',
                 'integer',
-                Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
+                Rule::exists('bank_accounts', 'id')->where(
+                    'business_id',
+                    $this->integer('business_id'),
+                ),
             ] : ['exclude'],
             'invoice_vs' => 'required|string|max:50',
             'invoice_ks' => 'nullable|string|max:20',
@@ -69,7 +80,7 @@ final class InvoiceRequest extends FormRequest
         $customerRules = AdminDocumentPartyInput::rules(
             $this->all(),
             'customer',
-            $this->filled('contact_id') && ! $this->keepsContact(),
+            $this->filled('contact_id') && !$this->keepsContact(),
         );
 
         return [
@@ -97,11 +108,13 @@ final class InvoiceRequest extends FormRequest
     /** @return list<InvoiceProductWriteData>|null */
     public function products(): ?array
     {
-        if (! $this->has('invoice-products')) {
+        if (!$this->has('invoice-products')) {
             return null;
         }
 
-        return app(InvoiceProductWriteDataAssembler::class)->fromValidated($this->validated('invoice-products'));
+        return app(InvoiceProductWriteDataAssembler::class)->fromValidated(
+            $this->validated('invoice-products'),
+        );
     }
 
     public function partySelection(): InvoicePartySelection
@@ -123,23 +136,25 @@ final class InvoiceRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [...DocumentPartyInput::attributes('customer'), ...InvoiceItemInput::attributes()];
-        foreach ([
-            'user_id',
-            'business_id',
-            'contact_id',
-            'bank_account_id',
-            'invoice_vs',
-            'invoice_ks',
-            'invoice_ss',
-            'due_in',
-            'payment_amount',
-            'payment_currency',
-            'payment_method_id',
-            'issue_date',
-            'tax_point_date',
-            'invoice_text',
-            'template',
-        ] as $field) {
+        foreach (
+            [
+                'user_id',
+                'business_id',
+                'contact_id',
+                'bank_account_id',
+                'invoice_vs',
+                'invoice_ks',
+                'invoice_ss',
+                'due_in',
+                'payment_amount',
+                'payment_currency',
+                'payment_method_id',
+                'issue_date',
+                'tax_point_date',
+                'invoice_text',
+                'template',
+            ] as $field
+        ) {
             $attributes[$field] = __('invoices.fields.' . $field);
         }
         $attributes['payment_status_id'] = __('invoices.fields.status');
@@ -155,7 +170,9 @@ final class InvoiceRequest extends FormRequest
         }
         $invoice = app(InvoiceListingApplicationServiceInterface::class)->getById(
             InvoiceId::fromInt($id),
-            UserId::fromInt($this->integer('user_id')),
+            UserId::fromInt(
+                $this->integer('user_id'),
+            ),
         );
 
         return $invoice->parties?->contactId?->value === $this->integer('contact_id');
@@ -168,6 +185,8 @@ final class InvoiceRequest extends FormRequest
             return false;
         }
 
-        return app(PaymentMethodDtoReadRepositoryInterface::class)->findById(PaymentMethodId::fromInt($id))?->code === PaymentMethodCode::BANK_ACCOUNT;
+        return app(PaymentMethodDtoReadRepositoryInterface::class)->findById(
+            PaymentMethodId::fromInt($id),
+        )?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
 }

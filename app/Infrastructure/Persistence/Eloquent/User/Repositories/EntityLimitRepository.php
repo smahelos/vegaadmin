@@ -26,13 +26,15 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             ->where('is_active', 1)
             ->get();
 
-        return $rows->map(fn ($row) => [
-            'permission_name' => $row->permission_name,
-            'entity_type' => $row->entity_type,
-            'metric_type' => $row->metric_type,
-            'period_type' => $row->period_type,
-            'limit_value' => (int) $row->limit_value,
-        ])->all();
+        return $rows->map(
+            fn ($row) => [
+                'permission_name' => $row->permission_name,
+                'entity_type' => $row->entity_type,
+                'metric_type' => $row->metric_type,
+                'period_type' => $row->period_type,
+                'limit_value' => (int) $row->limit_value,
+            ],
+        )->all();
     }
 
     public function getPermissionNamesForEntity(string $entityType, bool $includeInactive = true): array
@@ -43,7 +45,7 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             ->whereNotNull('permission_name')
             ->distinct();
 
-        if (! $includeInactive) {
+        if (!$includeInactive) {
             $query->where('is_active', 1);
         }
 
@@ -75,13 +77,15 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             ->where('is_active', 1)
             ->get();
 
-        return $rows->map(fn ($row) => [
-            'permission_name' => $row->permission_name,
-            'entity_type' => $row->entity_type,
-            'metric_type' => $row->metric_type,
-            'period_type' => $row->period_type,
-            'limit_value' => (int) $row->limit_value,
-        ])->all();
+        return $rows->map(
+            fn ($row) => [
+                'permission_name' => $row->permission_name,
+                'entity_type' => $row->entity_type,
+                'metric_type' => $row->metric_type,
+                'period_type' => $row->period_type,
+                'limit_value' => (int) $row->limit_value,
+            ],
+        )->all();
     }
 
     /**

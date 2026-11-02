@@ -66,10 +66,12 @@ class EntityLimitFactory extends Factory
      */
     public function countLimit(int $maxCount = 10): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'count',
-            'limit_value' => $maxCount,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'count',
+                'limit_value' => $maxCount,
+            ],
+        );
     }
 
     /**
@@ -77,10 +79,12 @@ class EntityLimitFactory extends Factory
      */
     public function forEntity(string $entityType): static
     {
-        return $this->state(fn (array $attributes) => [
-            'entity_type' => $entityType,
-            'permission_name' => "can_create_edit_{$entityType}",
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'entity_type' => $entityType,
+                'permission_name' => "can_create_edit_{$entityType}",
+            ],
+        );
     }
 
     /**

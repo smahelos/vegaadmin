@@ -72,10 +72,12 @@ class TestInvoiceReminderFeatureTest extends TestCase
     #[Test]
     public function command_sends_test_reminder(): void
     {
-        $invoice = Invoice::factory()->create([
-            'customer_email' => 'test@example.com',
-            'supplier_email' => null,
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'customer_email' => 'test@example.com',
+                'supplier_email' => null,
+            ],
+        );
 
         $exitCode = Artisan::call('invoices:test-reminder', [
             '--invoice' => $invoice->id,

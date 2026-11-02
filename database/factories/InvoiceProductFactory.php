@@ -27,7 +27,14 @@ class InvoiceProductFactory extends Factory
                 10,
             ),
             unit: $this->faker->randomElement(Unit::cases()),
-            price: Money::fromString((string) $this->faker->randomFloat(2, 10, 1000), Currency::CZK->value),
+            price: Money::fromString(
+                (string) $this->faker->randomFloat(
+                    2,
+                    10,
+                    1000,
+                ),
+                Currency::CZK->value,
+            ),
             taxRate: $this->faker->randomElement([
                 '0',
                 '12',

@@ -27,7 +27,7 @@ final class QrPaymentService implements QrPaymentServiceInterface
         $provider = QrPaymentProviderFactory::autoDetectProvider($payload);
 
         // Validate payment data using country-specific provider
-        if (! $provider->validatePaymentInfo($payload)) {
+        if (!$provider->validatePaymentInfo($payload)) {
             return null;
         }
 

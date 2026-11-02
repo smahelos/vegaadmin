@@ -53,11 +53,15 @@ final class BusinessCreator
             $this->accountWriter->setDefaultForOwner($owner, $account->id);
         }
 
-        $this->events->publish(new BusinessCreated($business->id, $userId));
+        $this->events->publish(
+            new BusinessCreated($business->id, $userId),
+        );
 
         if ($isFirstActive) {
             $this->businessWriter->setDefaultForUser($userId, $business->id);
-            $this->events->publish(new DefaultBusinessChanged($business->id, $userId));
+            $this->events->publish(
+                new DefaultBusinessChanged($business->id, $userId),
+            );
         }
 
         // Read back, so the returned business carries its default account

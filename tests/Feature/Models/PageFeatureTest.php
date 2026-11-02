@@ -59,10 +59,12 @@ class PageFeatureTest extends TestCase
     public function page_can_have_parent(): void
     {
         $parentPage = Page::factory()->create(['name' => 'Parent Page']);
-        $childPage = Page::factory()->create([
-            'name' => 'Child Page',
-            'parent_id' => $parentPage->id,
-        ]);
+        $childPage = Page::factory()->create(
+            [
+                'name' => 'Child Page',
+                'parent_id' => $parentPage->id,
+            ],
+        );
 
         $this->assertInstanceOf(Page::class, $childPage->parent);
         $this->assertEquals('Parent Page', $childPage->parent->name);
@@ -73,20 +75,28 @@ class PageFeatureTest extends TestCase
     public function page_can_have_children(): void
     {
         $parentPage = Page::factory()->create(['name' => 'Parent Page']);
-        $childPage1 = Page::factory()->create([
-            'name' => 'Child Page 1',
-            'parent_id' => $parentPage->id,
-        ]);
-        $childPage2 = Page::factory()->create([
-            'name' => 'Child Page 2',
-            'parent_id' => $parentPage->id,
-        ]);
+        $childPage1 = Page::factory()->create(
+            [
+                'name' => 'Child Page 1',
+                'parent_id' => $parentPage->id,
+            ],
+        );
+        $childPage2 = Page::factory()->create(
+            [
+                'name' => 'Child Page 2',
+                'parent_id' => $parentPage->id,
+            ],
+        );
 
         $children = $parentPage->children;
 
         $this->assertCount(2, $children);
-        $this->assertTrue($children->contains('name', 'Child Page 1'));
-        $this->assertTrue($children->contains('name', 'Child Page 2'));
+        $this->assertTrue(
+            $children->contains('name', 'Child Page 1'),
+        );
+        $this->assertTrue(
+            $children->contains('name', 'Child Page 2'),
+        );
     }
 
     #[Test]
@@ -110,40 +120,48 @@ class PageFeatureTest extends TestCase
         $user = User::factory()->create();
 
         // Test 1: null hodnota
-        $pageNull = Page::create([
-            'name' => 'Test Page Null',
-            'slug' => 'test-page-null',
-            'category_id' => $category->id,
-            'published' => true,
-            'published_by' => $user->id,
-        ]);
+        $pageNull = Page::create(
+            [
+                'name' => 'Test Page Null',
+                'slug' => 'test-page-null',
+                'category_id' => $category->id,
+                'published' => true,
+                'published_by' => $user->id,
+            ],
+        );
         // Nastavíme images přímo do DB (obejdeme mutator)
         \DB::table('pages')->where('id', $pageNull->id)->update(['images' => null]);
         $this->assertNull($pageNull->fresh()->images);
 
         // Test 2: Prázdný array
-        $pageEmpty = Page::create([
-            'name' => 'Test Page Empty',
-            'slug' => 'test-page-empty',
-            'category_id' => $category->id,
-            'published' => true,
-            'published_by' => $user->id,
-        ]);
+        $pageEmpty = Page::create(
+            [
+                'name' => 'Test Page Empty',
+                'slug' => 'test-page-empty',
+                'category_id' => $category->id,
+                'published' => true,
+                'published_by' => $user->id,
+            ],
+        );
         \DB::table('pages')->where('id', $pageEmpty->id)->update(['images' => '[]']);
         $this->assertIsArray($pageEmpty->fresh()->images);
         $this->assertEquals([], $pageEmpty->fresh()->images);
 
         // Test 3: Array s daty
-        $pageWithData = Page::create([
-            'name' => 'Test Page Data',
-            'slug' => 'test-page-data',
-            'category_id' => $category->id,
-            'published' => true,
-            'published_by' => $user->id,
-        ]);
-        \DB::table('pages')->where('id', $pageWithData->id)->update([
-            'images' => json_encode(['image1.jpg', 'image2.jpg']),
-        ]);
+        $pageWithData = Page::create(
+            [
+                'name' => 'Test Page Data',
+                'slug' => 'test-page-data',
+                'category_id' => $category->id,
+                'published' => true,
+                'published_by' => $user->id,
+            ],
+        );
+        \DB::table('pages')->where('id', $pageWithData->id)->update(
+            [
+                'images' => json_encode(['image1.jpg', 'image2.jpg']),
+            ],
+        );
         $pageData = $pageWithData->fresh();
         $this->assertIsArray($pageData->images);
         $this->assertCount(2, $pageData->images);
@@ -154,15 +172,23 @@ class PageFeatureTest extends TestCase
     #[Test]
     public function page_publishing_dates_are_cast_to_datetime(): void
     {
-        $page = Page::factory()->create([
-            'publishing_start' => '2025-01-01 10:00:00',
-            'publishing_end' => '2025-12-31 23:59:59',
-        ]);
+        $page = Page::factory()->create(
+            [
+                'publishing_start' => '2025-01-01 10:00:00',
+                'publishing_end' => '2025-12-31 23:59:59',
+            ],
+        );
 
         $this->assertInstanceOf(Carbon::class, $page->publishing_start);
         $this->assertInstanceOf(Carbon::class, $page->publishing_end);
-        $this->assertEquals('2025-01-01 10:00:00', $page->publishing_start->format('Y-m-d H:i:s'));
-        $this->assertEquals('2025-12-31 23:59:59', $page->publishing_end->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2025-01-01 10:00:00',
+            $page->publishing_start->format('Y-m-d H:i:s'),
+        );
+        $this->assertEquals(
+            '2025-12-31 23:59:59',
+            $page->publishing_end->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
@@ -242,12 +268,14 @@ class PageFeatureTest extends TestCase
         $category = PageCategory::factory()->create();
 
         // Published page with no time restrictions
-        $publishedPage = Page::factory()->create([
-            'published' => true,
-            'category_id' => $category->id,
-            'publishing_start' => null,
-            'publishing_end' => null,
-        ]);
+        $publishedPage = Page::factory()->create(
+            [
+                'published' => true,
+                'category_id' => $category->id,
+                'publishing_start' => null,
+                'publishing_end' => null,
+            ],
+        );
 
         // Unpublished page
         $unpublishedPage = Page::factory()->create([
@@ -256,28 +284,40 @@ class PageFeatureTest extends TestCase
         ]);
 
         // Published page with future start date
-        $futurePublishedPage = Page::factory()->create([
-            'published' => true,
-            'category_id' => $category->id,
-            'publishing_start' => now()->addDay(),
-            'publishing_end' => null,
-        ]);
+        $futurePublishedPage = Page::factory()->create(
+            [
+                'published' => true,
+                'category_id' => $category->id,
+                'publishing_start' => now()->addDay(),
+                'publishing_end' => null,
+            ],
+        );
 
         // Published page with past end date
-        $expiredPublishedPage = Page::factory()->create([
-            'published' => true,
-            'category_id' => $category->id,
-            'publishing_start' => now()->subWeek(),
-            'publishing_end' => now()->subDay(),
-        ]);
+        $expiredPublishedPage = Page::factory()->create(
+            [
+                'published' => true,
+                'category_id' => $category->id,
+                'publishing_start' => now()->subWeek(),
+                'publishing_end' => now()->subDay(),
+            ],
+        );
 
         $publishedPages = Page::published()->get();
 
         $this->assertCount(1, $publishedPages);
-        $this->assertTrue($publishedPages->contains('id', $publishedPage->id));
-        $this->assertFalse($publishedPages->contains('id', $unpublishedPage->id));
-        $this->assertFalse($publishedPages->contains('id', $futurePublishedPage->id));
-        $this->assertFalse($publishedPages->contains('id', $expiredPublishedPage->id));
+        $this->assertTrue(
+            $publishedPages->contains('id', $publishedPage->id),
+        );
+        $this->assertFalse(
+            $publishedPages->contains('id', $unpublishedPage->id),
+        );
+        $this->assertFalse(
+            $publishedPages->contains('id', $futurePublishedPage->id),
+        );
+        $this->assertFalse(
+            $publishedPages->contains('id', $expiredPublishedPage->id),
+        );
     }
 
     #[Test]
@@ -292,8 +332,12 @@ class PageFeatureTest extends TestCase
         $pagesInCategory1 = Page::byCategory($category1->id)->get();
 
         $this->assertCount(1, $pagesInCategory1);
-        $this->assertTrue($pagesInCategory1->contains('id', $pageInCategory1->id));
-        $this->assertFalse($pagesInCategory1->contains('id', $pageInCategory2->id));
+        $this->assertTrue(
+            $pagesInCategory1->contains('id', $pageInCategory1->id),
+        );
+        $this->assertFalse(
+            $pagesInCategory1->contains('id', $pageInCategory2->id),
+        );
     }
 
     #[Test]
@@ -305,20 +349,28 @@ class PageFeatureTest extends TestCase
 
         $rootPages = Page::rootPages()->get();
 
-        $this->assertTrue($rootPages->contains('id', $parentPage->id));
-        $this->assertTrue($rootPages->contains('id', $rootPage->id));
-        $this->assertFalse($rootPages->contains('id', $childPage->id));
+        $this->assertTrue(
+            $rootPages->contains('id', $parentPage->id),
+        );
+        $this->assertTrue(
+            $rootPages->contains('id', $rootPage->id),
+        );
+        $this->assertFalse(
+            $rootPages->contains('id', $childPage->id),
+        );
     }
 
     #[Test]
     public function page_is_currently_published_attribute_works_correctly(): void
     {
         // Published with no time restrictions
-        $alwaysPublished = Page::factory()->create([
-            'published' => true,
-            'publishing_start' => null,
-            'publishing_end' => null,
-        ]);
+        $alwaysPublished = Page::factory()->create(
+            [
+                'published' => true,
+                'publishing_start' => null,
+                'publishing_end' => null,
+            ],
+        );
 
         // Unpublished
         $unpublished = Page::factory()->create([
@@ -326,24 +378,30 @@ class PageFeatureTest extends TestCase
         ]);
 
         // Published but future start date
-        $futurePublished = Page::factory()->create([
-            'published' => true,
-            'publishing_start' => now()->addDay(),
-        ]);
+        $futurePublished = Page::factory()->create(
+            [
+                'published' => true,
+                'publishing_start' => now()->addDay(),
+            ],
+        );
 
         // Published but past end date
-        $expiredPublished = Page::factory()->create([
-            'published' => true,
-            'publishing_start' => now()->subWeek(),
-            'publishing_end' => now()->subDay(),
-        ]);
+        $expiredPublished = Page::factory()->create(
+            [
+                'published' => true,
+                'publishing_start' => now()->subWeek(),
+                'publishing_end' => now()->subDay(),
+            ],
+        );
 
         // Currently published (within time window)
-        $currentlyPublished = Page::factory()->create([
-            'published' => true,
-            'publishing_start' => now()->subDay(),
-            'publishing_end' => now()->addDay(),
-        ]);
+        $currentlyPublished = Page::factory()->create(
+            [
+                'published' => true,
+                'publishing_start' => now()->subDay(),
+                'publishing_end' => now()->addDay(),
+            ],
+        );
 
         $this->assertTrue($alwaysPublished->is_currently_published);
         $this->assertFalse($unpublished->is_currently_published);
@@ -356,16 +414,20 @@ class PageFeatureTest extends TestCase
     public function page_breadcrumbs_attribute_returns_correct_hierarchy(): void
     {
         $grandparent = Page::factory()->create(['name' => 'Grandparent', 'slug' => 'grandparent']);
-        $parent = Page::factory()->create([
-            'name' => 'Parent',
-            'slug' => 'parent',
-            'parent_id' => $grandparent->id,
-        ]);
-        $child = Page::factory()->create([
-            'name' => 'Child',
-            'slug' => 'child',
-            'parent_id' => $parent->id,
-        ]);
+        $parent = Page::factory()->create(
+            [
+                'name' => 'Parent',
+                'slug' => 'parent',
+                'parent_id' => $grandparent->id,
+            ],
+        );
+        $child = Page::factory()->create(
+            [
+                'name' => 'Child',
+                'slug' => 'child',
+                'parent_id' => $parent->id,
+            ],
+        );
 
         $breadcrumbs = $child->breadcrumbs;
 
@@ -394,18 +456,22 @@ class PageFeatureTest extends TestCase
         $this->actingAs($user, 'web');
 
         // První stránka by měla mít sort_order 1
-        $page1 = Page::create([
-            'name' => 'First Page',
-            'category_id' => $category->id,
-            'published' => true,
-        ]);
+        $page1 = Page::create(
+            [
+                'name' => 'First Page',
+                'category_id' => $category->id,
+                'published' => true,
+            ],
+        );
 
         // Druhá stránka by měla mít sort_order 2
-        $page2 = Page::create([
-            'name' => 'Second Page',
-            'category_id' => $category->id,
-            'published' => true,
-        ]);
+        $page2 = Page::create(
+            [
+                'name' => 'Second Page',
+                'category_id' => $category->id,
+                'published' => true,
+            ],
+        );
 
         $this->assertEquals(1, $page1->sort_order);
         $this->assertEquals(2, $page2->sort_order);
@@ -420,11 +486,13 @@ class PageFeatureTest extends TestCase
         // Přihlásíme uživatele pro testování boot metody
         $this->actingAs($user, 'web');
 
-        $page = Page::create([
-            'name' => 'Test Page',
-            'category_id' => $category->id,
-            'published' => true,
-        ]);
+        $page = Page::create(
+            [
+                'name' => 'Test Page',
+                'category_id' => $category->id,
+                'published' => true,
+            ],
+        );
 
         $this->assertEquals($user->id, $page->published_by);
     }
@@ -434,11 +502,13 @@ class PageFeatureTest extends TestCase
     {
         $category = PageCategory::factory()->create();
 
-        $page = Page::create([
-            'name' => 'Test Page',
-            'category_id' => $category->id,
-            'published' => true,
-        ]);
+        $page = Page::create(
+            [
+                'name' => 'Test Page',
+                'category_id' => $category->id,
+                'published' => true,
+            ],
+        );
 
         $this->assertNull($page->published_by);
     }

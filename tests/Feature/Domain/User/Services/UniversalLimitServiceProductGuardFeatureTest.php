@@ -198,7 +198,11 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
                         59,
                         59,
                     )],
-                    'monthly' => [$reference->modify('first day of this month')->setTime(0, 0, 0), $reference->modify('last day of this month')->setTime(
+                    'monthly' => [$reference->modify('first day of this month')->setTime(
+                        0,
+                        0,
+                        0,
+                    ), $reference->modify('last day of this month')->setTime(
                         23,
                         59,
                         59,
@@ -267,13 +271,15 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
         // Ensure permission for web guard
         Permission::firstOrCreate(['name' => 'can_create_edit_product', 'guard_name' => 'web']);
         $user->givePermissionTo('can_create_edit_product');
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product',
-            'metric_type' => 'count',
-            'period_type' => 'daily',
-            'limit_value' => 10,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product',
+                'metric_type' => 'count',
+                'period_type' => 'daily',
+                'limit_value' => 10,
+            ],
+        );
 
         // Generic recordUsage replaces specialized recordProductCreation
         $this->service->recordUsage(

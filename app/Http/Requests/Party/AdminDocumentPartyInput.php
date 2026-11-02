@@ -21,7 +21,10 @@ final class AdminDocumentPartyInput
             true,
         );
         if ($copyContact) {
-            return array_fill_keys(array_keys($rules), ['exclude']);
+            return array_fill_keys(
+                array_keys($rules),
+                ['exclude'],
+            );
         }
 
         return $rules;

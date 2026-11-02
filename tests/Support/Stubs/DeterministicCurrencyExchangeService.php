@@ -25,7 +25,7 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         if ($fromCurrency === $toCurrency) {
             return 1.0;
         }
-        if (! isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
+        if (!isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
             return null;
         }
 

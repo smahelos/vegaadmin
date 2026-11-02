@@ -65,7 +65,16 @@ final class QrPaymentServiceFeatureTest extends TestCase
                 return 'data:image/png;base64,' . base64_encode($payload);
             },
         );
-        $snapshot = new DocumentAccountDTO(BankAccount::fromParts($iban, null, null, Country::from($country), null), 'Saved bank');
+        $snapshot = new DocumentAccountDTO(
+            BankAccount::fromParts(
+                $iban,
+                null,
+                null,
+                Country::from($country),
+                null,
+            ),
+            'Saved bank',
+        );
         $payload = app(QrPaymentMapper::class)->fromSnapshot(
             '20260001',
             Money::fromString('1500.50', $currency),
@@ -76,47 +85,62 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $this->assertSame($iban, $payload->account?->iban);
         $this->assertSame($snapshot->account, $payload->account);
         $this->assertSame('1500.5', $payload->amount->getAmount());
-        $this->assertNotNull((new QrPaymentService($renderer))->generateQrCodeBase64($payload));
+        $this->assertNotNull(
+            (new QrPaymentService($renderer))->generateQrCodeBase64($payload),
+        );
     }
 
     #[Test]
     public function changing_and_archiving_the_source_account_does_not_change_the_printed_payment(): void
     {
-        $invoice = Invoice::factory()->create([
-            'invoice_vs' => '20260042',
-            'payment_amount' => '1234.56',
-            'payment_currency' => 'CZK',
-            'account_iban' => 'CZ6508000000192000145399',
-            'account_number' => '19-2000145399',
-            'account_bank_code' => '0800',
-            'account_country' => 'CZ',
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'invoice_vs' => '20260042',
+                'payment_amount' => '1234.56',
+                'payment_currency' => 'CZK',
+                'account_iban' => 'CZ6508000000192000145399',
+                'account_number' => '19-2000145399',
+                'account_bank_code' => '0800',
+                'account_country' => 'CZ',
+            ],
+        );
         $business = Business::findOrFail($invoice->business_id);
-        $source = StoredBankAccount::factory()->ownedBy($business)->create([
-            'iban' => $invoice->account_iban,
-            'number' => $invoice->account_number,
-            'bank_code' => '0800',
-        ]);
+        $source = StoredBankAccount::factory()->ownedBy($business)->create(
+            [
+                'iban' => $invoice->account_iban,
+                'number' => $invoice->account_number,
+                'bank_code' => '0800',
+            ],
+        );
         $invoice->update(['bank_account_id' => $source->id]);
-        $source->update([
-            'iban' => 'DE89370400440532013000',
-            'number' => null,
-            'bank_code' => null,
-            'country' => 'DE',
-            'archived_at' => now(),
-        ]);
+        $source->update(
+            [
+                'iban' => 'DE89370400440532013000',
+                'number' => null,
+                'bank_code' => null,
+                'country' => 'DE',
+                'archived_at' => now(),
+            ],
+        );
         $business->update(['archived_at' => now()]);
-        $stored = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
+        $stored = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+            InvoiceId::fromInt($invoice->id),
+            UserId::fromInt($invoice->user_id),
+        );
         $printable = app(InvoicePrintDataBuilderInterface::class)->build($stored);
         $payment = app(QrPaymentMapper::class)->fromPrintableInvoice($printable);
         $renderer = $this->createMock(QrCodeRendererInterface::class);
-        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(function (string $qr): string {
-            $this->assertStringContainsString('ACC:CZ6508000000192000145399*AM:1234.56*CC:CZK', $qr);
-            $this->assertStringNotContainsString('DE89370400440532013000', $qr);
+        $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(
+            function (string $qr): string {
+                $this->assertStringContainsString('ACC:CZ6508000000192000145399*AM:1234.56*CC:CZK', $qr);
+                $this->assertStringNotContainsString('DE89370400440532013000', $qr);
 
-            return 'data:image/png;base64,' . base64_encode($qr);
-        });
-        $this->assertNotNull((new QrPaymentService($renderer))->generateQrCodeBase64($payment));
+                return 'data:image/png;base64,' . base64_encode($qr);
+            },
+        );
+        $this->assertNotNull(
+            (new QrPaymentService($renderer))->generateQrCodeBase64($payment),
+        );
     }
 
     #[Test]
@@ -131,6 +155,8 @@ final class QrPaymentServiceFeatureTest extends TestCase
             null,
         );
         $this->assertNull($payload->account);
-        $this->assertNull((new QrPaymentService($renderer))->generateQrCodeBase64($payload));
+        $this->assertNull(
+            (new QrPaymentService($renderer))->generateQrCodeBase64($payload),
+        );
     }
 }

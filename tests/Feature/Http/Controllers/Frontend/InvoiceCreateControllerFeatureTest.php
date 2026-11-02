@@ -23,17 +23,19 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.invoices.create');
-        $response->assertViewHasAll([
-            'paymentMethods',
-            'invoiceProducts',
-            'statuses',
-            'taxRates',
-            'suggestedNumber',
-            'limitsData',
-            'fields',
-            'contactId',
-            'businessId',
-        ]);
+        $response->assertViewHasAll(
+            [
+                'paymentMethods',
+                'invoiceProducts',
+                'statuses',
+                'taxRates',
+                'suggestedNumber',
+                'limitsData',
+                'fields',
+                'contactId',
+                'businessId',
+            ],
+        );
     }
 
     #[Test]

@@ -12,7 +12,7 @@ class Authenticate extends Middleware
      */
     protected function redirectTo(Request $request): ?string
     {
-        if (! $request->expectsJson()) {
+        if (!$request->expectsJson()) {
             // Distinguish between backend and frontend based on URL
             if ($request->is('admin*')) {
                 // If admin section, redirect to backpack login

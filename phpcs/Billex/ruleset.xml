@@ -2,4 +2,5 @@
 <ruleset name="Billex">
     <description>Billex sniffs for layout rules that Pint cannot express.</description>
     <autoload>./ListLayout.php</autoload>
+    <autoload>./CallSyntax.php</autoload>
 </ruleset>

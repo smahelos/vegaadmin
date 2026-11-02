@@ -30,7 +30,9 @@ final class EloquentDocumentPartiesMapper
         $bankAccountId = $document->getAttribute('bank_account_id');
 
         return new DocumentParties(
-            businessId: BusinessId::fromInt((int) $document->getAttribute('business_id')),
+            businessId: BusinessId::fromInt(
+                (int) $document->getAttribute('business_id'),
+            ),
             contactId: $contactId === null ? null : ContactId::fromInt((int) $contactId),
             bankAccountId: $bankAccountId === null ? null : BankAccountId::fromInt((int) $bankAccountId),
             supplier: self::toParty($document, 'supplier'),
@@ -58,10 +60,12 @@ final class EloquentDocumentPartiesMapper
             'account_bank_name' => $parties->account?->bankName,
         ];
 
-        foreach ([
-            'supplier' => $parties->supplier,
-            'customer' => $parties->customer,
-        ] as $role => $party) {
+        foreach (
+            [
+                'supplier' => $parties->supplier,
+                'customer' => $parties->customer,
+            ] as $role => $party
+        ) {
             $attributes += self::toPartyAttributes($role, $party);
         }
 
@@ -92,15 +96,21 @@ final class EloquentDocumentPartiesMapper
         return new DocumentPartyDTO(
             name: (string) $document->getAttribute($role . '_name'),
             registrationNumber: RegistrationNumber::fromParts(
-                self::country($document->getAttribute($role . '_registration_country')),
+                self::country(
+                    $document->getAttribute($role . '_registration_country'),
+                ),
                 $document->getAttribute($role . '_company_number'),
             ),
-            vatNumber: VatNumber::fromNullable($document->getAttribute($role . '_vat_number')),
+            vatNumber: VatNumber::fromNullable(
+                $document->getAttribute($role . '_vat_number'),
+            ),
             address: Address::fromParts(
                 $document->getAttribute($role . '_street'),
                 $document->getAttribute($role . '_city'),
                 $document->getAttribute($role . '_postal_code'),
-                self::country($document->getAttribute($role . '_country')),
+                self::country(
+                    $document->getAttribute($role . '_country'),
+                ),
             ),
             email: $document->getAttribute($role . '_email'),
             phone: $document->getAttribute($role . '_phone'),
@@ -120,7 +130,9 @@ final class EloquentDocumentPartiesMapper
                 $iban,
                 $number,
                 $document->getAttribute('account_bank_code'),
-                self::country($document->getAttribute('account_country')),
+                self::country(
+                    $document->getAttribute('account_country'),
+                ),
                 $document->getAttribute('account_swift'),
             ),
             $document->getAttribute('account_bank_name'),

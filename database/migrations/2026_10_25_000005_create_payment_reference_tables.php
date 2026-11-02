@@ -10,38 +10,47 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('payment_methods', function (Blueprint $table): void {
-            $table->id();
-            $table->string('name');
-            $table->string('slug')->unique();
-            $table->string('country')->nullable();
-            $table->string('currency')->nullable();
-            $table->string('icon')->nullable();
-            $table->timestamps();
-        });
+        Schema::create(
+            'payment_methods',
+            function (Blueprint $table): void {
+                $table->id();
+                $table->string('name');
+                $table->string('slug')->unique();
+                $table->string('country')->nullable();
+                $table->string('currency')->nullable();
+                $table->string('icon')->nullable();
+                $table->timestamps();
+            },
+        );
 
-        Schema::create('banks', function (Blueprint $table): void {
-            $table->id();
-            $table->string('name');
-            $table->string('code', 10)->unique();
-            $table->string('swift', 20)->nullable();
-            $table->string('country', 2)->default('CZ');
-            $table->boolean('active')->default(true);
-            $table->text('description')->nullable();
-            $table->timestamps();
-        });
+        Schema::create(
+            'banks',
+            function (Blueprint $table): void {
+                $table->id();
+                $table->string('name');
+                $table->string('code', 10)->unique();
+                $table->string('swift', 20)->nullable();
+                $table->string('country', 2)->default('CZ');
+                $table->boolean('active')->default(true);
+                $table->text('description')->nullable();
+                $table->timestamps();
+            },
+        );
 
-        Schema::create('taxes', function (Blueprint $table): void {
-            $table->id();
-            $table->string('name');
-            $table->decimal(
-                'rate',
-                5,
-                2,
-            );
-            $table->string('slug')->nullable()->comment('Tax slug');
-            $table->timestamps();
-        });
+        Schema::create(
+            'taxes',
+            function (Blueprint $table): void {
+                $table->id();
+                $table->string('name');
+                $table->decimal(
+                    'rate',
+                    5,
+                    2,
+                );
+                $table->string('slug')->nullable()->comment('Tax slug');
+                $table->timestamps();
+            },
+        );
     }
 
     public function down(): void

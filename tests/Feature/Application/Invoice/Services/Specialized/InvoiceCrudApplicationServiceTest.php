@@ -37,11 +37,13 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
     public function a_failure_while_storing_the_lines_leaves_the_invoice_and_its_lines_untouched(): void
     {
         $user = User::factory()->create();
-        $invoice = Invoice::factory()->create([
-            'user_id' => $user->id,
-            'invoice_vs' => 'BEFORE',
-            'payment_currency' => 'CZK',
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'invoice_vs' => 'BEFORE',
+                'payment_currency' => 'CZK',
+            ],
+        );
         $line = InvoiceProduct::factory()->create(['invoice_id' => $invoice->id]);
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
@@ -82,7 +84,10 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         }
 
         $this->assertSame('BEFORE', $invoice->fresh()->invoice_vs);
-        $this->assertSame([$line->id], InvoiceProduct::where('invoice_id', $invoice->id)->pluck('id')->all());
+        $this->assertSame(
+            [$line->id],
+            InvoiceProduct::where('invoice_id', $invoice->id)->pluck('id')->all(),
+        );
     }
 
     #[Test]
@@ -133,10 +138,19 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         } catch (RuntimeException $exception) {
             $this->assertSame('Storing the lines failed', $exception->getMessage());
         }
-        $this->assertSame(0, Contact::where('user_id', $user->id)->count());
-        $this->assertSame(0, Invoice::where('user_id', $user->id)->count());
+        $this->assertSame(
+            0,
+            Contact::where('user_id', $user->id)->count(),
+        );
+        $this->assertSame(
+            0,
+            Invoice::where('user_id', $user->id)->count(),
+        );
         $this->assertSame($beforeAddresses, Address::count());
-        $this->assertSame($beforeUsage, EntityLimitUsage::where('user_id', $user->id)->count());
+        $this->assertSame(
+            $beforeUsage,
+            EntityLimitUsage::where('user_id', $user->id)->count(),
+        );
     }
 
     /**

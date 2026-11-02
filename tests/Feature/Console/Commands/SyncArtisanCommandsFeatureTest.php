@@ -120,10 +120,13 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
         // Sync again
         Artisan::call('artisan:sync-commands');
 
-        $this->assertDatabaseHas('artisan_commands', [
-            'id' => $command->id,
-            'description' => 'Custom description',
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            [
+                'id' => $command->id,
+                'description' => 'Custom description',
+            ],
+        );
     }
 
     #[Test]
@@ -135,7 +138,9 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
 
         // Should provide some statistics about the sync
         $this->assertIsString($output);
-        $this->assertNotEmpty(trim($output));
+        $this->assertNotEmpty(
+            trim($output),
+        );
     }
 
     #[Test]

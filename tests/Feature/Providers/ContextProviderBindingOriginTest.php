@@ -42,14 +42,17 @@ class ContextProviderBindingOriginTest extends TestCase
         foreach ($contracts as $contract => $meta) {
             $expected = $this->expectedProviderFor($contract);
             if ($meta['status'] === 'missing_binding') {
-                if (! isset(self::UNBOUND_CONTRACTS[$contract])) {
+                if (!isset(self::UNBOUND_CONTRACTS[$contract])) {
                     $violations[] = "$contract has no binding, expected one in $expected";
                 }
 
                 continue;
             }
             if ($meta['status'] === 'duplicate_bindings') {
-                $providers = implode(', ', array_column($meta['actual'], 'provider'));
+                $providers = implode(
+                    ', ',
+                    array_column($meta['actual'], 'provider'),
+                );
                 $violations[] = "$contract bound in multiple providers ($providers), expected only $expected";
 
                 continue;

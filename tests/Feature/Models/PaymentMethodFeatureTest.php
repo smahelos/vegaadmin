@@ -26,6 +26,9 @@ final class PaymentMethodFeatureTest extends TestCase
     {
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
 
-        $this->assertSame(__('payment_methods.methods.cash'), $paymentMethod->translated_name);
+        $this->assertSame(
+            __('payment_methods.methods.cash'),
+            $paymentMethod->translated_name,
+        );
     }
 }

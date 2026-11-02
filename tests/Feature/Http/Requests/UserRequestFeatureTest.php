@@ -54,13 +54,19 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function name_and_email_pass(): void
     {
-        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'])->fails());
+        $this->assertFalse(
+            $this->validate(
+                ['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'],
+            )->fails(),
+        );
     }
 
     #[Test]
     public function own_email_passes(): void
     {
-        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => $this->user->email])->fails());
+        $this->assertFalse(
+            $this->validate(['name' => 'Jan Novák', 'email' => $this->user->email])->fails(),
+        );
     }
 
     #[Test]
@@ -68,7 +74,9 @@ class UserRequestFeatureTest extends TestCase
     {
         $other = User::factory()->create();
 
-        $this->assertTrue($this->validate(['name' => 'Jan Novák', 'email' => $other->email])->errors()->has('email'));
+        $this->assertTrue(
+            $this->validate(['name' => 'Jan Novák', 'email' => $other->email])->errors()->has('email'),
+        );
     }
 
     #[Test]
@@ -76,7 +84,13 @@ class UserRequestFeatureTest extends TestCase
     {
         $errors = $this->validate(['name' => '', 'email' => 'invalid'])->errors();
 
-        $this->assertStringContainsString(__('users.fields.name'), $errors->first('name'));
-        $this->assertStringContainsString(__('users.fields.email'), $errors->first('email'));
+        $this->assertStringContainsString(
+            __('users.fields.name'),
+            $errors->first('name'),
+        );
+        $this->assertStringContainsString(
+            __('users.fields.email'),
+            $errors->first('email'),
+        );
     }
 }

@@ -19,17 +19,25 @@ final class InvoicePrintDataBuilderTest extends TestCase
     #[Test]
     public function prints_the_tax_point_date_text_and_payment_method_of_the_stored_invoice(): void
     {
-        $invoice = Invoice::factory()->create([
-            'issue_date' => '2026-10-10',
-            'tax_point_date' => '2026-09-30',
-            'invoice_text' => 'Consulting in September',
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
-        ]);
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(InvoiceId::fromInt($invoice->id), UserId::fromInt($invoice->user_id));
+        $invoice = Invoice::factory()->create(
+            [
+                'issue_date' => '2026-10-10',
+                'tax_point_date' => '2026-09-30',
+                'invoice_text' => 'Consulting in September',
+                'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail()->id,
+            ],
+        );
+        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+            InvoiceId::fromInt($invoice->id),
+            UserId::fromInt($invoice->user_id),
+        );
 
         $printData = app(InvoicePrintDataBuilder::class)->build($dto);
 
-        $this->assertSame('2026-09-30', $printData->taxPointDate?->format('Y-m-d'));
+        $this->assertSame(
+            '2026-09-30',
+            $printData->taxPointDate?->format('Y-m-d'),
+        );
         $this->assertSame('Consulting in September', $printData->notes);
         $this->assertSame(PaymentMethodCode::CASH, $printData->paymentMethod);
     }

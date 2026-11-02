@@ -22,12 +22,16 @@ class TemporaryInvoiceStore implements TemporaryInvoiceStoreInterface
 
     public function get(string $token): ?array
     {
-        return Cache::get($this->key($token));
+        return Cache::get(
+            $this->key($token),
+        );
     }
 
     public function delete(string $token): bool
     {
-        return Cache::forget($this->key($token));
+        return Cache::forget(
+            $this->key($token),
+        );
     }
 
     private function key(string $token): string

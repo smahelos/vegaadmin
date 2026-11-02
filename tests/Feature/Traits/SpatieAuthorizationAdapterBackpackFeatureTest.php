@@ -30,7 +30,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     public function has_backpack_permission_returns_false_without_permission(): void
     {
         $user = User::factory()->create();
-        $this->assertFalse($this->adapter->hasBackpackPermission($user->id, 'test.permission'));
+        $this->assertFalse(
+            $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
+        );
     }
 
     #[Test]
@@ -40,7 +42,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $permission = Permission::where('name', 'test.permission')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($permission);
 
-        $this->assertTrue($this->adapter->hasBackpackPermission($user->id, 'test.permission'));
+        $this->assertTrue(
+            $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
+        );
     }
 
     #[Test]
@@ -50,7 +54,9 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
         $user->assignRole($role);
 
-        $this->assertTrue($this->adapter->isBackpackAdmin($user->id));
+        $this->assertTrue(
+            $this->adapter->isBackpackAdmin($user->id),
+        );
     }
 
     #[Test]
@@ -60,7 +66,11 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $viewPermission = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
         $user->givePermissionTo($viewPermission);
 
-        $this->assertTrue($this->adapter->hasBackpackViewPermission($user->id, 'contact'));
-        $this->assertFalse($this->adapter->hasBackpackViewPermission($user->id, 'business'));
+        $this->assertTrue(
+            $this->adapter->hasBackpackViewPermission($user->id, 'contact'),
+        );
+        $this->assertFalse(
+            $this->adapter->hasBackpackViewPermission($user->id, 'business'),
+        );
     }
 }

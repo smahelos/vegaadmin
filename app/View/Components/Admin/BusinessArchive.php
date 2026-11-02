@@ -21,10 +21,14 @@ final class BusinessArchive extends Component
         int $userId,
         bool $isDefault,
     ) {
-        $this->replacements = $isDefault ? array_values(array_filter(
-            $businesses->listActive(UserId::fromInt($userId)),
-            fn (BusinessDTO $business): bool => $business->id->value !== $businessId,
-        )) : [];
+        $this->replacements = $isDefault ? array_values(
+            array_filter(
+                $businesses->listActive(
+                    UserId::fromInt($userId),
+                ),
+                fn (BusinessDTO $business): bool => $business->id->value !== $businessId,
+            ),
+        ) : [];
     }
 
     public function render(): View

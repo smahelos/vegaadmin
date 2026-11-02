@@ -21,9 +21,15 @@ final class ApiAuthenticationTest extends TestCase
 
         $this->actingAs($user, 'web');
 
-        $this->assertTrue($user->hasPermissionTo('frontend.api.access', 'web'));
-        $this->assertTrue($user->hasPermissionTo('frontend.can_view_contact', 'web'));
-        $this->assertFalse($user->hasPermissionTo('frontend.api.extended', 'web'));
+        $this->assertTrue(
+            $user->hasPermissionTo('frontend.api.access', 'web'),
+        );
+        $this->assertTrue(
+            $user->hasPermissionTo('frontend.can_view_contact', 'web'),
+        );
+        $this->assertFalse(
+            $user->hasPermissionTo('frontend.api.extended', 'web'),
+        );
     }
 
     #[Test]
@@ -36,9 +42,15 @@ final class ApiAuthenticationTest extends TestCase
 
         $this->actingAs($user, 'backpack');
 
-        $this->assertTrue($user->hasPermissionTo('backpack.api.access', 'backpack'));
-        $this->assertTrue($user->hasPermissionTo('backpack.access', 'backpack'));
-        $this->assertTrue($user->hasPermissionTo('can_view_contact', 'backpack'));
+        $this->assertTrue(
+            $user->hasPermissionTo('backpack.api.access', 'backpack'),
+        );
+        $this->assertTrue(
+            $user->hasPermissionTo('backpack.access', 'backpack'),
+        );
+        $this->assertTrue(
+            $user->hasPermissionTo('can_view_contact', 'backpack'),
+        );
     }
 
     #[Test]
@@ -54,12 +66,20 @@ final class ApiAuthenticationTest extends TestCase
         $webUser->assignRole($frontendRole);
 
         // Test cross-guard permissions are denied
-        $this->assertFalse($backpackUser->hasPermissionTo('frontend.api.access', 'web'));
-        $this->assertFalse($webUser->hasPermissionTo('backpack.api.access', 'backpack'));
+        $this->assertFalse(
+            $backpackUser->hasPermissionTo('frontend.api.access', 'web'),
+        );
+        $this->assertFalse(
+            $webUser->hasPermissionTo('backpack.api.access', 'backpack'),
+        );
 
         // Test same-guard permissions are allowed
-        $this->assertTrue($backpackUser->hasPermissionTo('backpack.api.access', 'backpack'));
-        $this->assertTrue($webUser->hasPermissionTo('frontend.api.access', 'web'));
+        $this->assertTrue(
+            $backpackUser->hasPermissionTo('backpack.api.access', 'backpack'),
+        );
+        $this->assertTrue(
+            $webUser->hasPermissionTo('frontend.api.access', 'web'),
+        );
     }
 
     #[Test]
@@ -71,17 +91,29 @@ final class ApiAuthenticationTest extends TestCase
         $frontendPlusRole = Role::where('name', 'frontend_user_plus')->where('guard_name', 'web')->first();
 
         // Admin should have backpack permissions
-        $this->assertTrue($adminRole->hasPermissionTo('backpack.api.access', 'backpack'));
-        $this->assertTrue($adminRole->hasPermissionTo('backpack.access', 'backpack'));
+        $this->assertTrue(
+            $adminRole->hasPermissionTo('backpack.api.access', 'backpack'),
+        );
+        $this->assertTrue(
+            $adminRole->hasPermissionTo('backpack.access', 'backpack'),
+        );
 
         // Backend user should have basic backpack access
-        $this->assertFalse($backendUserRole->hasPermissionTo('backpack.access', 'backpack'));
+        $this->assertFalse(
+            $backendUserRole->hasPermissionTo('backpack.access', 'backpack'),
+        );
 
         // Frontend user should have basic frontend permissions
-        $this->assertTrue($frontendRole->hasPermissionTo('frontend.api.access', 'web'));
-        $this->assertFalse($frontendRole->hasPermissionTo('frontend.api.extended', 'web'));
+        $this->assertTrue(
+            $frontendRole->hasPermissionTo('frontend.api.access', 'web'),
+        );
+        $this->assertFalse(
+            $frontendRole->hasPermissionTo('frontend.api.extended', 'web'),
+        );
 
         // Frontend plus user should have extended permissions
-        $this->assertTrue($frontendPlusRole->hasPermissionTo('frontend.api.extended', 'web'));
+        $this->assertTrue(
+            $frontendPlusRole->hasPermissionTo('frontend.api.extended', 'web'),
+        );
     }
 }

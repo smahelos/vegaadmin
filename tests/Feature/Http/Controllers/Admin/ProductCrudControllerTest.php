@@ -38,14 +38,16 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
 
         // Create entity limit for products
-        EntityLimit::factory()->create([
-            'entity_type' => 'product',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_product',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'entity_type' => 'product',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'permission_name' => 'can_create_edit_product',
+                'is_active' => true,
+            ],
+        );
 
         // Check initial usage
         $initialCheck = $this->limitService->checkLimit(
@@ -85,24 +87,29 @@ class ProductCrudControllerTest extends TestCase
         $this->assertEquals($initialUsage + 1, $newUsage);
 
         // Verify product was created
-        $this->assertDatabaseHas('products', [
-            'name' => $productData['name'],
-            'user_id' => $this->regularUser->id,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'name' => $productData['name'],
+                'user_id' => $this->regularUser->id,
+            ],
+        );
     }
 
     #[Test]
     public function product_creation_respects_entity_limits(): void
     {
         // Set a strict limit for products
-        EntityLimit::factory()->create([
-            'entity_type' => 'product',
-            'limit_value' => 1,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_product',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'entity_type' => 'product',
+                'limit_value' => 1,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'permission_name' => 'can_create_edit_product',
+                'is_active' => true,
+            ],
+        );
 
         // First product creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -134,10 +141,13 @@ class ProductCrudControllerTest extends TestCase
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
 
         // Verify first product was created
-        $this->assertDatabaseHas('products', [
-            'id' => $product1->id,
-            'user_id' => $this->regularUser->id,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product1->id,
+                'user_id' => $this->regularUser->id,
+            ],
+        );
     }
 
     #[Test]
@@ -159,11 +169,14 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $name = 'Product ' . uniqid();
 
-        $this->post('/admin/product', [
-            'name' => $name,
-            'price' => 100,
-            'currency' => 'CZK',
-        ])
+        $this->post(
+            '/admin/product',
+            [
+                'name' => $name,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        )
             ->assertSessionHasNoErrors()
             ->assertRedirect();
 

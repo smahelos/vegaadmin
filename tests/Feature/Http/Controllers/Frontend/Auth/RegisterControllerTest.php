@@ -20,7 +20,9 @@ final class RegisterControllerTest extends TestCase
     #[Test]
     public function a_guest_opens_the_registration_form(): void
     {
-        $this->get(route('frontend.register'))
+        $this->get(
+            route('frontend.register'),
+        )
             ->assertOk()
             ->assertSeeLivewire('user.registration-form');
     }
@@ -29,7 +31,9 @@ final class RegisterControllerTest extends TestCase
     public function a_signed_in_user_is_sent_away_from_the_registration(): void
     {
         $this->actingAs(User::factory()->create())
-            ->get(route('frontend.register'))
+            ->get(
+                route('frontend.register'),
+            )
             ->assertRedirect();
     }
 }

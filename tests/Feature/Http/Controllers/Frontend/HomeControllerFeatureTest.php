@@ -12,7 +12,9 @@ class HomeControllerFeatureTest extends TestCase
     public function guest_sees_login_view_when_not_authenticated(): void
     {
         $locale = config('app.locale');
-        $response = $this->get(route('frontend.home.test', ['locale' => $locale]));
+        $response = $this->get(
+            route('frontend.home.test', ['locale' => $locale]),
+        );
         $response->assertStatus(200);
         $response->assertViewIs('auth.login');
     }
@@ -25,8 +27,12 @@ class HomeControllerFeatureTest extends TestCase
 
         $locale = config('app.locale');
 
-        $response = $this->get(route('frontend.home.test', ['locale' => $locale]));
+        $response = $this->get(
+            route('frontend.home.test', ['locale' => $locale]),
+        );
         $response->assertStatus(302);
-        $response->assertRedirect(route('frontend.dashboard', ['locale' => $locale]));
+        $response->assertRedirect(
+            route('frontend.dashboard', ['locale' => $locale]),
+        );
     }
 }

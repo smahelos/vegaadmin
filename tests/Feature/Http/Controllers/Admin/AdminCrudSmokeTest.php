@@ -137,11 +137,13 @@ class AdminCrudSmokeTest extends TestCase
      */
     private function freshCrud(): static
     {
-        foreach ([
-            'CrudManager',
-            'BackpackLifecycleHooks',
-            'crud',
-        ] as $abstract) {
+        foreach (
+            [
+                'CrudManager',
+                'BackpackLifecycleHooks',
+                'crud',
+            ] as $abstract
+        ) {
             $this->app->forgetInstance($abstract);
             Facade::clearResolvedInstance($abstract);
         }
@@ -155,15 +157,17 @@ class AdminCrudSmokeTest extends TestCase
     private function createRecord(string $model): Model
     {
         return match ($model) {
-            EntityLimitUsage::class => EntityLimitUsage::create([
-                'user_id' => $this->adminUser->id,
-                'entity_type' => 'invoice',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'period_start' => now()->startOfMonth(),
-                'period_end' => now()->endOfMonth(),
-                'current_value' => 1,
-            ]),
+            EntityLimitUsage::class => EntityLimitUsage::create(
+                [
+                    'user_id' => $this->adminUser->id,
+                    'entity_type' => 'invoice',
+                    'metric_type' => 'count',
+                    'period_type' => 'monthly',
+                    'period_start' => now()->startOfMonth(),
+                    'period_end' => now()->endOfMonth(),
+                    'current_value' => 1,
+                ],
+            ),
             PaymentMethod::class => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail(),
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
@@ -176,6 +180,12 @@ class AdminCrudSmokeTest extends TestCase
         $uri = ltrim($uri, '/');
 
         return collect(Route::getRoutes()->getRoutes())
-            ->contains(fn ($route) => $route->uri() === $uri && in_array('GET', $route->methods(), true));
+            ->contains(
+                fn ($route) => $route->uri() === $uri && in_array(
+                    'GET',
+                    $route->methods(),
+                    true,
+                ),
+            );
     }
 }

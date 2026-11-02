@@ -31,7 +31,10 @@ final class InvoiceContactController extends Controller
             InvoiceId::fromInt($invoice),
         );
 
-        return back()->with('success', __('invoices.messages.saved_to_contacts'));
+        return back()->with(
+            'success',
+            __('invoices.messages.saved_to_contacts'),
+        );
     }
 
     public function linkContact(
@@ -45,6 +48,9 @@ final class InvoiceContactController extends Controller
             $request->contactId(),
         );
 
-        return back()->with('success', __('invoices.messages.contact_linked'));
+        return back()->with(
+            'success',
+            __('invoices.messages.contact_linked'),
+        );
     }
 }

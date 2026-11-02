@@ -24,11 +24,19 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
     {
         $account = BankAccount::query()
             ->whereKey($id->value)
-            ->where(function (Builder $owner) use ($userId): void {
-                $owner
-                    ->whereHas('business', fn (Builder $business) => $business->where('user_id', $userId->toInt()))
-                    ->orWhereHas('contact', fn (Builder $contact) => $contact->where('user_id', $userId->toInt()));
-            })
+            ->where(
+                function (Builder $owner) use ($userId): void {
+                    $owner
+                        ->whereHas(
+                            'business',
+                            fn (Builder $business) => $business->where('user_id', $userId->toInt()),
+                        )
+                        ->orWhereHas(
+                            'contact',
+                            fn (Builder $contact) => $contact->where('user_id', $userId->toInt()),
+                        );
+                },
+            )
             ->first();
 
         return $account === null ? null : EloquentBankAccountMapper::toDTO($account);
@@ -37,10 +45,14 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
     public function listForOwner(AccountOwner $owner): array
     {
         return BankAccount::query()
-            ->where(EloquentBankAccountMapper::toOwnerAttributes($owner))
+            ->where(
+                EloquentBankAccountMapper::toOwnerAttributes($owner),
+            )
             ->orderBy('id')
             ->get()
-            ->map(fn (BankAccount $account): BankAccountDTO => EloquentBankAccountMapper::toDTO($account))
+            ->map(
+                fn (BankAccount $account): BankAccountDTO => EloquentBankAccountMapper::toDTO($account),
+            )
             ->values()
             ->all();
     }
@@ -64,7 +76,9 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
     public function update(BankAccountId $id, BankAccountWriteData $data): BankAccountDTO
     {
         $account = BankAccount::query()->findOrFail($id->value);
-        $account->update(EloquentBankAccountMapper::toAttributes($data));
+        $account->update(
+            EloquentBankAccountMapper::toAttributes($data),
+        );
 
         return EloquentBankAccountMapper::toDTO($account);
     }

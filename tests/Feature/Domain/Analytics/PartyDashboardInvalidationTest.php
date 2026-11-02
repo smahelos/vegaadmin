@@ -29,38 +29,80 @@ final class PartyDashboardInvalidationTest extends TestCase
         $uid = $this->idOf($owner);
         $dashboard->getUserStatistics($uid);
         $dashboard->getCustomersWithInvoiceTotals($uid);
-        $dashboard->getUserStatistics($this->idOf($other));
-        Invoice::withoutEvents(fn () => Invoice::factory()->create(['user_id' => $other->id]));
+        $dashboard->getUserStatistics(
+            $this->idOf($other),
+        );
+        Invoice::withoutEvents(
+            fn () => Invoice::factory()->create(['user_id' => $other->id]),
+        );
         $contacts = app(ContactApplicationService::class);
         $businesses = app(BusinessApplicationService::class);
 
-        $contact = $contacts->create($uid, new ContactWriteData($this->profile('First name'), null));
+        $contact = $contacts->create(
+            $uid,
+            new ContactWriteData(
+                $this->profile('First name'),
+                null,
+            ),
+        );
         $business = $businesses->create(
             $uid,
-            new BusinessWriteData($this->profile('Own business'), null),
+            new BusinessWriteData(
+                $this->profile('Own business'),
+                null,
+            ),
             null,
         );
-        $this->assertSame(1, $dashboard->getUserStatistics($uid)->contactCount);
-        $this->assertSame(1, $dashboard->getUserStatistics($uid)->businessCount);
-        $this->assertSame('First name', $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName);
+        $this->assertSame(
+            1,
+            $dashboard->getUserStatistics($uid)->contactCount,
+        );
+        $this->assertSame(
+            1,
+            $dashboard->getUserStatistics($uid)->businessCount,
+        );
+        $this->assertSame(
+            'First name',
+            $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
+        );
         $contacts->update(
             $uid,
             $contact->id,
-            new ContactWriteData($this->profile('Renamed contact'), null),
+            new ContactWriteData(
+                $this->profile('Renamed contact'),
+                null,
+            ),
         );
-        $this->assertSame('Renamed contact', $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName);
+        $this->assertSame(
+            'Renamed contact',
+            $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
+        );
         $contacts->archive($uid, $contact->id);
         $businesses->archive(
             $uid,
             $business->id,
             null,
         );
-        $this->assertSame(1, $dashboard->getUserStatistics($uid)->contactCount);
-        $this->assertSame(1, $dashboard->getUserStatistics($uid)->businessCount);
+        $this->assertSame(
+            1,
+            $dashboard->getUserStatistics($uid)->contactCount,
+        );
+        $this->assertSame(
+            1,
+            $dashboard->getUserStatistics($uid)->businessCount,
+        );
         $contacts->restore($uid, $contact->id);
         $businesses->restore($uid, $business->id);
-        $this->assertSame(1, $dashboard->getUserStatistics($uid)->contactCount);
-        $this->assertSame(0, $dashboard->getUserStatistics($this->idOf($other))->invoiceCount);
+        $this->assertSame(
+            1,
+            $dashboard->getUserStatistics($uid)->contactCount,
+        );
+        $this->assertSame(
+            0,
+            $dashboard->getUserStatistics(
+                $this->idOf($other),
+            )->invoiceCount,
+        );
     }
 
     #[Test]
@@ -70,16 +112,29 @@ final class PartyDashboardInvalidationTest extends TestCase
         $uid = $this->idOf($user);
         $dashboard = app(DashboardService::class);
         $dashboard->getUserStatistics($uid);
-        Invoice::withoutEvents(fn () => Invoice::factory()->create(['user_id' => $user->id]));
+        Invoice::withoutEvents(
+            fn () => Invoice::factory()->create(['user_id' => $user->id]),
+        );
         try {
-            DB::transaction(function () use ($uid): void {
-                app(ContactApplicationService::class)->create($uid, new ContactWriteData($this->profile('Rolled back'), null));
-                throw new RuntimeException('Roll back the use case');
-            });
+            DB::transaction(
+                function () use ($uid): void {
+                    app(ContactApplicationService::class)->create(
+                        $uid,
+                        new ContactWriteData(
+                            $this->profile('Rolled back'),
+                            null,
+                        ),
+                    );
+                    throw new RuntimeException('Roll back the use case');
+                },
+            );
         } catch (RuntimeException $exception) {
             $this->assertSame('Roll back the use case', $exception->getMessage());
         }
         $this->assertDatabaseMissing('contacts', ['user_id' => $user->id, 'name' => 'Rolled back']);
-        $this->assertSame(0, $dashboard->getUserStatistics($uid)->invoiceCount);
+        $this->assertSame(
+            0,
+            $dashboard->getUserStatistics($uid)->invoiceCount,
+        );
     }
 }

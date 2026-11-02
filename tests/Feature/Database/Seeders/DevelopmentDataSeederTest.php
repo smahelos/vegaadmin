@@ -25,8 +25,14 @@ final class DevelopmentDataSeederTest extends TestCase
 
         foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
             $user = User::where('email', $email)->firstOrFail();
-            $this->assertTrue(Hash::check(DevelopmentDataSeeder::PASSWORD, $user->password), $email);
-            $this->assertTrue($user->hasRole($account['role'], $account['guard']), $email);
+            $this->assertTrue(
+                Hash::check(DevelopmentDataSeeder::PASSWORD, $user->password),
+                $email,
+            );
+            $this->assertTrue(
+                $user->hasRole($account['role'], $account['guard']),
+                $email,
+            );
         }
     }
 
@@ -58,18 +64,37 @@ final class DevelopmentDataSeederTest extends TestCase
                 Business::where('user_id', $user->id)->whereNull('archived_at')->count(),
                 $email,
             );
-            $this->assertTrue(Business::where('user_id', $user->id)->whereNotNull('archived_at')->exists(), $email);
+            $this->assertTrue(
+                Business::where('user_id', $user->id)->whereNotNull('archived_at')->exists(),
+                $email,
+            );
             $this->assertLessThanOrEqual(
                 16,
                 Contact::where('user_id', $user->id)->whereNull('archived_at')->count(),
                 $email,
             );
-            $this->assertTrue(Contact::where('user_id', $user->id)->whereNotNull('archived_at')->exists(), $email);
+            $this->assertTrue(
+                Contact::where('user_id', $user->id)->whereNotNull('archived_at')->exists(),
+                $email,
+            );
 
             $expenses = Expense::where('user_id', $user->id)->get();
-            $this->assertTrue($expenses->every(fn (Expense $expense): bool => $expense->business_id === $default->id), $email);
-            $this->assertTrue($expenses->contains(fn (Expense $expense): bool => $expense->contact_id !== null && $expense->bank_account_id !== null), $email);
-            $this->assertTrue($expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null), $email);
+            $this->assertTrue(
+                $expenses->every(
+                    fn (Expense $expense): bool => $expense->business_id === $default->id,
+                ),
+                $email,
+            );
+            $this->assertTrue(
+                $expenses->contains(
+                    fn (Expense $expense): bool => $expense->contact_id !== null && $expense->bank_account_id !== null,
+                ),
+                $email,
+            );
+            $this->assertTrue(
+                $expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null),
+                $email,
+            );
             $this->assertSame(
                 0,
                 DB::table('entity_limit_usage')->where('user_id', $user->id)->count(),
@@ -82,13 +107,25 @@ final class DevelopmentDataSeederTest extends TestCase
     public function running_it_again_recreates_the_same_data(): void
     {
         $this->seed(DevelopmentDataSeeder::class);
-        $users = User::whereIn('email', array_keys(DevelopmentDataSeeder::ACCOUNTS))->pluck('id');
+        $users = User::whereIn(
+            'email',
+            array_keys(DevelopmentDataSeeder::ACCOUNTS),
+        )->pluck('id');
         $first = $this->seededData($users->all());
 
         $this->seed(DevelopmentDataSeeder::class);
 
-        $this->assertSame(count(DevelopmentDataSeeder::ACCOUNTS), User::whereIn('email', array_keys(DevelopmentDataSeeder::ACCOUNTS))->count());
-        $this->assertSame($first, $this->seededData($users->all()));
+        $this->assertSame(
+            count(DevelopmentDataSeeder::ACCOUNTS),
+            User::whereIn(
+                'email',
+                array_keys(DevelopmentDataSeeder::ACCOUNTS),
+            )->count(),
+        );
+        $this->assertSame(
+            $first,
+            $this->seededData($users->all()),
+        );
     }
 
     #[Test]

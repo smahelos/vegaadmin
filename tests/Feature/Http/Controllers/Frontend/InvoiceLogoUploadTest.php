@@ -38,15 +38,17 @@ final class InvoiceLogoUploadTest extends TestCase
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'description' => 'Invoice limit for frontend tests',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'description' => 'Invoice limit for frontend tests',
+                'is_active' => true,
+            ],
+        );
         Storage::fake('public');
 
         [$this->business, $this->account] = $this->issuerOf($this->user);
@@ -58,23 +60,43 @@ final class InvoiceLogoUploadTest extends TestCase
     {
         Storage::disk('public')->put('parties/logo.png', 'business logo contents');
         $this->business->update(['logo' => 'parties/logo.png']);
-        $response = $this->post(route('frontend.invoice.store', ['locale' => 'cs']), $this->invoiceData('TEST001', [
-            'invoice_logo' => UploadedFile::fake()->image('unrelated.png'),
-        ]));
+        $response = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData(
+                'TEST001',
+                [
+                    'invoice_logo' => UploadedFile::fake()->image('unrelated.png'),
+                ],
+            ),
+        );
         $response->assertRedirect();
         $invoice = Invoice::where('invoice_vs', 'TEST001')->sole();
         $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
-        $this->assertSame('business logo contents', Storage::disk('public')->get($invoice->supplier_logo));
+        $this->assertSame(
+            'business logo contents',
+            Storage::disk('public')->get($invoice->supplier_logo),
+        );
         Storage::disk('public')->delete($this->business->logo);
         $this->business->update(['logo' => null]);
-        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))
+        $this->get(
+            route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]),
+        )
             ->assertOk()->assertSee('wire:click="reloadBusinessData"', false);
         $copy = $invoice->supplier_logo;
-        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001'))
+        $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
+            $this->invoiceData('TEST001'),
+        )
             ->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
-        $this->assertSame('business logo contents', Storage::disk('public')->get($copy));
-        $this->put(route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]), $this->invoiceData('TEST001', ['reload_business' => '1']))
+        $this->assertSame(
+            'business logo contents',
+            Storage::disk('public')->get($copy),
+        );
+        $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
+            $this->invoiceData('TEST001', ['reload_business' => '1']),
+        )
             ->assertRedirect();
         $this->assertNull($invoice->fresh()->supplier_logo);
         Storage::disk('public')->assertMissing($copy);
@@ -83,9 +105,15 @@ final class InvoiceLogoUploadTest extends TestCase
     #[Test]
     public function the_authenticated_forms_offer_the_business_logo_without_a_document_upload(): void
     {
-        $this->get(route('frontend.invoice.create', ['locale' => 'cs']))->assertOk()->assertDontSee('name="invoice_logo"', false);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'business_id' => $this->business->id]);
-        $this->get(route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]))->assertOk()->assertDontSee('name="invoice_logo"', false);
+        $this->get(
+            route('frontend.invoice.create', ['locale' => 'cs']),
+        )->assertOk()->assertDontSee('name="invoice_logo"', false);
+        $invoice = Invoice::factory()->create(
+            ['user_id' => $this->user->id, 'business_id' => $this->business->id],
+        );
+        $this->get(
+            route('frontend.invoice.edit', ['locale' => 'cs', 'id' => $invoice->id]),
+        )->assertOk()->assertDontSee('name="invoice_logo"', false);
     }
 
     /**

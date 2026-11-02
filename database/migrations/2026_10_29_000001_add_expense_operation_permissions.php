@@ -16,20 +16,24 @@ return new class extends Migration
             return;
         }
         foreach ($legacy->roles as $role) {
-            $role->givePermissionTo([
-                'can_view_expense',
-                'can_create_expense',
-                'can_update_expense',
-                'can_delete_expense',
-            ]);
+            $role->givePermissionTo(
+                [
+                    'can_view_expense',
+                    'can_create_expense',
+                    'can_update_expense',
+                    'can_delete_expense',
+                ],
+            );
         }
         foreach ($legacy->users as $user) {
-            $user->givePermissionTo([
-                'can_view_expense',
-                'can_create_expense',
-                'can_update_expense',
-                'can_delete_expense',
-            ]);
+            $user->givePermissionTo(
+                [
+                    'can_view_expense',
+                    'can_create_expense',
+                    'can_update_expense',
+                    'can_delete_expense',
+                ],
+            );
         }
     }
 

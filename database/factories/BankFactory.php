@@ -59,9 +59,11 @@ class BankFactory extends Factory
      */
     public function czech(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'country' => 'CZ',
-            'swift' => $this->faker->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'country' => 'CZ',
+                'swift' => $this->faker->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
+            ],
+        );
     }
 }

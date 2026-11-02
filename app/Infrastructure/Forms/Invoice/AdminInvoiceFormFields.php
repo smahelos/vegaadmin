@@ -41,7 +41,7 @@ final class AdminInvoiceFormFields
                 case 'select_from_array':
                     $field['type'] = 'select2_from_array';
                     $current = $document?->getAttribute($field['name']);
-                    if (filled($current) && ! array_key_exists($current, $field['options'])) {
+                    if (filled($current) && !array_key_exists($current, $field['options'])) {
                         $field['options'][$current] = $field['name'] === 'due_in' ? $current . ' ' . __('invoices.units.days') : $current;
                     }
                     break;
@@ -67,9 +67,15 @@ final class AdminInvoiceFormFields
         $fields['invoice_text']['wrapper'] = ['class' => 'form-group col-12'];
 
         return [
-            AdminDocumentFormFields::section('selection', __('parties.sections.document_parties')),
+            AdminDocumentFormFields::section(
+                'selection',
+                __('parties.sections.document_parties'),
+            ),
             ...AdminDocumentFormFields::parties('customer', $document),
-            AdminDocumentFormFields::section('document', __('invoices.sections.document')),
+            AdminDocumentFormFields::section(
+                'document',
+                __('invoices.sections.document'),
+            ),
             $fields['invoice_vs'],
             $fields['issue_date'],
             $fields['tax_point_date'],
@@ -77,10 +83,16 @@ final class AdminInvoiceFormFields
             $fields['payment_method_id'],
             $fields['invoice_ks'],
             $fields['invoice_ss'],
-            AdminDocumentFormFields::section('business', __('invoices.fields.supplier')),
+            AdminDocumentFormFields::section(
+                'business',
+                __('invoices.fields.supplier'),
+            ),
             AdminDocumentFormFields::businessPreview('supplier', $document),
             AdminDocumentFormFields::supplierLogo('business', $document),
-            AdminDocumentFormFields::section('counterparty', __('invoices.fields.customer')),
+            AdminDocumentFormFields::section(
+                'counterparty',
+                __('invoices.fields.customer'),
+            ),
             ...AdminDocumentFormFields::counterparty('customer', $countries),
             AdminDocumentFormFields::section(
                 'account',
@@ -88,13 +100,22 @@ final class AdminInvoiceFormFields
                 __('parties.hints.document_business_account'),
             ),
             ...AdminDocumentFormFields::accountFields($countries, false),
-            AdminDocumentFormFields::section('amounts', __('invoices.sections.amounts')),
+            AdminDocumentFormFields::section(
+                'amounts',
+                __('invoices.sections.amounts'),
+            ),
             AdminInvoiceItemFields::field($document),
             $fields['payment_amount'],
             $fields['payment_currency'],
-            AdminDocumentFormFields::section('status', __('invoices.sections.status')),
+            AdminDocumentFormFields::section(
+                'status',
+                __('invoices.sections.status'),
+            ),
             $fields['payment_status_id'],
-            AdminDocumentFormFields::section('other', __('invoices.sections.other')),
+            AdminDocumentFormFields::section(
+                'other',
+                __('invoices.sections.other'),
+            ),
             $fields['invoice_text'],
             $fields['template'],
         ];

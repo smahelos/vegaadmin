@@ -18,28 +18,31 @@ final class InvoiceTotalsTest extends TestCase
     #[Test]
     public function sums_the_rounded_lines(): void
     {
-        $totals = InvoiceTotals::fromProducts(Currency::CZK, [
-            $this->line(
-                '3',
-                '74.67',
-                'CZK',
-            ),
-            $this->line(
-                '1',
-                '149.83',
-                'CZK',
-            ),
-            $this->line(
-                '2',
-                '248.88',
-                'CZK',
-            ),
-            $this->line(
-                '1',
-                '3235.49',
-                'CZK',
-            ),
-        ]);
+        $totals = InvoiceTotals::fromProducts(
+            Currency::CZK,
+            [
+                $this->line(
+                    '3',
+                    '74.67',
+                    'CZK',
+                ),
+                $this->line(
+                    '1',
+                    '149.83',
+                    'CZK',
+                ),
+                $this->line(
+                    '2',
+                    '248.88',
+                    'CZK',
+                ),
+                $this->line(
+                    '1',
+                    '3235.49',
+                    'CZK',
+                ),
+            ],
+        );
 
         $this->assertSame('4107.09', $totals->subtotal->getAmount());
         $this->assertSame('862.48', $totals->tax->getAmount());
@@ -61,7 +64,14 @@ final class InvoiceTotalsTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        InvoiceTotals::fromProducts(Currency::CZK, [$this->line('1', '10', 'EUR')]);
+        InvoiceTotals::fromProducts(
+            Currency::CZK,
+            [$this->line(
+                '1',
+                '10',
+                'EUR',
+            )],
+        );
     }
 
     private function line(

@@ -19,7 +19,9 @@ return new class extends Migration
         }
         $pendingId = DB::table('statuses')->where('slug', 'pending')->value('id');
         if ($pendingId === null) {
-            throw new RuntimeException('The pending invoice status is missing; overdue invoices would be left without a status.');
+            throw new RuntimeException(
+                'The pending invoice status is missing; overdue invoices would be left without a status.',
+            );
         }
 
         DB::table('invoices')->where('payment_status_id', $overdueId)->update(['payment_status_id' => $pendingId]);
@@ -36,14 +38,16 @@ return new class extends Migration
             return;
         }
 
-        DB::table('statuses')->insertOrIgnore([
-            'name' => 'Po splatnosti',
-            'slug' => 'overdue',
-            'category_id' => $categoryId,
-            'color' => 'red',
-            'is_active' => true,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('statuses')->insertOrIgnore(
+            [
+                'name' => 'Po splatnosti',
+                'slug' => 'overdue',
+                'category_id' => $categoryId,
+                'color' => 'red',
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        );
     }
 };

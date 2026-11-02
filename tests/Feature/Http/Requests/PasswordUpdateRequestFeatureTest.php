@@ -36,14 +36,18 @@ class PasswordUpdateRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        if (! $this->user) {
+        if (!$this->user) {
             // Create test user with known password
-            $this->user = User::factory()->create([
-                'password' => Hash::make($this->currentPassword),
-            ]);
+            $this->user = User::factory()->create(
+                [
+                    'password' => Hash::make($this->currentPassword),
+                ],
+            );
         } else {
             // Ensure user has the correct password
-            $this->user->update(['password' => Hash::make($this->currentPassword)]);
+            $this->user->update(
+                ['password' => Hash::make($this->currentPassword)],
+            );
         }
 
         // Set up valid password data
@@ -317,9 +321,11 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     public function validation_fails_with_different_user_current_password(): void
     {
         // Create another user with different password
-        $otherUser = User::factory()->create([
-            'password' => Hash::make('other-user-password'),
-        ]);
+        $otherUser = User::factory()->create(
+            [
+                'password' => Hash::make('other-user-password'),
+            ],
+        );
 
         $this->actingAs($this->user); // Login as first user
 
@@ -374,6 +380,9 @@ class PasswordUpdateRequestFeatureTest extends TestCase
             $request->attributes(),
         )->errors();
 
-        $this->assertStringContainsString(__('users.fields.new_password'), $errors->first('password'));
+        $this->assertStringContainsString(
+            __('users.fields.new_password'),
+            $errors->first('password'),
+        );
     }
 }

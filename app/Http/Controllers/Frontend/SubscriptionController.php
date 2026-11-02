@@ -37,7 +37,10 @@ class SubscriptionController extends Controller
                 ->first();
         }
 
-        return view('frontend.subscriptions.index', compact('plans', 'userSubscription'));
+        return view(
+            'frontend.subscriptions.index',
+            compact('plans', 'userSubscription'),
+        );
     }
 
     /**
@@ -48,7 +51,10 @@ class SubscriptionController extends Controller
         // Gateways are still exposed by underlying subscription payment service; placeholder until unified list comes to application layer.
         $availableGateways = $this->paymentApp->getAvailableGateways();
 
-        return view('frontend.subscriptions.show', compact('plan', 'availableGateways'));
+        return view(
+            'frontend.subscriptions.show',
+            compact('plan', 'availableGateways'),
+        );
     }
 
     /**
@@ -72,17 +78,22 @@ class SubscriptionController extends Controller
 
         if ($existingSubscription) {
             return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with('error', __('subscriptions.messages.already_subscribed'));
+                ->with(
+                    'error',
+                    __('subscriptions.messages.already_subscribed'),
+                );
         }
 
         // Create subscription
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'pending',
-            'amount' => $plan->price,
-            'currency' => $plan->currency,
-        ]);
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => $plan->price,
+                'currency' => $plan->currency,
+            ],
+        );
 
         // Process payment
         $returnUrl = config('services.gopay.production')
@@ -112,7 +123,10 @@ class SubscriptionController extends Controller
         $subscription->delete();
 
         return redirect()->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan])
-            ->with('error', __('subscriptions.messages.payment_failed'));
+            ->with(
+                'error',
+                __('subscriptions.messages.payment_failed'),
+            );
     }
 
     /**
@@ -127,11 +141,17 @@ class SubscriptionController extends Controller
             $this->paymentApp->cancelSubscription($subscription);
 
             return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with('success', __('subscriptions.messages.cancelled'));
+                ->with(
+                    'success',
+                    __('subscriptions.messages.cancelled'),
+                );
         }
 
         return redirect()->route('subscriptions.index', ['locale' => $locale])
-            ->with('error', __('subscriptions.messages.cancellation_failed'));
+            ->with(
+                'error',
+                __('subscriptions.messages.cancellation_failed'),
+            );
     }
 
     /**
@@ -144,11 +164,17 @@ class SubscriptionController extends Controller
             ->where('status', 'active')
             ->first();
 
-        if (! $subscription) {
+        if (!$subscription) {
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with('info', __('subscriptions.messages.none_active'));
+                ->with(
+                    'info',
+                    __('subscriptions.messages.none_active'),
+                );
         }
 
-        return view('frontend.subscriptions.my-subscription', compact('subscription'));
+        return view(
+            'frontend.subscriptions.my-subscription',
+            compact('subscription'),
+        );
     }
 }

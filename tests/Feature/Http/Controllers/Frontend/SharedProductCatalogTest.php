@@ -23,9 +23,13 @@ final class SharedProductCatalogTest extends TestCase
         $user = User::factory()->create();
         $product = Product::factory()->create(['user_id' => $user->id]);
         $this->actingAs($user, 'web');
-        $this->get(route('frontend.product.create', ['locale' => 'cs']))->assertOk()
+        $this->get(
+            route('frontend.product.create', ['locale' => 'cs']),
+        )->assertOk()
             ->assertSee('name="name"', false)->assertSee('name="price"', false)->assertDontSee('supplier_id');
-        $this->get(route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]))->assertOk()
+        $this->get(
+            route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]),
+        )->assertOk()
             ->assertSee($product->name)->assertDontSee('supplier_id');
     }
 
@@ -45,11 +49,14 @@ final class SharedProductCatalogTest extends TestCase
         );
         $this->assertSame($dto->id, $updated->id);
         $this->assertSame('200.5', $updated->price->getAmount());
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'user_id' => $product->user_id,
-            'name' => 'Updated shared product',
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product->id,
+                'user_id' => $product->user_id,
+                'name' => 'Updated shared product',
+            ],
+        );
     }
 
     #[Test]

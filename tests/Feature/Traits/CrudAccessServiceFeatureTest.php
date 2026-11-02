@@ -52,14 +52,18 @@ class CrudAccessServiceFeatureTest extends TestCase
 
         $this->service->configureCrudAccess($this->crud, $user->id);
 
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertFalse($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertFalse(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -72,9 +76,15 @@ class CrudAccessServiceFeatureTest extends TestCase
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        $this->assertTrue($this->hasAccess('list'));
-        $this->assertTrue($this->hasAccess('show'));
-        $this->assertFalse($this->hasAccess('create'));
+        $this->assertTrue(
+            $this->hasAccess('list'),
+        );
+        $this->assertTrue(
+            $this->hasAccess('show'),
+        );
+        $this->assertFalse(
+            $this->hasAccess('create'),
+        );
     }
 
     #[Test]
@@ -86,14 +96,18 @@ class CrudAccessServiceFeatureTest extends TestCase
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertTrue($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertTrue(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -106,14 +120,18 @@ class CrudAccessServiceFeatureTest extends TestCase
         $admin->assignRole($role);
 
         $this->service->configureCrudAccess($this->crud, $admin->id);
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertTrue($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertTrue(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -129,7 +147,11 @@ class CrudAccessServiceFeatureTest extends TestCase
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        $this->assertTrue($this->hasAccess('list'));
-        $this->assertFalse($this->hasAccess('create'));
+        $this->assertTrue(
+            $this->hasAccess('list'),
+        );
+        $this->assertFalse(
+            $this->hasAccess('create'),
+        );
     }
 }

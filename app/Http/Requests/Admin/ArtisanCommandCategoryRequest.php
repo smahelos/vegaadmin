@@ -56,9 +56,11 @@ class ArtisanCommandCategoryRequest extends FormRequest
     {
         // Generate slug if not provided
         if (empty($this->slug)) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 }

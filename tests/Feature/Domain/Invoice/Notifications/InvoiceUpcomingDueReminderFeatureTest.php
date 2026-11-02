@@ -27,11 +27,13 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->invoice = Invoice::factory()->create([
-            'issue_date' => now()->subDays(25)->format('Y-m-d'), // 25 days ago
-            'due_in' => 30, // Due date = 25 days ago + 30 days = 5 days from now
-            'invoice_vs' => '2024-002',
-        ]);
+        $this->invoice = Invoice::factory()->create(
+            [
+                'issue_date' => now()->subDays(25)->format('Y-m-d'), // 25 days ago
+                'due_in' => 30, // Due date = 25 days ago + 30 days = 5 days from now
+                'invoice_vs' => '2024-002',
+            ],
+        );
 
         $this->user = User::factory()->create([
             'name' => 'Test User',
@@ -50,11 +52,15 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'customer',
         );
-        $this->user->notify(new InvoiceUpcomingDueReminder($payload));
+        $this->user->notify(
+            new InvoiceUpcomingDueReminder($payload),
+        );
 
         Notification::assertSentTo($this->user, InvoiceUpcomingDueReminder::class);
     }
@@ -73,11 +79,15 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
-        $anonymousNotifiable->notify(new InvoiceUpcomingDueReminder($payload));
+        $anonymousNotifiable->notify(
+            new InvoiceUpcomingDueReminder($payload),
+        );
 
         Notification::assertSentTo($anonymousNotifiable, InvoiceUpcomingDueReminder::class);
     }
@@ -93,11 +103,15 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
-        $this->user->notify(new InvoiceUpcomingDueReminder($payload));
+        $this->user->notify(
+            new InvoiceUpcomingDueReminder($payload),
+        );
 
         Notification::assertSentTo(
             $this->user,
@@ -117,7 +131,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -140,7 +156,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'customer',
         );
@@ -163,7 +181,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -176,7 +196,10 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $subjectProperty = $reflection->getProperty('subject');
         $subjectProperty->setAccessible(true);
 
-        $this->assertStringContainsString('2024-002', $subjectProperty->getValue($mailMessage));
+        $this->assertStringContainsString(
+            '2024-002',
+            $subjectProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -188,7 +211,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'customer',
         );
@@ -200,7 +225,10 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.upcoming_due_customer', $viewProperty->getValue($mailMessage));
+        $this->assertEquals(
+            'emails.invoices.reminders.upcoming_due_customer',
+            $viewProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -212,7 +240,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -224,7 +254,10 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.upcoming_due_supplier', $viewProperty->getValue($mailMessage));
+        $this->assertEquals(
+            'emails.invoices.reminders.upcoming_due_supplier',
+            $viewProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -236,7 +269,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -262,7 +297,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -277,7 +314,10 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
 
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
-        $this->assertSame(app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']), $viewData['dueDate']);
+        $this->assertSame(
+            app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']),
+            $viewData['dueDate'],
+        );
     }
 
     #[Test]
@@ -289,7 +329,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -316,7 +358,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -342,7 +386,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -368,7 +414,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -392,7 +440,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
@@ -419,11 +469,15 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'customer',
         );
-        $this->user->notify(new InvoiceUpcomingDueReminder($clientPayload));
+        $this->user->notify(
+            new InvoiceUpcomingDueReminder($clientPayload),
+        );
 
         // Test with supplier recipient type
         $supplierPayload = new InvoiceReminderDTO(
@@ -432,11 +486,15 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->addDays(5)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->addDays(5)->format('Y-m-d'),
+            ),
             daysLeft: 5,
             recipientType: 'supplier',
         );
-        $this->user->notify(new InvoiceUpcomingDueReminder($supplierPayload));
+        $this->user->notify(
+            new InvoiceUpcomingDueReminder($supplierPayload),
+        );
 
         Notification::assertSentTo(
             $this->user,

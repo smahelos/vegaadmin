@@ -20,19 +20,31 @@ class RouteServiceProvider extends ServiceProvider
         // Register macro for localized routes
         $this->registerLocalizedRouteMacro();
 
-        $this->routes(function (): void {
-            Route::middleware('api')
-                ->prefix('api')
-                ->group(base_path('routes/api.php'));
+        $this->routes(
+            function (): void {
+                Route::middleware('api')
+                    ->prefix('api')
+                    ->group(
+                        base_path('routes/api.php'),
+                    );
 
-            Route::middleware('web')
-                ->group(base_path('routes/web.php'));
+                Route::middleware('web')
+                    ->group(
+                        base_path('routes/web.php'),
+                    );
 
-            // Load user override routes after other backpack routes
-            if (file_exists(base_path('routes/backpack/user-override.php'))) {
-                $this->loadRoutesFrom(base_path('routes/backpack/user-override.php'));
-            }
-        });
+                // Load user override routes after other backpack routes
+                if (
+                    file_exists(
+                        base_path('routes/backpack/user-override.php'),
+                    )
+                ) {
+                    $this->loadRoutesFrom(
+                        base_path('routes/backpack/user-override.php'),
+                    );
+                }
+            },
+        );
     }
 
     /**
@@ -40,9 +52,12 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function configureRateLimiting(): void
     {
-        RateLimiter::for('api', function (Request $request) {
-            return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
-        });
+        RateLimiter::for(
+            'api',
+            function (Request $request) {
+                return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+            },
+        );
     }
 
     /**
@@ -50,17 +65,23 @@ class RouteServiceProvider extends ServiceProvider
      */
     protected function registerLocalizedRouteMacro(): void
     {
-        Route::macro('localized', function ($group): void {
-            $availableLocales = config('app.available_locales', [
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ]);
-            $supportedLocales = implode('|', $availableLocales);
+        Route::macro(
+            'localized',
+            function ($group): void {
+                $availableLocales = config('app.available_locales', [
+                    'cs',
+                    'en',
+                    'de',
+                    'sk',
+                ]);
+                $supportedLocales = implode('|', $availableLocales);
 
-            // Register routes only with locale prefix to avoid duplicates
-            Route::group(['prefix' => '{locale}', 'where' => ['locale' => $supportedLocales]], $group);
-        });
+                // Register routes only with locale prefix to avoid duplicates
+                Route::group(
+                    ['prefix' => '{locale}', 'where' => ['locale' => $supportedLocales]],
+                    $group,
+                );
+            },
+        );
     }
 }

@@ -19,13 +19,18 @@ final class BusinessList extends Component
         $this->requirePermission('frontend.can_view_business');
         $userId = $this->userId();
 
-        return view('livewire.party.business-list', [
-            'businesses' => $this->paginator($businesses->search(
-                $userId,
-                $this->partySearch(),
-                $this->pageRequest(),
-            )),
-            'defaultId' => $businesses->findDefaultId($userId),
-        ]);
+        return view(
+            'livewire.party.business-list',
+            [
+                'businesses' => $this->paginator(
+                    $businesses->search(
+                        $userId,
+                        $this->partySearch(),
+                        $this->pageRequest(),
+                    ),
+                ),
+                'defaultId' => $businesses->findDefaultId($userId),
+            ],
+        );
     }
 }

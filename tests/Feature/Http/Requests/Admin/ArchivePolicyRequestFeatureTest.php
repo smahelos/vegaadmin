@@ -30,13 +30,19 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define test routes
-        Route::post('/test-archive-policy', function (ArchivePolicyRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-archive-policy',
+            function (ArchivePolicyRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-archive-policy/{id}', function (ArchivePolicyRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-archive-policy/{id}',
+            function (ArchivePolicyRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     #[Test]
@@ -248,11 +254,14 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         // Need a user with can_configure_system permission (adminUser)
         $this->actingAs($this->adminUser, 'backpack')
             ->withoutMiddleware()
-            ->postJson('/test-archive-policy', [
-                'table_name' => 'test_table',
-                'retention_months' => 12,
-                'date_column' => 'created_at',
-            ])
+            ->postJson(
+                '/test-archive-policy',
+                [
+                    'table_name' => 'test_table',
+                    'retention_months' => 12,
+                    'date_column' => 'created_at',
+                ],
+            )
             ->assertStatus(200);
     }
 
@@ -260,11 +269,14 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     public function authorization_fails_for_unauthenticated_user(): void
     {
         $this->withoutMiddleware()
-            ->postJson('/test-archive-policy', [
-                'table_name' => 'test_table',
-                'retention_months' => 12,
-                'date_column' => 'created_at',
-            ])
+            ->postJson(
+                '/test-archive-policy',
+                [
+                    'table_name' => 'test_table',
+                    'retention_months' => 12,
+                    'date_column' => 'created_at',
+                ],
+            )
             ->assertStatus(403);
     }
 
@@ -281,11 +293,26 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('admin/database.archive_policies.fields.table_name'), $attributes['table_name']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.retention_months'), $attributes['retention_months']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.date_column'), $attributes['date_column']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.is_active'), $attributes['is_active']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.table_name'),
+            $attributes['table_name'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.retention_months'),
+            $attributes['retention_months'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.date_column'),
+            $attributes['date_column'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.is_active'),
+            $attributes['is_active'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]

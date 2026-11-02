@@ -75,7 +75,7 @@ class CountryController extends Controller
     {
         $country = $this->countryService->getCountry($code);
 
-        if (! $country) {
+        if (!$country) {
             abort(404, 'Country not found');
         }
 

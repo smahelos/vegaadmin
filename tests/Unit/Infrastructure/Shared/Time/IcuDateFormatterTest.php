@@ -50,18 +50,33 @@ final class IcuDateFormatterTest extends TestCase
         string $dateTime,
     ): void {
         $formatter = new IcuDateFormatter;
-        $value = new DateTimeImmutable('2026-03-05 14:07', new DateTimeZone('Europe/Prague'));
+        $value = new DateTimeImmutable(
+            '2026-03-05 14:07',
+            new DateTimeZone('Europe/Prague'),
+        );
 
-        $this->assertSame($date, $formatter->formatDate($value, $locale));
-        $this->assertSame($dateTime, $formatter->formatDateTime($value, $locale));
+        $this->assertSame(
+            $date,
+            $formatter->formatDate($value, $locale),
+        );
+        $this->assertSame(
+            $dateTime,
+            $formatter->formatDateTime($value, $locale),
+        );
     }
 
     #[Test]
     public function keeps_the_timezone_of_the_date(): void
     {
         $formatter = new IcuDateFormatter;
-        $lateEvening = new DateTimeImmutable('2026-03-05 23:30', new DateTimeZone('Pacific/Honolulu'));
+        $lateEvening = new DateTimeImmutable(
+            '2026-03-05 23:30',
+            new DateTimeZone('Pacific/Honolulu'),
+        );
 
-        $this->assertSame('5. 3. 2026', $formatter->formatDate($lateEvening, 'cs'));
+        $this->assertSame(
+            '5. 3. 2026',
+            $formatter->formatDate($lateEvening, 'cs'),
+        );
     }
 }

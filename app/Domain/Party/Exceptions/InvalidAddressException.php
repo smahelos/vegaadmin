@@ -13,6 +13,8 @@ final class InvalidAddressException extends DomainException
 {
     public function __construct()
     {
-        parent::__construct('An address with a street, city or postal code needs a country');
+        parent::__construct(
+            'An address with a street, city or postal code needs a country',
+        );
     }
 }

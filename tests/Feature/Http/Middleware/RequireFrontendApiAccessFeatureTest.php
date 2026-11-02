@@ -37,7 +37,10 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(401, $response->getStatusCode());
         $json = json_decode($response->getContent(), true);
         $this->assertEquals(401, $json['code']);
@@ -59,7 +62,10 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(403, $response->getStatusCode());
     }
 
@@ -72,11 +78,14 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
         $this->actingAs($user, 'web');
         $request = Request::create('/api/frontend/resource');
         $passed = false;
-        $this->middleware->handle($request, function () use (&$passed) {
-            $passed = true;
+        $this->middleware->handle(
+            $request,
+            function () use (&$passed) {
+                $passed = true;
 
-            return response('OK');
-        });
+                return response('OK');
+            },
+        );
         $this->assertTrue($passed);
     }
 }

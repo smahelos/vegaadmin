@@ -21,7 +21,7 @@ class EloquentUserRepository
     public function updateById(int $id, array $data): bool
     {
         $user = User::find($id);
-        if (! $user) {
+        if (!$user) {
             return false;
         }
 
@@ -52,13 +52,16 @@ class EloquentUserRepository
                 );
         }
 
-        return $query->paginate(perPage: $perPage, page: max(1, $page));
+        return $query->paginate(
+            perPage: $perPage,
+            page: max(1, $page),
+        );
     }
 
     public function updatePassword(int $userId, string $password): bool
     {
         $user = User::find($userId);
-        if (! $user) {
+        if (!$user) {
             return false;
         }
         $user->password = bcrypt($password);

@@ -42,17 +42,26 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $user = $this->frontendUser();
 
-        $contact = $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile('Jan Novák'), null));
+        $contact = $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData(
+                $this->profile('Jan Novák'),
+                null,
+            ),
+        );
 
-        $this->assertDatabaseHas('contacts', [
-            'id' => $contact->id->value,
-            'user_id' => $user->id,
-            'name' => 'Jan Novák',
-            'company_number' => null,
-            'registration_country' => null,
-            'email' => null,
-            'phone' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'contacts',
+            [
+                'id' => $contact->id->value,
+                'user_id' => $user->id,
+                'name' => 'Jan Novák',
+                'company_number' => null,
+                'registration_country' => null,
+                'email' => null,
+                'phone' => null,
+            ],
+        );
         $this->assertDatabaseMissing('addresses', ['contact_id' => $contact->id->value]);
     }
 
@@ -60,14 +69,17 @@ final class ContactApplicationServiceTest extends TestCase
     public function an_update_stores_emptied_fields_as_empty_and_deletes_an_emptied_address(): void
     {
         $user = $this->frontendUser();
-        $contact = $this->contacts->create($this->idOf($user), new ContactWriteData(
-            $this->profile(
-                companyNumber: '27074358',
-                email: 'office@acme.test',
-                address: $this->brnoAddress(),
+        $contact = $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData(
+                $this->profile(
+                    companyNumber: '27074358',
+                    email: 'office@acme.test',
+                    address: $this->brnoAddress(),
+                ),
+                'Petra',
             ),
-            'Petra',
-        ));
+        );
         $this->assertSame('Brno', $contact->profile->address?->city);
 
         $updated = $this->contacts->update(
@@ -87,18 +99,29 @@ final class ContactApplicationServiceTest extends TestCase
     public function a_czech_company_number_of_an_archived_contact_blocks_a_copy_and_names_the_contact(): void
     {
         $user = $this->frontendUser();
-        $archived = Contact::factory()->archived()->create([
-            'user_id' => $user->id,
-            'registration_country' => 'CZ',
-            'company_number' => '27074358',
-        ]);
+        $archived = Contact::factory()->archived()->create(
+            [
+                'user_id' => $user->id,
+                'registration_country' => 'CZ',
+                'company_number' => '27074358',
+            ],
+        );
 
         try {
-            $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile('Copy', '27074358'), null));
+            $this->contacts->create(
+                $this->idOf($user),
+                new ContactWriteData(
+                    $this->profile('Copy', '27074358'),
+                    null,
+                ),
+            );
         } catch (DuplicateCompanyNumberException $e) {
             $this->assertInstanceOf(ContactId::class, $e->existing);
             $this->assertSame($archived->id, $e->existing->value);
-            $this->assertSame(1, Contact::query()->where('user_id', $user->id)->count());
+            $this->assertSame(
+                1,
+                Contact::query()->where('user_id', $user->id)->count(),
+            );
 
             return;
         }
@@ -110,13 +133,15 @@ final class ContactApplicationServiceTest extends TestCase
     public function a_foreign_number_name_or_email_only_warns(): void
     {
         $user = $this->frontendUser();
-        Contact::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Wiener GmbH',
-            'registration_country' => 'AT',
-            'company_number' => 'FN 123456x',
-            'email' => 'office@wiener.test',
-        ]);
+        Contact::factory()->create(
+            [
+                'user_id' => $user->id,
+                'name' => 'Wiener GmbH',
+                'registration_country' => 'AT',
+                'company_number' => 'FN 123456x',
+                'email' => 'office@wiener.test',
+            ],
+        );
         $profile = $this->profile(
             'Wiener GmbH',
             'FN 123456x',
@@ -129,10 +154,16 @@ final class ContactApplicationServiceTest extends TestCase
             $profile,
             null,
         );
-        $this->contacts->create($this->idOf($user), new ContactWriteData($profile, null));
+        $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData($profile, null),
+        );
 
         $this->assertSame(DuplicateReason::COMPANY_NUMBER, $duplicates[0]->reason);
-        $this->assertSame(2, Contact::query()->where('user_id', $user->id)->count());
+        $this->assertSame(
+            2,
+            Contact::query()->where('user_id', $user->id)->count(),
+        );
     }
 
     #[Test]
@@ -156,15 +187,48 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $this->limitActive('contact', 1);
         $user = $this->frontendUser();
-        $first = $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile('First'), null));
+        $first = $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData(
+                $this->profile('First'),
+                null,
+            ),
+        );
 
-        $this->assertLimitExceeded(fn () => $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile('Second'), null)));
+        $this->assertLimitExceeded(
+            fn () => $this->contacts->create(
+                $this->idOf($user),
+                new ContactWriteData(
+                    $this->profile('Second'),
+                    null,
+                ),
+            ),
+        );
 
-        $this->contacts->archive($this->idOf($user), $first->id);
-        $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile('Second'), null));
+        $this->contacts->archive(
+            $this->idOf($user),
+            $first->id,
+        );
+        $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData(
+                $this->profile('Second'),
+                null,
+            ),
+        );
 
-        $this->assertLimitExceeded(fn () => $this->contacts->restore($this->idOf($user), $first->id));
-        $this->assertTrue($this->contacts->get($this->idOf($user), $first->id)->isArchived());
+        $this->assertLimitExceeded(
+            fn () => $this->contacts->restore(
+                $this->idOf($user),
+                $first->id,
+            ),
+        );
+        $this->assertTrue(
+            $this->contacts->get(
+                $this->idOf($user),
+                $first->id,
+            )->isArchived(),
+        );
     }
 
     #[Test]
@@ -172,20 +236,42 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $user = User::factory()->create();
 
-        $this->assertLimitExceeded(fn () => $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile(), null)));
+        $this->assertLimitExceeded(
+            fn () => $this->contacts->create(
+                $this->idOf($user),
+                new ContactWriteData($this->profile(), null),
+            ),
+        );
     }
 
     #[Test]
     public function an_archived_contact_is_listed_apart_and_still_found(): void
     {
         $user = $this->frontendUser();
-        $contact = $this->contacts->create($this->idOf($user), new ContactWriteData($this->profile(), null));
+        $contact = $this->contacts->create(
+            $this->idOf($user),
+            new ContactWriteData($this->profile(), null),
+        );
 
-        $this->contacts->archive($this->idOf($user), $contact->id);
+        $this->contacts->archive(
+            $this->idOf($user),
+            $contact->id,
+        );
 
-        $this->assertSame([], $this->listedIds($user, false));
-        $this->assertSame([$contact->id->value], $this->listedIds($user, true));
-        $this->assertTrue($this->contacts->get($this->idOf($user), $contact->id)->isArchived());
+        $this->assertSame(
+            [],
+            $this->listedIds($user, false),
+        );
+        $this->assertSame(
+            [$contact->id->value],
+            $this->listedIds($user, true),
+        );
+        $this->assertTrue(
+            $this->contacts->get(
+                $this->idOf($user),
+                $contact->id,
+            )->isArchived(),
+        );
     }
 
     #[Test]
@@ -193,16 +279,31 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $owner = $this->frontendUser();
         $stranger = $this->frontendUser();
-        $contact = $this->contacts->create($this->idOf($owner), new ContactWriteData($this->profile('Secret'), null));
+        $contact = $this->contacts->create(
+            $this->idOf($owner),
+            new ContactWriteData(
+                $this->profile('Secret'),
+                null,
+            ),
+        );
 
         $attempts = [
-            fn () => $this->contacts->get($this->idOf($stranger), $contact->id),
+            fn () => $this->contacts->get(
+                $this->idOf($stranger),
+                $contact->id,
+            ),
             fn () => $this->contacts->update(
                 $this->idOf($stranger),
                 $contact->id,
-                new ContactWriteData($this->profile('Taken'), null),
+                new ContactWriteData(
+                    $this->profile('Taken'),
+                    null,
+                ),
             ),
-            fn () => $this->contacts->archive($this->idOf($stranger), $contact->id),
+            fn () => $this->contacts->archive(
+                $this->idOf($stranger),
+                $contact->id,
+            ),
         ];
         foreach ($attempts as $attempt) {
             try {
@@ -212,12 +313,18 @@ final class ContactApplicationServiceTest extends TestCase
             }
         }
 
-        $this->assertDatabaseHas('contacts', [
-            'id' => $contact->id->value,
-            'name' => 'Secret',
-            'archived_at' => null,
-        ]);
-        $this->assertSame([], $this->listedIds($stranger, false));
+        $this->assertDatabaseHas(
+            'contacts',
+            [
+                'id' => $contact->id->value,
+                'name' => 'Secret',
+                'archived_at' => null,
+            ],
+        );
+        $this->assertSame(
+            [],
+            $this->listedIds($stranger, false),
+        );
     }
 
     #[Test]
@@ -228,9 +335,15 @@ final class ContactApplicationServiceTest extends TestCase
         $contacts = $this->app->make(ContactApplicationService::class);
         $user = $this->frontendUser();
 
-        $contact = $contacts->create($this->idOf($user), new ContactWriteData($this->profile(), null));
+        $contact = $contacts->create(
+            $this->idOf($user),
+            new ContactWriteData($this->profile(), null),
+        );
 
-        Event::assertDispatched(ContactCreated::class, fn (ContactCreated $event): bool => $event->contactId->equals($contact->id));
+        Event::assertDispatched(
+            ContactCreated::class,
+            fn (ContactCreated $event): bool => $event->contactId->equals($contact->id),
+        );
     }
 
     /**

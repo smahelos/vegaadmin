@@ -28,8 +28,13 @@ class TaxCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Tax::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/tax');
-        CRUD::setEntityNameStrings(__('taxes.entity.singular'), __('taxes.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/tax',
+        );
+        CRUD::setEntityNameStrings(
+            __('taxes.entity.singular'),
+            __('taxes.entity.plural'),
+        );
     }
 
     /**
@@ -37,10 +42,18 @@ class TaxCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('taxes.fields.name'));
-        CRUD::column('rate')->label(__('taxes.fields.rate'))->type('number')->suffix('%');
-        CRUD::column('slug')->label(__('taxes.fields.slug'));
-        CRUD::column('description')->label(__('taxes.fields.description'));
+        CRUD::column('name')->label(
+            __('taxes.fields.name'),
+        );
+        CRUD::column('rate')->label(
+            __('taxes.fields.rate'),
+        )->type('number')->suffix('%');
+        CRUD::column('slug')->label(
+            __('taxes.fields.slug'),
+        );
+        CRUD::column('description')->label(
+            __('taxes.fields.description'),
+        );
     }
 
     /**

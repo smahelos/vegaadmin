@@ -96,7 +96,12 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->fail('The default business was archived without a replacement');
         } catch (DefaultBusinessRequiredException) {
         }
-        $this->assertFalse($this->businesses->get($this->idOf($user), $first->id)->isArchived());
+        $this->assertFalse(
+            $this->businesses->get(
+                $this->idOf($user),
+                $first->id,
+            )->isArchived(),
+        );
 
         $this->businesses->archive(
             $this->idOf($user),
@@ -104,7 +109,12 @@ final class BusinessApplicationServiceTest extends TestCase
             $second->id,
         );
 
-        $this->assertTrue($this->businesses->get($this->idOf($user), $first->id)->isArchived());
+        $this->assertTrue(
+            $this->businesses->get(
+                $this->idOf($user),
+                $first->id,
+            )->isArchived(),
+        );
         $this->assertSame($second->id->value, $user->fresh()?->default_business_id);
     }
 
@@ -150,7 +160,12 @@ final class BusinessApplicationServiceTest extends TestCase
         );
 
         $this->assertNull($user->fresh()?->default_business_id);
-        $this->assertSame([], $this->businesses->listActive($this->idOf($user)));
+        $this->assertSame(
+            [],
+            $this->businesses->listActive(
+                $this->idOf($user),
+            ),
+        );
     }
 
     #[Test]
@@ -168,7 +183,10 @@ final class BusinessApplicationServiceTest extends TestCase
             null,
         );
 
-        $this->businesses->restore($this->idOf($user), $business->id);
+        $this->businesses->restore(
+            $this->idOf($user),
+            $business->id,
+        );
 
         $this->assertSame($business->id->value, $user->fresh()?->default_business_id);
     }
@@ -188,7 +206,9 @@ final class BusinessApplicationServiceTest extends TestCase
             null,
         );
         $archivedAccount = BankAccount::factory()
-            ->ownedBy(Business::query()->findOrFail($other->id->value))
+            ->ownedBy(
+                Business::query()->findOrFail($other->id->value),
+            )
             ->create(['archived_at' => now()]);
         $this->businesses->archive(
             $this->idOf($user),
@@ -196,7 +216,10 @@ final class BusinessApplicationServiceTest extends TestCase
             null,
         );
 
-        $this->businesses->restore($this->idOf($user), $other->id);
+        $this->businesses->restore(
+            $this->idOf($user),
+            $other->id,
+        );
 
         $this->assertSame($default->id->value, $user->fresh()?->default_business_id);
         $this->assertNotNull($archivedAccount->fresh()?->archived_at);
@@ -215,7 +238,10 @@ final class BusinessApplicationServiceTest extends TestCase
         $other = Business::factory()->archived()->create(['user_id' => $user->id]);
 
         try {
-            $this->businesses->restore($this->idOf($user), BusinessId::fromInt($other->id));
+            $this->businesses->restore(
+                $this->idOf($user),
+                BusinessId::fromInt($other->id),
+            );
             $this->fail('The business was restored over the limit');
         } catch (EntityLimitExceededException) {
         }
@@ -242,7 +268,10 @@ final class BusinessApplicationServiceTest extends TestCase
 
         $this->expectException(BusinessArchivedException::class);
 
-        $this->businesses->setDefault($this->idOf($user), BusinessId::fromInt($archived->id));
+        $this->businesses->setDefault(
+            $this->idOf($user),
+            BusinessId::fromInt($archived->id),
+        );
     }
 
     #[Test]
@@ -260,7 +289,10 @@ final class BusinessApplicationServiceTest extends TestCase
             null,
         );
 
-        $this->businesses->setDefault($this->idOf($user), $second->id);
+        $this->businesses->setDefault(
+            $this->idOf($user),
+            $second->id,
+        );
 
         $this->assertSame($second->id->value, $user->fresh()?->default_business_id);
     }
@@ -296,7 +328,9 @@ final class BusinessApplicationServiceTest extends TestCase
             );
         } catch (DuplicateCompanyNumberException $e) {
             $this->assertSame($holder->id->value, $e->existing->value);
-            $this->assertNull(Business::query()->findOrFail($other->id->value)->company_number);
+            $this->assertNull(
+                Business::query()->findOrFail($other->id->value)->company_number,
+            );
 
             return;
         }
@@ -308,11 +342,13 @@ final class BusinessApplicationServiceTest extends TestCase
     public function a_business_and_a_contact_may_share_a_czech_company_number(): void
     {
         $user = $this->frontendUser();
-        Contact::factory()->create([
-            'user_id' => $user->id,
-            'registration_country' => 'CZ',
-            'company_number' => '27074358',
-        ]);
+        Contact::factory()->create(
+            [
+                'user_id' => $user->id,
+                'registration_country' => 'CZ',
+                'company_number' => '27074358',
+            ],
+        );
 
         $business = $this->businesses->create(
             $this->idOf($user),
@@ -339,7 +375,10 @@ final class BusinessApplicationServiceTest extends TestCase
         );
 
         $attempts = [
-            fn () => $this->businesses->get($this->idOf($stranger), $business->id),
+            fn () => $this->businesses->get(
+                $this->idOf($stranger),
+                $business->id,
+            ),
             fn () => $this->businesses->update(
                 $this->idOf($stranger),
                 $business->id,
@@ -350,7 +389,10 @@ final class BusinessApplicationServiceTest extends TestCase
                 $business->id,
                 null,
             ),
-            fn () => $this->businesses->setDefault($this->idOf($stranger), $business->id),
+            fn () => $this->businesses->setDefault(
+                $this->idOf($stranger),
+                $business->id,
+            ),
         ];
         foreach ($attempts as $attempt) {
             try {
@@ -361,11 +403,14 @@ final class BusinessApplicationServiceTest extends TestCase
         }
 
         $this->assertNull($stranger->fresh()?->default_business_id);
-        $this->assertDatabaseHas('businesses', [
-            'id' => $business->id->value,
-            'name' => 'Secret',
-            'archived_at' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'businesses',
+            [
+                'id' => $business->id->value,
+                'name' => 'Secret',
+                'archived_at' => null,
+            ],
+        );
     }
 
     private function data(
@@ -373,6 +418,13 @@ final class BusinessApplicationServiceTest extends TestCase
         ?Address $address = null,
         ?string $companyNumber = null,
     ): BusinessWriteData {
-        return new BusinessWriteData($this->profile($name, $companyNumber, address: $address), null);
+        return new BusinessWriteData(
+            $this->profile(
+                $name,
+                $companyNumber,
+                address: $address,
+            ),
+            null,
+        );
     }
 }

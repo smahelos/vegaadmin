@@ -81,18 +81,21 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             [],
         );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'month' => '2026-01',
-                'total' => 1500.0,
-                'paid' => 1000.0,
+                [
+                    'month' => '2026-01',
+                    'total' => 1500.0,
+                    'paid' => 1000.0,
+                ],
+                [
+                    'month' => '2026-02',
+                    'total' => 300.0,
+                    'paid' => 300.0,
+                ],
             ],
-            [
-                'month' => '2026-02',
-                'total' => 300.0,
-                'paid' => 300.0,
-            ],
-        ], $this->numeric($rows, ['total', 'paid']));
+            $this->numeric($rows, ['total', 'paid']),
+        );
     }
 
     #[Test]
@@ -105,13 +108,16 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             [ContactId::fromInt($this->otherClient->id)],
         );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'month' => '2026-02',
-                'amount' => 300.0,
-                'type' => 'revenue',
+                [
+                    'month' => '2026-02',
+                    'amount' => 300.0,
+                    'type' => 'revenue',
+                ],
             ],
-        ], $this->numeric($rows, ['amount']));
+            $this->numeric($rows, ['amount']),
+        );
     }
 
     #[Test]
@@ -124,18 +130,21 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             [],
         );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'contact_id' => $this->client->id,
-                'customer_name' => 'Alfa',
-                'total' => 1500.0,
+                [
+                    'contact_id' => $this->client->id,
+                    'customer_name' => 'Alfa',
+                    'total' => 1500.0,
+                ],
+                [
+                    'contact_id' => $this->otherClient->id,
+                    'customer_name' => 'Beta',
+                    'total' => 300.0,
+                ],
             ],
-            [
-                'contact_id' => $this->otherClient->id,
-                'customer_name' => 'Beta',
-                'total' => 300.0,
-            ],
-        ], $this->numeric($rows, ['total']));
+            $this->numeric($rows, ['total']),
+        );
     }
 
     #[Test]
@@ -155,7 +164,10 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         );
         ksort($counts);
 
-        $this->assertSame(['paid' => 2, 'pending' => 1], array_map('intval', $counts));
+        $this->assertSame(
+            ['paid' => 2, 'pending' => 1],
+            array_map('intval', $counts),
+        );
     }
 
     #[Test]
@@ -175,7 +187,10 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         );
         ksort($counts);
 
-        $this->assertSame(['overdue' => 1, 'paid' => 2], array_map('intval', $counts));
+        $this->assertSame(
+            ['overdue' => 1, 'paid' => 2],
+            array_map('intval', $counts),
+        );
     }
 
     #[Test]
@@ -197,21 +212,27 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function expenses_sum_the_users_expenses_in_the_range_by_month(): void
     {
-        Expense::factory()->create([
-            'user_id' => $this->user->id,
-            'expense_date' => '2026-01-03',
-            'amount' => 120,
-        ]);
-        Expense::factory()->create([
-            'user_id' => $this->user->id,
-            'expense_date' => '2026-01-28',
-            'amount' => 80,
-        ]);
-        Expense::factory()->create([
-            'user_id' => $this->user->id,
-            'expense_date' => '2026-03-01',
-            'amount' => 50,
-        ]);
+        Expense::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'expense_date' => '2026-01-03',
+                'amount' => 120,
+            ],
+        );
+        Expense::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'expense_date' => '2026-01-28',
+                'amount' => 80,
+            ],
+        );
+        Expense::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'expense_date' => '2026-03-01',
+                'amount' => 50,
+            ],
+        );
         Expense::factory()->create(['expense_date' => '2026-01-10', 'amount' => 999]);
 
         $rows = $this->repository->expenses(
@@ -220,18 +241,25 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             new DateTimeImmutable('2026-02-28'),
         );
 
-        $this->assertSame([
+        $this->assertSame(
             [
-                'month' => '2026-01',
-                'amount' => 200.0,
-                'type' => 'expense',
+                [
+                    'month' => '2026-01',
+                    'amount' => 200.0,
+                    'type' => 'expense',
+                ],
             ],
-        ], $this->numeric($rows, ['amount']));
+            $this->numeric($rows, ['amount']),
+        );
     }
 
     private function repositoryOn(string $today): EloquentApiStatisticsRepository
     {
-        return new EloquentApiStatisticsRepository(new FixedClock(new DateTimeImmutable($today)));
+        return new EloquentApiStatisticsRepository(
+            new FixedClock(
+                new DateTimeImmutable($today),
+            ),
+        );
     }
 
     private function invoice(
@@ -240,15 +268,17 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         int $amount,
         string $status,
     ): void {
-        Invoice::factory()->create([
-            'user_id' => $client->user_id,
-            'contact_id' => $client->id,
-            'issue_date' => $issueDate,
-            'due_in' => 14,
-            'payment_amount' => $amount,
-            'payment_status_id' => Status::where('slug', $status)->value('id'),
-            'payment_method_id' => PaymentMethod::where('slug', 'bankaccount')->value('id'),
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $client->user_id,
+                'contact_id' => $client->id,
+                'issue_date' => $issueDate,
+                'due_in' => 14,
+                'payment_amount' => $amount,
+                'payment_status_id' => Status::where('slug', $status)->value('id'),
+                'payment_method_id' => PaymentMethod::where('slug', 'bankaccount')->value('id'),
+            ],
+        );
     }
 
     /**
@@ -260,12 +290,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
      */
     private function numeric(array $rows, array $columns): array
     {
-        return array_map(static function (array $row) use ($columns): array {
-            foreach ($columns as $column) {
-                $row[$column] = (float) $row[$column];
-            }
+        return array_map(
+            static function (array $row) use ($columns): array {
+                foreach ($columns as $column) {
+                    $row[$column] = (float) $row[$column];
+                }
 
-            return $row;
-        }, $rows);
+                return $row;
+            },
+            $rows,
+        );
     }
 }

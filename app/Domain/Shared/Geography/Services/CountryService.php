@@ -35,10 +35,13 @@ class CountryService implements CountryServiceInterface
             function () {
                 try {
                     $response = $this->httpClient->get("{$this->apiUrl}/all?fields=name,cca2,flag", ['timeout' => 5]);
-                    if (! empty($response) && is_array($response)) {
-                        usort($response, function ($a, $b) {
-                            return $a['name']['common'] <=> $b['name']['common'];
-                        });
+                    if (!empty($response) && is_array($response)) {
+                        usort(
+                            $response,
+                            function ($a, $b) {
+                                return $a['name']['common'] <=> $b['name']['common'];
+                            },
+                        );
 
                         return $response;
                     }
@@ -194,7 +197,7 @@ class CountryService implements CountryServiceInterface
             function () use ($code) {
                 try {
                     $response = $this->httpClient->get("{$this->apiUrl}/alpha/{$code}");
-                    if (! empty($response) && is_array($response)) {
+                    if (!empty($response) && is_array($response)) {
                         return $response[0] ?? null;
                     }
 

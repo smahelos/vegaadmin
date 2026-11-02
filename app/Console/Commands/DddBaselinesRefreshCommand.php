@@ -39,13 +39,13 @@ class DddBaselinesRefreshCommand extends Command
 
         // Dynamic step counting
         $totalSteps = 0;
-        if (! $this->option('no-controller-thinness')) {
+        if (!$this->option('no-controller-thinness')) {
             $totalSteps++;
         }
-        if (! $this->option('no-frontend')) {
+        if (!$this->option('no-frontend')) {
             $totalSteps++;
         }
-        if (! $this->option('no-api')) {
+        if (!$this->option('no-api')) {
             $totalSteps++;
         }
         if ($includeProvider) {
@@ -57,20 +57,26 @@ class DddBaselinesRefreshCommand extends Command
         $step = 1;
 
         // Controller thinness baseline
-        if (! $this->option('no-controller-thinness')) {
-            $this->info('[' . $step . '/' . $totalSteps . '] Regenerating controller thinness baseline');
+        if (!$this->option('no-controller-thinness')) {
+            $this->info(
+                '[' . $step . '/' . $totalSteps . '] Regenerating controller thinness baseline',
+            );
             $step++;
             $code = $this->callSilently('ddd:controller-thinness:baseline', ['--save' => $write]);
             if ($code !== 0) {
                 $errors[] = 'controller-thinness baseline failed (code ' . $code . ')';
             }
         } else {
-            $this->line('Skipping controller thinness baseline (flag --no-controller-thinness)');
+            $this->line(
+                'Skipping controller thinness baseline (flag --no-controller-thinness)',
+            );
         }
 
         // Frontend Eloquent baseline
-        if (! $this->option('no-frontend')) {
-            $this->info('[' . $step . '/' . $totalSteps . '] Regenerating frontend controllers eloquent baseline');
+        if (!$this->option('no-frontend')) {
+            $this->info(
+                '[' . $step . '/' . $totalSteps . '] Regenerating frontend controllers eloquent baseline',
+            );
             $step++;
             $code = $this->callSilently('ddd:frontend-eloquent:baseline', ['--save' => $write]);
             if ($code !== 0) {
@@ -81,8 +87,10 @@ class DddBaselinesRefreshCommand extends Command
         }
 
         // API Eloquent baseline
-        if (! $this->option('no-api')) {
-            $this->info('[' . $step . '/' . $totalSteps . '] Regenerating API controllers eloquent baseline');
+        if (!$this->option('no-api')) {
+            $this->info(
+                '[' . $step . '/' . $totalSteps . '] Regenerating API controllers eloquent baseline',
+            );
             $step++;
             $code = $this->callSilently('ddd:api-eloquent:baseline', ['--save' => $write]);
             if ($code !== 0) {
@@ -94,15 +102,19 @@ class DddBaselinesRefreshCommand extends Command
 
         // Provider snapshot (optional)
         if ($includeProvider) {
-            $this->info('[' . $step . '/' . $totalSteps . '] Regenerating provider snapshot');
+            $this->info(
+                '[' . $step . '/' . $totalSteps . '] Regenerating provider snapshot',
+            );
             $step++;
             // Respect dry-run: do not write when dry-run mode is active
-            $code = $this->callSilently('ddd:providers:snapshot', ['--write' => ! $dryRun, '--format' => 'json']);
+            $code = $this->callSilently('ddd:providers:snapshot', ['--write' => !$dryRun, '--format' => 'json']);
             if ($code !== 0) {
                 $errors[] = 'provider snapshot failed (code ' . $code . ')';
             }
             if ($dryRun) {
-                $this->line('Dry-run: provider snapshot generation executed without writing file.');
+                $this->line(
+                    'Dry-run: provider snapshot generation executed without writing file.',
+                );
             }
         } else {
             $this->line('Skipping provider snapshot (no --include-provider flag)');
@@ -113,7 +125,7 @@ class DddBaselinesRefreshCommand extends Command
             $this->info('[' . $step . '/' . $totalSteps . '] Running legacy report');
             $step++;
             $legacyParams = ['--json' => true];
-            if (! $dryRun) {
+            if (!$dryRun) {
                 $legacyParams['--write-baseline'] = true;
             }
             $code = $this->callSilently('ddd:legacy-report', $legacyParams);
@@ -129,9 +141,11 @@ class DddBaselinesRefreshCommand extends Command
 
         // Copy into version-controlled baselines directory when requested
         if ($updateVersioned) {
-            $this->info('Updating version-controlled baseline JSON files (architecture/baselines)');
+            $this->info(
+                'Updating version-controlled baseline JSON files (architecture/baselines)',
+            );
             $vcDir = base_path('architecture/baselines');
-            if (! is_dir($vcDir)) {
+            if (!is_dir($vcDir)) {
                 @mkdir(
                     $vcDir,
                     0777,
@@ -144,7 +158,7 @@ class DddBaselinesRefreshCommand extends Command
                 'api_controller_eloquent_baseline.json' => storage_path('app/metrics/api_controller_eloquent_baseline.json'),
             ];
             foreach ($map as $target => $src) {
-                if (! file_exists($src)) {
+                if (!file_exists($src)) {
                     $this->warn("Source missing (skip copy): $src");
 
                     continue;
@@ -154,7 +168,9 @@ class DddBaselinesRefreshCommand extends Command
             }
             if ($includeProvider) {
                 // provider snapshot already written to architecture/baselines via its configured path
-                $this->line('Provider snapshot already updated by providers:snapshot --write');
+                $this->line(
+                    'Provider snapshot already updated by providers:snapshot --write',
+                );
             }
         }
         if ($dryRun) {
@@ -202,11 +218,14 @@ class DddBaselinesRefreshCommand extends Command
         ];
         foreach ($map as $key => $file) {
             $path = $dir . '/' . $file;
-            if (! is_file($path)) {
+            if (!is_file($path)) {
                 continue;
             }
-            $json = json_decode(file_get_contents($path), true);
-            if (! $json) {
+            $json = json_decode(
+                file_get_contents($path),
+                true,
+            );
+            if (!$json) {
                 continue;
             }
             if ($key === 'controller_thinness') {
@@ -228,8 +247,12 @@ class DddBaselinesRefreshCommand extends Command
     {
         $current = [
             'controller_thinness' => $this->currentControllerThinnessCount(),
-            'frontend' => $this->currentBaselineCount(storage_path('app/metrics/frontend_controller_eloquent_baseline.json')),
-            'api' => $this->currentBaselineCount(storage_path('app/metrics/api_controller_eloquent_baseline.json')),
+            'frontend' => $this->currentBaselineCount(
+                storage_path('app/metrics/frontend_controller_eloquent_baseline.json'),
+            ),
+            'api' => $this->currentBaselineCount(
+                storage_path('app/metrics/api_controller_eloquent_baseline.json'),
+            ),
             'legacy_residuals' => $this->currentLegacyCount('residuals'),
             'legacy_neutralized_tests' => $this->currentLegacyCount('neutralized_tests'),
         ];
@@ -249,21 +272,27 @@ class DddBaselinesRefreshCommand extends Command
     private function currentControllerThinnessCount(): ?int
     {
         $path = storage_path('app/metrics/controller_thinness_baseline.json');
-        if (! is_file($path)) {
+        if (!is_file($path)) {
             return null;
         }
-        $json = json_decode(file_get_contents($path), true);
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+        );
 
         return $json['summary']['total_controllers'] ?? null;
     }
 
     private function currentBaselineCount(string $path): ?int
     {
-        if (! is_file($path)) {
+        if (!is_file($path)) {
             return null;
         }
-        $json = json_decode(file_get_contents($path), true);
-        if (! $json) {
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+        );
+        if (!$json) {
             return null;
         }
 
@@ -273,11 +302,14 @@ class DddBaselinesRefreshCommand extends Command
     private function currentLegacyCount(string $type): ?int
     {
         $path = base_path('architecture/baselines/legacy_report_latest.json');
-        if (! is_file($path)) {
+        if (!is_file($path)) {
             return null;
         }
-        $json = json_decode(file_get_contents($path), true);
-        if (! $json || ! isset($json['counts'])) {
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+        );
+        if (!$json || !isset($json['counts'])) {
             return null;
         }
 
@@ -288,7 +320,15 @@ class DddBaselinesRefreshCommand extends Command
     {
         $this->line('Baseline counts diff:');
         foreach ($diff as $k => $d) {
-            $this->line(sprintf(' - %s: prev=%s current=%s delta=%s', $k, $d['previous'] ?? 'n/a', $d['current'] ?? 'n/a', $d['delta'] ?? 'n/a'));
+            $this->line(
+                sprintf(
+                    ' - %s: prev=%s current=%s delta=%s',
+                    $k,
+                    $d['previous'] ?? 'n/a',
+                    $d['current'] ?? 'n/a',
+                    $d['delta'] ?? 'n/a',
+                ),
+            );
         }
     }
 
@@ -303,6 +343,8 @@ class DddBaselinesRefreshCommand extends Command
             'diff' => $diff,
             'timestamp' => now()->toIso8601String(),
         ];
-        $this->line(json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $this->line(
+            json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+        );
     }
 }

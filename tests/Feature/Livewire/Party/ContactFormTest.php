@@ -45,7 +45,10 @@ final class ContactFormTest extends TestCase
         $contact = Contact::query()->where('user_id', $this->user->id)->sole();
         $this->assertNull($contact->email);
         $this->assertNull($contact->phone);
-        $this->assertSame(0, Address::query()->where('contact_id', $contact->id)->count());
+        $this->assertSame(
+            0,
+            Address::query()->where('contact_id', $contact->id)->count(),
+        );
     }
 
     #[Test]
@@ -66,16 +69,21 @@ final class ContactFormTest extends TestCase
         $this->assertSame('AT', $contact->registration_country);
         $this->assertSame('FN 123456a', $contact->company_number);
         $this->assertSame('Anna Huber', $contact->contact_person);
-        $this->assertSame('AT', Address::query()->where('contact_id', $contact->id)->value('country'));
+        $this->assertSame(
+            'AT',
+            Address::query()->where('contact_id', $contact->id)->value('country'),
+        );
     }
 
     #[Test]
     public function an_archived_contact_with_the_same_czech_company_number_blocks_a_copy(): void
     {
-        Contact::factory()->archived()->create([
-            'user_id' => $this->user->id,
-            'company_number' => self::VALID_COMPANY_NUMBER,
-        ]);
+        Contact::factory()->archived()->create(
+            [
+                'user_id' => $this->user->id,
+                'company_number' => self::VALID_COMPANY_NUMBER,
+            ],
+        );
 
         Livewire::test(ContactForm::class)
             ->set('party.name', 'Kopie')
@@ -85,7 +93,10 @@ final class ContactFormTest extends TestCase
             ->assertSet('blockingDuplicate.archived', true)
             ->assertNoRedirect();
 
-        $this->assertSame(1, Contact::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            1,
+            Contact::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
@@ -111,19 +122,27 @@ final class ContactFormTest extends TestCase
         Livewire::test(ContactForm::class)
             ->set('party.name', 'Další')
             ->call('save')
-            ->assertSet('limitMessage', __('contacts.messages.limit_exceeded'));
+            ->assertSet(
+                'limitMessage',
+                __('contacts.messages.limit_exceeded'),
+            );
 
-        $this->assertSame(1, Contact::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            1,
+            Contact::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
     public function editing_clears_an_emptied_contact_person_and_email(): void
     {
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'contact_person' => 'Petr',
-            'email' => 'petr@example.test',
-        ]);
+        $contact = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'contact_person' => 'Petr',
+                'email' => 'petr@example.test',
+            ],
+        );
 
         Livewire::test(ContactForm::class, ['contactId' => $contact->id])
             ->set('contactPerson', '')
@@ -148,10 +167,12 @@ final class ContactFormTest extends TestCase
 
     private function createBusinessWithCompanyNumber(string $companyNumber): void
     {
-        Business::factory()->create([
-            'user_id' => $this->user->id,
-            'company_number' => $companyNumber,
-        ]);
+        Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'company_number' => $companyNumber,
+            ],
+        );
     }
 
     #[Test]
@@ -160,14 +181,24 @@ final class ContactFormTest extends TestCase
         Storage::fake('public');
         Livewire::actingAs($this->user)->test(ContactForm::class)
             ->set('party.name', 'Contact with a logo')
-            ->set('logo', UploadedFile::fake()->image('logo.png'))
+            ->set(
+                'logo',
+                UploadedFile::fake()->image('logo.png'),
+            )
             ->call('save')->assertHasNoErrors();
         $contact = Contact::where('user_id', $this->user->id)->where('name', 'Contact with a logo')->sole();
         $first = $contact->logo;
         $this->assertNotNull($first);
         Storage::disk('public')->assertExists($first);
         Livewire::actingAs($this->user)->test(ContactForm::class, ['contactId' => $contact->id])
-            ->set('logo', UploadedFile::fake()->image('different.png', 400, 150))
+            ->set(
+                'logo',
+                UploadedFile::fake()->image(
+                    'different.png',
+                    400,
+                    150,
+                ),
+            )
             ->call('save')->assertHasNoErrors();
         $second = $contact->fresh()->logo;
         $this->assertNotNull($second);

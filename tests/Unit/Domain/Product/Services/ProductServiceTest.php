@@ -98,7 +98,15 @@ final class ProductServiceTest extends TestCase
             {
                 $this->capturedCreate = $writeData;
                 $priceMoney = isset($writeData->price)
-                    ? Money::fromString(number_format((float) $writeData->price, 2, '.', ''), strtoupper($writeData->currency ?? 'CZK'))
+                    ? Money::fromString(
+                        number_format(
+                            (float) $writeData->price,
+                            2,
+                            '.',
+                            '',
+                        ),
+                        strtoupper($writeData->currency ?? 'CZK'),
+                    )
                     : null;
 
                 return new ProductDTO(
@@ -127,7 +135,15 @@ final class ProductServiceTest extends TestCase
             {
                 $this->capturedUpdate = ['id' => $id, 'data' => $writeData];
                 $priceMoney = isset($writeData->price)
-                    ? Money::fromString(number_format((float) $writeData->price, 2, '.', ''), strtoupper($writeData->currency ?? 'CZK'))
+                    ? Money::fromString(
+                        number_format(
+                            (float) $writeData->price,
+                            2,
+                            '.',
+                            '',
+                        ),
+                        strtoupper($writeData->currency ?? 'CZK'),
+                    )
                     : null;
 
                 return new ProductDTO(
@@ -199,7 +215,10 @@ final class ProductServiceTest extends TestCase
         // Simulate first product
         $this->readSpy->count = 0;
         $data = ProductWriteData::fromArray(['name' => 'Sample Product']);
-        $result = $this->service->createProduct($data, UserId::fromInt(1));
+        $result = $this->service->createProduct(
+            $data,
+            UserId::fromInt(1),
+        );
 
         $this->assertNotNull($this->writeSpy->capturedCreate);
         $this->assertTrue($this->writeSpy->capturedCreate->is_default);
@@ -236,7 +255,9 @@ final class ProductServiceTest extends TestCase
         $this->writeSpy->usedOnInvoices = true;
 
         try {
-            $this->service->deleteProduct(ProductId::fromInt(77));
+            $this->service->deleteProduct(
+                ProductId::fromInt(77),
+            );
             $this->fail('A product used on invoices must not be deleted');
         } catch (ProductInUseException) {
             $this->assertNull($this->writeSpy->capturedDelete);

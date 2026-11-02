@@ -21,12 +21,14 @@ final class AnalyticsCacheKeysDeterministicTest extends TestCase
         $user = User::factory()->create();
         // Seed some minimal data to ensure aggregation produces non-null values
         $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => 123.45,
-            'issue_date' => now()->subMonth(),
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+                'payment_amount' => 123.45,
+                'issue_date' => now()->subMonth(),
+            ],
+        );
 
         $service = app(DashboardService::class);
 
@@ -41,7 +43,9 @@ final class AnalyticsCacheKeysDeterministicTest extends TestCase
         ];
 
         foreach ($expectedKeys as $key) {
-            $this->assertNotNull(Cache::tags(['analytics.user.' . $user->id])->get($key));
+            $this->assertNotNull(
+                Cache::tags(['analytics.user.' . $user->id])->get($key),
+            );
         }
 
         // Second calls (should hit cache). We re-fetch and ensure values identical.

@@ -17,24 +17,29 @@ class InvoiceProductFeatureTest extends TestCase
         $invoice = Invoice::factory()->create();
         $product = Product::factory()->create();
 
-        $invoiceProduct = InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'product_id' => $product->id,
-            'name' => 'Test Product',
-            'quantity' => 2,
-            'price' => 100.00,
-            'tax_rate' => 21.00,
-        ]);
+        $invoiceProduct = InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'name' => 'Test Product',
+                'quantity' => 2,
+                'price' => 100.00,
+                'tax_rate' => 21.00,
+            ],
+        );
 
-        $this->assertDatabaseHas('invoice_products', [
-            'id' => $invoiceProduct->id,
-            'invoice_id' => $invoice->id,
-            'product_id' => $product->id,
-            'name' => 'Test Product',
-            'quantity' => 2,
-            'price' => 100.00,
-            'tax_rate' => 21.00,
-        ]);
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'id' => $invoiceProduct->id,
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'name' => 'Test Product',
+                'quantity' => 2,
+                'price' => 100.00,
+                'tax_rate' => 21.00,
+            ],
+        );
     }
 
     #[Test]
@@ -64,15 +69,17 @@ class InvoiceProductFeatureTest extends TestCase
     {
         $invoice = Invoice::factory()->create();
 
-        $invoiceProduct = InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'product_id' => null,
-            'name' => 'Custom Product',
-            'is_custom_product' => true,
-            'price' => 150.00,
-            'quantity' => 1,
-            'tax_rate' => 0.00,
-        ]);
+        $invoiceProduct = InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => null,
+                'name' => 'Custom Product',
+                'is_custom_product' => true,
+                'price' => 150.00,
+                'quantity' => 1,
+                'tax_rate' => 0.00,
+            ],
+        );
 
         $this->assertTrue($invoiceProduct->is_custom_product);
         $this->assertNull($invoiceProduct->product_id);

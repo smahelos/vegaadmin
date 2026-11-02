@@ -49,7 +49,10 @@ final class PartyDetailsForm extends Form
      */
     public function rules(): array
     {
-        return PartyInput::rules($this->input(), Str::camel(...));
+        return PartyInput::rules(
+            $this->input(),
+            Str::camel(...),
+        );
     }
 
     /**
@@ -57,7 +60,9 @@ final class PartyDetailsForm extends Form
      */
     public function validationAttributes(): array
     {
-        return PartyInput::attributes(Str::camel(...));
+        return PartyInput::attributes(
+            Str::camel(...),
+        );
     }
 
     /**
@@ -70,7 +75,9 @@ final class PartyDetailsForm extends Form
 
     public function fillFromProfile(PartyProfile $profile): void
     {
-        $this->fillInput(PartyInput::fromProfile($profile));
+        $this->fillInput(
+            PartyInput::fromProfile($profile),
+        );
     }
 
     /**
@@ -100,8 +107,11 @@ final class PartyDetailsForm extends Form
             Country::tryFrom($this->registrationCountry),
             $this->companyNumber,
         );
-        if ($number === null || ! $number->isCzech()) {
-            $this->addError('companyNumber', __('parties.messages.register_czech_only'));
+        if ($number === null || !$number->isCzech()) {
+            $this->addError(
+                'companyNumber',
+                __('parties.messages.register_czech_only'),
+            );
 
             return false;
         }
@@ -110,13 +120,19 @@ final class PartyDetailsForm extends Form
             $company = $registry->findCompany($number);
         } catch (CompanyRegistryUnavailableException $e) {
             Log::warning('Company register lookup failed', ['exception' => $e]);
-            $this->addError('companyNumber', __('parties.messages.register_unavailable'));
+            $this->addError(
+                'companyNumber',
+                __('parties.messages.register_unavailable'),
+            );
 
             return false;
         }
 
         if ($company === null) {
-            $this->addError('companyNumber', __('parties.messages.register_not_found'));
+            $this->addError(
+                'companyNumber',
+                __('parties.messages.register_not_found'),
+            );
 
             return false;
         }

@@ -60,12 +60,20 @@ final class QrPaymentProvidersTest extends TestCase
             $account,
             'Stored message',
         );
-        $this->assertTrue($provider->validatePaymentInfo($payment));
+        $this->assertTrue(
+            $provider->validatePaymentInfo($payment),
+        );
         $qr = $provider->generateQrString($payment);
         if ($provider instanceof EuropeanQrPaymentProvider) {
-            $this->assertSame("BCD\n002\n1\nSCT\n\n\nDE89370400440532013000\nEUR9007199254740993.01\n\n20260001\nStored message", $qr);
+            $this->assertSame(
+                "BCD\n002\n1\nSCT\n\n\nDE89370400440532013000\nEUR9007199254740993.01\n\n20260001\nStored message",
+                $qr,
+            );
         } else {
-            $this->assertSame('SPD*1.0*ACC:' . $iban . '*AM:9007199254740993.01*CC:' . $currency . '*X-VS:20260001*MSG:Stored message', $qr);
+            $this->assertSame(
+                'SPD*1.0*ACC:' . $iban . '*AM:9007199254740993.01*CC:' . $currency . '*X-VS:20260001*MSG:Stored message',
+                $qr,
+            );
         }
     }
 
@@ -83,11 +91,51 @@ final class QrPaymentProvidersTest extends TestCase
             null,
             null,
         );
-        $this->assertFalse($provider->validatePaymentInfo(new QrPaymentDTO(null, Money::fromString('10', $currency), null)));
-        $this->assertFalse($provider->validatePaymentInfo(new QrPaymentDTO(null, Money::fromString('0', $currency), $account)));
-        $this->assertFalse($provider->validatePaymentInfo(new QrPaymentDTO(null, Money::fromString('0.004', $currency), $account)));
-        $this->assertFalse($provider->validatePaymentInfo(new QrPaymentDTO(null, Money::fromString('10', 'USD'), $account)));
-        $this->assertTrue($provider->validatePaymentInfo(new QrPaymentDTO(null, Money::fromString('0.005', $currency), $account)));
+        $this->assertFalse(
+            $provider->validatePaymentInfo(
+                new QrPaymentDTO(
+                    null,
+                    Money::fromString('10', $currency),
+                    null,
+                ),
+            ),
+        );
+        $this->assertFalse(
+            $provider->validatePaymentInfo(
+                new QrPaymentDTO(
+                    null,
+                    Money::fromString('0', $currency),
+                    $account,
+                ),
+            ),
+        );
+        $this->assertFalse(
+            $provider->validatePaymentInfo(
+                new QrPaymentDTO(
+                    null,
+                    Money::fromString('0.004', $currency),
+                    $account,
+                ),
+            ),
+        );
+        $this->assertFalse(
+            $provider->validatePaymentInfo(
+                new QrPaymentDTO(
+                    null,
+                    Money::fromString('10', 'USD'),
+                    $account,
+                ),
+            ),
+        );
+        $this->assertTrue(
+            $provider->validatePaymentInfo(
+                new QrPaymentDTO(
+                    null,
+                    Money::fromString('0.005', $currency),
+                    $account,
+                ),
+            ),
+        );
     }
 
     #[Test]
@@ -107,7 +155,10 @@ final class QrPaymentProvidersTest extends TestCase
                 Money::fromString('12', $country === Country::CZ ? 'CZK' : 'EUR'),
                 $account,
             );
-            $this->assertStringContainsString('ACC:' . $account->iban . '*AM:12.00', $provider->generateQrString($payment));
+            $this->assertStringContainsString(
+                'ACC:' . $account->iban . '*AM:12.00',
+                $provider->generateQrString($payment),
+            );
         }
     }
 

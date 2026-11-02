@@ -28,7 +28,7 @@ class PaymentAdapterGuardCommand extends Command
         $report = [];
         foreach ($gatewayNames as $name) {
             $gateway = $registry->get($name);
-            if (! $gateway) {
+            if (!$gateway) {
                 $violations[] = [
                     'type' => 'missing_instance',
                     'gateway' => $name,
@@ -38,13 +38,16 @@ class PaymentAdapterGuardCommand extends Command
                 continue;
             }
             $class = get_class($gateway);
-            $missingMethods = $this->missingMethods($gateway, [
-                'createPayment',
-                'processPaymentReturn',
-                'verifyPayment',
-                'cancelPayment',
-            ]);
-            if (! empty($missingMethods)) {
+            $missingMethods = $this->missingMethods(
+                $gateway,
+                [
+                    'createPayment',
+                    'processPaymentReturn',
+                    'verifyPayment',
+                    'cancelPayment',
+                ],
+            );
+            if (!empty($missingMethods)) {
                 $violations[] = [
                     'type' => 'missing_methods',
                     'gateway' => $name,
@@ -53,7 +56,7 @@ class PaymentAdapterGuardCommand extends Command
                     'message' => 'Gateway missing required methods',
                 ];
             }
-            if (! $gateway instanceof PaymentGatewayInterface) {
+            if (!$gateway instanceof PaymentGatewayInterface) {
                 $violations[] = [
                     'type' => 'not_implementing_contract',
                     'gateway' => $name,
@@ -72,34 +75,44 @@ class PaymentAdapterGuardCommand extends Command
         }
 
         if ($this->option('json')) {
-            $this->line(json_encode([
-                'gateways' => $report,
-                'violations' => $violations,
-            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->line(
+                json_encode([
+                    'gateways' => $report,
+                    'violations' => $violations,
+                ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            );
         } else {
             if (empty($report)) {
                 $this->warn('No gateways registered.');
             } else {
-                $this->table([
-                    'Gateway',
-                    'Class',
-                    'Currencies',
-                    'Display',
-                    'Recurring',
-                    'Status',
-                ], array_map(function ($g) {
-                    return [
-                        $g['name'],
-                        $g['class'],
-                        implode(',', $g['currencies']),
-                        $g['display_name'],
-                        $g['recurring_support'] === null ? 'n/a' : ($g['recurring_support'] ? 'yes' : 'no'),
-                        $g['status'],
-                    ];
-                }, $report));
+                $this->table(
+                    [
+                        'Gateway',
+                        'Class',
+                        'Currencies',
+                        'Display',
+                        'Recurring',
+                        'Status',
+                    ],
+                    array_map(
+                        function ($g) {
+                            return [
+                                $g['name'],
+                                $g['class'],
+                                implode(',', $g['currencies']),
+                                $g['display_name'],
+                                $g['recurring_support'] === null ? 'n/a' : ($g['recurring_support'] ? 'yes' : 'no'),
+                                $g['status'],
+                            ];
+                        },
+                        $report,
+                    ),
+                );
             }
-            if (! empty($violations)) {
-                $this->error(count($violations) . ' gateway violation(s) detected.');
+            if (!empty($violations)) {
+                $this->error(
+                    count($violations) . ' gateway violation(s) detected.',
+                );
             } else {
                 $this->info('All registered gateways valid.');
             }
@@ -112,7 +125,7 @@ class PaymentAdapterGuardCommand extends Command
     {
         $missing = [];
         foreach ($required as $method) {
-            if (! method_exists($gateway, $method)) {
+            if (!method_exists($gateway, $method)) {
                 $missing[] = $method;
             }
         }

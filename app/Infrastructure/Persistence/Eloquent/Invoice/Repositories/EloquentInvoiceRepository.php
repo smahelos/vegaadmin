@@ -40,7 +40,7 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
     public function setTemplate(int $id, string $template): bool
     {
         $invoice = Invoice::find($id);
-        if (! $invoice) {
+        if (!$invoice) {
             return false;
         }
         // Persist using existing 'template' column (legacy naming)

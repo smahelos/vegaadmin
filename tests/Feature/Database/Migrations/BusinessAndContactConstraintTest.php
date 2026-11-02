@@ -45,10 +45,12 @@ final class BusinessAndContactConstraintTest extends TestCase
         $archived = $this->factoryOf($model)->archived()->create();
 
         $this->assertRefused(
-            fn () => $model::factory()->create([
-                'user_id' => $archived->user_id,
-                'company_number' => $archived->company_number,
-            ]),
+            fn () => $model::factory()->create(
+                [
+                    'user_id' => $archived->user_id,
+                    'company_number' => $archived->company_number,
+                ],
+            ),
             1062,
         );
     }
@@ -64,7 +66,10 @@ final class BusinessAndContactConstraintTest extends TestCase
 
         $copy = $model::factory()->create(['company_number' => $party->company_number]);
 
-        $this->assertDatabaseHas($party->getTable(), ['id' => $copy->id, 'company_number' => $party->company_number]);
+        $this->assertDatabaseHas(
+            $party->getTable(),
+            ['id' => $copy->id, 'company_number' => $party->company_number],
+        );
     }
 
     /**
@@ -76,14 +81,19 @@ final class BusinessAndContactConstraintTest extends TestCase
     {
         $user = User::factory()->create();
 
-        foreach ([
-            ['registration_country' => 'AT', 'company_number' => 'FN 123456a'],
-            ['registration_country' => null, 'company_number' => null],
-        ] as $identity) {
+        foreach (
+            [
+                ['registration_country' => 'AT', 'company_number' => 'FN 123456a'],
+                ['registration_country' => null, 'company_number' => null],
+            ] as $identity
+        ) {
             $model::factory()->count(2)->create(['user_id' => $user->id, ...$identity]);
         }
 
-        $this->assertSame(4, $model::where('user_id', $user->id)->count());
+        $this->assertSame(
+            4,
+            $model::where('user_id', $user->id)->count(),
+        );
     }
 
     /**
@@ -105,8 +115,16 @@ final class BusinessAndContactConstraintTest extends TestCase
         $business = Business::factory()->create();
         $contact = Contact::factory()->create(['user_id' => $business->user_id]);
 
-        $this->assertRefused(fn () => $model::factory()->create(['business_id' => null, 'contact_id' => null]), 3819);
-        $this->assertRefused(fn () => $model::factory()->create(['business_id' => $business->id, 'contact_id' => $contact->id]), 3819);
+        $this->assertRefused(
+            fn () => $model::factory()->create(['business_id' => null, 'contact_id' => null]),
+            3819,
+        );
+        $this->assertRefused(
+            fn () => $model::factory()->create(
+                ['business_id' => $business->id, 'contact_id' => $contact->id],
+            ),
+            3819,
+        );
     }
 
     #[Test]
@@ -124,8 +142,14 @@ final class BusinessAndContactConstraintTest extends TestCase
         $this->assertDefaultRefused($otherBusiness, $ownAccount->id);
         $this->assertDefaultRefused($business, $contactAccount->id);
         $this->assertDefaultRefused($contact, $ownAccount->id);
-        $this->assertDatabaseHas('businesses', ['id' => $business->id, 'default_bank_account_id' => $ownAccount->id]);
-        $this->assertDatabaseHas('contacts', ['id' => $contact->id, 'default_bank_account_id' => $contactAccount->id]);
+        $this->assertDatabaseHas(
+            'businesses',
+            ['id' => $business->id, 'default_bank_account_id' => $ownAccount->id],
+        );
+        $this->assertDatabaseHas(
+            'contacts',
+            ['id' => $contact->id, 'default_bank_account_id' => $contactAccount->id],
+        );
     }
 
     #[Test]
@@ -137,7 +161,10 @@ final class BusinessAndContactConstraintTest extends TestCase
 
         $user->forceFill(['default_business_id' => $business->id])->save();
 
-        $this->assertRefused(fn () => $user->forceFill(['default_business_id' => $otherUsersBusiness->id])->save(), 1452);
+        $this->assertRefused(
+            fn () => $user->forceFill(['default_business_id' => $otherUsersBusiness->id])->save(),
+            1452,
+        );
         $this->assertDatabaseHas('users', ['id' => $user->id, 'default_business_id' => $business->id]);
     }
 
@@ -151,7 +178,10 @@ final class BusinessAndContactConstraintTest extends TestCase
 
     private function assertDefaultRefused(Model $owner, int $accountId): void
     {
-        $this->assertRefused(fn () => $owner->forceFill(['default_bank_account_id' => $accountId])->save(), 1452);
+        $this->assertRefused(
+            fn () => $owner->forceFill(['default_bank_account_id' => $accountId])->save(),
+            1452,
+        );
         $owner->refresh();
     }
 }

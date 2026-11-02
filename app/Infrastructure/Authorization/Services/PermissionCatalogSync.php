@@ -21,24 +21,32 @@ final class PermissionCatalogSync
         $roleClass = $this->registrar->getRoleClass();
 
         // Without model events: App\Models\Permission clears the whole cache on every save
-        Model::withoutEvents(function () use ($permissionClass, $roleClass): void {
-            $permissions = [];
-            foreach (PermissionCatalog::PERMISSIONS as $guard => $names) {
-                foreach ($names as $name) {
-                    $permissions[$guard][$name] = $permissionClass::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+        Model::withoutEvents(
+            function () use ($permissionClass, $roleClass): void {
+                $permissions = [];
+                foreach (PermissionCatalog::PERMISSIONS as $guard => $names) {
+                    foreach ($names as $name) {
+                        $permissions[$guard][$name] = $permissionClass::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+                    }
                 }
-            }
 
-            $roleClass::firstOrCreate(['name' => PermissionCatalog::ADMIN_ROLE, 'guard_name' => PermissionCatalog::BACKPACK])
-                ->givePermissionTo(array_values($permissions[PermissionCatalog::BACKPACK]));
+                $roleClass::firstOrCreate(
+                    ['name' => PermissionCatalog::ADMIN_ROLE, 'guard_name' => PermissionCatalog::BACKPACK],
+                )
+                    ->givePermissionTo(
+                        array_values($permissions[PermissionCatalog::BACKPACK]),
+                    );
 
-            foreach (PermissionCatalog::ROLES as $guard => $roles) {
-                foreach ($roles as $role => $names) {
-                    $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard])
-                        ->givePermissionTo(array_map(fn (string $name) => $permissions[$guard][$name], $names));
+                foreach (PermissionCatalog::ROLES as $guard => $roles) {
+                    foreach ($roles as $role => $names) {
+                        $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard])
+                            ->givePermissionTo(
+                                array_map(fn (string $name) => $permissions[$guard][$name], $names),
+                            );
+                    }
                 }
-            }
-        });
+            },
+        );
 
         $this->registrar->forgetCachedPermissions();
     }

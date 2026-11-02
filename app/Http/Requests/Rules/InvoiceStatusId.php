@@ -15,6 +15,9 @@ final class InvoiceStatusId
 {
     public static function rule(): Exists
     {
-        return Rule::exists('statuses', 'id')->whereIn('slug', array_column(InvoiceStatus::cases(), 'value'));
+        return Rule::exists('statuses', 'id')->whereIn(
+            'slug',
+            array_column(InvoiceStatus::cases(), 'value'),
+        );
     }
 }

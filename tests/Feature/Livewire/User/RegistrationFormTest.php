@@ -44,7 +44,9 @@ final class RegistrationFormTest extends TestCase
             ->assertRedirect();
 
         $user = User::query()->where('email', $email)->sole();
-        $this->assertTrue($user->hasRole('frontend_user'));
+        $this->assertTrue(
+            $user->hasRole('frontend_user'),
+        );
         $this->assertAuthenticatedAs($user);
         $business = Business::query()->where('user_id', $user->id)->sole();
         $this->assertSame('Novák Design s.r.o.', $business->name);
@@ -82,26 +84,33 @@ final class RegistrationFormTest extends TestCase
             ->call('save')
             ->assertHasErrors(['password']);
 
-        $this->assertSame(0, User::query()->where('email', $email)->count());
+        $this->assertSame(
+            0,
+            User::query()->where('email', $email)->count(),
+        );
     }
 
     #[Test]
     public function prefills_the_business_from_ares_without_inventing_a_vat_number(): void
     {
-        Http::fake([
-            'ares.gov.cz/*' => Http::response([
-                'ico' => '27082440',
-                'obchodniJmeno' => 'Alza.cz a.s.',
-                'sidlo' => [
-                    'kodStatu' => 'CZ',
-                    'nazevObce' => 'Praha',
-                    'nazevUlice' => 'Jankovcova',
-                    'cisloDomovni' => 1522,
-                    'cisloOrientacni' => 53,
-                    'psc' => 17000,
-                ],
-            ]),
-        ]);
+        Http::fake(
+            [
+                'ares.gov.cz/*' => Http::response(
+                    [
+                        'ico' => '27082440',
+                        'obchodniJmeno' => 'Alza.cz a.s.',
+                        'sidlo' => [
+                            'kodStatu' => 'CZ',
+                            'nazevObce' => 'Praha',
+                            'nazevUlice' => 'Jankovcova',
+                            'cisloDomovni' => 1522,
+                            'cisloOrientacni' => 53,
+                            'psc' => 17000,
+                        ],
+                    ],
+                ),
+            ],
+        );
 
         Livewire::test(RegistrationForm::class)
             ->set('party.companyNumber', '27082440')
@@ -112,19 +121,26 @@ final class RegistrationFormTest extends TestCase
             ->assertSet('party.city', 'Praha')
             ->assertSet('party.postalCode', '17000')
             ->assertSet('party.vatNumber', '')
-            ->assertSet('registerMessage', __('parties.messages.register_filled'));
+            ->assertSet(
+                'registerMessage',
+                __('parties.messages.register_filled'),
+            );
     }
 
     #[Test]
     public function a_lookup_without_a_vat_number_clears_the_previous_one(): void
     {
-        Http::fake([
-            'ares.gov.cz/*/45317054' => Http::response([
-                'obchodniJmeno' => 'Komerční banka, a.s.',
-                'dicSkDph' => 'CZ699001182',
-            ]),
-            'ares.gov.cz/*/27082440' => Http::response(['obchodniJmeno' => 'Bez DIČ a.s.']),
-        ]);
+        Http::fake(
+            [
+                'ares.gov.cz/*/45317054' => Http::response(
+                    [
+                        'obchodniJmeno' => 'Komerční banka, a.s.',
+                        'dicSkDph' => 'CZ699001182',
+                    ],
+                ),
+                'ares.gov.cz/*/27082440' => Http::response(['obchodniJmeno' => 'Bez DIČ a.s.']),
+            ],
+        );
 
         Livewire::test(RegistrationForm::class)
             ->set('party.companyNumber', '45317054')

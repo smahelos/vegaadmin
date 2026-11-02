@@ -33,13 +33,19 @@ class StatusCategoryRequestFeatureTest extends TestCase
         StatusCategory::factory()->create();
 
         // Define test routes
-        Route::post('/test-status-category', function (StatusCategoryRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-status-category',
+            function (StatusCategoryRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-status-category/{id}', function (StatusCategoryRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-status-category/{id}',
+            function (StatusCategoryRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     #[Test]
@@ -245,9 +251,18 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('statuses.categories.fields.name'), $attributes['name']);
-        $this->assertEquals(__('statuses.categories.fields.slug'), $attributes['slug']);
-        $this->assertEquals(__('statuses.categories.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('statuses.categories.fields.name'),
+            $attributes['name'],
+        );
+        $this->assertEquals(
+            __('statuses.categories.fields.slug'),
+            $attributes['slug'],
+        );
+        $this->assertEquals(
+            __('statuses.categories.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]

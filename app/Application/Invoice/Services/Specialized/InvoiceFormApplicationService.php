@@ -51,7 +51,10 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             return InvoiceNumber::generateNext()->getNumber();
         }
 
-        return $this->invoiceService->generateInvoiceNumber(UserId::fromInt($userId), (int) date('Y'));
+        return $this->invoiceService->generateInvoiceNumber(
+            UserId::fromInt($userId),
+            (int) date('Y'),
+        );
     }
 
     /**
@@ -82,15 +85,18 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $statuses,
         );
 
-        return new InvoiceFormDTO($fieldSet, [
-            'paymentMethods' => $paymentMethods,
-            'invoiceProducts' => $invoiceProducts,
-            'statuses' => $statuses,
-            'taxRates' => $taxRates,
-            'suggestedNumber' => $suggestedNumber,
-            'limitsData' => $limitsData,
-            'userLoggedIn' => true,
-        ]);
+        return new InvoiceFormDTO(
+            $fieldSet,
+            [
+                'paymentMethods' => $paymentMethods,
+                'invoiceProducts' => $invoiceProducts,
+                'statuses' => $statuses,
+                'taxRates' => $taxRates,
+                'suggestedNumber' => $suggestedNumber,
+                'limitsData' => $limitsData,
+                'userLoggedIn' => true,
+            ],
+        );
     }
 
     /**
@@ -110,7 +116,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // In Application layer we work with Eloquent model on top of UI for eager loading and dynamic accessors (for example blade accessors)
         // In Domain layer we work with InvoiceDTO only
         $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-        if (! $invoice) {
+        if (!$invoice) {
             throw new ModelNotFoundException('Invoice not accessible for user');
         }
         $invoice->load([
@@ -131,16 +137,19 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $statuses,
         );
 
-        return new InvoiceFormDTO($fieldSet, [
-            'invoice' => $invoice,
-            'paymentMethods' => $paymentMethods,
-            'statuses' => $statuses,
-            'taxRates' => $taxRates,
-            'invoiceProducts' => $invoiceProducts,
-            'limitsData' => $limitsData,
-            'user' => $user,
-            'userLoggedIn' => true,
-        ]);
+        return new InvoiceFormDTO(
+            $fieldSet,
+            [
+                'invoice' => $invoice,
+                'paymentMethods' => $paymentMethods,
+                'statuses' => $statuses,
+                'taxRates' => $taxRates,
+                'invoiceProducts' => $invoiceProducts,
+                'limitsData' => $limitsData,
+                'user' => $user,
+                'userLoggedIn' => true,
+            ],
+        );
     }
 
     /**
@@ -149,7 +158,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function prepareShowData(int $userId, int $invoiceId): InvoiceFormDTO
     {
         $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-        if (! $invoice) {
+        if (!$invoice) {
             throw new ModelNotFoundException('Invoice not accessible for user');
         }
         $invoice->load([
@@ -162,7 +171,10 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
 
         // The stored parties; the contact only tells whether the customer is linked to the address book
         $owner = UserId::fromInt($userId);
-        $parties = $this->invoices->findByIdForUser(InvoiceId::fromInt($invoiceId), $owner)?->parties
+        $parties = $this->invoices->findByIdForUser(
+            InvoiceId::fromInt($invoiceId),
+            $owner,
+        )?->parties
             ?? throw new ModelNotFoundException('Invoice not accessible for user');
         $contact = $parties->contactId === null ? null : $this->contacts->get($owner, $parties->contactId);
 
@@ -176,7 +188,10 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'totalTax' => $invoice->total_tax_money,
             'parties' => $parties,
             'contact' => $contact,
-            'contactToLink' => $contact === null ? $this->invoiceContacts->findContactToLink($owner, InvoiceId::fromInt($invoiceId)) : null,
+            'contactToLink' => $contact === null ? $this->invoiceContacts->findContactToLink(
+                $owner,
+                InvoiceId::fromInt($invoiceId),
+            ) : null,
             'invoiceProducts' => $invoiceProducts,
         ];
 
@@ -196,7 +211,9 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
      */
     private function getInvoicesLimit(int $userId): array
     {
-        $limitInfo = $this->invoiceLimitService->getLimitInfo(new UserId($userId));
+        $limitInfo = $this->invoiceLimitService->getLimitInfo(
+            new UserId($userId),
+        );
 
         return $limitInfo;
     }

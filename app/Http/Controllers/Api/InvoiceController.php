@@ -26,10 +26,13 @@ class InvoiceController extends Controller
         // Get ID either from query parameter or route parameter
         $invoiceId = $id ?? $request->query('q');
 
-        if (! $invoiceId) {
-            return response()->json([
-                'error' => __('invoices.messages.id_required'),
-            ], 400);
+        if (!$invoiceId) {
+            return response()->json(
+                [
+                    'error' => __('invoices.messages.id_required'),
+                ],
+                400,
+            );
         }
 
         $logContext = $this->getLogContext(['invoice_id' => $invoiceId]);
@@ -37,8 +40,11 @@ class InvoiceController extends Controller
         try {
             $user = $this->getAuthenticatedUser();
 
-            if (! $user) {
-                return response()->json(['error' => __('users.auth.unauthenticated')], 401);
+            if (!$user) {
+                return response()->json(
+                    ['error' => __('users.auth.unauthenticated')],
+                    401,
+                );
             }
 
             $invoice = $this->invoiceListing->getById(
@@ -52,22 +58,33 @@ class InvoiceController extends Controller
             }
             // Regular users can see only their invoices
             elseif ($invoice->user_id !== $user->id) {
-                return response()->json(['error' => __('users.auth.unauthorized')], 403);
+                return response()->json(
+                    ['error' => __('users.auth.unauthorized')],
+                    403,
+                );
             }
 
             // Map DTO to primitive JSON structure
             $id = ($invoice->id instanceof InvoiceIdVO) ? $invoice->id->getValue() : (int) $invoice->id;
 
-            return response()->json([
-                'id' => (int) $id,
-                'user_id' => (int) $invoice->user_id,
-            ]);
+            return response()->json(
+                [
+                    'id' => (int) $id,
+                    'user_id' => (int) $invoice->user_id,
+                ],
+            );
         } catch (\Exception $e) {
-            Log::error('API error: Invoice not found', array_merge($logContext, [
-                'error' => $e->getMessage(),
-            ]));
+            Log::error(
+                'API error: Invoice not found',
+                array_merge($logContext, [
+                    'error' => $e->getMessage(),
+                ]),
+            );
 
-            return response()->json(['error' => __('invoices.messages.not_found')], 404);
+            return response()->json(
+                ['error' => __('invoices.messages.not_found')],
+                404,
+            );
         }
     }
 }

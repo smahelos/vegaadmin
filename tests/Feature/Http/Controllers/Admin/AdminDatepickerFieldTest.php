@@ -65,7 +65,10 @@ class AdminDatepickerFieldTest extends TestCase
 
         $this->get("/admin/{$route}/{$record->getKey()}/edit")
             ->assertOk()
-            ->assertSee('name="' . $field . '" value="' . $expected . '" data-datepicker-value', false)
+            ->assertSee(
+                'name="' . $field . '" value="' . $expected . '" data-datepicker-value',
+                false,
+            )
             ->assertSee('data-init-function="bpFieldInitDatepicker"', false);
     }
 

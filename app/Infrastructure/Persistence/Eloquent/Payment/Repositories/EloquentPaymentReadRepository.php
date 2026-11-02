@@ -14,7 +14,7 @@ class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
 
     public function findByGatewayPaymentId(?string $gatewayPaymentId): ?Payment
     {
-        if (! $gatewayPaymentId) {
+        if (!$gatewayPaymentId) {
             return null;
         }
 

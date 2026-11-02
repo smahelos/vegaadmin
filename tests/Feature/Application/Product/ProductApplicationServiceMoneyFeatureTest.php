@@ -39,12 +39,15 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
     public function update_product_with_legacy_price_and_currency(): void
     {
         $user = User::factory()->create();
-        $created = $this->productApp->createProduct([
-            'name' => 'Legacy Price Product',
-            'price' => 10,
-            'currency' => 'EUR',
-            'unit' => 'pieces',
-        ], $user->id);
+        $created = $this->productApp->createProduct(
+            [
+                'name' => 'Legacy Price Product',
+                'price' => 10,
+                'currency' => 'EUR',
+                'unit' => 'pieces',
+            ],
+            $user->id,
+        );
 
         $updated = $this->productApp->updateProduct(
             $created->id,
@@ -55,7 +58,9 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
             $user->id,
         );
 
-        $this->assertTrue(Money::fromString('20.50', 'EUR')->equals($updated->price));
+        $this->assertTrue(
+            Money::fromString('20.50', 'EUR')->equals($updated->price),
+        );
         $this->assertSame('EUR', $updated->price?->getCurrency());
     }
 }

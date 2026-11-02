@@ -71,7 +71,10 @@ class LoginController extends Controller
                 'ip' => $request->ip(),
             ]);
 
-            return back()->withInput()->with('error', __('users.auth.failed'));
+            return back()->withInput()->with(
+                'error',
+                __('users.auth.failed'),
+            );
         }
     }
 
@@ -95,7 +98,8 @@ class LoginController extends Controller
     protected function attemptLogin(Request $request): bool
     {
         return Auth::guard('web')->attempt(
-            $this->credentials($request), $request->filled('remember'),
+            $this->credentials($request),
+            $request->filled('remember'),
         );
     }
 

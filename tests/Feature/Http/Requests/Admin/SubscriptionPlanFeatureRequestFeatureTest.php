@@ -26,9 +26,12 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $this->request = new SubscriptionPlanFeatureRequest;
 
         // Set up test route
-        Route::post('/test-subscription-plan-feature', function (SubscriptionPlanFeatureRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-subscription-plan-feature',
+            function (SubscriptionPlanFeatureRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     #[Test]

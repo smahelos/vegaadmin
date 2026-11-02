@@ -38,11 +38,13 @@ final class TranslationKeysExistTest extends TestCase
             $locales = str_contains($key, '::') ? ['cs'] : self::LOCALES;
 
             foreach ($locales as $locale) {
-                if (! Lang::has(
-                    $key,
-                    $locale,
-                    false,
-                )) {
+                if (
+                    !Lang::has(
+                        $key,
+                        $locale,
+                        false,
+                    )
+                ) {
                     $missing[] = "{$key} [{$locale}] in {$file}";
                 }
             }
@@ -63,10 +65,14 @@ final class TranslationKeysExistTest extends TestCase
         $keys = [];
 
         foreach (self::DIRECTORIES as $directory) {
-            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path($directory)));
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(
+                    base_path($directory),
+                ),
+            );
 
             foreach ($files as $file) {
-                if (! str_ends_with($file->getFilename(), '.php')) {
+                if (!str_ends_with($file->getFilename(), '.php')) {
                     continue;
                 }
 

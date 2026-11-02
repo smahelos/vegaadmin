@@ -16,15 +16,17 @@ class EloquentBankMapper
      */
     public function toDto(Bank $model): BankDTO
     {
-        return BankDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'code' => $model->getAttribute('code'),
-            'swift' => $model->getAttribute('swift'),
-            'country' => $model->getAttribute('country'),
-            'active' => $model->getAttribute('active'),
-            'description' => $model->getAttribute('description'),
-            'created_at' => $model->getAttribute('created_at'),
-        ]);
+        return BankDTO::fromArray(
+            [
+                'id' => $model->getAttribute('id'),
+                'name' => $model->getAttribute('name'),
+                'code' => $model->getAttribute('code'),
+                'swift' => $model->getAttribute('swift'),
+                'country' => $model->getAttribute('country'),
+                'active' => $model->getAttribute('active'),
+                'description' => $model->getAttribute('description'),
+                'created_at' => $model->getAttribute('created_at'),
+            ],
+        );
     }
 }

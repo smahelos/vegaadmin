@@ -23,7 +23,7 @@ class PageApplicationService implements PageApplicationServiceInterface
      */
     private function resolvePublishedModelByDto(?PageDTO $dto): ?Page
     {
-        if (! $dto) {
+        if (!$dto) {
             return null;
         }
 
@@ -107,7 +107,7 @@ class PageApplicationService implements PageApplicationServiceInterface
     // we simply delegate to the model repo, as NO business logic is needed
     public function getRelatedPages(Page $page, int $limit = 5): Collection
     {
-        if (! $page->category_id) {
+        if (!$page->category_id) {
             return new Collection;
         }
 

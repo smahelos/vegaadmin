@@ -35,11 +35,13 @@ class SubscriptionPlanFeature extends Model
     {
         parent::boot();
 
-        static::creating(function ($model): void {
-            if (empty($model->slug)) {
-                $model->slug = $model->generateSlug($model->name);
-            }
-        });
+        static::creating(
+            function ($model): void {
+                if (empty($model->slug)) {
+                    $model->slug = $model->generateSlug($model->name);
+                }
+            },
+        );
     }
 
     /**
@@ -65,11 +67,13 @@ class SubscriptionPlanFeature extends Model
         $counter = 1;
         $slug = $baseSlug;
 
-        while (static::where('slug', $slug)->where(
-            'id',
-            '!=',
-            $this->id ?? 0,
-        )->exists()) {
+        while (
+            static::where('slug', $slug)->where(
+                'id',
+                '!=',
+                $this->id ?? 0,
+            )->exists()
+        ) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }

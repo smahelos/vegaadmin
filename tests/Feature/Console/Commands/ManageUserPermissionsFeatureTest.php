@@ -50,9 +50,11 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_shows_user_permissions(): void
     {
-        $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com',
-        ]);
+        $user = User::factory()->create(
+            [
+                'email' => Str::random(10) . '@example.com',
+            ],
+        );
 
         $exitCode = Artisan::call('user:permissions', [
             'action' => 'show-user',
@@ -68,44 +70,58 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_assigns_role_to_user(): void
     {
-        $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com',
-        ]);
+        $user = User::factory()->create(
+            [
+                'email' => Str::random(10) . '@example.com',
+            ],
+        );
 
-        $exitCode = Artisan::call('user:permissions', [
-            'action' => 'assign-role',
-            '--user' => $user->email,
-            '--role' => 'test_role',
-        ]);
+        $exitCode = Artisan::call(
+            'user:permissions',
+            [
+                'action' => 'assign-role',
+                '--user' => $user->email,
+                '--role' => 'test_role',
+            ],
+        );
 
         $this->assertEquals(0, $exitCode);
 
         // Verify role was assigned
         $user->refresh();
-        $this->assertTrue($user->hasRole('test_role'));
+        $this->assertTrue(
+            $user->hasRole('test_role'),
+        );
     }
 
     #[Test]
     public function command_removes_role_from_user(): void
     {
-        $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com',
-        ]);
+        $user = User::factory()->create(
+            [
+                'email' => Str::random(10) . '@example.com',
+            ],
+        );
 
         // First assign the role
         $user->assignRole('test_role');
 
-        $exitCode = Artisan::call('user:permissions', [
-            'action' => 'remove-role',
-            '--user' => $user->email,
-            '--role' => 'test_role',
-        ]);
+        $exitCode = Artisan::call(
+            'user:permissions',
+            [
+                'action' => 'remove-role',
+                '--user' => $user->email,
+                '--role' => 'test_role',
+            ],
+        );
 
         $this->assertEquals(0, $exitCode);
 
         // Verify role was removed
         $user->refresh();
-        $this->assertFalse($user->hasRole('test_role'));
+        $this->assertFalse(
+            $user->hasRole('test_role'),
+        );
     }
 
     #[Test]
@@ -124,10 +140,13 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_handles_invalid_user(): void
     {
-        $exitCode = Artisan::call('user:permissions', [
-            'action' => 'show-user',
-            '--user' => 'nonexistent@example.com',
-        ]);
+        $exitCode = Artisan::call(
+            'user:permissions',
+            [
+                'action' => 'show-user',
+                '--user' => 'nonexistent@example.com',
+            ],
+        );
 
         // Command should return error exit code when user is not found
         $this->assertEquals(1, $exitCode);
@@ -139,15 +158,20 @@ class ManageUserPermissionsFeatureTest extends TestCase
     #[Test]
     public function command_handles_invalid_role(): void
     {
-        $user = User::factory()->create([
-            'email' => Str::random(10) . '@example.com',
-        ]);
+        $user = User::factory()->create(
+            [
+                'email' => Str::random(10) . '@example.com',
+            ],
+        );
 
-        $exitCode = Artisan::call('user:permissions', [
-            'action' => 'assign-role',
-            '--user' => $user->email,
-            '--role' => 'nonexistent_role',
-        ]);
+        $exitCode = Artisan::call(
+            'user:permissions',
+            [
+                'action' => 'assign-role',
+                '--user' => $user->email,
+                '--role' => 'nonexistent_role',
+            ],
+        );
 
         $this->assertEquals(1, $exitCode);
     }

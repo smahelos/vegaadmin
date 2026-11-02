@@ -35,7 +35,9 @@ class SubscriptionCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Subscription::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/subscription',
+        );
         CRUD::setEntityNameStrings(
             __('subscriptions.entity.singular'),
             __('subscriptions.entity.plural'),
@@ -52,66 +54,68 @@ class SubscriptionCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::addColumns([
+        CRUD::addColumns(
             [
-                'name' => 'id',
-                'label' => trans('admin.general.id'),
-                'type' => 'number',
-            ],
-            [
-                'name' => 'user',
-                'label' => __('subscriptions.fields.user_id'),
-                'type' => 'relationship',
-                'attribute' => 'name',
-                'model' => 'App\Models\User',
-            ],
-            [
-                'name' => 'subscriptionPlan',
-                'label' => __('subscriptions.fields.subscription_plan_id'),
-                'type' => 'relationship',
-                'attribute' => 'name',
-                'model' => 'App\Models\SubscriptionPlan',
-            ],
-            [
-                'name' => 'status',
-                'label' => __('subscriptions.fields.status'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'pending' => __('subscriptions.statuses.pending'),
-                    'active' => __('subscriptions.statuses.active'),
-                    'cancelled' => __('subscriptions.statuses.cancelled'),
-                    'expired' => __('subscriptions.statuses.expired'),
-                    'past_due' => __('subscriptions.statuses.past_due'),
+                [
+                    'name' => 'id',
+                    'label' => trans('admin.general.id'),
+                    'type' => 'number',
+                ],
+                [
+                    'name' => 'user',
+                    'label' => __('subscriptions.fields.user_id'),
+                    'type' => 'relationship',
+                    'attribute' => 'name',
+                    'model' => 'App\Models\User',
+                ],
+                [
+                    'name' => 'subscriptionPlan',
+                    'label' => __('subscriptions.fields.subscription_plan_id'),
+                    'type' => 'relationship',
+                    'attribute' => 'name',
+                    'model' => 'App\Models\SubscriptionPlan',
+                ],
+                [
+                    'name' => 'status',
+                    'label' => __('subscriptions.fields.status'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'pending' => __('subscriptions.statuses.pending'),
+                        'active' => __('subscriptions.statuses.active'),
+                        'cancelled' => __('subscriptions.statuses.cancelled'),
+                        'expired' => __('subscriptions.statuses.expired'),
+                        'past_due' => __('subscriptions.statuses.past_due'),
+                    ],
+                ],
+                [
+                    'name' => 'amount',
+                    'label' => __('subscriptions.fields.amount'),
+                    'type' => 'number',
+                    'decimals' => 2,
+                    'suffix' => ' CZK',
+                ],
+                [
+                    'name' => 'currency',
+                    'label' => __('subscriptions.fields.currency'),
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'starts_at',
+                    'label' => __('subscriptions.fields.starts_at'),
+                    'type' => 'datetime',
+                ],
+                [
+                    'name' => 'ends_at',
+                    'label' => __('subscriptions.fields.ends_at'),
+                    'type' => 'datetime',
+                ],
+                [
+                    'name' => 'next_billing_at',
+                    'label' => __('subscriptions.fields.next_billing_at'),
+                    'type' => 'datetime',
                 ],
             ],
-            [
-                'name' => 'amount',
-                'label' => __('subscriptions.fields.amount'),
-                'type' => 'number',
-                'decimals' => 2,
-                'suffix' => ' CZK',
-            ],
-            [
-                'name' => 'currency',
-                'label' => __('subscriptions.fields.currency'),
-                'type' => 'text',
-            ],
-            [
-                'name' => 'starts_at',
-                'label' => __('subscriptions.fields.starts_at'),
-                'type' => 'datetime',
-            ],
-            [
-                'name' => 'ends_at',
-                'label' => __('subscriptions.fields.ends_at'),
-                'type' => 'datetime',
-            ],
-            [
-                'name' => 'next_billing_at',
-                'label' => __('subscriptions.fields.next_billing_at'),
-                'type' => 'datetime',
-            ],
-        ]);
+        );
 
         // Add filters
         if (backpack_pro()) {
@@ -139,17 +143,21 @@ class SubscriptionCrudController extends CrudController
 
             CRUD::filter('user_id')
                 ->type('select2')
-                ->label(__('subscriptions.filters.user_id'))
+                ->label(
+                    __('subscriptions.filters.user_id'),
+                )
                 ->values(
                     User::pluck('name', 'id')->toArray(),
                 )
-                ->whenActive(function ($value): void {
-                    CRUD::addClause(
-                        'where',
-                        'user_id',
-                        $value,
-                    );
-                });
+                ->whenActive(
+                    function ($value): void {
+                        CRUD::addClause(
+                            'where',
+                            'user_id',
+                            $value,
+                        );
+                    },
+                );
         }
     }
 
@@ -160,95 +168,97 @@ class SubscriptionCrudController extends CrudController
     {
         CRUD::setValidation(SubscriptionRequest::class);
 
-        CRUD::addFields([
+        CRUD::addFields(
             [
-                'name' => 'user_id',
-                'label' => __('subscriptions.fields.user_id'),
-                'type' => 'select2_from_ajax',
-                'model' => 'App\Models\User',
-                'attribute' => 'name',
-                'data_source' => url('api/admin/user/search'),
-                'placeholder' => __('subscriptions.placeholders.user_id'),
-                'minimum_input_length' => 2,
-            ],
-            [
-                'name' => 'subscription_plan_id',
-                'label' => __('subscriptions.fields.subscription_plan_id'),
-                'type' => 'select2',
-                'model' => 'App\Models\SubscriptionPlan',
-                'attribute' => 'name',
-                'options' => (function ($query) {
-                    return $query->orderBy('name', 'ASC')->get();
-                }),
-            ],
-            [
-                'name' => 'status',
-                'label' => __('subscriptions.fields.status'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'pending' => __('subscriptions.statuses.pending'),
-                    'active' => __('subscriptions.statuses.active'),
-                    'cancelled' => __('subscriptions.statuses.cancelled'),
-                    'expired' => __('subscriptions.statuses.expired'),
-                    'past_due' => __('subscriptions.statuses.past_due'),
+                [
+                    'name' => 'user_id',
+                    'label' => __('subscriptions.fields.user_id'),
+                    'type' => 'select2_from_ajax',
+                    'model' => 'App\Models\User',
+                    'attribute' => 'name',
+                    'data_source' => url('api/admin/user/search'),
+                    'placeholder' => __('subscriptions.placeholders.user_id'),
+                    'minimum_input_length' => 2,
                 ],
-                'default' => 'pending',
-            ],
-            [
-                'name' => 'amount',
-                'label' => __('subscriptions.fields.amount'),
-                'type' => 'number',
-                'attributes' => [
-                    'step' => '0.01',
-                    'min' => '0',
-                    'placeholder' => __('subscriptions.placeholders.amount'),
+                [
+                    'name' => 'subscription_plan_id',
+                    'label' => __('subscriptions.fields.subscription_plan_id'),
+                    'type' => 'select2',
+                    'model' => 'App\Models\SubscriptionPlan',
+                    'attribute' => 'name',
+                    'options' => (function ($query) {
+                        return $query->orderBy('name', 'ASC')->get();
+                    }),
+                ],
+                [
+                    'name' => 'status',
+                    'label' => __('subscriptions.fields.status'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'pending' => __('subscriptions.statuses.pending'),
+                        'active' => __('subscriptions.statuses.active'),
+                        'cancelled' => __('subscriptions.statuses.cancelled'),
+                        'expired' => __('subscriptions.statuses.expired'),
+                        'past_due' => __('subscriptions.statuses.past_due'),
+                    ],
+                    'default' => 'pending',
+                ],
+                [
+                    'name' => 'amount',
+                    'label' => __('subscriptions.fields.amount'),
+                    'type' => 'number',
+                    'attributes' => [
+                        'step' => '0.01',
+                        'min' => '0',
+                        'placeholder' => __('subscriptions.placeholders.amount'),
+                    ],
+                ],
+                [
+                    'name' => 'currency',
+                    'label' => __('subscriptions.fields.currency'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'CZK' => 'CZK',
+                        'EUR' => 'EUR',
+                        'USD' => 'USD',
+                    ],
+                    'default' => 'CZK',
+                ],
+                [
+                    'name' => 'starts_at',
+                    'label' => __('subscriptions.fields.starts_at'),
+                    'type' => 'datepicker',
+                    'datepicker_options' => ['timepicker' => true],
+                ],
+                [
+                    'name' => 'ends_at',
+                    'label' => __('subscriptions.fields.ends_at'),
+                    'type' => 'datepicker',
+                    'datepicker_options' => ['timepicker' => true],
+                ],
+                [
+                    'name' => 'trial_ends_at',
+                    'label' => __('subscriptions.fields.trial_ends_at'),
+                    'type' => 'datepicker',
+                    'datepicker_options' => ['timepicker' => true],
+                ],
+                [
+                    'name' => 'next_billing_at',
+                    'label' => __('subscriptions.fields.next_billing_at'),
+                    'type' => 'datepicker',
+                    'datepicker_options' => ['timepicker' => true],
+                ],
+                [
+                    'name' => 'metadata',
+                    'label' => __('subscriptions.fields.metadata'),
+                    'type' => 'textarea',
+                    'hint' => __('subscriptions.hints.metadata'),
+                    'attributes' => [
+                        'placeholder' => __('subscriptions.placeholders.metadata'),
+                    ],
                 ],
             ],
-            [
-                'name' => 'currency',
-                'label' => __('subscriptions.fields.currency'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'CZK' => 'CZK',
-                    'EUR' => 'EUR',
-                    'USD' => 'USD',
-                ],
-                'default' => 'CZK',
-            ],
-            [
-                'name' => 'starts_at',
-                'label' => __('subscriptions.fields.starts_at'),
-                'type' => 'datepicker',
-                'datepicker_options' => ['timepicker' => true],
-            ],
-            [
-                'name' => 'ends_at',
-                'label' => __('subscriptions.fields.ends_at'),
-                'type' => 'datepicker',
-                'datepicker_options' => ['timepicker' => true],
-            ],
-            [
-                'name' => 'trial_ends_at',
-                'label' => __('subscriptions.fields.trial_ends_at'),
-                'type' => 'datepicker',
-                'datepicker_options' => ['timepicker' => true],
-            ],
-            [
-                'name' => 'next_billing_at',
-                'label' => __('subscriptions.fields.next_billing_at'),
-                'type' => 'datepicker',
-                'datepicker_options' => ['timepicker' => true],
-            ],
-            [
-                'name' => 'metadata',
-                'label' => __('subscriptions.fields.metadata'),
-                'type' => 'textarea',
-                'hint' => __('subscriptions.hints.metadata'),
-                'attributes' => [
-                    'placeholder' => __('subscriptions.placeholders.metadata'),
-                ],
-            ],
-        ]);
+        );
     }
 
     /**
@@ -266,28 +276,36 @@ class SubscriptionCrudController extends CrudController
     {
         $this->setupListOperation();
 
-        CRUD::addColumn([
-            'name' => 'trial_ends_at',
-            'label' => __('subscriptions.fields.trial_ends_at'),
-            'type' => 'datetime',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'trial_ends_at',
+                'label' => __('subscriptions.fields.trial_ends_at'),
+                'type' => 'datetime',
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'metadata',
-            'label' => __('subscriptions.fields.metadata'),
-            'type' => 'textarea',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'metadata',
+                'label' => __('subscriptions.fields.metadata'),
+                'type' => 'textarea',
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'created_at',
-            'label' => __('subscriptions.fields.created_at'),
-            'type' => 'datetime',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'created_at',
+                'label' => __('subscriptions.fields.created_at'),
+                'type' => 'datetime',
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'updated_at',
-            'label' => __('subscriptions.fields.updated_at'),
-            'type' => 'datetime',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'updated_at',
+                'label' => __('subscriptions.fields.updated_at'),
+                'type' => 'datetime',
+            ],
+        );
     }
 }

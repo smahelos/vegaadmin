@@ -25,10 +25,20 @@ final class ArchiveBusinessRequest extends FormRequest
                 'integer',
                 Rule::exists('businesses', 'id')
                     ->whereNull('archived_at')
-                    ->whereNot('id', (int) $this->route('id'))
-                    ->where(fn (Builder $query): Builder => $query->where('user_id',
-                        fn (Builder $owner): Builder => $owner->select('user_id')
-                            ->from('businesses')->where('id', (int) $this->route('id')))),
+                    ->whereNot(
+                        'id',
+                        (int) $this->route('id'),
+                    )
+                    ->where(
+                        fn (Builder $query): Builder => $query->where(
+                            'user_id',
+                            fn (Builder $owner): Builder => $owner->select('user_id')
+                                ->from('businesses')->where(
+                                    'id',
+                                    (int) $this->route('id'),
+                                ),
+                        ),
+                    ),
             ],
         ];
     }

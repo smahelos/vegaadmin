@@ -31,28 +31,33 @@ class EloquentProductMapper
         $currency = $model->getAttribute('currency') ?: 'CZK';
         $priceRaw = $model->getAttribute('price');
         $priceMoney = $priceRaw !== null
-            ? Money::fromString((string) $priceRaw, strtoupper($currency))
+            ? Money::fromString(
+                (string) $priceRaw,
+                strtoupper($currency),
+            )
             : null;
 
-        return ProductDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'slug' => $model->getAttribute('slug'),
-            'image' => $model->getAttribute('image'),
-            'description' => $model->getAttribute('description'),
-            'price' => $priceMoney,
-            'tax_id' => $model->getAttribute('tax_id'),
-            'currency' => $model->getAttribute('currency'),
-            'unit' => $model->getAttribute('unit'),
-            'tax' => $tax,
-            'invoices' => $model->relationLoaded('invoices') ? $model->invoices->pluck('id')->all() : [],
-            'category_id' => $model->getAttribute('category_id'),
-            'category' => $category,
-            'is_default' => $model->getAttribute('is_default'),
-            'is_active' => $model->getAttribute('is_active'),
-            'user_id' => $model->getAttribute('user_id'),
-            'created_at' => $model->getAttribute('created_at'),
-            'updated_at' => $model->getAttribute('updated_at'),
-        ]);
+        return ProductDTO::fromArray(
+            [
+                'id' => $model->getAttribute('id'),
+                'name' => $model->getAttribute('name'),
+                'slug' => $model->getAttribute('slug'),
+                'image' => $model->getAttribute('image'),
+                'description' => $model->getAttribute('description'),
+                'price' => $priceMoney,
+                'tax_id' => $model->getAttribute('tax_id'),
+                'currency' => $model->getAttribute('currency'),
+                'unit' => $model->getAttribute('unit'),
+                'tax' => $tax,
+                'invoices' => $model->relationLoaded('invoices') ? $model->invoices->pluck('id')->all() : [],
+                'category_id' => $model->getAttribute('category_id'),
+                'category' => $category,
+                'is_default' => $model->getAttribute('is_default'),
+                'is_active' => $model->getAttribute('is_active'),
+                'user_id' => $model->getAttribute('user_id'),
+                'created_at' => $model->getAttribute('created_at'),
+                'updated_at' => $model->getAttribute('updated_at'),
+            ],
+        );
     }
 }

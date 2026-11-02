@@ -45,11 +45,13 @@ final class InvoiceRequestFeatureTest extends TestCase
 
         $this->setUpFrontendTestEnvironment();
         foreach (['12.00', '21.00'] as $rate) {
-            Tax::factory()->create([
-                'name' => 'DPH ' . $rate . ' ' . uniqid(),
-                'slug' => 'dph',
-                'rate' => $rate,
-            ]);
+            Tax::factory()->create(
+                [
+                    'name' => 'DPH ' . $rate . ' ' . uniqid(),
+                    'slug' => 'dph',
+                    'rate' => $rate,
+                ],
+            );
         }
 
         [$this->business, $this->account] = $this->issuerOf($this->user);
@@ -73,11 +75,13 @@ final class InvoiceRequestFeatureTest extends TestCase
      */
     private function item(array $overrides = []): array
     {
-        return $this->invoiceItem($overrides + [
-            'quantity' => '1.5',
-            'price' => '1200.50',
-            'tax_rate' => '21.00',
-        ]);
+        return $this->invoiceItem(
+            $overrides + [
+                'quantity' => '1.5',
+                'price' => '1200.50',
+                'tax_rate' => '21.00',
+            ],
+        );
     }
 
     /**
@@ -97,7 +101,9 @@ final class InvoiceRequestFeatureTest extends TestCase
         );
         $request->setUserResolver(fn (): ?User => $guest ? null : ($user ?? $this->user));
         if ($guest) {
-            $request->setRouteResolver(fn (): object => (object) ['name' => 'frontend.invoice.store.guest']);
+            $request->setRouteResolver(
+                fn (): object => (object) ['name' => 'frontend.invoice.store.guest'],
+            );
         }
 
         return Validator::make(
@@ -152,7 +158,10 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_a_business_its_account_and_a_customer(): void
     {
-        $this->assertSame([], $this->errors($this->validInvoiceData));
+        $this->assertSame(
+            [],
+            $this->errors($this->validInvoiceData),
+        );
     }
 
     #[Test]
@@ -160,40 +169,55 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $contact = Contact::factory()->create(['user_id' => $this->user->id]);
 
-        $this->assertSame([], $this->errors(['contact_id' => $contact->id] + $this->validInvoiceData));
+        $this->assertSame(
+            [],
+            $this->errors(['contact_id' => $contact->id] + $this->validInvoiceData),
+        );
     }
 
     #[Test]
     public function a_guest_invoice_passes_with_both_parties_and_an_account(): void
     {
-        $data = $this->guestInvoiceInput([
-            'payment_currency' => 'EUR',
-            'supplier_registration_country' => 'CZ',
-            'supplier_company_number' => '27082440',
-            'customer_vat_number' => 'CZ699001182',
-            'invoice-products' => [$this->item(['currency' => 'EUR'])],
-        ]);
+        $data = $this->guestInvoiceInput(
+            [
+                'payment_currency' => 'EUR',
+                'supplier_registration_country' => 'CZ',
+                'supplier_company_number' => '27082440',
+                'customer_vat_number' => 'CZ699001182',
+                'invoice-products' => [$this->item(['currency' => 'EUR'])],
+            ],
+        );
 
-        $this->assertSame([], $this->errors($data, guest: true));
+        $this->assertSame(
+            [],
+            $this->errors($data, guest: true),
+        );
     }
 
     #[Test]
     public function a_guest_cannot_refer_to_stored_parties(): void
     {
-        $data = $this->guestInvoiceInput([
-            'business_id' => $this->business->id,
-            'bank_account_id' => $this->account->id,
-            'contact_id' => Contact::factory()->create(['user_id' => $this->user->id])->id,
-            'save_customer_to_contacts' => '1',
-            'invoice-products' => [$this->item()],
-        ]);
+        $data = $this->guestInvoiceInput(
+            [
+                'business_id' => $this->business->id,
+                'bank_account_id' => $this->account->id,
+                'contact_id' => Contact::factory()->create(['user_id' => $this->user->id])->id,
+                'save_customer_to_contacts' => '1',
+                'invoice-products' => [$this->item()],
+            ],
+        );
 
-        $this->assertSame([
-            'business_id',
-            'bank_account_id',
-            'contact_id',
-            'save_customer_to_contacts',
-        ], array_keys($this->errors($data, guest: true)));
+        $this->assertSame(
+            [
+                'business_id',
+                'bank_account_id',
+                'contact_id',
+                'save_customer_to_contacts',
+            ],
+            array_keys(
+                $this->errors($data, guest: true),
+            ),
+        );
     }
 
     #[Test]
@@ -229,13 +253,15 @@ final class InvoiceRequestFeatureTest extends TestCase
 
         $errors = $this->errors($data);
 
-        foreach ([
-            'customer_name',
-            'customer_street',
-            'customer_city',
-            'customer_postal_code',
-            'customer_country',
-        ] as $field) {
+        foreach (
+            [
+                'customer_name',
+                'customer_street',
+                'customer_city',
+                'customer_postal_code',
+                'customer_country',
+            ] as $field
+        ) {
             $this->assertArrayHasKey($field, $errors);
         }
     }
@@ -248,28 +274,43 @@ final class InvoiceRequestFeatureTest extends TestCase
 
         $errors = $this->errors($data, guest: true);
 
-        $this->assertSame([
-            'supplier_name',
-            'supplier_street',
-            'customer_name',
-            'customer_street',
-        ], array_keys($errors));
-        $this->assertStringContainsString(__('parties.fields.street'), $errors['supplier_street'][0]);
-        $this->assertStringContainsString(__('parties.fields.name'), $errors['customer_name'][0]);
+        $this->assertSame(
+            [
+                'supplier_name',
+                'supplier_street',
+                'customer_name',
+                'customer_street',
+            ],
+            array_keys($errors),
+        );
+        $this->assertStringContainsString(
+            __('parties.fields.street'),
+            $errors['supplier_street'][0],
+        );
+        $this->assertStringContainsString(
+            __('parties.fields.name'),
+            $errors['customer_name'][0],
+        );
     }
 
     #[Test]
     public function a_bank_transfer_needs_an_account_and_another_payment_method_does_not(): void
     {
         $data = ['bank_account_id' => null] + $this->validInvoiceData;
-        $this->assertArrayHasKey('bank_account_id', $this->errors($data));
+        $this->assertArrayHasKey(
+            'bank_account_id',
+            $this->errors($data),
+        );
 
         $cash = PaymentMethod::where(
             'slug',
             '!=',
             PaymentMethodCode::BANK_ACCOUNT->value,
         )->firstOrFail();
-        $this->assertSame([], $this->errors(['payment_method_id' => $cash->id] + $data));
+        $this->assertSame(
+            [],
+            $this->errors(['payment_method_id' => $cash->id] + $data),
+        );
     }
 
     #[Test]
@@ -278,37 +319,46 @@ final class InvoiceRequestFeatureTest extends TestCase
         $cash = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
         [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
 
-        $validator = $this->validator([
-            'payment_method_id' => $cash->id,
-            'bank_account_id' => $accountOfAnotherBusiness->id,
-        ] + $this->validInvoiceData);
+        $validator = $this->validator(
+            [
+                'payment_method_id' => $cash->id,
+                'bank_account_id' => $accountOfAnotherBusiness->id,
+            ] + $this->validInvoiceData,
+        );
         $this->assertSame([], $validator->errors()->toArray());
         $this->assertArrayNotHasKey('bank_account_id', $validator->validated());
 
         $guestValidator = $this->validator(
-            $this->guestInvoiceInput([
-                'payment_method_id' => $cash->id,
-                'account_number' => 'not an account',
-                'invoice-products' => [$this->item()],
-            ]),
+            $this->guestInvoiceInput(
+                [
+                    'payment_method_id' => $cash->id,
+                    'account_number' => 'not an account',
+                    'invoice-products' => [$this->item()],
+                ],
+            ),
             guest: true,
         );
         $this->assertSame([], $guestValidator->errors()->toArray());
-        $this->assertSame([], array_filter(
-            array_keys($guestValidator->validated()),
-            fn (string $key): bool => str_starts_with($key, 'account_'),
-        ));
+        $this->assertSame(
+            [],
+            array_filter(
+                array_keys($guestValidator->validated()),
+                fn (string $key): bool => str_starts_with($key, 'account_'),
+            ),
+        );
     }
 
     #[Test]
     public function validation_fails_with_due_in_outside_one_to_maximum_days(): void
     {
-        foreach ([
-            0,
-            -1,
-            -10,
-            InvoiceDueDate::MAX_DAYS + 1,
-        ] as $value) {
+        foreach (
+            [
+                0,
+                -1,
+                -10,
+                InvoiceDueDate::MAX_DAYS + 1,
+            ] as $value
+        ) {
             $this->assertArrayHasKey(
                 'due_in',
                 $this->errors(['due_in' => $value] + $this->validInvoiceData),
@@ -320,18 +370,23 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_currency_format(): void
     {
-        $this->assertArrayHasKey('payment_currency', $this->errors(['payment_currency' => 'INVALID'] + $this->validInvoiceData));
+        $this->assertArrayHasKey(
+            'payment_currency',
+            $this->errors(['payment_currency' => 'INVALID'] + $this->validInvoiceData),
+        );
     }
 
     #[Test]
     public function validation_fails_with_invalid_email_formats(): void
     {
-        foreach ([
-            'invalid-email',
-            'test@',
-            '@test.com',
-            'test.com',
-        ] as $email) {
+        foreach (
+            [
+                'invalid-email',
+                'test@',
+                '@test.com',
+                'test.com',
+            ] as $email
+        ) {
             $this->assertArrayHasKey(
                 'customer_email',
                 $this->errors(['customer_email' => $email] + $this->validInvoiceData),
@@ -345,19 +400,26 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $data = ['payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id] + $this->validInvoiceData;
 
-        $this->assertSame(['payment_status_id'], array_keys($this->errors($data)));
+        $this->assertSame(
+            ['payment_status_id'],
+            array_keys(
+                $this->errors($data),
+            ),
+        );
     }
 
     #[Test]
     public function validation_fails_with_nonexistent_foreign_keys(): void
     {
-        foreach ([
-            'payment_method_id',
-            'payment_status_id',
-            'business_id',
-            'bank_account_id',
-            'contact_id',
-        ] as $field) {
+        foreach (
+            [
+                'payment_method_id',
+                'payment_status_id',
+                'business_id',
+                'bank_account_id',
+                'contact_id',
+            ] as $field
+        ) {
             $this->assertArrayHasKey(
                 $field,
                 $this->errors([$field => 99999] + $this->validInvoiceData),
@@ -373,31 +435,56 @@ final class InvoiceRequestFeatureTest extends TestCase
         [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
         $foreignContact = Contact::factory()->create();
 
-        $this->assertArrayHasKey('business_id', $this->errors(['business_id' => $foreignBusiness->id] + $this->validInvoiceData));
-        $this->assertArrayHasKey('bank_account_id', $this->errors(['bank_account_id' => $foreignAccount->id] + $this->validInvoiceData));
-        $this->assertArrayHasKey('bank_account_id', $this->errors(['bank_account_id' => $accountOfAnotherBusiness->id] + $this->validInvoiceData));
-        $this->assertArrayHasKey('contact_id', $this->errors(['contact_id' => $foreignContact->id] + $this->validInvoiceData));
+        $this->assertArrayHasKey(
+            'business_id',
+            $this->errors(
+                ['business_id' => $foreignBusiness->id] + $this->validInvoiceData,
+            ),
+        );
+        $this->assertArrayHasKey(
+            'bank_account_id',
+            $this->errors(
+                ['bank_account_id' => $foreignAccount->id] + $this->validInvoiceData,
+            ),
+        );
+        $this->assertArrayHasKey(
+            'bank_account_id',
+            $this->errors(
+                ['bank_account_id' => $accountOfAnotherBusiness->id] + $this->validInvoiceData,
+            ),
+        );
+        $this->assertArrayHasKey(
+            'contact_id',
+            $this->errors(
+                ['contact_id' => $foreignContact->id] + $this->validInvoiceData,
+            ),
+        );
     }
 
     #[Test]
     public function validation_passes_with_nullable_fields_set_to_null(): void
     {
         $data = $this->validInvoiceData;
-        foreach ([
-            'invoice_ks',
-            'invoice_ss',
-            'invoice_text',
-            'contact_id',
-            'customer_email',
-            'customer_phone',
-            'customer_registration_country',
-            'customer_company_number',
-            'customer_vat_number',
-        ] as $field) {
+        foreach (
+            [
+                'invoice_ks',
+                'invoice_ss',
+                'invoice_text',
+                'contact_id',
+                'customer_email',
+                'customer_phone',
+                'customer_registration_country',
+                'customer_company_number',
+                'customer_vat_number',
+            ] as $field
+        ) {
             $data[$field] = null;
         }
 
-        $this->assertSame([], $this->errors($data));
+        $this->assertSame(
+            [],
+            $this->errors($data),
+        );
     }
 
     #[Test]
@@ -409,15 +496,17 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_with_authenticated_user_succeeds(): void
     {
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'description' => 'Invoice limit for frontend tests',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'description' => 'Invoice limit for frontend tests',
+                'is_active' => true,
+            ],
+        );
         $this->actingAs($this->user, 'web');
 
         $this->assertTrue((new InvoiceRequest)->authorize());
@@ -440,15 +529,17 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_currencies(): void
     {
-        foreach ([
-            'CZK',
-            'EUR',
-            'USD',
-            'GBP',
-            'PLN',
-            'HUF',
-            'CHF',
-        ] as $currency) {
+        foreach (
+            [
+                'CZK',
+                'EUR',
+                'USD',
+                'GBP',
+                'PLN',
+                'HUF',
+                'CHF',
+            ] as $currency
+        ) {
             $data = [
                 'payment_currency' => $currency,
                 'invoice-products' => [$this->item(['currency' => $currency])],
@@ -465,9 +556,19 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_invoice_logo_file(): void
     {
-        $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(1000);
+        $file = UploadedFile::fake()->image(
+            'logo.png',
+            100,
+            100,
+        )->size(1000);
 
-        $this->assertSame([], $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
+        $this->assertSame(
+            [],
+            $this->errors(
+                ['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(),
+                guest: true,
+            ),
+        );
     }
 
     #[Test]
@@ -475,38 +576,69 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         $file = UploadedFile::fake()->create('document.pdf', 1000);
 
-        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
+        $this->assertArrayHasKey(
+            'invoice_logo',
+            $this->errors(
+                ['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(),
+                guest: true,
+            ),
+        );
     }
 
     #[Test]
     public function validation_fails_with_oversized_invoice_logo(): void
     {
-        $file = UploadedFile::fake()->image('logo.png', 100, 100)->size(3000);
+        $file = UploadedFile::fake()->image(
+            'logo.png',
+            100,
+            100,
+        )->size(3000);
 
-        $this->assertArrayHasKey('invoice_logo', $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
+        $this->assertArrayHasKey(
+            'invoice_logo',
+            $this->errors(
+                ['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(),
+                guest: true,
+            ),
+        );
     }
 
     #[Test]
     public function validation_passes_with_null_invoice_logo(): void
     {
-        $this->assertSame([], $this->errors(['invoice_logo' => null] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true));
+        $this->assertSame(
+            [],
+            $this->errors(
+                ['invoice_logo' => null] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(),
+                guest: true,
+            ),
+        );
     }
 
     #[Test]
     public function validation_passes_with_various_valid_image_formats(): void
     {
-        foreach ([
-            'jpg',
-            'jpeg',
-            'png',
-            'gif',
-            'svg',
-        ] as $format) {
-            $file = UploadedFile::fake()->image("logo.{$format}", 100, 100)->size(1000);
+        foreach (
+            [
+                'jpg',
+                'jpeg',
+                'png',
+                'gif',
+                'svg',
+            ] as $format
+        ) {
+            $file = UploadedFile::fake()->image(
+                "logo.{$format}",
+                100,
+                100,
+            )->size(1000);
 
             $this->assertSame(
                 [],
-                $this->errors(['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(), guest: true),
+                $this->errors(
+                    ['invoice_logo' => $file] + ['invoice-products' => [$this->invoiceItem()]] + $this->guestInvoiceInput(),
+                    guest: true,
+                ),
                 "Validation should pass with .{$format} format",
             );
         }
@@ -517,68 +649,106 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         foreach ([[], null] as $items) {
             $errors = $this->itemErrors($items ?? []);
-            $this->assertSame([__('invoices.validation.amount_positive')], $errors['invoice-products'] ?? null);
+            $this->assertSame(
+                [__('invoices.validation.amount_positive')],
+                $errors['invoice-products'] ?? null,
+            );
         }
     }
 
     #[Test]
     public function a_valid_item_passes(): void
     {
-        $this->assertSame([], $this->itemErrors([$this->item(), $this->item(['unit' => '', 'tax_rate' => '0'])]));
+        $this->assertSame(
+            [],
+            $this->itemErrors(
+                [$this->item(), $this->item(['unit' => '', 'tax_rate' => '0'])],
+            ),
+        );
     }
 
     #[Test]
     public function an_item_quantity_must_be_positive_with_at_most_three_decimals(): void
     {
-        foreach ([
-            '0',
-            '-1',
-            '1.2345',
-            'abc',
-            '100000',
-        ] as $quantity) {
-            $errors = $this->itemErrors([$this->item(['quantity' => $quantity])]);
+        foreach (
+            [
+                '0',
+                '-1',
+                '1.2345',
+                'abc',
+                '100000',
+            ] as $quantity
+        ) {
+            $errors = $this->itemErrors(
+                [$this->item(['quantity' => $quantity])],
+            );
             $this->assertArrayHasKey(
                 'invoice-products.0.quantity',
                 $errors,
                 'Accepted quantity ' . $quantity,
             );
         }
-        $this->assertSame([], $this->itemErrors([$this->item(['quantity' => '0.125'])]));
+        $this->assertSame(
+            [],
+            $this->itemErrors(
+                [$this->item(['quantity' => '0.125'])],
+            ),
+        );
     }
 
     #[Test]
     public function an_item_price_must_be_non_negative_with_at_most_two_decimals(): void
     {
-        foreach ([
-            '-1',
-            '10.555',
-            '100000000',
-        ] as $price) {
-            $errors = $this->itemErrors([$this->item(['price' => $price])]);
+        foreach (
+            [
+                '-1',
+                '10.555',
+                '100000000',
+            ] as $price
+        ) {
+            $errors = $this->itemErrors(
+                [$this->item(['price' => $price])],
+            );
             $this->assertArrayHasKey(
                 'invoice-products.0.price',
                 $errors,
                 'Accepted price ' . $price,
             );
         }
-        $this->assertSame([], $this->itemErrors([$this->item(['price' => '0'])]));
+        $this->assertSame(
+            [],
+            $this->itemErrors(
+                [$this->item(['price' => '0'])],
+            ),
+        );
     }
 
     #[Test]
     public function an_item_tax_rate_must_be_one_the_form_offers(): void
     {
         app()->setLocale('en');
-        $errors = $this->itemErrors([$this->item(['tax_rate' => '17'])]);
-        $this->assertSame(['An invoice item has an invalid VAT rate. Allowed rates: 0%, 12%, 21%.'], $errors['invoice-products.0.tax_rate'] ?? null);
+        $errors = $this->itemErrors(
+            [$this->item(['tax_rate' => '17'])],
+        );
+        $this->assertSame(
+            ['An invoice item has an invalid VAT rate. Allowed rates: 0%, 12%, 21%.'],
+            $errors['invoice-products.0.tax_rate'] ?? null,
+        );
 
-        $this->assertSame([], $this->itemErrors([$this->item(['tax_rate' => '12']), $this->item(['tax_rate' => '0.00'])]));
+        $this->assertSame(
+            [],
+            $this->itemErrors(
+                [$this->item(['tax_rate' => '12']), $this->item(['tax_rate' => '0.00'])],
+            ),
+        );
     }
 
     #[Test]
     public function an_item_unit_must_be_a_known_unit(): void
     {
-        $errors = $this->itemErrors([$this->item(['unit' => 'ks'])]);
+        $errors = $this->itemErrors(
+            [$this->item(['unit' => 'ks'])],
+        );
 
         $this->assertArrayHasKey('invoice-products.0.unit', $errors);
     }
@@ -586,10 +756,18 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function an_item_must_be_in_the_invoice_currency(): void
     {
-        $errors = $this->itemErrors([$this->item(['currency' => 'EUR'])]);
-        $this->assertSame([__('invoices.validation.item_currency')], $errors['invoice-products.0.currency'] ?? null);
+        $errors = $this->itemErrors(
+            [$this->item(['currency' => 'EUR'])],
+        );
+        $this->assertSame(
+            [__('invoices.validation.item_currency')],
+            $errors['invoice-products.0.currency'] ?? null,
+        );
 
-        $errors = $this->itemErrors([$this->item(['currency' => 'XYZ'])], currency: 'XYZ');
+        $errors = $this->itemErrors(
+            [$this->item(['currency' => 'XYZ'])],
+            currency: 'XYZ',
+        );
         $this->assertArrayHasKey('invoice-products.0.currency', $errors);
         $this->assertArrayHasKey('payment_currency', $errors);
     }
@@ -601,10 +779,19 @@ final class InvoiceRequestFeatureTest extends TestCase
         $own = Product::factory()->create(['user_id' => $user->id]);
         $foreign = Product::factory()->create();
 
-        $this->assertSame([], $this->itemErrors([$this->item(['product_id' => $own->id])], $user));
+        $this->assertSame(
+            [],
+            $this->itemErrors(
+                [$this->item(['product_id' => $own->id])],
+                $user,
+            ),
+        );
         $this->assertArrayHasKey(
             'invoice-products.0.product_id',
-            $this->itemErrors([$this->item(['product_id' => $foreign->id])], $user),
+            $this->itemErrors(
+                [$this->item(['product_id' => $foreign->id])],
+                $user,
+            ),
         );
     }
 
@@ -615,7 +802,9 @@ final class InvoiceRequestFeatureTest extends TestCase
 
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
-            $this->guestInvoiceInput(['invoice-products' => json_encode($items)]),
+            $this->guestInvoiceInput(
+                ['invoice-products' => json_encode($items)],
+            ),
         );
 
         $response->assertStatus(422)

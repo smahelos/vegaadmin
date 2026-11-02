@@ -34,8 +34,13 @@ class PaymentMethodCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(PaymentMethod::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/payment-method');
-        CRUD::setEntityNameStrings(__('payment_methods.entity.singular'), __('payment_methods.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/payment-method',
+        );
+        CRUD::setEntityNameStrings(
+            __('payment_methods.entity.singular'),
+            __('payment_methods.entity.plural'),
+        );
     }
 
     /**
@@ -43,11 +48,21 @@ class PaymentMethodCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('payment_methods.fields.name'));
-        CRUD::column('slug')->label(__('payment_methods.fields.slug'));
-        CRUD::column('country')->label(__('payment_methods.fields.country'));
-        CRUD::column('currency')->label(__('payment_methods.fields.currency'));
-        CRUD::column('icon')->label(__('payment_methods.fields.icon'));
+        CRUD::column('name')->label(
+            __('payment_methods.fields.name'),
+        );
+        CRUD::column('slug')->label(
+            __('payment_methods.fields.slug'),
+        );
+        CRUD::column('country')->label(
+            __('payment_methods.fields.country'),
+        );
+        CRUD::column('currency')->label(
+            __('payment_methods.fields.currency'),
+        );
+        CRUD::column('icon')->label(
+            __('payment_methods.fields.icon'),
+        );
     }
 
     /**

@@ -24,7 +24,9 @@ final class BusinessFactory extends Factory
             'name' => $this->faker->company(),
             'short_name' => null,
             'registration_country' => 'CZ',
-            'company_number' => $this->czechCompanyNumber(random_int(0, 9_999_999)),
+            'company_number' => $this->czechCompanyNumber(
+                random_int(0, 9_999_999),
+            ),
             'vat_number' => null,
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => null,

@@ -39,8 +39,13 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
         $fallback2 = $this->service->getExchangeRates('USD'); // fail 2 -> circuit opens, still fallback
         $this->assertIsArray($fallback2);
 
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
-        $this->assertNotNull(Cache::get('fx_cb_opened_at'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
+        $this->assertNotNull(
+            Cache::get('fx_cb_opened_at'),
+        );
 
         // Third call should short-circuit (success response in queue should remain unused) → still fallback
         $third = $this->service->getExchangeRates('USD');
@@ -63,12 +68,17 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
         );
 
         // Successful probe response
-        Http::fake(fn () => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200));
+        Http::fake(
+            fn () => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200),
+        );
 
         $rates = $this->service->getExchangeRates('USD');
         $this->assertIsArray($rates);
         $this->assertEquals(22.2, $rates['CZK']);
-        $this->assertEquals('closed', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'closed',
+            Cache::get('fx_cb_state'),
+        );
     }
 
     #[Test]
@@ -81,7 +91,10 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
             ->pushStatus(500) // initial -> open
             ->pushStatus(500); // half-open probe fails
         $this->service->getExchangeRates('USD'); // open (fallback)
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
 
         // Open timeout expired: the circuit opened before the timeout
         Cache::put(
@@ -92,6 +105,9 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
 
         // Probe attempt
         $this->service->getExchangeRates('USD'); // half-open probe failure -> reopen
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
     }
 }

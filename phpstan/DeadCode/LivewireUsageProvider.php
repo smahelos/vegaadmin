@@ -31,15 +31,18 @@ final class LivewireUsageProvider extends ReflectionBasedMemberUsageProvider
     {
         $class = $method->getDeclaringClass();
         $validates = $class->isSubclassOf(Component::class) || $class->isSubclassOf(Form::class);
-        if ($validates && in_array(
-            $method->getName(),
-            self::VALIDATION_METHODS,
-            true,
-        )) {
+        if (
+            $validates
+            && in_array(
+                $method->getName(),
+                self::VALIDATION_METHODS,
+                true,
+            )
+        ) {
             return VirtualUsageData::withNote('Livewire validation read by name');
         }
 
-        if (! $class->isSubclassOf(Component::class)) {
+        if (!$class->isSubclassOf(Component::class)) {
             return null;
         }
 

@@ -42,15 +42,20 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rate_calculates_correct_rate(): void
     {
         // Mock successful API response
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.85,
-                    'CZK' => 21.5,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response(
+                    [
+                        'rates' => [
+                            'USD' => 1.0,
+                            'EUR' => 0.85,
+                            'CZK' => 21.5,
+                        ],
+                    ],
+                    200,
+                ),
+            ],
+        );
 
         $rate = $this->service->getExchangeRate('USD', 'EUR');
 
@@ -62,15 +67,20 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rate_handles_cross_currency_conversion(): void
     {
         // Mock successful API response
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.85,
-                    'CZK' => 21.5,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response(
+                    [
+                        'rates' => [
+                            'USD' => 1.0,
+                            'EUR' => 0.85,
+                            'CZK' => 21.5,
+                        ],
+                    ],
+                    200,
+                ),
+            ],
+        );
 
         $rate = $this->service->getExchangeRate('EUR', 'CZK');
 
@@ -88,14 +98,16 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rate_returns_null_for_missing_currency(): void
     {
         // Mock API response without one of the currencies
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.85,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'rates' => [
+                        'USD' => 1.0,
+                        'EUR' => 0.85,
+                    ],
+                ], 200),
+            ],
+        );
 
         $rate = $this->service->getExchangeRate('USD', 'INVALID');
 
@@ -112,11 +124,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
             'GBP' => 0.73,
         ];
 
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => $mockRates,
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'rates' => $mockRates,
+                ], 200),
+            ],
+        );
 
         $rates = $this->service->getExchangeRates();
 
@@ -128,9 +142,11 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rates_returns_fallback_when_api_fails(): void
     {
         // Mock failed API response
-        Http::fake([
-            'open.er-api.com/*' => Http::response([], 500),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([], 500),
+            ],
+        );
 
         $rates = $this->service->getExchangeRates();
 
@@ -148,11 +164,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function get_exchange_rates_handles_malformed_api_response(): void
     {
         // Mock API response without rates key
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'error' => 'Invalid base currency',
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'error' => 'Invalid base currency',
+                ], 200),
+            ],
+        );
 
         $rates = $this->service->getExchangeRates();
 
@@ -167,21 +185,28 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     #[Test]
     public function get_exchange_rates_uses_custom_base_currency(): void
     {
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.18,
-                    'CZK' => 25.3,
-                    'EUR' => 1.0,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response(
+                    [
+                        'rates' => [
+                            'USD' => 1.18,
+                            'CZK' => 25.3,
+                            'EUR' => 1.0,
+                        ],
+                    ],
+                    200,
+                ),
+            ],
+        );
 
         $rates = $this->service->getExchangeRates('EUR');
 
-        Http::assertSent(function ($request) {
-            return $request->url() === 'https://open.er-api.com/v6/latest?base=EUR';
-        });
+        Http::assertSent(
+            function ($request) {
+                return $request->url() === 'https://open.er-api.com/v6/latest?base=EUR';
+            },
+        );
 
         $this->assertIsArray($rates);
         $this->assertArrayHasKey('USD', $rates);
@@ -193,11 +218,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     {
         $mockRates = ['USD' => 1.0, 'EUR' => 0.85];
 
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => $mockRates,
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'rates' => $mockRates,
+                ], 200),
+            ],
+        );
 
         // First call
         $rates1 = $this->service->getExchangeRates();
@@ -218,19 +245,23 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
         $mockLogger = \Mockery::mock(LogInterface::class);
         $mockLogger->shouldReceive('log')
             ->once()
-            ->withArgs(function (string $level, string $message) {
-                return $level === 'error' && str_contains($message, 'Error fetching currency exchange rates');
-            });
+            ->withArgs(
+                function (string $level, string $message) {
+                    return $level === 'error' && str_contains($message, 'Error fetching currency exchange rates');
+                },
+            );
         $this->app->instance(LogInterface::class, $mockLogger);
         // Re-resolve service to pick up mocked logger
         $this->service = app(CurrencyExchangeService::class);
 
         // Mock exception
-        Http::fake([
-            'open.er-api.com/*' => function (): void {
-                throw new \Exception('Connection timeout');
-            },
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => function (): void {
+                    throw new \Exception('Connection timeout');
+                },
+            ],
+        );
 
         $rates = $this->service->getExchangeRates();
 
@@ -244,15 +275,20 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function convert_calculates_correct_amount(): void
     {
         // Mock API response
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.85,
-                    'CZK' => 21.5,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response(
+                    [
+                        'rates' => [
+                            'USD' => 1.0,
+                            'EUR' => 0.85,
+                            'CZK' => 21.5,
+                        ],
+                    ],
+                    200,
+                ),
+            ],
+        );
 
         $result = $this->service->convert(
             100.0,
@@ -268,14 +304,16 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function convert_rounds_to_two_decimal_places(): void
     {
         // Mock API response with rates that would produce decimals
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.857123,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'rates' => [
+                        'USD' => 1.0,
+                        'EUR' => 0.857123,
+                    ],
+                ], 200),
+            ],
+        );
 
         $result = $this->service->convert(
             100.0,
@@ -291,14 +329,16 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function convert_returns_null_for_invalid_currencies(): void
     {
         // Mock API response without one of the currencies
-        Http::fake([
-            'open.er-api.com/*' => Http::response([
-                'rates' => [
-                    'USD' => 1.0,
-                    'EUR' => 0.85,
-                ],
-            ], 200),
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => Http::response([
+                    'rates' => [
+                        'USD' => 1.0,
+                        'EUR' => 0.85,
+                    ],
+                ], 200),
+            ],
+        );
 
         $result = $this->service->convert(
             100.0,
@@ -325,11 +365,13 @@ class CurrencyExchangeServiceFeatureTest extends TestCase
     public function methods_handle_api_timeout(): void
     {
         // Mock API timeout
-        Http::fake([
-            'open.er-api.com/*' => function (): void {
-                throw new \Exception('Connection timeout');
-            },
-        ]);
+        Http::fake(
+            [
+                'open.er-api.com/*' => function (): void {
+                    throw new \Exception('Connection timeout');
+                },
+            ],
+        );
 
         // getExchangeRates should return fallback data
         $rates = $this->service->getExchangeRates();

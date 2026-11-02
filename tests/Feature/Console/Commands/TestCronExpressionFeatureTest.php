@@ -44,12 +44,14 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_daily_frequency(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Daily Task',
-            'frequency' => 'daily',
-            'run_at' => '12:30:00',
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Daily Task',
+                'frequency' => 'daily',
+                'run_at' => '12:30:00',
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -62,13 +64,15 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_weekly_frequency(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Weekly Task',
-            'frequency' => 'weekly',
-            'run_at' => '09:15:00',
-            'day_of_week' => 1, // Monday
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Weekly Task',
+                'frequency' => 'weekly',
+                'run_at' => '09:15:00',
+                'day_of_week' => 1, // Monday
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -81,13 +85,15 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_monthly_frequency(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Monthly Task',
-            'frequency' => 'monthly',
-            'run_at' => '08:00:00',
-            'day_of_month' => 15,
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Monthly Task',
+                'frequency' => 'monthly',
+                'run_at' => '08:00:00',
+                'day_of_month' => 15,
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -100,12 +106,14 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_tests_existing_task_with_custom_expression(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Custom Task',
-            'frequency' => 'custom',
-            'custom_expression' => '*/5 * * * *',
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Custom Task',
+                'frequency' => 'custom',
+                'custom_expression' => '*/5 * * * *',
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -126,12 +134,14 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_handles_task_without_run_at_time(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Task Without Time',
-            'frequency' => 'daily',
-            'run_at' => null,
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Task Without Time',
+                'frequency' => 'daily',
+                'run_at' => null,
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -144,12 +154,14 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_converts_unknown_frequency_to_default(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Unknown Frequency',
-            'frequency' => 'unknown',
-            'run_at' => '10:30:00',
-            'command' => 'test:command',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Unknown Frequency',
+                'frequency' => 'unknown',
+                'run_at' => '10:30:00',
+                'command' => 'test:command',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')
@@ -164,19 +176,23 @@ class TestCronExpressionFeatureTest extends TestCase
     {
         $this->artisan('cron:test', ['--expression' => '0 12 * * *'])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes')
-            ->expectsOutput('Simulation is not accessible for testing of task expression.')
+            ->expectsOutput(
+                'Simulation is not accessible for testing of task expression.',
+            )
             ->assertExitCode(0);
     }
 
     #[Test]
     public function command_can_simulate_task_execution(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test Simulation',
-            'frequency' => 'daily',
-            'run_at' => '12:00:00',
-            'command' => 'list', // Use an existing artisan command
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test Simulation',
+                'frequency' => 'daily',
+                'run_at' => '12:00:00',
+                'command' => 'list', // Use an existing artisan command
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes')
@@ -187,12 +203,14 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_skips_simulation_when_declined(): void
     {
-        $task = CronTask::factory()->create([
-            'name' => 'Test No Simulation',
-            'frequency' => 'daily',
-            'run_at' => '12:00:00',
-            'command' => 'list',
-        ]);
+        $task = CronTask::factory()->create(
+            [
+                'name' => 'Test No Simulation',
+                'frequency' => 'daily',
+                'run_at' => '12:00:00',
+                'command' => 'list',
+            ],
+        );
 
         $this->artisan('cron:test', ['id' => $task->id])
             ->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'no')

@@ -30,13 +30,23 @@ final class RegistrationApplicationServiceTest extends TestCase
                 $email,
                 'secret-password',
             ),
-            new BusinessWriteData($this->profile('Studio Nováková', '27074358', email: 'studio@billex.test', address: $this->brnoAddress()), null),
+            new BusinessWriteData(
+                $this->profile(
+                    'Studio Nováková',
+                    '27074358',
+                    email: 'studio@billex.test',
+                    address: $this->brnoAddress(),
+                ),
+                null,
+            ),
             $this->czechAccount(),
         );
 
         $user = User::query()->findOrFail($registered->id);
         $business = Business::query()->where('user_id', $user->id)->sole();
-        $this->assertTrue($user->hasRole('frontend_user'));
+        $this->assertTrue(
+            $user->hasRole('frontend_user'),
+        );
         $this->assertSame($business->id, $user->default_business_id);
         $this->assertSame('studio@billex.test', $business->email);
         $this->assertSame($email, $user->email);

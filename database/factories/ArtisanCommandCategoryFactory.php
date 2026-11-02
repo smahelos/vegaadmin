@@ -61,9 +61,11 @@ class ArtisanCommandCategoryFactory extends Factory
      */
     public function withName(string $name): static
     {
-        return $this->state(fn (array $attributes) => [
-            'name' => $name,
-            'slug' => Str::slug($name),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'name' => $name,
+                'slug' => Str::slug($name),
+            ],
+        );
     }
 }

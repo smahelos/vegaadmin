@@ -81,10 +81,12 @@ final class PartyRecords
         ?Address $address,
     ): Business|Contact {
         try {
-            DB::transaction(function () use ($party, $attributes, $address): void {
-                $party->fill($attributes)->save();
-                $this->saveAddress($party, $address);
-            });
+            DB::transaction(
+                function () use ($party, $attributes, $address): void {
+                    $party->fill($attributes)->save();
+                    $this->saveAddress($party, $address);
+                },
+            );
         } catch (QueryException $e) {
             throw $this->duplicateOf($party, $e) ?? $e;
         }
@@ -109,21 +111,25 @@ final class PartyRecords
         return $query
             ->with('address')
             ->where('user_id', $userId->toInt())
-            ->where(function (Builder $match) use ($profile): void {
-                $match->where('name', $profile->name);
+            ->where(
+                function (Builder $match) use ($profile): void {
+                    $match->where('name', $profile->name);
 
-                if ($profile->registrationNumber !== null) {
-                    $match->orWhere(function (Builder $number) use ($profile): void {
-                        $number
-                            ->where('registration_country', $profile->registrationNumber?->country->value)
-                            ->where('company_number', $profile->registrationNumber?->number);
-                    });
-                }
+                    if ($profile->registrationNumber !== null) {
+                        $match->orWhere(
+                            function (Builder $number) use ($profile): void {
+                                $number
+                                    ->where('registration_country', $profile->registrationNumber?->country->value)
+                                    ->where('company_number', $profile->registrationNumber?->number);
+                            },
+                        );
+                    }
 
-                if ($profile->email !== null) {
-                    $match->orWhere('email', $profile->email);
-                }
-            });
+                    if ($profile->email !== null) {
+                        $match->orWhere('email', $profile->email);
+                    }
+                },
+            );
     }
 
     /**
@@ -153,30 +159,39 @@ final class PartyRecords
         $term = trim($search->term ?? '');
         if ($term !== '') {
             $pattern = '%' . addcslashes($term, '%_\\') . '%';
-            $query->where(function (Builder $match) use ($pattern): void {
-                $match
-                    ->where(
-                        'name',
-                        'like',
-                        $pattern,
-                    )
-                    ->orWhere(
-                        'short_name',
-                        'like',
-                        $pattern,
-                    )
-                    ->orWhere(
-                        'company_number',
-                        'like',
-                        $pattern,
-                    )
-                    ->orWhere(
-                        'email',
-                        'like',
-                        $pattern,
-                    )
-                    ->orWhereHas('address', fn (Builder $address): Builder => $address->where('city', 'like', $pattern));
-            });
+            $query->where(
+                function (Builder $match) use ($pattern): void {
+                    $match
+                        ->where(
+                            'name',
+                            'like',
+                            $pattern,
+                        )
+                        ->orWhere(
+                            'short_name',
+                            'like',
+                            $pattern,
+                        )
+                        ->orWhere(
+                            'company_number',
+                            'like',
+                            $pattern,
+                        )
+                        ->orWhere(
+                            'email',
+                            'like',
+                            $pattern,
+                        )
+                        ->orWhereHas(
+                            'address',
+                            fn (Builder $address): Builder => $address->where(
+                                'city',
+                                'like',
+                                $pattern,
+                            ),
+                        );
+                },
+            );
         }
 
         $direction = $search->ascending ? 'asc' : 'desc';
@@ -208,7 +223,10 @@ final class PartyRecords
             return;
         }
 
-        $party->address()->updateOrCreate([], EloquentPartyProfileMapper::toAddressAttributes($address));
+        $party->address()->updateOrCreate(
+            [],
+            EloquentPartyProfileMapper::toAddressAttributes($address),
+        );
     }
 
     /**
@@ -244,7 +262,10 @@ final class PartyRecords
 
     private function duplicateOf(Business|Contact $party, QueryException $e): ?DuplicateCompanyNumberException
     {
-        if (($e->errorInfo[1] ?? null) !== self::DUPLICATE_KEY_ERROR || ! str_contains($e->getMessage(), 'czech_company_number')) {
+        if (
+            ($e->errorInfo[1] ?? null) !== self::DUPLICATE_KEY_ERROR
+            || !str_contains($e->getMessage(), 'czech_company_number')
+        ) {
             return null;
         }
 

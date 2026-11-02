@@ -28,6 +28,8 @@ enum InvoiceStatus: string
      */
     public static function unpaid(): array
     {
-        return array_values(array_filter(self::cases(), static fn (self $status): bool => $status->isUnpaid()));
+        return array_values(
+            array_filter(self::cases(), static fn (self $status): bool => $status->isUnpaid()),
+        );
     }
 }

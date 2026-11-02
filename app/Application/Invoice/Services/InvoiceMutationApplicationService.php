@@ -67,7 +67,9 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
         } catch (EntityLimitExceededException $e) {
             return InvoiceActionResult::failure($e->getMessageKey());
         } catch (\Throwable $e) {
-            Log::error('Invoice create failed: ' . $e->getMessage() . json_encode($e->getTrace()));
+            Log::error(
+                'Invoice create failed: ' . $e->getMessage() . json_encode($e->getTrace()),
+            );
 
             return InvoiceActionResult::failure('invoices.messages.create_failed');
         }

@@ -180,11 +180,13 @@ final readonly class BankAccount
             throw new InvalidBankAccountException(BankAccountProblem::IBAN_MISMATCH);
         }
 
-        if (! in_array(
-            $ibanCountry,
-            self::LOCAL_NUMBER_COUNTRIES,
-            true,
-        )) {
+        if (
+            !in_array(
+                $ibanCountry,
+                self::LOCAL_NUMBER_COUNTRIES,
+                true,
+            )
+        ) {
             if ($number !== null || $bankCode !== null) {
                 throw new InvalidBankAccountException(BankAccountProblem::LOCAL_NUMBER_NOT_SUPPORTED);
             }
@@ -233,7 +235,10 @@ final readonly class BankAccount
      */
     public function formattedIban(): string
     {
-        return implode(' ', str_split($this->iban, 4));
+        return implode(
+            ' ',
+            str_split($this->iban, 4),
+        );
     }
 
     private static function fromLocalNumber(
@@ -246,11 +251,13 @@ final readonly class BankAccount
             throw new InvalidBankAccountException(BankAccountProblem::MISSING_DETAILS);
         }
 
-        if (! in_array(
-            $country,
-            self::LOCAL_NUMBER_COUNTRIES,
-            true,
-        )) {
+        if (
+            !in_array(
+                $country,
+                self::LOCAL_NUMBER_COUNTRIES,
+                true,
+            )
+        ) {
             throw new InvalidBankAccountException(BankAccountProblem::LOCAL_NUMBER_NOT_SUPPORTED);
         }
 
@@ -258,11 +265,13 @@ final readonly class BankAccount
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_BANK_CODE);
         }
 
-        if (preg_match(
-            '/^(?:(\d{1,6})-)?(\d{2,10})$/',
-            $number,
-            $parts,
-        ) !== 1) {
+        if (
+            preg_match(
+                '/^(?:(\d{1,6})-)?(\d{2,10})$/',
+                $number,
+                $parts,
+            ) !== 1
+        ) {
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_NUMBER);
         }
 
@@ -279,7 +288,10 @@ final readonly class BankAccount
             STR_PAD_LEFT,
         );
 
-        if (! self::passesWeightedMod11($prefix, self::PREFIX_WEIGHTS) || ! self::passesWeightedMod11($base, self::NUMBER_WEIGHTS)) {
+        if (
+            !self::passesWeightedMod11($prefix, self::PREFIX_WEIGHTS)
+            || !self::passesWeightedMod11($base, self::NUMBER_WEIGHTS)
+        ) {
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_NUMBER);
         }
 
@@ -303,7 +315,13 @@ final readonly class BankAccount
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
         }
 
-        $country = Country::tryFrom(substr($iban, 0, 2));
+        $country = Country::tryFrom(
+            substr(
+                $iban,
+                0,
+                2,
+            ),
+        );
         $format = self::BBAN_FORMATS[$country?->value ?? ''] ?? null;
         $checkDigits = (int) substr(
             $iban,
@@ -315,8 +333,17 @@ final readonly class BankAccount
             || $format === null
             || $checkDigits < 2
             || $checkDigits > 98
-            || preg_match('/\A' . $format . '\z/', substr($iban, 4)) !== 1
-            || self::mod97(substr($iban, 4) . substr($iban, 0, 4)) !== 1
+            || preg_match(
+                '/\A' . $format . '\z/',
+                substr($iban, 4),
+            ) !== 1
+            || self::mod97(
+                substr($iban, 4) . substr(
+                    $iban,
+                    0,
+                    4,
+                ),
+            ) !== 1
         ) {
             throw new InvalidBankAccountException(BankAccountProblem::INVALID_IBAN);
         }
@@ -399,7 +426,13 @@ final readonly class BankAccount
      */
     private static function compact(?string $value): ?string
     {
-        $value = strtoupper(preg_replace('/\s+/', '', $value ?? '') ?? '');
+        $value = strtoupper(
+            preg_replace(
+                '/\s+/',
+                '',
+                $value ?? '',
+            ) ?? '',
+        );
 
         return $value === '' ? null : $value;
     }

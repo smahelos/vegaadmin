@@ -13,21 +13,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-            $table->unsignedBigInteger('default_business_id')->nullable();
+        Schema::table(
+            'users',
+            function (Blueprint $table): void {
+                $table->unsignedBigInteger('default_business_id')->nullable();
 
-            $table->foreign(['default_business_id', 'id'], 'users_default_business_foreign')
-                ->references(['id', 'user_id'])
-                ->on('businesses')
-                ->restrictOnDelete();
-        });
+                $table->foreign(['default_business_id', 'id'], 'users_default_business_foreign')
+                    ->references(['id', 'user_id'])
+                    ->on('businesses')
+                    ->restrictOnDelete();
+            },
+        );
     }
 
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table): void {
-            $table->dropForeign('users_default_business_foreign');
-            $table->dropColumn('default_business_id');
-        });
+        Schema::table(
+            'users',
+            function (Blueprint $table): void {
+                $table->dropForeign('users_default_business_foreign');
+                $table->dropColumn('default_business_id');
+            },
+        );
     }
 };

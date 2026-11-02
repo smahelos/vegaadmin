@@ -28,7 +28,7 @@ class GdImageProcessor implements ImageProcessorInterface
     ): bool {
         try {
             $dir = \dirname($target);
-            if (! is_dir($dir)) {
+            if (!is_dir($dir)) {
                 mkdir(
                     $dir,
                     0755,

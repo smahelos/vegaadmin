@@ -84,16 +84,31 @@ final class QrPaymentProviderFactoryTest extends TestCase
             Money::fromString('12.50', $currency),
             $account,
         );
-        $this->assertInstanceOf($providerClass, QrPaymentProviderFactory::autoDetectProvider($payment));
+        $this->assertInstanceOf(
+            $providerClass,
+            QrPaymentProviderFactory::autoDetectProvider($payment),
+        );
     }
 
     #[Test]
     public function explicit_provider_selection_is_case_insensitive_and_keeps_european_fallback(): void
     {
-        $this->assertInstanceOf(CzechQrPaymentProvider::class, QrPaymentProviderFactory::createProvider('cz'));
-        $this->assertInstanceOf(SlovakQrPaymentProvider::class, QrPaymentProviderFactory::createProvider('SK'));
-        $this->assertInstanceOf(EuropeanQrPaymentProvider::class, QrPaymentProviderFactory::createProvider('DE'));
-        $this->assertInstanceOf(EuropeanQrPaymentProvider::class, QrPaymentProviderFactory::createProvider('EU'));
+        $this->assertInstanceOf(
+            CzechQrPaymentProvider::class,
+            QrPaymentProviderFactory::createProvider('cz'),
+        );
+        $this->assertInstanceOf(
+            SlovakQrPaymentProvider::class,
+            QrPaymentProviderFactory::createProvider('SK'),
+        );
+        $this->assertInstanceOf(
+            EuropeanQrPaymentProvider::class,
+            QrPaymentProviderFactory::createProvider('DE'),
+        );
+        $this->assertInstanceOf(
+            EuropeanQrPaymentProvider::class,
+            QrPaymentProviderFactory::createProvider('EU'),
+        );
     }
 
     #[Test]

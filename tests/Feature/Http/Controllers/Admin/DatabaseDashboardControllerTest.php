@@ -25,8 +25,12 @@ class DatabaseDashboardControllerTest extends TestCase
         $this->withSession(['backpack.language-switcher.locale' => 'cs'])
             ->get('/admin/database-dashboard')
             ->assertOk()
-            ->assertSee(__('admin/database.dashboard.title'))
-            ->assertSee(__('admin/database.dashboard.run_optimization'))
+            ->assertSee(
+                __('admin/database.dashboard.title'),
+            )
+            ->assertSee(
+                __('admin/database.dashboard.run_optimization'),
+            )
             ->assertDontSeeText('admin.database.');
     }
 }

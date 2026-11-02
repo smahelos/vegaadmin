@@ -45,18 +45,20 @@ class Product extends Model
     {
         parent::boot();
 
-        static::saving(function (self $model): void {
-            // If this product is set as default, unset default status for other products
-            if ($model->is_default) {
-                self::where('user_id', $model->user_id)
-                    ->where(
-                        'id',
-                        '!=',
-                        $model->id,
-                    )
-                    ->update(['is_default' => false]);
-            }
-        });
+        static::saving(
+            function (self $model): void {
+                // If this product is set as default, unset default status for other products
+                if ($model->is_default) {
+                    self::where('user_id', $model->user_id)
+                        ->where(
+                            'id',
+                            '!=',
+                            $model->id,
+                        )
+                        ->update(['is_default' => false]);
+                }
+            },
+        );
     }
 
     /**
@@ -82,19 +84,21 @@ class Product extends Model
     public function invoices(): BelongsToMany
     {
         return $this->belongsToMany(Invoice::class, 'invoice_products')
-            ->withPivot([
-                'name',
-                'quantity',
-                'price',
-                'currency',
-                'unit',
-                'category',
-                'description',
-                'is_custom_product',
-                'tax_rate',
-                'tax_amount',
-                'total_price',
-            ])
+            ->withPivot(
+                [
+                    'name',
+                    'quantity',
+                    'price',
+                    'currency',
+                    'unit',
+                    'category',
+                    'description',
+                    'is_custom_product',
+                    'tax_rate',
+                    'tax_amount',
+                    'total_price',
+                ],
+            )
             ->withTimestamps();
     }
 
@@ -162,7 +166,7 @@ class Product extends Model
      */
     public function getImageThumbUrl(): ?string
     {
-        if (! empty($this->image)) {
+        if (!empty($this->image)) {
             return Storage::disk('public')->path($this->image);
         }
 

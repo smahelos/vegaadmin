@@ -31,13 +31,17 @@ class PageCategory extends Model
     {
         parent::boot();
 
-        static::creating(function ($model): void {
-            $model->generateSlugForAllLocales();
-        });
+        static::creating(
+            function ($model): void {
+                $model->generateSlugForAllLocales();
+            },
+        );
 
-        static::updating(function ($model): void {
-            $model->generateSlugForAllLocales();
-        });
+        static::updating(
+            function ($model): void {
+                $model->generateSlugForAllLocales();
+            },
+        );
     }
 
     /**
@@ -56,7 +60,7 @@ class PageCategory extends Model
 
         foreach ($locales as $locale) {
             // Only generate slug if name is provided for this locale and slug is empty
-            if (! empty($names[$locale]) && empty($slugs[$locale])) {
+            if (!empty($names[$locale]) && empty($slugs[$locale])) {
                 $slugs[$locale] = Str::slug($names[$locale]);
             }
         }
@@ -71,12 +75,12 @@ class PageCategory extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
-        if (! is_array($this->name)) {
+        if (!is_array($this->name)) {
             return (string) $this->name;
         }
 
         // Try requested locale first
-        if (! empty($this->name[$locale])) {
+        if (!empty($this->name[$locale])) {
             return $this->name[$locale];
         }
 
@@ -88,7 +92,7 @@ class PageCategory extends Model
             'sk',
         ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (! empty($this->name[$fallbackLocale])) {
+            if (!empty($this->name[$fallbackLocale])) {
                 return $this->name[$fallbackLocale];
             }
         }
@@ -103,12 +107,12 @@ class PageCategory extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
-        if (! is_array($this->slug)) {
+        if (!is_array($this->slug)) {
             return (string) $this->slug;
         }
 
         // Try requested locale first
-        if (! empty($this->slug[$locale])) {
+        if (!empty($this->slug[$locale])) {
             return $this->slug[$locale];
         }
 
@@ -120,7 +124,7 @@ class PageCategory extends Model
             'sk',
         ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (! empty($this->slug[$fallbackLocale])) {
+            if (!empty($this->slug[$fallbackLocale])) {
                 return $this->slug[$fallbackLocale];
             }
         }
@@ -135,12 +139,12 @@ class PageCategory extends Model
     {
         $locale = $locale ?? app()->getLocale();
 
-        if (! is_array($this->description)) {
+        if (!is_array($this->description)) {
             return $this->description ? (string) $this->description : null;
         }
 
         // Try requested locale first
-        if (! empty($this->description[$locale])) {
+        if (!empty($this->description[$locale])) {
             return $this->description[$locale];
         }
 
@@ -152,7 +156,7 @@ class PageCategory extends Model
             'sk',
         ]);
         foreach ($availableLocales as $fallbackLocale) {
-            if (! empty($this->description[$fallbackLocale])) {
+            if (!empty($this->description[$fallbackLocale])) {
                 return $this->description[$fallbackLocale];
             }
         }

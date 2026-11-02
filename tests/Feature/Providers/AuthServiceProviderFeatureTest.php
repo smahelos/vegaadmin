@@ -15,7 +15,13 @@ class AuthServiceProviderFeatureTest extends TestCase
     #[Test]
     public function policies_are_registered_with_gate(): void
     {
-        $this->assertInstanceOf(SubscriptionPolicy::class, Gate::getPolicyFor(Subscription::class));
-        $this->assertInstanceOf(SubscriptionPlanPolicy::class, Gate::getPolicyFor(SubscriptionPlan::class));
+        $this->assertInstanceOf(
+            SubscriptionPolicy::class,
+            Gate::getPolicyFor(Subscription::class),
+        );
+        $this->assertInstanceOf(
+            SubscriptionPlanPolicy::class,
+            Gate::getPolicyFor(SubscriptionPlan::class),
+        );
     }
 }

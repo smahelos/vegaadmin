@@ -30,11 +30,11 @@ final class SlovakQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = 'AM:' . $payload->amountDecimal();
         $qrParts[] = 'CC:' . $payload->amount->getCurrency();
 
-        if (! empty($payload->variableSymbol)) {
+        if (!empty($payload->variableSymbol)) {
             $qrParts[] = 'X-VS:' . $payload->variableSymbol;
         }
 
-        if (! empty($payload->message)) {
+        if (!empty($payload->message)) {
             $qrParts[] = 'MSG:' . substr(
                 $payload->message,
                 0,

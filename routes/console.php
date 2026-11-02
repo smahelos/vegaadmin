@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Schema;
 // Explicitně registrujeme základní příkaz pro kontrolu faktur
 Schedule::command('invoices:check-payment-status')
     ->dailyAt('09:00')
-    ->appendOutputTo(storage_path('logs/invoice-reminders.log'));
+    ->appendOutputTo(
+        storage_path('logs/invoice-reminders.log'),
+    );
 
 // Dynamické načítání úloh z databáze (pro Backpack rozhraní)
 try {
@@ -53,22 +55,33 @@ try {
             }
 
             // Zapisovat výstup do logů
-            $event->appendOutputTo(storage_path("logs/cron-{$task->id}.log"));
+            $event->appendOutputTo(
+                storage_path("logs/cron-{$task->id}.log"),
+            );
 
             // Aktualizovat čas posledního běhu a výstup
-            $event->after(function () use ($task): void {
-                $task->last_run = now();
-                $task->last_output = file_exists(storage_path("logs/cron-{$task->id}.log"))
-                    ? file_get_contents(storage_path("logs/cron-{$task->id}.log"))
-                    : null;
-                $task->save();
-            });
+            $event->after(
+                function () use ($task): void {
+                    $task->last_run = now();
+                    $task->last_output = file_exists(
+                        storage_path("logs/cron-{$task->id}.log"),
+                    )
+                        ? file_get_contents(
+                            storage_path("logs/cron-{$task->id}.log"),
+                        )
+                        : null;
+                    $task->save();
+                },
+            );
         }
     }
 } catch (Exception $e) {
     Log::error('Chyba při načítání cron úloh: ' . $e->getMessage());
 }
 
-Artisan::command('inspire', function (): void {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+Artisan::command(
+    'inspire',
+    function (): void {
+        $this->comment(Inspiring::quote());
+    },
+)->purpose('Display an inspiring quote');

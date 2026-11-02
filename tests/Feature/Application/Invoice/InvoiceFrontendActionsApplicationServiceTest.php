@@ -25,7 +25,9 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
     {
         parent::setUp();
         $this->user = User::factory()->create();
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
+        Permission::firstOrCreate(
+            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+        );
         $this->user->givePermissionTo('frontend.can_create_edit_invoice');
         // Permissive limit fake registered BEFORE service resolution
         $fakeLimit = new class implements UniversalLimitServiceInterface
@@ -110,10 +112,12 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
 
     private function pendingInvoiceId(): int
     {
-        return Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-        ])->id;
+        return Invoice::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            ],
+        )->id;
     }
 
     #[Test]
@@ -131,10 +135,13 @@ class InvoiceFrontendActionsApplicationServiceTest extends TestCase
         $paid = $this->frontend->markAsPaid($this->user->id, $invoiceId);
         $this->assertInvoiceSuccess($paid, 'Mark paid failed');
 
-        $this->assertDatabaseHas('invoices', [
-            'id' => $invoiceId,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PAID->value)->value('id'),
-        ]);
+        $this->assertDatabaseHas(
+            'invoices',
+            [
+                'id' => $invoiceId,
+                'payment_status_id' => Status::where('slug', InvoiceStatus::PAID->value)->value('id'),
+            ],
+        );
     }
 
     #[Test]

@@ -36,23 +36,31 @@ class TaxRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous default limit for taxes
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_tax',
-            'entity_type' => 'tax',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'can_create_edit_tax',
+                'entity_type' => 'tax',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         // Define test routes
-        Route::post('/test-tax', function (TaxRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-tax',
+            function (TaxRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-tax/{id}', function (TaxRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-tax/{id}',
+            function (TaxRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     /**
@@ -400,7 +408,19 @@ class TaxRequestFeatureTest extends TestCase
             $request->attributes(),
         );
 
-        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.name')]), $validator->errors()->first('name'));
-        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.rate')]), $validator->errors()->first('rate'));
+        $this->assertSame(
+            __(
+                'validation.required',
+                ['attribute' => __('taxes.fields.name')],
+            ),
+            $validator->errors()->first('name'),
+        );
+        $this->assertSame(
+            __(
+                'validation.required',
+                ['attribute' => __('taxes.fields.rate')],
+            ),
+            $validator->errors()->first('rate'),
+        );
     }
 }

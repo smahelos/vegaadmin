@@ -19,13 +19,24 @@ final class AdminDashboardPartiesTest extends TestCase
     {
         $this->setUpAdminTestEnvironment();
         Business::factory()->create(['user_id' => $this->regularUser->id]);
-        Business::factory()->create(['user_id' => $this->regularUser->id, 'archived_at' => now()]);
+        Business::factory()->create(
+            ['user_id' => $this->regularUser->id, 'archived_at' => now()],
+        );
         Contact::factory()->create(['user_id' => $this->regularUser->id]);
-        Contact::factory()->create(['user_id' => $this->regularUser->id, 'archived_at' => now()]);
+        Contact::factory()->create(
+            ['user_id' => $this->regularUser->id, 'archived_at' => now()],
+        );
         $this->actingAs($this->adminUser, 'backpack')->get('/admin/dashboard')
             ->assertOk()
-            ->assertViewHas('dashboardStats', fn (array $stats): bool => $stats['total_businesses'] === 1 && $stats['total_contacts'] === 1 && $stats['recent_contacts'] === 1)
-            ->assertSee(backpack_url('business/create'))
-            ->assertDontSee(backpack_url('client/create'));
+            ->assertViewHas(
+                'dashboardStats',
+                fn (array $stats): bool => $stats['total_businesses'] === 1 && $stats['total_contacts'] === 1 && $stats['recent_contacts'] === 1,
+            )
+            ->assertSee(
+                backpack_url('business/create'),
+            )
+            ->assertDontSee(
+                backpack_url('client/create'),
+            );
     }
 }

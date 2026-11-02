@@ -34,22 +34,31 @@ final class InvoiceReminderMailFactory
         };
 
         return (new MailMessage)
-            ->subject(__('invoices.reminders.' . $type->value . '_subject', ['number' => $payload->invoiceNumber], $locale))
-            ->view($view, [
-                'invoiceNumber' => $payload->invoiceNumber,
-                'supplierName' => $payload->supplierName,
-                'customerName' => $payload->customerName,
-                'formattedAmount' => $this->money->formatWithCode($payload->total, $locale),
-                'dueDate' => $this->dates->formatDate($payload->dueDate, $locale),
-                'daysLeft' => $payload->daysLeft,
-                'daysOverdue' => $payload->daysOverdue,
-                'greeting' => __(
-                    'invoices.reminders.greeting',
-                    ['name' => $payload->recipientName !== '' ? $payload->recipientName : $fallbackName],
+            ->subject(
+                __(
+                    'invoices.reminders.' . $type->value . '_subject',
+                    ['number' => $payload->invoiceNumber],
                     $locale,
                 ),
-                'locale' => $locale,
-                'invoiceUrl' => route('frontend.invoice.show', ['id' => $payload->invoiceId->value, 'locale' => $locale]),
-            ]);
+            )
+            ->view(
+                $view,
+                [
+                    'invoiceNumber' => $payload->invoiceNumber,
+                    'supplierName' => $payload->supplierName,
+                    'customerName' => $payload->customerName,
+                    'formattedAmount' => $this->money->formatWithCode($payload->total, $locale),
+                    'dueDate' => $this->dates->formatDate($payload->dueDate, $locale),
+                    'daysLeft' => $payload->daysLeft,
+                    'daysOverdue' => $payload->daysOverdue,
+                    'greeting' => __(
+                        'invoices.reminders.greeting',
+                        ['name' => $payload->recipientName !== '' ? $payload->recipientName : $fallbackName],
+                        $locale,
+                    ),
+                    'locale' => $locale,
+                    'invoiceUrl' => route('frontend.invoice.show', ['id' => $payload->invoiceId->value, 'locale' => $locale]),
+                ],
+            );
     }
 }

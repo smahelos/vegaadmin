@@ -77,7 +77,10 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         );
 
         return new PaginatedResult(
-            array_map(fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact), $found->items()),
+            array_map(
+                fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
+                $found->items(),
+            ),
             $found->total(),
             $found->perPage(),
             $found->currentPage(),
@@ -157,7 +160,9 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
             ->orderBy('name')
             ->orderBy('id')
             ->get()
-            ->map(fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact))
+            ->map(
+                fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
+            )
             ->values()
             ->all();
     }

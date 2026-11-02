@@ -33,13 +33,13 @@ class ProductCreationValidator
         // Validate price if provided
         if (isset($data['price'])) {
             $price = ProductPrice::fromFloat((float) $data['price']);
-            if ($price->isZero() && ! ($data['allow_zero_price'] ?? false)) {
+            if ($price->isZero() && !($data['allow_zero_price'] ?? false)) {
                 throw ProductValidationException::invalidPrice($price->getValue());
             }
         }
 
         // Validate currency
-        if (! empty($data['currency']) && ! $this->isValidCurrency($data['currency'])) {
+        if (!empty($data['currency']) && !$this->isValidCurrency($data['currency'])) {
             throw ProductValidationException::invalidCurrency($data['currency']);
         }
 
@@ -54,20 +54,20 @@ class ProductCreationValidator
     public function validateForUpdate(array $data): array
     {
         // Validate name if provided
-        if (isset($data['name']) && ! empty($data['name'])) {
+        if (isset($data['name']) && !empty($data['name'])) {
             ProductName::fromString($data['name']);
         }
 
         // Validate price if provided
         if (isset($data['price']) && $data['price'] !== null) {
             $price = ProductPrice::fromFloat((float) $data['price']);
-            if ($price->isZero() && ! ($data['allow_zero_price'] ?? false)) {
+            if ($price->isZero() && !($data['allow_zero_price'] ?? false)) {
                 throw ProductValidationException::invalidPrice($price->getValue());
             }
         }
 
         // Validate currency if provided
-        if (isset($data['currency']) && ! empty($data['currency']) && ! $this->isValidCurrency($data['currency'])) {
+        if (isset($data['currency']) && !empty($data['currency']) && !$this->isValidCurrency($data['currency'])) {
             throw ProductValidationException::invalidCurrency($data['currency']);
         }
 

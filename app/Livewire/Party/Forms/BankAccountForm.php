@@ -34,7 +34,10 @@ final class BankAccountForm extends Form
      */
     public function rules(): array
     {
-        return BankAccountInput::rules($this->input(), Str::camel(...));
+        return BankAccountInput::rules(
+            $this->input(),
+            Str::camel(...),
+        );
     }
 
     /**
@@ -42,7 +45,9 @@ final class BankAccountForm extends Form
      */
     public function validationAttributes(): array
     {
-        return BankAccountInput::attributes(Str::camel(...));
+        return BankAccountInput::attributes(
+            Str::camel(...),
+        );
     }
 
     public function isFilled(): bool

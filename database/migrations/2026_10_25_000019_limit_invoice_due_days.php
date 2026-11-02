@@ -13,7 +13,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::statement('ALTER TABLE invoices ADD CONSTRAINT invoices_due_in_range CHECK (due_in BETWEEN 0 AND 365)');
+        DB::statement(
+            'ALTER TABLE invoices ADD CONSTRAINT invoices_due_in_range CHECK (due_in BETWEEN 0 AND 365)',
+        );
     }
 
     public function down(): void

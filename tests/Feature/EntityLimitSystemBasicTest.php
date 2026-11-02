@@ -55,19 +55,23 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Create permission for testing
-        Permission::firstOrCreate([
-            'name' => 'test_invoice_limit',
-            'guard_name' => 'web',
-        ]);
+        Permission::firstOrCreate(
+            [
+                'name' => 'test_invoice_limit',
+                'guard_name' => 'web',
+            ],
+        );
 
-        $limit = EntityLimit::factory()->create([
-            'permission_name' => 'test_invoice_limit',
-            'entity_type' => 'invoice',
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'limit_value' => 10,
-            'is_active' => true,
-        ]);
+        $limit = EntityLimit::factory()->create(
+            [
+                'permission_name' => 'test_invoice_limit',
+                'entity_type' => 'invoice',
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'limit_value' => 10,
+                'is_active' => true,
+            ],
+        );
 
         $this->assertNotNull($limit->id);
         $this->assertEquals('test_invoice_limit', $limit->permission_name);
@@ -81,23 +85,27 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Create permission for testing
-        Permission::firstOrCreate([
-            'name' => 'monthly_invoice_limit',
-            'guard_name' => 'web',
-        ]);
+        Permission::firstOrCreate(
+            [
+                'name' => 'monthly_invoice_limit',
+                'guard_name' => 'web',
+            ],
+        );
 
         // Give user the permission
         $this->user->givePermissionTo('monthly_invoice_limit');
 
         // Create a limit
-        EntityLimit::factory()->create([
-            'permission_name' => 'monthly_invoice_limit',
-            'entity_type' => 'invoice',
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'limit_value' => 5,
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'monthly_invoice_limit',
+                'entity_type' => 'invoice',
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'limit_value' => 5,
+                'is_active' => true,
+            ],
+        );
 
         $limitService = app(UniversalLimitService::class);
 
@@ -112,7 +120,16 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->assertTrue($check['allowed']);
 
         // Record usage
-        $this->assertTrue($limitService->recordUsage($this->user->id, 'invoice', 'count', 'monthly', 'web', 1));
+        $this->assertTrue(
+            $limitService->recordUsage(
+                $this->user->id,
+                'invoice',
+                'count',
+                'monthly',
+                'web',
+                1,
+            ),
+        );
 
         // Should still be allowed
         $check = $limitService->checkLimit(
@@ -130,13 +147,26 @@ final class EntityLimitSystemBasicTest extends TestCase
     {
         $keys = array_merge(
             array_map(fn ($type) => "entity_limits.entity_types.$type.singular", EntityLimit::ENTITY_TYPES),
-            array_map(fn ($type) => "entity_limits.metric_types.$type", array_keys(EntityLimit::METRIC_TYPES)),
-            array_map(fn ($type) => "entity_limits.periods.$type", array_keys(EntityLimit::PERIOD_TYPES)),
+            array_map(
+                fn ($type) => "entity_limits.metric_types.$type",
+                array_keys(EntityLimit::METRIC_TYPES),
+            ),
+            array_map(
+                fn ($type) => "entity_limits.periods.$type",
+                array_keys(EntityLimit::PERIOD_TYPES),
+            ),
         );
 
         foreach (config('app.available_locales') as $locale) {
             foreach ($keys as $key) {
-                $this->assertTrue(Lang::has($key, $locale, false), "Missing $key in $locale");
+                $this->assertTrue(
+                    Lang::has(
+                        $key,
+                        $locale,
+                        false,
+                    ),
+                    "Missing $key in $locale",
+                );
             }
         }
     }

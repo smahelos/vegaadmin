@@ -29,16 +29,26 @@ final class StatisticsPeriodTest extends TestCase
     #[DataProvider('periods')]
     public function starts_on_the_first_day_of_the_month_the_given_months_back(StatisticsPeriod $period, string $expected): void
     {
-        $start = $period->start(new DateTimeImmutable('2026-10-24 15:30:00'));
+        $start = $period->start(
+            new DateTimeImmutable('2026-10-24 15:30:00'),
+        );
 
-        $this->assertSame($expected, $start->format('Y-m-d H:i:s'));
+        $this->assertSame(
+            $expected,
+            $start->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
     public function does_not_overflow_from_the_last_day_of_a_long_month(): void
     {
-        $start = StatisticsPeriod::MONTH->start(new DateTimeImmutable('2026-03-31 08:00:00'));
+        $start = StatisticsPeriod::MONTH->start(
+            new DateTimeImmutable('2026-03-31 08:00:00'),
+        );
 
-        $this->assertSame('2026-02-01', $start->format('Y-m-d'));
+        $this->assertSame(
+            '2026-02-01',
+            $start->format('Y-m-d'),
+        );
     }
 }

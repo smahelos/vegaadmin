@@ -21,7 +21,9 @@ class EloquentBankDtoRepository implements BankDtoRepository
             ->where('active', true)
             ->orderBy('code')
             ->get()
-            ->map(fn (Bank $bank): BankDTO => $this->mapper->toDto($bank))
+            ->map(
+                fn (Bank $bank): BankDTO => $this->mapper->toDto($bank),
+            )
             ->values()
             ->all();
     }

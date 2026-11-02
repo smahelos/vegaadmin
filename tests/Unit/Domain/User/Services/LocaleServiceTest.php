@@ -64,13 +64,22 @@ final class LocaleServiceTest extends TestCase
     #[Test]
     public function locale_from_country_maps_a_known_country_case_insensitively(): void
     {
-        $this->assertSame('cs', $this->service->localeFromCountry('cz'));
+        $this->assertSame(
+            'cs',
+            $this->service->localeFromCountry('cz'),
+        );
     }
 
     #[Test]
     public function locale_from_country_falls_back_for_an_unknown_or_missing_country(): void
     {
-        $this->assertSame('en', $this->service->localeFromCountry('US'));
-        $this->assertSame('en', $this->service->localeFromCountry(null));
+        $this->assertSame(
+            'en',
+            $this->service->localeFromCountry('US'),
+        );
+        $this->assertSame(
+            'en',
+            $this->service->localeFromCountry(null),
+        );
     }
 }

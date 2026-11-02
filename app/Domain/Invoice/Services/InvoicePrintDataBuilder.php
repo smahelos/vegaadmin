@@ -83,12 +83,14 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             return null;
         }
 
-        return $this->paymentMethods->findById(PaymentMethodId::fromInt($id))?->code;
+        return $this->paymentMethods->findById(
+            PaymentMethodId::fromInt($id),
+        )?->code;
     }
 
     private function toImmutableDate(?string $date): ?DateTimeImmutable
     {
-        if (! $date) {
+        if (!$date) {
             return null;
         }
         try {
@@ -100,7 +102,7 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
 
     private function dueDate(?DateTimeImmutable $issue, ?int $dueIn): ?InvoiceDueDate
     {
-        if (! $issue || $dueIn === null) {
+        if (!$issue || $dueIn === null) {
             return null;
         }
 

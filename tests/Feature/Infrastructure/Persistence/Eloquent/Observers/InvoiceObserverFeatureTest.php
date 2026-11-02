@@ -21,7 +21,10 @@ final class InvoiceObserverFeatureTest extends TestCase
 
         $invoice->update(['invoice_text' => 'Děkujeme za spolupráci']);
 
-        $this->assertSame(2, InvoiceProduct::where('invoice_id', $invoice->id)->count());
+        $this->assertSame(
+            2,
+            InvoiceProduct::where('invoice_id', $invoice->id)->count(),
+        );
     }
 
     #[Test]

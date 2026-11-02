@@ -24,7 +24,9 @@ class RedirectIfAuthenticated
             if (Auth::guard($guard)->check()) {
                 // If request is to admin area and using backpack guard
                 if ($request->is('admin*') || $guard === 'backpack') {
-                    return redirect(backpack_url('dashboard'));
+                    return redirect(
+                        backpack_url('dashboard'),
+                    );
                 }
 
                 // For frontend guard or without specified guard

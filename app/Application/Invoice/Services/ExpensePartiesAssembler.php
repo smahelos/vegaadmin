@@ -69,7 +69,7 @@ final class ExpensePartiesAssembler
             throw new BankAccountNotFoundException($id);
         }
         $sameAccount = $stored?->bankAccountId?->equals($id) === true && $stored->contactId?->equals($data->contactId) === true;
-        if ($account->isArchived() && ! $sameAccount) {
+        if ($account->isArchived() && !$sameAccount) {
             throw new ArchivedReferenceSelectedException($id);
         }
 

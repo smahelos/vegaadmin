@@ -34,7 +34,9 @@ class EntityLimitCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $response = $this->get(backpack_url('entity-limit'));
+        $response = $this->get(
+            backpack_url('entity-limit'),
+        );
 
         $response->assertStatus(403);
     }
@@ -54,14 +56,20 @@ class EntityLimitCrudControllerTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->post(backpack_url('entity-limit'), $limitData);
+        $response = $this->post(
+            backpack_url('entity-limit'),
+            $limitData,
+        );
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('entity_limits', [
-            'permission_name' => $testLimitPermissionName,
-            'entity_type' => 'invoice',
-            'limit_value' => 50,
-        ]);
+        $this->assertDatabaseHas(
+            'entity_limits',
+            [
+                'permission_name' => $testLimitPermissionName,
+                'entity_type' => 'invoice',
+                'limit_value' => 50,
+            ],
+        );
     }
 
     #[Test]
@@ -69,17 +77,22 @@ class EntityLimitCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $limit = EntityLimit::factory()->create([
-            'permission_name' => 'original_limit',
-            'entity_type' => 'invoice',
-            'limit_value' => 10,
-        ]);
+        $limit = EntityLimit::factory()->create(
+            [
+                'permission_name' => 'original_limit',
+                'entity_type' => 'invoice',
+                'limit_value' => 10,
+            ],
+        );
 
         // Debug: verify the limit was created
-        $this->assertDatabaseHas('entity_limits', [
-            'id' => $limit->id,
-            'permission_name' => 'original_limit',
-        ]);
+        $this->assertDatabaseHas(
+            'entity_limits',
+            [
+                'id' => $limit->id,
+                'permission_name' => 'original_limit',
+            ],
+        );
 
         $updateData = [
             'permission_name' => 'updated_limit',
@@ -94,11 +107,14 @@ class EntityLimitCrudControllerTest extends TestCase
         // HTTP update has complex Backpack dependencies similar to other CRUD operations
         $limit->update($updateData);
 
-        $this->assertDatabaseHas('entity_limits', [
-            'id' => $limit->id,
-            'permission_name' => 'updated_limit',
-            'limit_value' => 20,
-        ]);
+        $this->assertDatabaseHas(
+            'entity_limits',
+            [
+                'id' => $limit->id,
+                'permission_name' => 'updated_limit',
+                'limit_value' => 20,
+            ],
+        );
     }
 
     #[Test]
@@ -108,7 +124,9 @@ class EntityLimitCrudControllerTest extends TestCase
 
         $limit = EntityLimit::factory()->create();
 
-        $response = $this->delete(backpack_url('entity-limit/' . $limit->id));
+        $response = $this->delete(
+            backpack_url('entity-limit/' . $limit->id),
+        );
 
         // Backpack may return 200 for successful deletes or redirect
         $this->assertTrue(
@@ -131,32 +149,43 @@ class EntityLimitCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Test missing required fields
-        $response = $this->post(backpack_url('entity-limit'), []);
+        $response = $this->post(
+            backpack_url('entity-limit'),
+            [],
+        );
 
-        $response->assertSessionHasErrors([
-            'permission_name',
-            'entity_type',
-            'metric_type',
-            'period_type',
-        ]);
+        $response->assertSessionHasErrors(
+            [
+                'permission_name',
+                'entity_type',
+                'metric_type',
+                'period_type',
+            ],
+        );
 
         // Test invalid entity type
-        $response = $this->post(backpack_url('entity-limit'), [
-            'permission_name' => 'test_limit',
-            'entity_type' => 'invalid_type',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-        ]);
+        $response = $this->post(
+            backpack_url('entity-limit'),
+            [
+                'permission_name' => 'test_limit',
+                'entity_type' => 'invalid_type',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+            ],
+        );
 
         $response->assertSessionHasErrors('entity_type');
 
         // Test missing limit_value for count limit
-        $response = $this->post(backpack_url('entity-limit'), [
-            'permission_name' => 'test_limit',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-        ]);
+        $response = $this->post(
+            backpack_url('entity-limit'),
+            [
+                'permission_name' => 'test_limit',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+            ],
+        );
 
         $response->assertSessionHasErrors('limit_value');
     }
@@ -167,16 +196,21 @@ class EntityLimitCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create first limit
-        EntityLimit::factory()->create(['permission_name' => $uniquePermissionName = 'unique_limit_name_' . Str::random(10)]);
+        EntityLimit::factory()->create(
+            ['permission_name' => $uniquePermissionName = 'unique_limit_name_' . Str::random(10)],
+        );
 
         // Try to create second limit with same name
-        $response = $this->post(backpack_url('entity-limit'), [
-            'permission_name' => $uniquePermissionName,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 10,
-        ]);
+        $response = $this->post(
+            backpack_url('entity-limit'),
+            [
+                'permission_name' => $uniquePermissionName,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 10,
+            ],
+        );
 
         $response->assertSessionHasErrors('permission_name');
     }

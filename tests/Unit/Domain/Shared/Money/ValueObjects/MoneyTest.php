@@ -100,7 +100,9 @@ final class MoneyTest extends TestCase
         $sum = $a->add($b); // 11.0 -> normalized to 11
         $this->assertSame('11', $sum->getAmount());
 
-        $diff = $sum->subtract(Money::fromString('0.50', 'CZK')); // 10.5
+        $diff = $sum->subtract(
+            Money::fromString('0.50', 'CZK'),
+        ); // 10.5
         $this->assertSame('10.5', $diff->getAmount());
     }
 
@@ -110,8 +112,12 @@ final class MoneyTest extends TestCase
         $a = Money::fromString('10.50', 'USD');
         $b = Money::fromString('10.5', 'USD');
         $c = Money::fromString('10.50', 'EUR');
-        $this->assertTrue($a->equals($b));
-        $this->assertFalse($a->equals($c));
+        $this->assertTrue(
+            $a->equals($b),
+        );
+        $this->assertFalse(
+            $a->equals($c),
+        );
     }
 
     #[Test]
@@ -281,27 +287,44 @@ final class MoneyTest extends TestCase
     public function multiply_by_tax_share_rounds_half_up_to_cents(): void
     {
         // 0.25 * 0.21 = 0.0525 -> 0.05; 0.10 * 0.21 = 0.021 -> 0.02; 0.50 * 0.21 = 0.105 -> 0.11
-        $this->assertSame('0.05', Money::fromString('0.25', 'CZK')->multiplyBy('0.21')->getAmount());
-        $this->assertSame('0.02', Money::fromString('0.10', 'CZK')->multiplyBy('0.21')->getAmount());
-        $this->assertSame('0.11', Money::fromString('0.50', 'CZK')->multiplyBy('0.21')->getAmount());
+        $this->assertSame(
+            '0.05',
+            Money::fromString('0.25', 'CZK')->multiplyBy('0.21')->getAmount(),
+        );
+        $this->assertSame(
+            '0.02',
+            Money::fromString('0.10', 'CZK')->multiplyBy('0.21')->getAmount(),
+        );
+        $this->assertSame(
+            '0.11',
+            Money::fromString('0.50', 'CZK')->multiplyBy('0.21')->getAmount(),
+        );
     }
 
     #[Test]
     public function multiply_by_zero_is_zero(): void
     {
-        $this->assertSame('0', Money::fromString('100', 'EUR')->multiplyBy('0')->getAmount());
-        $this->assertSame('0', Money::fromString('0', 'EUR')->multiplyBy('1.5')->getAmount());
+        $this->assertSame(
+            '0',
+            Money::fromString('100', 'EUR')->multiplyBy('0')->getAmount(),
+        );
+        $this->assertSame(
+            '0',
+            Money::fromString('0', 'EUR')->multiplyBy('1.5')->getAmount(),
+        );
     }
 
     #[Test]
     public function multiply_by_rejects_a_negative_or_malformed_factor(): void
     {
-        foreach ([
-            '-1',
-            '1,5',
-            '',
-            '1e3',
-        ] as $factor) {
+        foreach (
+            [
+                '-1',
+                '1,5',
+                '',
+                '1e3',
+            ] as $factor
+        ) {
             try {
                 Money::fromString('10', 'CZK')->multiplyBy($factor);
                 $this->fail('Accepted factor ' . $factor);
@@ -315,8 +338,13 @@ final class MoneyTest extends TestCase
     public function convert_same_currency_returns_self_amount(): void
     {
         $m = Money::fromString('10.50', 'EUR');
-        $copy = $m->convertTo('EUR', $this->exchangeAt(null));
-        $this->assertTrue($m->equals($copy));
+        $copy = $m->convertTo(
+            'EUR',
+            $this->exchangeAt(null),
+        );
+        $this->assertTrue(
+            $m->equals($copy),
+        );
     }
 
     #[Test]
@@ -376,7 +404,10 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('0', 'EUR');
         $exchange = $this->exchangeAt(0.000000001);
-        $this->assertSame('0', $m->convertTo('USD', $exchange)->getAmount());
+        $this->assertSame(
+            '0',
+            $m->convertTo('USD', $exchange)->getAmount(),
+        );
     }
 
     #[Test]

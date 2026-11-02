@@ -39,7 +39,9 @@ class DatabaseHealthCheckCommand extends Command
         foreach ($metrics as $metric) {
             // Display metric
             $status = $this->getStatusIcon($metric['status']);
-            $this->line("  {$status} {$metric['name']}: {$metric['value']} {$metric['unit']} [{$metric['status']}]");
+            $this->line(
+                "  {$status} {$metric['name']}: {$metric['value']} {$metric['unit']} [{$metric['status']}]",
+            );
 
             if ($metric['recommendation']) {
                 $this->line("    💡 {$metric['recommendation']}");
@@ -47,14 +49,16 @@ class DatabaseHealthCheckCommand extends Command
 
             // Store in database if requested
             if ($store) {
-                DatabaseHealthMetric::create([
-                    'metric_name' => $metric['name'],
-                    'metric_value' => $metric['value'],
-                    'metric_unit' => $metric['unit'],
-                    'status' => $metric['status'],
-                    'recommendation' => $metric['recommendation'],
-                    'measured_at' => now(),
-                ]);
+                DatabaseHealthMetric::create(
+                    [
+                        'metric_name' => $metric['name'],
+                        'metric_value' => $metric['value'],
+                        'metric_unit' => $metric['unit'],
+                        'status' => $metric['status'],
+                        'recommendation' => $metric['recommendation'],
+                        'measured_at' => now(),
+                    ],
+                );
             }
 
             // Create alert if critical and alerts enabled
@@ -96,7 +100,10 @@ class DatabaseHealthCheckCommand extends Command
             $cacheInserts = DB::selectOne("SHOW STATUS LIKE 'Qcache_inserts'");
 
             if ($cacheHits && $cacheInserts && ($cacheHits->Value + $cacheInserts->Value) > 0) {
-                $hitRate = round(($cacheHits->Value / ($cacheHits->Value + $cacheInserts->Value)) * 100, 2);
+                $hitRate = round(
+                    ($cacheHits->Value / ($cacheHits->Value + $cacheInserts->Value)) * 100,
+                    2,
+                );
                 $metrics[] = [
                     'name' => 'query_cache_hit_rate',
                     'value' => $hitRate,
@@ -126,7 +133,10 @@ class DatabaseHealthCheckCommand extends Command
             $bufferPoolFree = DB::selectOne("SHOW STATUS LIKE 'Innodb_buffer_pool_pages_free'");
 
             if ($bufferPoolSize && $bufferPoolFree && $bufferPoolSize->Value > 0) {
-                $usage = round((1 - ($bufferPoolFree->Value / $bufferPoolSize->Value)) * 100, 2);
+                $usage = round(
+                    (1 - ($bufferPoolFree->Value / $bufferPoolSize->Value)) * 100,
+                    2,
+                );
                 $metrics[] = [
                     'name' => 'innodb_buffer_pool_usage',
                     'value' => $usage,
@@ -140,8 +150,15 @@ class DatabaseHealthCheckCommand extends Command
             $tableLocksWaited = DB::selectOne("SHOW STATUS LIKE 'Table_locks_waited'");
             $tableLocksImmediate = DB::selectOne("SHOW STATUS LIKE 'Table_locks_immediate'");
 
-            if ($tableLocksWaited && $tableLocksImmediate && ($tableLocksWaited->Value + $tableLocksImmediate->Value) > 0) {
-                $waitRate = round(($tableLocksWaited->Value / ($tableLocksWaited->Value + $tableLocksImmediate->Value)) * 100, 2);
+            if (
+                $tableLocksWaited
+                && $tableLocksImmediate
+                && ($tableLocksWaited->Value + $tableLocksImmediate->Value) > 0
+            ) {
+                $waitRate = round(
+                    ($tableLocksWaited->Value / ($tableLocksWaited->Value + $tableLocksImmediate->Value)) * 100,
+                    2,
+                );
                 $metrics[] = [
                     'name' => 'table_locks_wait_rate',
                     'value' => $waitRate,
@@ -165,19 +182,21 @@ class DatabaseHealthCheckCommand extends Command
     {
         $severity = $metric['status'] === 'critical' ? 'critical' : 'warning';
 
-        DatabaseHealthAlert::create([
-            'alert_type' => $metric['name'],
-            'severity' => $severity,
-            'message' => "Database health metric '{$metric['name']}' is {$metric['status']}: {$metric['value']} {$metric['unit']}",
-            'metric_data' => [
-                'metric_name' => $metric['name'],
-                'metric_value' => $metric['value'],
-                'metric_unit' => $metric['unit'],
-                'status' => $metric['status'],
-                'recommendation' => $metric['recommendation'],
+        DatabaseHealthAlert::create(
+            [
+                'alert_type' => $metric['name'],
+                'severity' => $severity,
+                'message' => "Database health metric '{$metric['name']}' is {$metric['status']}: {$metric['value']} {$metric['unit']}",
+                'metric_data' => [
+                    'metric_name' => $metric['name'],
+                    'metric_value' => $metric['value'],
+                    'metric_unit' => $metric['unit'],
+                    'status' => $metric['status'],
+                    'recommendation' => $metric['recommendation'],
+                ],
+                'resolved' => false,
             ],
-            'resolved' => false,
-        ]);
+        );
     }
 
     /**

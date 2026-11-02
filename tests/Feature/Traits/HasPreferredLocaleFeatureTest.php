@@ -12,29 +12,65 @@ class HasPreferredLocaleFeatureTest extends TestCase
     public function locale_from_country_returns_correct_locales(): void
     {
         // Test known countries
-        $this->assertEquals('cs', TestLocaleModel::localeFromCountry('CZ'));
-        $this->assertEquals('cs', TestLocaleModel::localeFromCountry('cz'));
-        $this->assertEquals('cs', TestLocaleModel::localeFromCountry('CS'));
-        $this->assertEquals('sk', TestLocaleModel::localeFromCountry('SK'));
-        $this->assertEquals('de', TestLocaleModel::localeFromCountry('DE'));
-        $this->assertEquals('at', TestLocaleModel::localeFromCountry('AT'));
-        $this->assertEquals('ch', TestLocaleModel::localeFromCountry('CH'));
+        $this->assertEquals(
+            'cs',
+            TestLocaleModel::localeFromCountry('CZ'),
+        );
+        $this->assertEquals(
+            'cs',
+            TestLocaleModel::localeFromCountry('cz'),
+        );
+        $this->assertEquals(
+            'cs',
+            TestLocaleModel::localeFromCountry('CS'),
+        );
+        $this->assertEquals(
+            'sk',
+            TestLocaleModel::localeFromCountry('SK'),
+        );
+        $this->assertEquals(
+            'de',
+            TestLocaleModel::localeFromCountry('DE'),
+        );
+        $this->assertEquals(
+            'at',
+            TestLocaleModel::localeFromCountry('AT'),
+        );
+        $this->assertEquals(
+            'ch',
+            TestLocaleModel::localeFromCountry('CH'),
+        );
     }
 
     #[Test]
     public function locale_from_country_returns_default_for_unknown_country(): void
     {
         // Test unknown countries return fallback locale
-        $this->assertEquals('en', TestLocaleModel::localeFromCountry('US'));
-        $this->assertEquals('en', TestLocaleModel::localeFromCountry('FR'));
-        $this->assertEquals('en', TestLocaleModel::localeFromCountry('XYZ'));
+        $this->assertEquals(
+            'en',
+            TestLocaleModel::localeFromCountry('US'),
+        );
+        $this->assertEquals(
+            'en',
+            TestLocaleModel::localeFromCountry('FR'),
+        );
+        $this->assertEquals(
+            'en',
+            TestLocaleModel::localeFromCountry('XYZ'),
+        );
     }
 
     #[Test]
     public function locale_from_country_handles_null_input(): void
     {
-        $this->assertEquals('en', TestLocaleModel::localeFromCountry(null));
-        $this->assertEquals('en', TestLocaleModel::localeFromCountry(''));
+        $this->assertEquals(
+            'en',
+            TestLocaleModel::localeFromCountry(null),
+        );
+        $this->assertEquals(
+            'en',
+            TestLocaleModel::localeFromCountry(''),
+        );
     }
 
     #[Test]
@@ -86,7 +122,10 @@ class HasPreferredLocaleFeatureTest extends TestCase
         ];
 
         foreach ($expectedMappings as $country => $expectedLocale) {
-            $this->assertEquals($expectedLocale, TestLocaleModel::localeFromCountry($country));
+            $this->assertEquals(
+                $expectedLocale,
+                TestLocaleModel::localeFromCountry($country),
+            );
         }
     }
 }

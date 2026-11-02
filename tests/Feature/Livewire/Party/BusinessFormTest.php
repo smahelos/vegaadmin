@@ -52,7 +52,10 @@ final class BusinessFormTest extends TestCase
 
         $business = Business::query()->where('user_id', $this->user->id)->sole();
         $this->assertSame(self::VALID_COMPANY_NUMBER, $business->company_number);
-        $this->assertSame('Brno', Address::query()->where('business_id', $business->id)->value('city'));
+        $this->assertSame(
+            'Brno',
+            Address::query()->where('business_id', $business->id)->value('city'),
+        );
         $account = BankAccount::query()->where('business_id', $business->id)->sole();
         $this->assertSame('CZ1520100000002001234561', $account->iban);
         $this->assertSame($account->id, $business->fresh()?->default_bank_account_id);
@@ -69,8 +72,14 @@ final class BusinessFormTest extends TestCase
 
         $business = Business::query()->where('user_id', $this->user->id)->sole();
         $this->assertNull($business->company_number);
-        $this->assertSame(0, Address::query()->where('business_id', $business->id)->count());
-        $this->assertSame(0, BankAccount::query()->where('business_id', $business->id)->count());
+        $this->assertSame(
+            0,
+            Address::query()->where('business_id', $business->id)->count(),
+        );
+        $this->assertSame(
+            0,
+            BankAccount::query()->where('business_id', $business->id)->count(),
+        );
     }
 
     #[Test]
@@ -83,7 +92,10 @@ final class BusinessFormTest extends TestCase
             ->call('save')
             ->assertHasErrors(['party.companyNumber']);
 
-        $this->assertSame(0, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            0,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
@@ -128,16 +140,21 @@ final class BusinessFormTest extends TestCase
             ->call('save')
             ->assertHasErrors(['account.number']);
 
-        $this->assertSame(0, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            0,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
     public function a_czech_company_number_of_another_business_blocks_the_save_and_points_to_it(): void
     {
-        $existing = Business::factory()->archived()->create([
-            'user_id' => $this->user->id,
-            'company_number' => self::VALID_COMPANY_NUMBER,
-        ]);
+        $existing = Business::factory()->archived()->create(
+            [
+                'user_id' => $this->user->id,
+                'company_number' => self::VALID_COMPANY_NUMBER,
+            ],
+        );
 
         Livewire::test(BusinessForm::class)
             ->set('party.name', 'Kopie')
@@ -145,10 +162,16 @@ final class BusinessFormTest extends TestCase
             ->set('party.companyNumber', self::VALID_COMPANY_NUMBER)
             ->call('save')
             ->assertSet('blockingDuplicate.archived', true)
-            ->assertSet('blockingDuplicate.url', route('frontend.businesses.show', ['business' => $existing->id]))
+            ->assertSet(
+                'blockingDuplicate.url',
+                route('frontend.businesses.show', ['business' => $existing->id]),
+            )
             ->assertNoRedirect();
 
-        $this->assertSame(1, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            1,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
@@ -164,10 +187,16 @@ final class BusinessFormTest extends TestCase
             ->call('save')
             ->assertCount('duplicateWarnings', 1)
             ->assertNoRedirect();
-        $this->assertSame(1, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            1,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
 
         $form->call('confirmDuplicates')->assertRedirect();
-        $this->assertSame(2, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            2,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
@@ -179,20 +208,28 @@ final class BusinessFormTest extends TestCase
         Livewire::test(BusinessForm::class)
             ->set('party.name', 'Druhá')
             ->call('save')
-            ->assertSet('limitMessage', __('businesses.messages.limit_exceeded'))
+            ->assertSet(
+                'limitMessage',
+                __('businesses.messages.limit_exceeded'),
+            )
             ->assertNoRedirect();
 
-        $this->assertSame(1, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            1,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]
     public function emptied_optional_fields_are_stored_empty(): void
     {
-        $business = Business::factory()->create([
-            'user_id' => $this->user->id,
-            'email' => 'old@example.test',
-            'phone' => '+420 123',
-        ]);
+        $business = Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'email' => 'old@example.test',
+                'phone' => '+420 123',
+            ],
+        );
         Address::factory()->create(['business_id' => $business->id]);
 
         Livewire::test(BusinessForm::class, ['businessId' => $business->id])
@@ -208,7 +245,10 @@ final class BusinessFormTest extends TestCase
         $business->refresh();
         $this->assertNull($business->email);
         $this->assertNull($business->phone);
-        $this->assertSame(0, Address::query()->where('business_id', $business->id)->count());
+        $this->assertSame(
+            0,
+            Address::query()->where('business_id', $business->id)->count(),
+        );
     }
 
     #[Test]
@@ -218,7 +258,14 @@ final class BusinessFormTest extends TestCase
 
         Livewire::test(BusinessForm::class)
             ->set('party.name', 'S logem')
-            ->set('logo', UploadedFile::fake()->image('logo.png', 200, 100))
+            ->set(
+                'logo',
+                UploadedFile::fake()->image(
+                    'logo.png',
+                    200,
+                    100,
+                ),
+            )
             ->call('save')
             ->assertHasNoErrors();
         $business = Business::query()->where('user_id', $this->user->id)->sole();
@@ -227,7 +274,14 @@ final class BusinessFormTest extends TestCase
         Storage::disk('public')->assertExists($first);
 
         Livewire::test(BusinessForm::class, ['businessId' => $business->id])
-            ->set('logo', UploadedFile::fake()->image('new.png', 300, 120))
+            ->set(
+                'logo',
+                UploadedFile::fake()->image(
+                    'new.png',
+                    300,
+                    120,
+                ),
+            )
             ->call('save')
             ->assertHasNoErrors();
         $second = $business->fresh()?->logo;
@@ -242,11 +296,21 @@ final class BusinessFormTest extends TestCase
 
         Livewire::test(BusinessForm::class)
             ->set('party.name', 'Bez loga')
-            ->set('logo', UploadedFile::fake()->create('logo.pdf', 10, 'application/pdf'))
+            ->set(
+                'logo',
+                UploadedFile::fake()->create(
+                    'logo.pdf',
+                    10,
+                    'application/pdf',
+                ),
+            )
             ->call('save')
             ->assertHasErrors(['logo']);
 
-        $this->assertSame(0, Business::query()->where('user_id', $this->user->id)->count());
+        $this->assertSame(
+            0,
+            Business::query()->where('user_id', $this->user->id)->count(),
+        );
     }
 
     #[Test]

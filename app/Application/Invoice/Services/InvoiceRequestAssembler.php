@@ -26,7 +26,9 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
 
         // Handle logo upload uniformly
         if (array_key_exists('invoice_logo', $validated) && $request->hasFile('invoice_logo')) {
-            $path = $this->handleInvoiceLogoUpload($request->file('invoice_logo'));
+            $path = $this->handleInvoiceLogoUpload(
+                $request->file('invoice_logo'),
+            );
             if ($path) {
                 $payload = $payload->withLogo($path);
             }
@@ -40,7 +42,7 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
      */
     private function handleInvoiceLogoUpload(UploadedFile|string|null $file): ?string
     {
-        if (! $file) {
+        if (!$file) {
             return null;
         }
 

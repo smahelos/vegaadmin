@@ -14,7 +14,9 @@ class LoginControllerFeatureTest extends TestCase
     public function guest_can_view_login_form(): void
     {
         $locale = config('app.locale');
-        $response = $this->get(route('frontend.login', ['locale' => $locale]));
+        $response = $this->get(
+            route('frontend.login', ['locale' => $locale]),
+        );
         $response->assertStatus(200);
         $response->assertViewIs('auth.login');
     }
@@ -24,19 +26,28 @@ class LoginControllerFeatureTest extends TestCase
     {
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $locale = config('app.locale');
-        $response = $this->from(route('frontend.login', ['locale' => $locale]))
-            ->post(route('frontend.login', ['locale' => $locale]), [
-                'email' => 'nouser@example.com',
-                'password' => 'wrong',
-            ]);
+        $response = $this->from(
+            route('frontend.login', ['locale' => $locale]),
+        )
+            ->post(
+                route('frontend.login', ['locale' => $locale]),
+                [
+                    'email' => 'nouser@example.com',
+                    'password' => 'wrong',
+                ],
+            );
 
         $response->assertStatus(302);
-        $response->assertRedirect(route('frontend.login', ['locale' => $locale]));
+        $response->assertRedirect(
+            route('frontend.login', ['locale' => $locale]),
+        );
         // Some flows may return generic failure without validation bag; accept either validation error or flash 'error'
         if (session()->has('errors')) {
             $response->assertSessionHasErrors('email');
         } else {
-            $this->assertTrue(session()->has('error'));
+            $this->assertTrue(
+                session()->has('error'),
+            );
         }
         $this->assertGuest('web');
     }
@@ -47,18 +58,25 @@ class LoginControllerFeatureTest extends TestCase
         $this->withoutMiddleware(VerifyCsrfToken::class);
         $locale = config('app.locale');
         $passwordPlain = 'Secret123!';
-        $user = User::factory()->create([
-            'email' => 'user_' . uniqid() . '@example.com',
-            'password' => Hash::make($passwordPlain),
-        ]);
+        $user = User::factory()->create(
+            [
+                'email' => 'user_' . uniqid() . '@example.com',
+                'password' => Hash::make($passwordPlain),
+            ],
+        );
 
-        $response = $this->post(route('frontend.login', ['locale' => $locale]), [
-            'email' => $user->email,
-            'password' => $passwordPlain,
-        ]);
+        $response = $this->post(
+            route('frontend.login', ['locale' => $locale]),
+            [
+                'email' => $user->email,
+                'password' => $passwordPlain,
+            ],
+        );
 
         $response->assertStatus(302);
-        $response->assertRedirect(route('frontend.dashboard', ['locale' => $locale]));
+        $response->assertRedirect(
+            route('frontend.dashboard', ['locale' => $locale]),
+        );
         $this->assertAuthenticatedAs($user, 'web');
     }
 
@@ -70,9 +88,13 @@ class LoginControllerFeatureTest extends TestCase
         $user = User::factory()->create();
         $this->actingAs($user, 'web');
 
-        $response = $this->post(route('frontend.logout', ['locale' => $locale]));
+        $response = $this->post(
+            route('frontend.logout', ['locale' => $locale]),
+        );
         $response->assertStatus(302);
-        $response->assertRedirect(route('home', ['locale' => $locale]));
+        $response->assertRedirect(
+            route('home', ['locale' => $locale]),
+        );
         $this->assertGuest('web');
     }
 }

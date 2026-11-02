@@ -32,7 +32,9 @@ class PageCategoryCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(PageCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/page-category');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/page-category',
+        );
         CRUD::setEntityNameStrings(
             __('pages.categories.entity.singular'),
             __('pages.categories.entity.plural'),
@@ -47,35 +49,49 @@ class PageCategoryCrudController extends CrudController
     protected function setupListOperation(): void
     {
         CRUD::column('name')
-            ->label(__('pages.categories.fields.name'))
+            ->label(
+                __('pages.categories.fields.name'),
+            )
             ->type('closure')
-            ->function(function ($entry) {
-                $currentLocale = app()->getLocale();
+            ->function(
+                function ($entry) {
+                    $currentLocale = app()->getLocale();
 
-                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
-            });
+                    return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
+                },
+            );
 
         CRUD::column('slug')
-            ->label(__('pages.categories.fields.slug'))
+            ->label(
+                __('pages.categories.fields.slug'),
+            )
             ->type('closure')
-            ->function(function ($entry) {
-                $currentLocale = app()->getLocale();
+            ->function(
+                function ($entry) {
+                    $currentLocale = app()->getLocale();
 
-                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
-            });
+                    return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
+                },
+            );
 
         CRUD::column('description')
-            ->label(__('pages.categories.fields.description'))
+            ->label(
+                __('pages.categories.fields.description'),
+            )
             ->type('closure')
-            ->function(function ($entry) {
-                $currentLocale = app()->getLocale();
-                $description = $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
+            ->function(
+                function ($entry) {
+                    $currentLocale = app()->getLocale();
+                    $description = $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
 
-                return \Str::limit($description, 100);
-            });
+                    return \Str::limit($description, 100);
+                },
+            );
 
         CRUD::column('pages_count')
-            ->label(__('pages.categories.fields.pages_count'))
+            ->label(
+                __('pages.categories.fields.pages_count'),
+            )
             ->type('closure')
             ->function(function ($entry) {
                 return $entry->pages_count;
@@ -83,7 +99,9 @@ class PageCategoryCrudController extends CrudController
             ->default('0');
 
         CRUD::column('created_at')
-            ->label(__('pages.categories.fields.created_at'));
+            ->label(
+                __('pages.categories.fields.created_at'),
+            );
     }
 
     /**
@@ -95,27 +113,33 @@ class PageCategoryCrudController extends CrudController
     {
         CRUD::setValidation(PageCategoryRequest::class);
 
-        CRUD::addField([
-            'name' => 'name',
-            'label' => __('pages.categories.fields.name'),
-            'type' => 'multilingual',
-            'hint' => __('pages.categories.hints.name'),
-        ]);
+        CRUD::addField(
+            [
+                'name' => 'name',
+                'label' => __('pages.categories.fields.name'),
+                'type' => 'multilingual',
+                'hint' => __('pages.categories.hints.name'),
+            ],
+        );
 
-        CRUD::addField([
-            'name' => 'slug',
-            'label' => __('pages.categories.fields.slug'),
-            'type' => 'multilingual',
-            'hint' => __('pages.categories.hints.slug'),
-        ]);
+        CRUD::addField(
+            [
+                'name' => 'slug',
+                'label' => __('pages.categories.fields.slug'),
+                'type' => 'multilingual',
+                'hint' => __('pages.categories.hints.slug'),
+            ],
+        );
 
-        CRUD::addField([
-            'name' => 'description',
-            'label' => __('pages.categories.fields.description'),
-            'type' => 'multilingual',
-            'field_type' => 'textarea',
-            'attributes' => ['rows' => 4],
-        ]);
+        CRUD::addField(
+            [
+                'name' => 'description',
+                'label' => __('pages.categories.fields.description'),
+                'type' => 'multilingual',
+                'field_type' => 'textarea',
+                'attributes' => ['rows' => 4],
+            ],
+        );
     }
 
     /**
@@ -140,11 +164,15 @@ class PageCategoryCrudController extends CrudController
 
         // Add more detailed columns for show view
         CRUD::column('created_at')
-            ->label(__('pages.categories.fields.created_at'))
+            ->label(
+                __('pages.categories.fields.created_at'),
+            )
             ->type('datetime');
 
         CRUD::column('updated_at')
-            ->label(__('pages.categories.fields.updated_at'))
+            ->label(
+                __('pages.categories.fields.updated_at'),
+            )
             ->type('datetime');
     }
 }

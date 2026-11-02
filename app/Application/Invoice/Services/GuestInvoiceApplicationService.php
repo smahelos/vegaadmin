@@ -62,7 +62,10 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
 
         Session::put('last_guest_invoice_token', $token);
         Session::put('last_guest_invoice_number', $validatedData['invoice_vs'] ?? null);
-        Session::put('last_guest_invoice_expires', now()->addMinutes(10)->timestamp);
+        Session::put(
+            'last_guest_invoice_expires',
+            now()->addMinutes(10)->timestamp,
+        );
 
         $qrCodeBase64 = null;
         try {
@@ -89,7 +92,7 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             ]),
             'token' => $token,
             'qr_code' => $qrCodeBase64,
-            'has_qr_code' => ! empty($qrCodeBase64),
+            'has_qr_code' => !empty($qrCodeBase64),
         ];
     }
 

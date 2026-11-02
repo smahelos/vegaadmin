@@ -204,43 +204,54 @@ class ProductListSelect extends Component
             // Explicit preloading of tax rates
             $query = Product::with(['tax'])
                 ->where('user_id', Auth::id())
-                ->when($searchTerm, function ($query) use ($searchTerm): void {
-                    $query->where(function ($q) use ($searchTerm): void {
-                        $q->where(
-                            'name',
-                            'like',
-                            "%{$searchTerm}%",
-                        )
-                            ->orWhere(
-                                'description',
-                                'like',
-                                "%{$searchTerm}%",
-                            );
-                    });
-                })
+                ->when(
+                    $searchTerm,
+                    function ($query) use ($searchTerm): void {
+                        $query->where(
+                            function ($q) use ($searchTerm): void {
+                                $q->where(
+                                    'name',
+                                    'like',
+                                    "%{$searchTerm}%",
+                                )
+                                    ->orWhere(
+                                        'description',
+                                        'like',
+                                        "%{$searchTerm}%",
+                                    );
+                            },
+                        );
+                    },
+                )
                 ->orderBy($this->sortColumn(), $this->sortDirection());
 
             // If we have selected products, exclude them from results
-            if (! empty($this->selectedProductIds)) {
+            if (!empty($this->selectedProductIds)) {
                 $query->whereNotIn('id', $this->selectedProductIds);
             }
 
             $products = $query->paginate($this->perPage);
 
-            return view('livewire.product.product-list-select', [
-                'products' => $products,
-                'hasData' => $products->total() > 0,
-            ]);
+            return view(
+                'livewire.product.product-list-select',
+                [
+                    'products' => $products,
+                    'hasData' => $products->total() > 0,
+                ],
+            );
         } catch (Throwable $e) {
             Log::error('Loading products for selection failed', ['exception' => $e]);
             $this->errorMessage = __('products.messages.error_loading');
 
             // Return empty products collection in case of error
-            return view('livewire.product.product-list-select', [
-                'products' => Product::where('id', 0)->paginate(10), // Empty paginator
-                'hasData' => false,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            return view(
+                'livewire.product.product-list-select',
+                [
+                    'products' => Product::where('id', 0)->paginate(10), // Empty paginator
+                    'hasData' => false,
+                    'errorMessage' => $this->errorMessage,
+                ],
+            );
         }
     }
 }

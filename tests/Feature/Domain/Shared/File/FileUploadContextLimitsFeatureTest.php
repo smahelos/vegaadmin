@@ -37,7 +37,9 @@ class FileUploadContextLimitsFeatureTest extends TestCase
         ); // 600 KB exceeds 2048 KB
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.size_exceeded', ['attribute' => ':attribute']),
+        );
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -73,7 +75,9 @@ class FileUploadContextLimitsFeatureTest extends TestCase
         );
 
         $this->assertNotNull($path);
-        $this->assertTrue(Storage::disk('public')->exists($path));
+        $this->assertTrue(
+            Storage::disk('public')->exists($path),
+        );
     }
 
     #[Test]
@@ -85,7 +89,9 @@ class FileUploadContextLimitsFeatureTest extends TestCase
             'application/pdf',
         );
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']),
+        );
         $this->service->handleFileUpload(
             $this->normalize($pdf),
             'invoice_logo',

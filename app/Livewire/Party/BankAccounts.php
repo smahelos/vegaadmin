@@ -57,16 +57,27 @@ final class BankAccounts extends Component
         string $ownerType,
         int $ownerId,
     ): void {
-        abort_unless(in_array($ownerType, [self::OWNER_BUSINESS, self::OWNER_CONTACT], true), 404);
+        abort_unless(
+            in_array(
+                $ownerType,
+                [self::OWNER_BUSINESS, self::OWNER_CONTACT],
+                true,
+            ),
+            404,
+        );
         $this->ownerType = $ownerType;
         $this->ownerId = $ownerId;
-        $this->requirePermission($this->permission('view'));
+        $this->requirePermission(
+            $this->permission('view'),
+        );
         $accounts->listForOwner($this->userId(), $this->owner());
     }
 
     public function add(): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $this->account->reset();
         $this->account->resetErrorBag();
         $this->editingId = null;
@@ -75,9 +86,17 @@ final class BankAccounts extends Component
 
     public function edit(BankAccountApplicationService $accounts, int $id): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $this->account->resetErrorBag();
-        $this->account->fillFromAccount($accounts->getForOwner($this->userId(), $this->owner(), BankAccountId::fromInt($id)));
+        $this->account->fillFromAccount(
+            $accounts->getForOwner(
+                $this->userId(),
+                $this->owner(),
+                BankAccountId::fromInt($id),
+            ),
+        );
         $this->editingId = $id;
         $this->editing = true;
     }
@@ -93,7 +112,9 @@ final class BankAccounts extends Component
 
     public function save(BankAccountApplicationService $accounts): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $this->account->validate();
 
         if ($this->editingId === null) {
@@ -117,7 +138,9 @@ final class BankAccounts extends Component
 
     public function archive(BankAccountApplicationService $accounts, int $id): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $this->errorMessage = null;
         $this->successMessage = null;
         $newDefault = $this->archivingId === $id && $this->newDefault !== ''
@@ -147,7 +170,9 @@ final class BankAccounts extends Component
 
     public function restore(BankAccountApplicationService $accounts, int $id): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $accounts->restore(
             $this->userId(),
             $this->owner(),
@@ -158,7 +183,9 @@ final class BankAccounts extends Component
 
     public function makeDefault(BankAccountApplicationService $accounts, int $id): void
     {
-        $this->requirePermission($this->permission('update'));
+        $this->requirePermission(
+            $this->permission('update'),
+        );
         $this->errorMessage = null;
         $this->successMessage = null;
 
@@ -183,26 +210,35 @@ final class BankAccounts extends Component
         $ownerAccounts = $accounts->listForOwner($userId, $this->owner());
         $newDefaultOptions = [];
         foreach ($ownerAccounts as $candidate) {
-            if (! $candidate->isArchived() && $candidate->id->value !== $this->archivingId) {
+            if (!$candidate->isArchived() && $candidate->id->value !== $this->archivingId) {
                 $newDefaultOptions[$candidate->id->value] = $candidate->label ?? $candidate->account->formattedIban();
             }
         }
 
-        return view('livewire.party.bank-accounts', [
-            'accounts' => $ownerAccounts,
-            'newDefaultOptions' => $newDefaultOptions,
-            'defaultId' => $accounts->findDefaultId($userId, $this->owner()),
-            'canUpdate' => $this->userCan($this->permission('update')),
-            'bankOptions' => $this->bankOptions($this->account->country),
-            'countries' => $this->countryOptions(),
-        ]);
+        return view(
+            'livewire.party.bank-accounts',
+            [
+                'accounts' => $ownerAccounts,
+                'newDefaultOptions' => $newDefaultOptions,
+                'defaultId' => $accounts->findDefaultId($userId, $this->owner()),
+                'canUpdate' => $this->userCan(
+                    $this->permission('update'),
+                ),
+                'bankOptions' => $this->bankOptions($this->account->country),
+                'countries' => $this->countryOptions(),
+            ],
+        );
     }
 
     private function owner(): AccountOwner
     {
         return $this->ownerType === self::OWNER_BUSINESS
-            ? AccountOwner::business(BusinessId::fromInt($this->ownerId))
-            : AccountOwner::contact(ContactId::fromInt($this->ownerId));
+            ? AccountOwner::business(
+                BusinessId::fromInt($this->ownerId),
+            )
+            : AccountOwner::contact(
+                ContactId::fromInt($this->ownerId),
+            );
     }
 
     private function permission(string $action): string

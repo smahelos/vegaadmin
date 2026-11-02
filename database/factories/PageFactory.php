@@ -48,10 +48,12 @@ class PageFactory extends Factory
      */
     public function published(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'published' => true,
-            'publishing_start' => $this->faker->dateTimeBetween('-1 year', 'now'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'published' => true,
+                'publishing_start' => $this->faker->dateTimeBetween('-1 year', 'now'),
+            ],
+        );
     }
 
     /**
@@ -59,11 +61,13 @@ class PageFactory extends Factory
      */
     public function draft(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'published' => false,
-            'publishing_start' => null,
-            'publishing_end' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'published' => false,
+                'publishing_start' => null,
+                'publishing_end' => null,
+            ],
+        );
     }
 
     /**
@@ -71,9 +75,11 @@ class PageFactory extends Factory
      */
     public function withParent(?Page $parent = null): static
     {
-        return $this->state(fn (array $attributes) => [
-            'parent_id' => $parent?->id ?? Page::factory()->create()->id,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'parent_id' => $parent?->id ?? Page::factory()->create()->id,
+            ],
+        );
     }
 
     /**
@@ -91,8 +97,10 @@ class PageFactory extends Factory
      */
     public function inCategory(PageCategory $category): static
     {
-        return $this->state(fn (array $attributes) => [
-            'category_id' => $category->id,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'category_id' => $category->id,
+            ],
+        );
     }
 }

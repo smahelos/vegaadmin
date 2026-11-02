@@ -127,6 +127,8 @@ final class DatabaseMonitorCommandFeatureTest extends TestCase
         $output = Artisan::output();
 
         $this->assertIsString($output);
-        $this->assertNotEmpty(trim($output));
+        $this->assertNotEmpty(
+            trim($output),
+        );
     }
 }

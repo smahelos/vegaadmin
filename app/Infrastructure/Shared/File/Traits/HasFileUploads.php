@@ -84,7 +84,10 @@ trait HasFileUploads
             'bmp',
         ];
 
-        return in_array(strtolower($extension), $imageExtensions);
+        return in_array(
+            strtolower($extension),
+            $imageExtensions,
+        );
     }
 
     /**

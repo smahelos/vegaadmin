@@ -23,7 +23,10 @@ trait ActsForUser
 
     protected function requirePermission(string $permission): void
     {
-        abort_unless($this->userCan($permission), 403);
+        abort_unless(
+            $this->userCan($permission),
+            403,
+        );
     }
 
     protected function userCan(string $permission): bool

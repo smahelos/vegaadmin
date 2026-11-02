@@ -34,8 +34,16 @@ final class InvoiceContactControllerTest extends TestCase
     {
         $invoice = $this->invoiceOf(User::factory()->create());
 
-        $this->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))->assertRedirect(route('frontend.login'));
-        $this->post(route('frontend.invoices.link-contact', ['invoice' => $invoice->id]))->assertRedirect(route('frontend.login'));
+        $this->post(
+            route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
+        )->assertRedirect(
+            route('frontend.login'),
+        );
+        $this->post(
+            route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
+        )->assertRedirect(
+            route('frontend.login'),
+        );
     }
 
     #[Test]
@@ -45,10 +53,14 @@ final class InvoiceContactControllerTest extends TestCase
         $invoice = $this->invoiceOf($user);
 
         $this->actingAs($user)
-            ->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))
+            ->post(
+                route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
+            )
             ->assertForbidden();
         $this->actingAs($user)
-            ->post(route('frontend.invoices.link-contact', ['invoice' => $invoice->id]))
+            ->post(
+                route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
+            )
             ->assertForbidden();
         $this->assertSame(0, Contact::query()->count());
     }
@@ -61,10 +73,15 @@ final class InvoiceContactControllerTest extends TestCase
         $contact = $this->contactOf($user, self::CUSTOMER_NUMBER);
 
         $this->actingAs($user)
-            ->post(route('frontend.invoices.save-to-contacts', ['invoice' => $foreign->id]))
+            ->post(
+                route('frontend.invoices.save-to-contacts', ['invoice' => $foreign->id]),
+            )
             ->assertNotFound();
         $this->actingAs($user)
-            ->post(route('frontend.invoices.link-contact', ['invoice' => $foreign->id]), ['contact_id' => $contact->id])
+            ->post(
+                route('frontend.invoices.link-contact', ['invoice' => $foreign->id]),
+                ['contact_id' => $contact->id],
+            )
             ->assertNotFound();
         $this->assertNull($foreign->fresh()?->contact_id);
     }
@@ -76,10 +93,19 @@ final class InvoiceContactControllerTest extends TestCase
         $invoice = $this->invoiceOf($user);
 
         $this->actingAs($user)
-            ->from(route('frontend.invoice.show', ['id' => $invoice->id]))
-            ->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))
-            ->assertRedirect(route('frontend.invoice.show', ['id' => $invoice->id]))
-            ->assertSessionHas('success', __('invoices.messages.saved_to_contacts'));
+            ->from(
+                route('frontend.invoice.show', ['id' => $invoice->id]),
+            )
+            ->post(
+                route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
+            )
+            ->assertRedirect(
+                route('frontend.invoice.show', ['id' => $invoice->id]),
+            )
+            ->assertSessionHas(
+                'success',
+                __('invoices.messages.saved_to_contacts'),
+            );
 
         $contact = Contact::query()->where('user_id', $user->id)->sole();
         $this->assertSame('Odběratel s.r.o.', $contact->name);
@@ -94,11 +120,18 @@ final class InvoiceContactControllerTest extends TestCase
         $invoice = $this->invoiceOf($user);
         $invoice->update(['customer_company_number' => null]);
         $this->actingAs($user);
-        $this->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))->assertSessionHasNoErrors();
+        $this->post(
+            route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
+        )->assertSessionHasNoErrors();
         $contactId = $invoice->fresh()->contact_id;
-        $this->post(route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]))->assertSessionHasNoErrors();
+        $this->post(
+            route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
+        )->assertSessionHasNoErrors();
         $this->assertSame($contactId, $invoice->fresh()->contact_id);
-        $this->assertSame(1, Contact::where('user_id', $user->id)->count());
+        $this->assertSame(
+            1,
+            Contact::where('user_id', $user->id)->count(),
+        );
     }
 
     #[Test]
@@ -109,9 +142,15 @@ final class InvoiceContactControllerTest extends TestCase
         $contact = $this->contactOf($user, self::CUSTOMER_NUMBER);
 
         $this->actingAs($user)
-            ->post(route('frontend.invoices.link-contact', ['invoice' => $invoice->id]), ['contact_id' => $contact->id])
+            ->post(
+                route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
+                ['contact_id' => $contact->id],
+            )
             ->assertSessionHasNoErrors()
-            ->assertSessionHas('success', __('invoices.messages.contact_linked'));
+            ->assertSessionHas(
+                'success',
+                __('invoices.messages.contact_linked'),
+            );
 
         $this->assertSame($contact->id, $invoice->fresh()?->contact_id);
         $this->assertSame('Odběratel s.r.o.', $invoice->fresh()?->customer_name);
@@ -125,8 +164,13 @@ final class InvoiceContactControllerTest extends TestCase
         $contact = $this->contactOf($user, self::OTHER_NUMBER);
 
         $this->actingAs($user)
-            ->post(route('frontend.invoices.link-contact', ['invoice' => $invoice->id]), ['contact_id' => $contact->id])
-            ->assertSessionHasErrors(['customer_company_number' => __('parties.validation.contact_identity_changed')]);
+            ->post(
+                route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
+                ['contact_id' => $contact->id],
+            )
+            ->assertSessionHasErrors(
+                ['customer_company_number' => __('parties.validation.contact_identity_changed')],
+            );
 
         $this->assertNull($invoice->fresh()?->contact_id);
     }
@@ -139,7 +183,10 @@ final class InvoiceContactControllerTest extends TestCase
         $foreign = $this->contactOf(User::factory()->create(), self::CUSTOMER_NUMBER);
 
         $this->actingAs($user)
-            ->post(route('frontend.invoices.link-contact', ['invoice' => $invoice->id]), ['contact_id' => $foreign->id])
+            ->post(
+                route('frontend.invoices.link-contact', ['invoice' => $invoice->id]),
+                ['contact_id' => $foreign->id],
+            )
             ->assertSessionHasErrors('contact_id');
 
         $this->assertNull($invoice->fresh()?->contact_id);
@@ -147,19 +194,23 @@ final class InvoiceContactControllerTest extends TestCase
 
     private function invoiceOf(User $user): Invoice
     {
-        return Invoice::factory()->create([
-            'user_id' => $user->id,
-            'customer_name' => 'Odběratel s.r.o.',
-            'customer_company_number' => self::CUSTOMER_NUMBER,
-            'customer_registration_country' => 'CZ',
-        ]);
+        return Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'customer_name' => 'Odběratel s.r.o.',
+                'customer_company_number' => self::CUSTOMER_NUMBER,
+                'customer_registration_country' => 'CZ',
+            ],
+        );
     }
 
     private function contactOf(User $user, string $companyNumber): Contact
     {
-        return Contact::factory()->create([
-            'user_id' => $user->id,
-            'company_number' => $companyNumber,
-        ]);
+        return Contact::factory()->create(
+            [
+                'user_id' => $user->id,
+                'company_number' => $companyNumber,
+            ],
+        );
     }
 }

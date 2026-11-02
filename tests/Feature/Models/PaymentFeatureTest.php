@@ -47,10 +47,12 @@ class PaymentFeatureTest extends TestCase
     #[Test]
     public function payment_casts_attributes_correctly(): void
     {
-        $payment = Payment::factory()->create([
-            'amount' => '29.99',
-            'gateway_data' => ['key' => 'value'],
-        ]);
+        $payment = Payment::factory()->create(
+            [
+                'amount' => '29.99',
+                'gateway_data' => ['key' => 'value'],
+            ],
+        );
 
         // Laravel's decimal cast returns a string, not float
         $this->assertIsString($payment->amount);

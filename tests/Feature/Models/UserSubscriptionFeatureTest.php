@@ -28,7 +28,11 @@ class UserSubscriptionFeatureTest extends TestCase
         $subscriptions = $user->subscriptions;
 
         $this->assertCount(2, $subscriptions);
-        $this->assertTrue($subscriptions->contains($subscription1));
-        $this->assertTrue($subscriptions->contains($subscription2));
+        $this->assertTrue(
+            $subscriptions->contains($subscription1),
+        );
+        $this->assertTrue(
+            $subscriptions->contains($subscription2),
+        );
     }
 }

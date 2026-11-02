@@ -66,9 +66,11 @@ class BankRequest extends BaseEntityRequest
     public function prepareForValidation(): void
     {
         if ($this->has('country') && is_string($this->country)) {
-            $this->merge([
-                'country' => strtoupper($this->country),
-            ]);
+            $this->merge(
+                [
+                    'country' => strtoupper($this->country),
+                ],
+            );
         }
     }
 }

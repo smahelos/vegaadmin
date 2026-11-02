@@ -136,7 +136,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         }
 
         // Handle anonymous users
-        if (! $userId) {
+        if (!$userId) {
             $this->logger->log('debug', 'UELS: Cannot record usage for anonymous user');
 
             return false;
@@ -158,7 +158,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
             );
         }
 
-        if (! $hasPermission) {
+        if (!$hasPermission) {
             $this->logger->log(
                 'warning',
                 'UELS: Attempted to record usage without permission',
@@ -248,7 +248,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         string $metricType = 'count',
         string $periodType = 'daily',
     ): bool {
-        if (! $userId) {
+        if (!$userId) {
             return false;
         }
 
@@ -305,7 +305,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
             'user_permissions' => $this->permissionResolver->getUserPermissionLimits($userId, $entityType),
         ];
 
-        if (! $info['can_create']) {
+        if (!$info['can_create']) {
             return $info;
         }
 
@@ -334,7 +334,7 @@ class UniversalLimitService implements UniversalLimitServiceInterface
                     );
 
                     // Track best (largest) period type for this entity
-                    if (! $info['best_period'] || $this->isPeriodLarger($periodType, $info['best_period'])) {
+                    if (!$info['best_period'] || $this->isPeriodLarger($periodType, $info['best_period'])) {
                         $info['best_period'] = $periodType;
                     }
                     $limits[$metricType][$periodType]['limit'] = $limit;
@@ -372,15 +372,19 @@ class UniversalLimitService implements UniversalLimitServiceInterface
         string $metricType,
         string $periodType,
     ): int|float {
-        if (! $userId) {
+        if (!$userId) {
             return 0;
         }
 
         // A capacity limit has no usage rows: the user's active records are the usage
         if ($metricType === self::ACTIVE_METRIC) {
             return match (EntityType::tryFrom($entityType)) {
-                EntityType::BUSINESS => $this->businesses->countActiveForUser(UserId::fromInt($userId)),
-                EntityType::CONTACT => $this->contacts->countActiveForUser(UserId::fromInt($userId)),
+                EntityType::BUSINESS => $this->businesses->countActiveForUser(
+                    UserId::fromInt($userId),
+                ),
+                EntityType::CONTACT => $this->contacts->countActiveForUser(
+                    UserId::fromInt($userId),
+                ),
                 null => 0,
             };
         }
@@ -450,8 +454,11 @@ class UniversalLimitService implements UniversalLimitServiceInterface
 
             // Prefer higher effective capacity; on ties, prefer the larger period window
             if (
-                $effective > $bestEffective ||
-                ($effective === $bestEffective && $this->isPeriodLarger($periodType, $bestPeriod))
+                $effective > $bestEffective
+                || (
+                    $effective === $bestEffective
+                    && $this->isPeriodLarger($periodType, $bestPeriod)
+                )
             ) {
                 $bestEffective = $effective;
                 $bestPeriod = $periodType;

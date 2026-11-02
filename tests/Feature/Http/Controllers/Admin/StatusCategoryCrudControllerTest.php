@@ -25,25 +25,37 @@ class StatusCategoryCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         $category = StatusCategory::factory()->create();
-        $status = Status::factory()->create(['category_id' => $category->id, 'name' => 'Status ' . uniqid()]);
+        $status = Status::factory()->create(
+            ['category_id' => $category->id, 'name' => 'Status ' . uniqid()],
+        );
         $otherStatus = Status::factory()->create(['name' => 'Other ' . uniqid()]);
 
         $response = $this->get("/admin/status-category/{$category->id}/show");
 
         $response->assertOk();
-        $response->assertSee(__('statuses.categories.fields.statuses'));
-        $response->assertSeeInOrder([
-            '<th>' . __('statuses.fields.slug') . '</th>',
-            $status->name,
-            $status->slug,
-        ], false);
+        $response->assertSee(
+            __('statuses.categories.fields.statuses'),
+        );
+        $response->assertSeeInOrder(
+            [
+                '<th>' . __('statuses.fields.slug') . '</th>',
+                $status->name,
+                $status->slug,
+            ],
+            false,
+        );
         $response->assertDontSee($otherStatus->name);
-        $response->assertSeeInOrder([
-            __('statuses.categories.fields.statuses_count'),
-            '<span>',
-            '1',
-        ], false);
-        $response->assertSee(__('admin.general.created_at'));
+        $response->assertSeeInOrder(
+            [
+                __('statuses.categories.fields.statuses_count'),
+                '<span>',
+                '1',
+            ],
+            false,
+        );
+        $response->assertSee(
+            __('admin.general.created_at'),
+        );
     }
 
     #[Test]
@@ -60,11 +72,24 @@ class StatusCategoryCrudControllerTest extends TestCase
             'start' => 0,
             'length' => 100,
         ]);
-        $statusQueries = array_filter(DB::getQueryLog(), fn ($query) => str_starts_with($query['query'], 'select * from "statuses"'));
+        $statusQueries = array_filter(
+            DB::getQueryLog(),
+            fn ($query) => str_starts_with($query['query'], 'select * from "statuses"'),
+        );
 
         $response->assertOk();
-        $row = collect($response->json('data'))->first(fn ($row) => str_contains(implode('', $row), $category->name));
-        $this->assertMatchesRegularExpression('/status\?category_id=' . $category->id . '"[^>]*>\s*2\s*</', implode('', $row));
+        $row = collect(
+            $response->json('data'),
+        )->first(
+            fn ($row) => str_contains(
+                implode('', $row),
+                $category->name,
+            ),
+        );
+        $this->assertMatchesRegularExpression(
+            '/status\?category_id=' . $category->id . '"[^>]*>\s*2\s*</',
+            implode('', $row),
+        );
         $this->assertSame([], $statusQueries);
     }
 }

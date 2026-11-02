@@ -10,7 +10,9 @@ class IncomingFileFactory
     public static function fromUploadedFile(UploadedFile $file): IncomingFile
     {
         $originalName = $file->getClientOriginalName();
-        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
+        $extension = strtolower(
+            pathinfo($originalName, PATHINFO_EXTENSION),
+        );
         $mime = (string) $file->getClientMimeType();
         $path = $file->getRealPath() ?: $file->getPathname();
         $size = 0;

@@ -40,13 +40,19 @@ class CurrencyController extends Controller
      */
     public function getExchangeRate(Request $request): JsonResponse
     {
-        $request->validate([
-            'from' => 'required|string|size:3',
-            'to' => 'required|string|size:3',
-        ]);
+        $request->validate(
+            [
+                'from' => 'required|string|size:3',
+                'to' => 'required|string|size:3',
+            ],
+        );
 
-        $from = strtoupper($request->input('from'));
-        $to = strtoupper($request->input('to'));
+        $from = strtoupper(
+            $request->input('from'),
+        );
+        $to = strtoupper(
+            $request->input('to'),
+        );
 
         $rate = $this->currencyAppService->getExchangeRate($from, $to);
 
@@ -66,15 +72,21 @@ class CurrencyController extends Controller
      */
     public function convertCurrency(Request $request): JsonResponse
     {
-        $request->validate([
-            'amount' => 'required|numeric',
-            'from' => 'required|string|size:3',
-            'to' => 'required|string|size:3',
-        ]);
+        $request->validate(
+            [
+                'amount' => 'required|numeric',
+                'from' => 'required|string|size:3',
+                'to' => 'required|string|size:3',
+            ],
+        );
 
         $amount = (float) $request->input('amount');
-        $from = strtoupper($request->input('from'));
-        $to = strtoupper($request->input('to'));
+        $from = strtoupper(
+            $request->input('from'),
+        );
+        $to = strtoupper(
+            $request->input('to'),
+        );
 
         $convertedAmount = $this->currencyAppService->convert(
             $amount,
@@ -86,16 +98,18 @@ class CurrencyController extends Controller
             abort(404, 'Currency conversion not available');
         }
 
-        return response()->json([
-            'original' => [
-                'amount' => $amount,
-                'currency' => $from,
+        return response()->json(
+            [
+                'original' => [
+                    'amount' => $amount,
+                    'currency' => $from,
+                ],
+                'converted' => [
+                    'amount' => $convertedAmount,
+                    'currency' => $to,
+                ],
+                'rate' => $this->currencyAppService->getExchangeRate($from, $to),
             ],
-            'converted' => [
-                'amount' => $convertedAmount,
-                'currency' => $to,
-            ],
-            'rate' => $this->currencyAppService->getExchangeRate($from, $to),
-        ]);
+        );
     }
 }

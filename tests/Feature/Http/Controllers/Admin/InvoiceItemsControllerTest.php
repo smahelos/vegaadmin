@@ -36,28 +36,40 @@ final class InvoiceItemsControllerTest extends TestCase
     #[Test]
     public function the_catalog_is_scoped_to_the_invoice_owner_currency_search_and_active_products(): void
     {
-        $product = Product::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'name' => 'Shared consulting',
-            'currency' => 'CZK',
-            'price' => '123.45',
-            'is_active' => true,
-        ]);
-        Product::factory()->create(['name' => 'Shared consulting foreign owner', 'currency' => 'CZK']);
-        Product::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'name' => 'Shared EUR',
-            'currency' => 'EUR',
-        ]);
-        Product::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'name' => 'Shared inactive',
-            'currency' => 'CZK',
-            'is_active' => false,
-        ]);
-        $this->getJson($this->catalogUrl('Shared'))->assertOk()->assertJsonCount(1, 'data')
+        $product = Product::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'name' => 'Shared consulting',
+                'currency' => 'CZK',
+                'price' => '123.45',
+                'is_active' => true,
+            ],
+        );
+        Product::factory()->create(
+            ['name' => 'Shared consulting foreign owner', 'currency' => 'CZK'],
+        );
+        Product::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'name' => 'Shared EUR',
+                'currency' => 'EUR',
+            ],
+        );
+        Product::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'name' => 'Shared inactive',
+                'currency' => 'CZK',
+                'is_active' => false,
+            ],
+        );
+        $this->getJson(
+            $this->catalogUrl('Shared'),
+        )->assertOk()->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.product_id', $product->id)->assertJsonPath('data.0.price', '123.45');
-        $this->getJson($this->catalogUrl('No match'))->assertOk()->assertJsonCount(0, 'data');
+        $this->getJson(
+            $this->catalogUrl('No match'),
+        )->assertOk()->assertJsonCount(0, 'data');
     }
 
     #[Test]
@@ -68,17 +80,22 @@ final class InvoiceItemsControllerTest extends TestCase
             '>',
             0,
         )->firstOrFail();
-        $line = $this->invoiceItem([
-            'price' => '0.03',
-            'quantity' => '1.5',
-            'tax_rate' => (string) $tax->rate,
-        ]);
+        $line = $this->invoiceItem(
+            [
+                'price' => '0.03',
+                'quantity' => '1.5',
+                'tax_rate' => (string) $tax->rate,
+            ],
+        );
         $before = Invoice::count();
-        $response = $this->postJson('/admin/invoice-items/preview', [
-            'user_id' => $this->regularUser->id,
-            'payment_currency' => 'CZK',
-            'invoice-products' => [$line, $line],
-        ])->assertOk();
+        $response = $this->postJson(
+            '/admin/invoice-items/preview',
+            [
+                'user_id' => $this->regularUser->id,
+                'payment_currency' => 'CZK',
+                'invoice-products' => [$line, $line],
+            ],
+        )->assertOk();
         $this->assertSame($before, Invoice::count());
 
         [$business, $account] = $this->issuerOf($this->regularUser);
@@ -93,8 +110,14 @@ final class InvoiceItemsControllerTest extends TestCase
         );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
-        $this->assertEquals($response->json('data.total'), $invoice->payment_amount);
-        $this->assertSame('0.1', $response->json('data.subtotal'));
+        $this->assertEquals(
+            $response->json('data.total'),
+            $invoice->payment_amount,
+        );
+        $this->assertSame(
+            '0.1',
+            $response->json('data.subtotal'),
+        );
         $this->assertSame(2, $invoice->invoiceProducts()->count());
     }
 
@@ -102,11 +125,13 @@ final class InvoiceItemsControllerTest extends TestCase
     public function an_invoice_saves_catalog_and_custom_items_and_replaces_them_on_edit(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $product = Product::factory()->create([
-            'user_id' => $this->regularUser->id,
-            'price' => '100',
-            'currency' => 'CZK',
-        ]);
+        $product = Product::factory()->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'price' => '100',
+                'currency' => 'CZK',
+            ],
+        );
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -114,34 +139,44 @@ final class InvoiceItemsControllerTest extends TestCase
                 'user_id' => $this->regularUser->id,
                 'payment_amount' => '9999',
                 'invoice-products' => [
-                    $this->invoiceItem([
-                        'product_id' => (string) $product->id,
-                        'quantity' => '2',
-                        'price' => '125.50',
-                        'name' => 'Saved catalogue line',
-                    ]),
-                    $this->invoiceItem([
-                        'quantity' => '0.5',
-                        'price' => '100',
-                        'description' => 'Custom description',
-                    ]),
+                    $this->invoiceItem(
+                        [
+                            'product_id' => (string) $product->id,
+                            'quantity' => '2',
+                            'price' => '125.50',
+                            'name' => 'Saved catalogue line',
+                        ],
+                    ),
+                    $this->invoiceItem(
+                        [
+                            'quantity' => '0.5',
+                            'price' => '100',
+                            'description' => 'Custom description',
+                        ],
+                    ),
                 ],
             ],
         );
         $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
         $invoice = Invoice::where('invoice_vs', $data['invoice_vs'])->sole();
         $this->assertSame('301.00', $invoice->payment_amount);
-        $this->assertDatabaseHas('invoice_products', [
-            'invoice_id' => $invoice->id,
-            'product_id' => $product->id,
-            'price' => '125.50',
-            'is_custom_product' => false,
-        ]);
-        $this->assertDatabaseHas('invoice_products', [
-            'invoice_id' => $invoice->id,
-            'description' => 'Custom description',
-            'is_custom_product' => true,
-        ]);
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'price' => '125.50',
+                'is_custom_product' => false,
+            ],
+        );
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id,
+                'description' => 'Custom description',
+                'is_custom_product' => true,
+            ],
+        );
         $this->assertSame('100.00', $product->fresh()->price);
         $data['invoice-products'] = [$this->invoiceItem(['price' => '45.67', 'quantity' => '3'])];
         $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasNoErrors()->assertRedirect();
@@ -170,13 +205,19 @@ final class InvoiceItemsControllerTest extends TestCase
                 ],
             );
             $this->post('/admin/invoice', $data)->assertSessionHasNoErrors()->assertRedirect();
-            $this->assertDatabaseHas('invoices', [
-                'invoice_vs' => $data['invoice_vs'],
-                'business_id' => $business->id,
-                'payment_amount' => '100.00',
-            ]);
+            $this->assertDatabaseHas(
+                'invoices',
+                [
+                    'invoice_vs' => $data['invoice_vs'],
+                    'business_id' => $business->id,
+                    'payment_amount' => '100.00',
+                ],
+            );
         }
-        $this->assertSame(2, InvoiceProduct::where('product_id', $product->id)->count());
+        $this->assertSame(
+            2,
+            InvoiceProduct::where('product_id', $product->id)->count(),
+        );
     }
 
     #[Test]
@@ -184,13 +225,15 @@ final class InvoiceItemsControllerTest extends TestCase
     {
         $product = Product::factory()->create(['name' => 'Current catalogue name', 'price' => '999.99']);
         $invoice = Invoice::factory()->create(['user_id' => $product->user_id]);
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'product_id' => $product->id,
-            'name' => 'Saved name',
-            'price' => '17.23',
-            'quantity' => '2.500',
-        ]);
+        InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'name' => 'Saved name',
+                'price' => '17.23',
+                'quantity' => '2.500',
+            ],
+        );
         $this->get('/admin/invoice/' . $invoice->id . '/edit')->assertOk()
             ->assertSee('Saved name')->assertSee('17.23')->assertSee('2.500')->assertDontSee('Current catalogue name');
     }
@@ -199,7 +242,9 @@ final class InvoiceItemsControllerTest extends TestCase
     public function invalid_items_are_rejected_and_leave_existing_lines_untouched(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
-        $invoice = Invoice::factory()->create(['user_id' => $this->regularUser->id, 'business_id' => $business->id]);
+        $invoice = Invoice::factory()->create(
+            ['user_id' => $this->regularUser->id, 'business_id' => $business->id],
+        );
         $existing = InvoiceProduct::factory()->create(['invoice_id' => $invoice->id]);
         $data = $this->invoiceInput(
             $business,
@@ -207,19 +252,26 @@ final class InvoiceItemsControllerTest extends TestCase
             [
                 'user_id' => $this->regularUser->id,
                 'payment_amount' => '0',
-                'invoice-products' => [$this->invoiceItem([
-                    'quantity' => '-1',
-                    'currency' => 'EUR',
-                    'tax_rate' => '19.876',
-                ])],
+                'invoice-products' => [$this->invoiceItem(
+                    [
+                        'quantity' => '-1',
+                        'currency' => 'EUR',
+                        'tax_rate' => '19.876',
+                    ],
+                )],
             ],
         );
-        $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasErrors([
-            'invoice-products.0.quantity',
-            'invoice-products.0.currency',
-            'invoice-products.0.tax_rate',
-        ]);
-        $this->assertSame([$existing->id], $invoice->invoiceProducts()->pluck('id')->all());
+        $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasErrors(
+            [
+                'invoice-products.0.quantity',
+                'invoice-products.0.currency',
+                'invoice-products.0.tax_rate',
+            ],
+        );
+        $this->assertSame(
+            [$existing->id],
+            $invoice->invoiceProducts()->pluck('id')->all(),
+        );
     }
 
     #[Test]
@@ -246,7 +298,9 @@ final class InvoiceItemsControllerTest extends TestCase
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $product = Product::factory()->create();
-        $items = app(InvoiceProductWriteDataAssembler::class)->fromValidated([$this->invoiceItem(['product_id' => (string) $product->id])]);
+        $items = app(InvoiceProductWriteDataAssembler::class)->fromValidated(
+            [$this->invoiceItem(['product_id' => (string) $product->id])],
+        );
         $this->expectException(InvoiceNotFoundException::class);
         app(InvoiceCrudApplicationServiceInterface::class)->create(
             UserId::fromInt($this->regularUser->id),
@@ -283,10 +337,12 @@ final class InvoiceItemsControllerTest extends TestCase
 
     private function catalogUrl(string $search = ''): string
     {
-        return '/admin/invoice-items/catalog?' . http_build_query([
-            'user_id' => $this->regularUser->id,
-            'payment_currency' => 'CZK',
-            'q' => $search,
-        ]);
+        return '/admin/invoice-items/catalog?' . http_build_query(
+            [
+                'user_id' => $this->regularUser->id,
+                'payment_currency' => 'CZK',
+                'q' => $search,
+            ],
+        );
     }
 }

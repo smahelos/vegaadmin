@@ -69,10 +69,12 @@ final class UserFeatureTest extends TestCase
      */
     private function createTestUser(): void
     {
-        $this->user = User::factory()->create([
-            'name' => $this->faker->name,
-            'email' => $this->faker->unique()->safeEmail,
-        ]);
+        $this->user = User::factory()->create(
+            [
+                'name' => $this->faker->name,
+                'email' => $this->faker->unique()->safeEmail,
+            ],
+        );
     }
 
     #[Test]
@@ -83,25 +85,33 @@ final class UserFeatureTest extends TestCase
         $this->assertEmpty($this->user->contacts);
 
         // Create contacts for the user
-        $contact1 = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $contact1 = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
-        $contact2 = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $contact2 = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
         // Refresh the user to load relationships
         $this->user->refresh();
 
         // Assert relationship works
         $this->assertCount(2, $this->user->contacts()->get());
-        $this->assertTrue($this->user->contacts->contains($contact1));
-        $this->assertTrue($this->user->contacts->contains($contact2));
+        $this->assertTrue(
+            $this->user->contacts->contains($contact1),
+        );
+        $this->assertTrue(
+            $this->user->contacts->contains($contact2),
+        );
 
         // Assert all contacts belong to this user
         foreach ($this->user->contacts as $contact) {
@@ -117,25 +127,33 @@ final class UserFeatureTest extends TestCase
         $this->assertEmpty($this->user->businesses);
 
         // Create businesses for the user
-        $business1 = Business::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $business1 = Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
-        $business2 = Business::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $business2 = Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
         // Refresh the user to load relationships
         $this->user->refresh();
 
         // Assert relationship works
         $this->assertCount(2, $this->user->businesses()->get());
-        $this->assertTrue($this->user->businesses->contains($business1));
-        $this->assertTrue($this->user->businesses->contains($business2));
+        $this->assertTrue(
+            $this->user->businesses->contains($business1),
+        );
+        $this->assertTrue(
+            $this->user->businesses->contains($business2),
+        );
 
         // Assert all businesses belong to this user
         foreach ($this->user->businesses as $business) {
@@ -147,17 +165,21 @@ final class UserFeatureTest extends TestCase
     public function user_can_have_both_contacts_and_businesses(): void
     {
         // Create both contacts and businesses
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $contact = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
-        $business = Business::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $business = Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
         // Refresh the user
         $this->user->refresh();
@@ -165,25 +187,33 @@ final class UserFeatureTest extends TestCase
         // Assert both relationships work
         $this->assertCount(1, $this->user->contacts()->get());
         $this->assertCount(1, $this->user->businesses()->get());
-        $this->assertTrue($this->user->contacts->contains($contact));
-        $this->assertTrue($this->user->businesses->contains($business));
+        $this->assertTrue(
+            $this->user->contacts->contains($contact),
+        );
+        $this->assertTrue(
+            $this->user->businesses->contains($business),
+        );
     }
 
     #[Test]
     public function user_deletion_behavior_with_related_models(): void
     {
         // Create related models
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $contact = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
-        $business = Business::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => $this->faker->company,
-            'email' => $this->faker->unique()->companyEmail,
-        ]);
+        $business = Business::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => $this->faker->company,
+                'email' => $this->faker->unique()->companyEmail,
+            ],
+        );
 
         $userId = $this->user->id;
 
@@ -191,37 +221,59 @@ final class UserFeatureTest extends TestCase
         $this->user->delete();
 
         $this->assertSoftDeleted('users', ['id' => $userId]);
-        $this->assertSame($userId, Contact::findOrFail($contact->id)->user_id);
-        $this->assertSame($userId, Business::findOrFail($business->id)->user_id);
+        $this->assertSame(
+            $userId,
+            Contact::findOrFail($contact->id)->user_id,
+        );
+        $this->assertSame(
+            $userId,
+            Business::findOrFail($business->id)->user_id,
+        );
     }
 
     #[Test]
     public function user_role_assignment_and_checking(): void
     {
         // Initially no roles
-        $this->assertFalse($this->user->hasRole($this->adminRole));
-        $this->assertFalse($this->user->hasRole($this->userRole));
+        $this->assertFalse(
+            $this->user->hasRole($this->adminRole),
+        );
+        $this->assertFalse(
+            $this->user->hasRole($this->userRole),
+        );
 
         // Assign admin role
         $this->user->assignRole($this->adminRole);
         $this->user->refresh();
 
-        $this->assertTrue($this->user->hasRole($this->adminRole));
-        $this->assertFalse($this->user->hasRole($this->userRole));
+        $this->assertTrue(
+            $this->user->hasRole($this->adminRole),
+        );
+        $this->assertFalse(
+            $this->user->hasRole($this->userRole),
+        );
 
         // Assign user role as well (user can have multiple roles)
         $this->user->assignRole($this->userRole);
         $this->user->refresh();
 
-        $this->assertTrue($this->user->hasRole($this->adminRole));
-        $this->assertTrue($this->user->hasRole($this->userRole));
+        $this->assertTrue(
+            $this->user->hasRole($this->adminRole),
+        );
+        $this->assertTrue(
+            $this->user->hasRole($this->userRole),
+        );
 
         // Remove admin role
         $this->user->removeRole($this->adminRole);
         $this->user->refresh();
 
-        $this->assertFalse($this->user->hasRole($this->adminRole));
-        $this->assertTrue($this->user->hasRole($this->userRole));
+        $this->assertFalse(
+            $this->user->hasRole($this->adminRole),
+        );
+        $this->assertTrue(
+            $this->user->hasRole($this->userRole),
+        );
     }
 
     #[Test]
@@ -229,6 +281,9 @@ final class UserFeatureTest extends TestCase
     {
         $own = Invoice::factory()->create(['user_id' => $this->user->id, 'contact_id' => null]);
         Invoice::factory()->create();
-        $this->assertSame([$own->id], $this->user->invoices()->pluck('id')->all());
+        $this->assertSame(
+            [$own->id],
+            $this->user->invoices()->pluck('id')->all(),
+        );
     }
 }

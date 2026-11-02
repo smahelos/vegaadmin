@@ -33,29 +33,38 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     #[Test]
     public function create_for_guest_returns_view_with_user_logged_in_false(): void
     {
-        $response = $this->get(route('frontend.invoice.create.guest', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.invoice.create.guest', ['locale' => 'cs']),
+        );
         $response->assertOk();
         $response->assertViewIs('frontend.invoices.create');
-        $this->assertTrue($response->viewData('userLoggedIn') === false);
+        $this->assertTrue(
+            $response->viewData('userLoggedIn') === false,
+        );
     }
 
     #[Test]
     public function store_guest_validation_fails_with_missing_required_fields(): void
     {
         // Intentionally send only lang - validation should fail before controller logic executes
-        $response = $this->postJson(route('frontend.invoice.store.guest', ['locale' => 'cs']), ['lang' => 'cs']);
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            ['lang' => 'cs'],
+        );
         $response->assertStatus(422);
         $response->assertJsonStructure(['message', 'errors']);
         // Check a representative subset of required fields
-        $response->assertJsonValidationErrors([
-            'invoice_vs',
-            'payment_method_id',
-            'payment_currency',
-            'issue_date',
-            'due_in',
-            'payment_status_id',
-            'invoice-products',
-        ]);
+        $response->assertJsonValidationErrors(
+            [
+                'invoice_vs',
+                'payment_method_id',
+                'payment_currency',
+                'issue_date',
+                'due_in',
+                'payment_status_id',
+                'invoice-products',
+            ],
+        );
     }
 
     #[Test]
@@ -69,14 +78,16 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 100,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
+            'invoice-products' => json_encode(
+                [[
+                    'name' => 'Service',
+                    'quantity' => '1',
+                    'unit' => 'pieces',
+                    'price' => '100',
+                    'currency' => 'CZK',
+                    'tax_rate' => '0',
+                ]],
+            ),
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
@@ -98,16 +109,20 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $this->mock(InvoiceRequestAssemblerInterface::class)
             ->shouldReceive('assemble')
             ->once()
-            ->andReturn(new InvoiceMutationPayload($invoiceData, []));
+            ->andReturn(
+                new InvoiceMutationPayload($invoiceData, []),
+            );
 
         $this->mock(GuestInvoiceApplicationServiceInterface::class)
             ->shouldReceive('storeGuestInvoice')
             ->once()
-            ->andReturn([
-                'success' => true,
-                'token' => 'tok_' . uniqid(),
-                'message' => __('invoices.messages.created'),
-            ]);
+            ->andReturn(
+                [
+                    'success' => true,
+                    'token' => 'tok_' . uniqid(),
+                    'message' => __('invoices.messages.created'),
+                ],
+            );
 
         $payload = array_merge($invoiceData, ['lang' => 'cs']);
         $response = $this->postJson(
@@ -130,14 +145,16 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 50,
             'payment_currency' => 'CZK',
-            'invoice-products' => json_encode([[
-                'name' => 'Service',
-                'quantity' => '1',
-                'unit' => 'pieces',
-                'price' => '100',
-                'currency' => 'CZK',
-                'tax_rate' => '0',
-            ]]),
+            'invoice-products' => json_encode(
+                [[
+                    'name' => 'Service',
+                    'quantity' => '1',
+                    'unit' => 'pieces',
+                    'price' => '100',
+                    'currency' => 'CZK',
+                    'tax_rate' => '0',
+                ]],
+            ),
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 7,
@@ -158,12 +175,19 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $this->mock(InvoiceRequestAssemblerInterface::class)
             ->shouldReceive('assemble')
             ->once()
-            ->andReturn(new InvoiceMutationPayload($invoiceData, []));
+            ->andReturn(
+                new InvoiceMutationPayload($invoiceData, []),
+            );
         $this->mock(GuestInvoiceApplicationServiceInterface::class)
             ->shouldReceive('storeGuestInvoice')
             ->once()
-            ->andThrow(new \Exception('boom'));
-        $response = $this->postJson(route('frontend.invoice.store.guest', ['locale' => 'cs']), array_merge($invoiceData, ['lang' => 'cs']));
+            ->andThrow(
+                new \Exception('boom'),
+            );
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            array_merge($invoiceData, ['lang' => 'cs']),
+        );
         $response->assertStatus(500)
             ->assertJson(['success' => false]);
     }
@@ -179,89 +203,106 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $this->mock(InvoicePdfApplicationServiceInterface::class)
             ->shouldReceive('generate')
             ->once()
-            ->andReturn(InvoiceActionResult::success(response: $pdfResponse));
+            ->andReturn(
+                InvoiceActionResult::success(response: $pdfResponse),
+            );
 
-        $response = $this->get(route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tok123']));
+        $response = $this->get(
+            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tok123']),
+        );
         $response->assertOk();
-        $this->assertEquals('application/pdf', $response->headers->get('Content-Type'));
+        $this->assertEquals(
+            'application/pdf',
+            $response->headers->get('Content-Type'),
+        );
     }
 
     #[Test]
     public function download_with_token_not_found_returns_404(): void
     {
         $this->withoutExceptionHandling();
-        app()->bind(InvoicePdfApplicationServiceInterface::class, function () {
-            return new class implements InvoicePdfApplicationServiceInterface
-            {
-                public function generateForUser(
-                    ?int $userId,
-                    int $invoiceId,
-                    ?string $locale = null,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure();
-                }
+        app()->bind(
+            InvoicePdfApplicationServiceInterface::class,
+            function () {
+                return new class implements InvoicePdfApplicationServiceInterface
+                {
+                    public function generateForUser(
+                        ?int $userId,
+                        int $invoiceId,
+                        ?string $locale = null,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure();
+                    }
 
-                public function generateForGuestByToken(
-                    ?string $token,
-                    ?string $requestedLocale,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure('invoices.messages.not_found');
-                }
+                    public function generateForGuestByToken(
+                        ?string $token,
+                        ?string $requestedLocale,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure('invoices.messages.not_found');
+                    }
 
-                public function generate(
-                    ?int $userId,
-                    ?int $invoiceId = null,
-                    ?string $token = null,
-                    ?string $locale = null,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure('invoices.messages.not_found');
-                }
-            };
-        });
+                    public function generate(
+                        ?int $userId,
+                        ?int $invoiceId = null,
+                        ?string $token = null,
+                        ?string $locale = null,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure('invoices.messages.not_found');
+                    }
+                };
+            },
+        );
         $this->expectException(NotFoundHttpException::class);
-        $this->get(route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokXXX']));
+        $this->get(
+            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokXXX']),
+        );
     }
 
     #[Test]
     public function download_with_token_generic_failure_returns_500(): void
     {
         $this->withoutExceptionHandling();
-        app()->bind(InvoicePdfApplicationServiceInterface::class, function () {
-            return new class implements InvoicePdfApplicationServiceInterface
-            {
-                public function generateForUser(
-                    ?int $userId,
-                    int $invoiceId,
-                    ?string $locale = null,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure();
-                }
+        app()->bind(
+            InvoicePdfApplicationServiceInterface::class,
+            function () {
+                return new class implements InvoicePdfApplicationServiceInterface
+                {
+                    public function generateForUser(
+                        ?int $userId,
+                        int $invoiceId,
+                        ?string $locale = null,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure();
+                    }
 
-                public function generateForGuestByToken(
-                    ?string $token,
-                    ?string $requestedLocale,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure('invoices.messages.pdf_error');
-                }
+                    public function generateForGuestByToken(
+                        ?string $token,
+                        ?string $requestedLocale,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure('invoices.messages.pdf_error');
+                    }
 
-                public function generate(
-                    ?int $userId,
-                    ?int $invoiceId = null,
-                    ?string $token = null,
-                    ?string $locale = null,
-                    bool $preview = false,
-                ): InvoiceActionResult {
-                    return InvoiceActionResult::failure('invoices.messages.pdf_error');
-                }
-            };
-        });
+                    public function generate(
+                        ?int $userId,
+                        ?int $invoiceId = null,
+                        ?string $token = null,
+                        ?string $locale = null,
+                        bool $preview = false,
+                    ): InvoiceActionResult {
+                        return InvoiceActionResult::failure('invoices.messages.pdf_error');
+                    }
+                };
+            },
+        );
         $this->expectException(HttpException::class);
-        $this->get(route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokERR']));
+        $this->get(
+            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokERR']),
+        );
     }
 
     #[Test]
@@ -271,12 +312,18 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $token = $store->store(['invoice_vs' => '20260001']);
 
         $response = $this->withSession(['last_guest_invoice_token' => $token])
-            ->delete(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]));
+            ->delete(
+                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+            );
 
-        $response->assertRedirect(route('home', ['locale' => 'cs']));
+        $response->assertRedirect(
+            route('home', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('success');
         $response->assertSessionMissing('last_guest_invoice_token');
-        $this->assertNull($store->get($token));
+        $this->assertNull(
+            $store->get($token),
+        );
     }
 
     #[Test]
@@ -285,12 +332,20 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store(['invoice_vs' => '20260001']);
 
-        $response = $this->withSession(['last_guest_invoice_token' => str_repeat('a', 64)])
-            ->delete(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]));
+        $response = $this->withSession(
+            ['last_guest_invoice_token' => str_repeat('a', 64)],
+        )
+            ->delete(
+                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+            );
 
-        $response->assertRedirect(route('home', ['locale' => 'cs']));
+        $response->assertRedirect(
+            route('home', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('error');
-        $this->assertNotNull($store->get($token));
+        $this->assertNotNull(
+            $store->get($token),
+        );
     }
 
     #[Test]
@@ -300,9 +355,13 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $token = $store->store(['invoice_vs' => '20260001']);
 
         $this->withSession(['last_guest_invoice_token' => $token])
-            ->get(route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]))
+            ->get(
+                route('frontend.guest-invoices.destroy', ['locale' => 'cs', 'token' => $token]),
+            )
             ->assertMethodNotAllowed();
 
-        $this->assertNotNull($store->get($token));
+        $this->assertNotNull(
+            $store->get($token),
+        );
     }
 }

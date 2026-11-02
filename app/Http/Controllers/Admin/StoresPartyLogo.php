@@ -48,16 +48,18 @@ trait StoresPartyLogo
         ?string $current,
     ): ?string {
         $file = $request->file('logo');
-        if (! $file instanceof UploadedFile) {
+        if (!$file instanceof UploadedFile) {
             return $request->boolean('remove_logo') ? null : $current;
         }
 
-        return $logos->store(new IncomingFile(
-            $file->getClientOriginalName(),
-            strtolower($file->getClientOriginalExtension()),
-            (string) $file->getMimeType(),
-            (int) $file->getSize(),
-            (string) $file->getRealPath(),
-        ));
+        return $logos->store(
+            new IncomingFile(
+                $file->getClientOriginalName(),
+                strtolower($file->getClientOriginalExtension()),
+                (string) $file->getMimeType(),
+                (int) $file->getSize(),
+                (string) $file->getRealPath(),
+            ),
+        );
     }
 }

@@ -154,10 +154,12 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_contact_is_not_linked_to_a_customer_with_another_company_number(): void
     {
         $business = $this->businessWithAddress();
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'company_number' => self::OTHER_NUMBER,
-        ]);
+        $contact = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'company_number' => self::OTHER_NUMBER,
+            ],
+        );
 
         $this->expectException(ContactIdentityChangedException::class);
 
@@ -190,7 +192,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
     {
         $business = $this->businessWithAddress();
         $account = BankAccount::factory()->ownedBy($business)->create();
-        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $contact = Contact::factory()->create(
+            ['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER],
+        );
         $selection = $this->selection(
             $business,
             account: $account,
@@ -201,7 +205,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
             $selection,
             null,
         );
-        $account->update(['archived_at' => now(), 'bank_name' => 'Changed source bank']);
+        $account->update(
+            ['archived_at' => now(), 'bank_name' => 'Changed source bank'],
+        );
         $contact->update(['archived_at' => now(), 'name' => 'Changed source contact']);
 
         $kept = $this->assembler->assemble(
@@ -234,7 +240,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_contact_identity_correction_does_not_require_changing_the_stored_customer(): void
     {
         $business = $this->businessWithAddress();
-        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $contact = Contact::factory()->create(
+            ['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER],
+        );
         $selection = $this->selection($business, contact: $contact);
         $stored = $this->assembler->assemble(
             $this->idOf($this->user),

@@ -24,11 +24,14 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $metric = DatabaseHealthMetric::factory()->create();
 
-        $this->assertDatabaseHas('database_health_metrics', [
-            'id' => $metric->id,
-            'metric_name' => $metric->metric_name,
-            'status' => $metric->status,
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            [
+                'id' => $metric->id,
+                'metric_name' => $metric->metric_name,
+                'status' => $metric->status,
+            ],
+        );
     }
 
     #[Test]
@@ -55,15 +58,20 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create([
-            'metric_value' => '123.4567',
-            'measured_at' => '2025-06-18 15:30:45',
-        ]);
+        $metric = DatabaseHealthMetric::factory()->create(
+            [
+                'metric_value' => '123.4567',
+                'measured_at' => '2025-06-18 15:30:45',
+            ],
+        );
 
         $this->assertIsString($metric->metric_value); // Decimal cast returns string
         $this->assertEquals('123.4567', $metric->metric_value);
         $this->assertInstanceOf(Carbon::class, $metric->measured_at);
-        $this->assertEquals('2025-06-18 15:30:45', $metric->measured_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2025-06-18 15:30:45',
+            $metric->measured_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
@@ -80,28 +88,40 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     {
 
         // Create old metrics (older than 24 hours)
-        DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subDays(2),
-        ]);
+        DatabaseHealthMetric::factory()->create(
+            [
+                'measured_at' => now()->subDays(2),
+            ],
+        );
 
-        DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(30),
-        ]);
+        DatabaseHealthMetric::factory()->create(
+            [
+                'measured_at' => now()->subHours(30),
+            ],
+        );
 
         // Create recent metrics (within 24 hours)
-        $recentMetric1 = DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(12),
-        ]);
+        $recentMetric1 = DatabaseHealthMetric::factory()->create(
+            [
+                'measured_at' => now()->subHours(12),
+            ],
+        );
 
-        $recentMetric2 = DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(6),
-        ]);
+        $recentMetric2 = DatabaseHealthMetric::factory()->create(
+            [
+                'measured_at' => now()->subHours(6),
+            ],
+        );
 
         $recentMetrics = DatabaseHealthMetric::recent()->get();
 
         $this->assertCount(2, $recentMetrics);
-        $this->assertTrue($recentMetrics->contains($recentMetric1));
-        $this->assertTrue($recentMetrics->contains($recentMetric2));
+        $this->assertTrue(
+            $recentMetrics->contains($recentMetric1),
+        );
+        $this->assertTrue(
+            $recentMetrics->contains($recentMetric2),
+        );
     }
 
     #[Test]
@@ -147,8 +167,12 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $recentMetric = DatabaseHealthMetric::factory()->recent()->create();
 
-        $this->assertTrue($recentMetric->measured_at->isAfter(now()->subDay()));
-        $this->assertTrue($recentMetric->measured_at->isBefore(now()->addMinute()));
+        $this->assertTrue(
+            $recentMetric->measured_at->isAfter(now()->subDay()),
+        );
+        $this->assertTrue(
+            $recentMetric->measured_at->isBefore(now()->addMinute()),
+        );
     }
 
     #[Test]
@@ -174,10 +198,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $metric->update($newData);
 
-        $this->assertDatabaseHas('database_health_metrics', array_merge(
-            ['id' => $metric->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            array_merge(
+                ['id' => $metric->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
@@ -205,10 +232,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $metric = DatabaseHealthMetric::create($data);
 
-        $this->assertDatabaseHas('database_health_metrics', [
-            'metric_name' => $data['metric_name'],
-            'status' => $data['status'],
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            [
+                'metric_name' => $data['metric_name'],
+                'status' => $data['status'],
+            ],
+        );
         $this->assertNull($metric->metric_unit);
         $this->assertNull($metric->recommendation);
     }

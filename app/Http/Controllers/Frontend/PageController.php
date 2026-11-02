@@ -23,7 +23,7 @@ class PageController extends Controller
         $page = $this->pageService->getHomepage($locale);
 
         // If no published pages exist, show a default message
-        if (! $page) {
+        if (!$page) {
             return view('frontend.pages.homepage-empty');
         }
 
@@ -38,7 +38,16 @@ class PageController extends Controller
         // TODO: This should be dynamic, currently hardcoded to page ID 11
         $pricePage = $this->pageService->getPageContentById(11);
 
-        return view('frontend.pages.homepage', compact('page', 'locale', 'navigationPages', 'featurePages', 'pricePage'));
+        return view(
+            'frontend.pages.homepage',
+            compact(
+                'page',
+                'locale',
+                'navigationPages',
+                'featurePages',
+                'pricePage',
+            ),
+        );
     }
 
     /**
@@ -50,7 +59,14 @@ class PageController extends Controller
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.index', compact('pages', 'categoriesWithPages', 'navigationPages'));
+        return view(
+            'frontend.pages.index',
+            compact(
+                'pages',
+                'categoriesWithPages',
+                'navigationPages',
+            ),
+        );
     }
 
     /**
@@ -63,8 +79,11 @@ class PageController extends Controller
 
         $page = $this->pageService->getPageBySlug($slug, $locale);
 
-        if (! $page) {
-            abort(404, __('pages.page_not_found'));
+        if (!$page) {
+            abort(
+                404,
+                __('pages.page_not_found'),
+            );
         }
 
         // Check if the current URL slug matches the localized slug
@@ -86,13 +105,16 @@ class PageController extends Controller
         // Get navigation pages for menu
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.show', compact(
-            'page',
-            'breadcrumbs',
-            'relatedPages',
-            'navigationPages',
-            'locale',
-        ));
+        return view(
+            'frontend.pages.show',
+            compact(
+                'page',
+                'breadcrumbs',
+                'relatedPages',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -105,14 +127,25 @@ class PageController extends Controller
 
         $category = $this->pageService->getCategoryBySlug($slug, $locale);
 
-        if (! $category) {
-            abort(404, __('pages.category_not_found'));
+        if (!$category) {
+            abort(
+                404,
+                __('pages.category_not_found'),
+            );
         }
 
         $pages = $this->pageService->getPagesByCategory($category->id);
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.category', compact('pages', 'category', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.category',
+            compact(
+                'pages',
+                'category',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -127,13 +160,24 @@ class PageController extends Controller
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);
 
         if ($pages->isEmpty()) {
-            abort(404, __('pages.category_not_found'));
+            abort(
+                404,
+                __('pages.category_not_found'),
+            );
         }
 
         $category = $pages->first()->category;
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.category', compact('pages', 'category', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.category',
+            compact(
+                'pages',
+                'category',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -154,7 +198,15 @@ class PageController extends Controller
 
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.search', compact('pages', 'keyword', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.search',
+            compact(
+                'pages',
+                'keyword',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -169,6 +221,13 @@ class PageController extends Controller
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.sitemap', compact('categoriesWithPages', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.sitemap',
+            compact(
+                'categoriesWithPages',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 }

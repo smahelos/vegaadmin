@@ -45,7 +45,9 @@ class ManageUserPermissions extends Command
             case 'show-user':
                 return $this->showUser();
             default:
-                $this->error('Invalid action. Available actions: list-roles, list-permissions, assign-role, remove-role, show-user');
+                $this->error(
+                    'Invalid action. Available actions: list-roles, list-permissions, assign-role, remove-role, show-user',
+                );
 
                 return 1;
         }
@@ -103,19 +105,21 @@ class ManageUserPermissions extends Command
         $userInput = $this->option('user');
         $roleName = $this->option('role');
 
-        if (! $userInput || ! $roleName) {
-            $this->error('Both --user and --role options are required for assign-role action');
+        if (!$userInput || !$roleName) {
+            $this->error(
+                'Both --user and --role options are required for assign-role action',
+            );
 
             return 1;
         }
 
         $user = $this->findUser($userInput);
-        if (! $user) {
+        if (!$user) {
             return 1;
         }
 
         $role = Role::where('name', $roleName)->first();
-        if (! $role) {
+        if (!$role) {
             $this->error("Role '{$roleName}' not found");
 
             return 1;
@@ -141,18 +145,20 @@ class ManageUserPermissions extends Command
         $userInput = $this->option('user');
         $roleName = $this->option('role');
 
-        if (! $userInput || ! $roleName) {
-            $this->error('Both --user and --role options are required for remove-role action');
+        if (!$userInput || !$roleName) {
+            $this->error(
+                'Both --user and --role options are required for remove-role action',
+            );
 
             return 1;
         }
 
         $user = $this->findUser($userInput);
-        if (! $user) {
+        if (!$user) {
             return 1;
         }
 
-        if (! $user->hasRole($roleName)) {
+        if (!$user->hasRole($roleName)) {
             $this->warn("User does not have role '{$roleName}'");
 
             return 0; // This is not an error, just a warning
@@ -171,14 +177,14 @@ class ManageUserPermissions extends Command
     {
         $userInput = $this->option('user');
 
-        if (! $userInput) {
+        if (!$userInput) {
             $this->error('--user option is required for show-user action');
 
             return 1;
         }
 
         $user = $this->findUser($userInput);
-        if (! $user) {
+        if (!$user) {
             return 1;
         }
 
@@ -222,7 +228,7 @@ class ManageUserPermissions extends Command
             $user = User::where('email', $input)->first();
         }
 
-        if (! $user) {
+        if (!$user) {
             $this->error("User not found: {$input}");
 
             return null;

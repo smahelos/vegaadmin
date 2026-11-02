@@ -35,13 +35,19 @@ final class ContactDetailTest extends TestCase
 
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
             ->call('archive')
-            ->assertSet('successMessage', __('contacts.messages.archived'));
+            ->assertSet(
+                'successMessage',
+                __('contacts.messages.archived'),
+            );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
         $replacement = Contact::factory()->create(['user_id' => $this->user->id]);
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])
             ->call('restore')
-            ->assertSet('errorMessage', __('contacts.messages.limit_exceeded'));
+            ->assertSet(
+                'errorMessage',
+                __('contacts.messages.limit_exceeded'),
+            );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
         $replacement->forceFill(['archived_at' => now()])->save();
@@ -52,10 +58,12 @@ final class ContactDetailTest extends TestCase
     #[Test]
     public function shows_the_contact_person(): void
     {
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'contact_person' => 'Eva Malá',
-        ]);
+        $contact = Contact::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'contact_person' => 'Eva Malá',
+            ],
+        );
 
         Livewire::test(ContactDetail::class, ['contactId' => $contact->id])->assertSee('Eva Malá');
     }

@@ -24,16 +24,22 @@ trait ApplicationUseCaseLogging
         try {
             $result = $callback();
             $durationMs = (hrtime(true) - $start) / 1_000_000;
-            Log::info('usecase.success', $context + ['use_case' => $useCase, 'duration_ms' => $durationMs]);
+            Log::info(
+                'usecase.success',
+                $context + ['use_case' => $useCase, 'duration_ms' => $durationMs],
+            );
 
             return $result;
         } catch (\Throwable $e) {
             $durationMs = (hrtime(true) - $start) / 1_000_000;
-            Log::error('usecase.error', $context + [
-                'use_case' => $useCase,
-                'duration_ms' => $durationMs,
-                'exception' => $e->getMessage(),
-            ]);
+            Log::error(
+                'usecase.error',
+                $context + [
+                    'use_case' => $useCase,
+                    'duration_ms' => $durationMs,
+                    'exception' => $e->getMessage(),
+                ],
+            );
             throw $e; // propagate for controller / handler mapping
         }
     }

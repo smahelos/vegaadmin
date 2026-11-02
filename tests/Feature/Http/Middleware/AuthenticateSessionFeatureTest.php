@@ -21,7 +21,9 @@ final class AuthenticateSessionFeatureTest extends TestCase
     public function admin_stays_logged_in_after_login(): void
     {
         $admin = User::factory()->create();
-        $admin->assignRole(Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK));
+        $admin->assignRole(
+            Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK),
+        );
 
         $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password'])
             ->assertRedirect();

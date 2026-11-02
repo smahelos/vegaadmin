@@ -16,9 +16,13 @@ trait BuildsBackendUsers
     private function backendUser(string ...$permissions): User
     {
         $user = User::factory()->create();
-        $user->assignRole(Role::findByName('backend_user', 'backpack'));
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
         foreach (['backpack.access', ...$permissions] as $permission) {
-            $user->givePermissionTo(Permission::findByName($permission, 'backpack'));
+            $user->givePermissionTo(
+                Permission::findByName($permission, 'backpack'),
+            );
         }
 
         return $user;

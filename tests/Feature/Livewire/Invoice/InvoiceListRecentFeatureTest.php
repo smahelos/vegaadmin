@@ -115,11 +115,13 @@ class InvoiceListRecentFeatureTest extends TestCase
         $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
         $paymentStatus = Status::factory()->create();
 
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $paymentStatus->id,
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_method_id' => $paymentMethod->id,
+                'payment_status_id' => $paymentStatus->id,
+            ],
+        );
 
         $this->actingAs($this->user);
 
@@ -128,22 +130,30 @@ class InvoiceListRecentFeatureTest extends TestCase
 
         // Check that relationships are loaded
         $invoice = $invoices->first();
-        $this->assertTrue($invoice->relationLoaded('paymentMethod'));
-        $this->assertTrue($invoice->relationLoaded('paymentStatus'));
+        $this->assertTrue(
+            $invoice->relationLoaded('paymentMethod'),
+        );
+        $this->assertTrue(
+            $invoice->relationLoaded('paymentStatus'),
+        );
     }
 
     #[Test]
     public function component_defaults_to_descending_created_at_order(): void
     {
-        $oldInvoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'created_at' => now()->subDays(2),
-        ]);
+        $oldInvoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'created_at' => now()->subDays(2),
+            ],
+        );
 
-        $newInvoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'created_at' => now()->subDay(),
-        ]);
+        $newInvoice = Invoice::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'created_at' => now()->subDay(),
+            ],
+        );
 
         $this->actingAs($this->user);
 

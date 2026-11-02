@@ -17,6 +17,8 @@ final class DuplicateCompanyNumberException extends DomainException
     public function __construct(
         public readonly BusinessId|ContactId $existing,
     ) {
-        parent::__construct("The Czech company number belongs to record {$existing->value} already");
+        parent::__construct(
+            "The Czech company number belongs to record {$existing->value} already",
+        );
     }
 }

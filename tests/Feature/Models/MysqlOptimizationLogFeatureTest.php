@@ -23,12 +23,15 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $log = MysqlOptimizationLog::create($data);
 
         $this->assertInstanceOf(MysqlOptimizationLog::class, $log);
-        $this->assertDatabaseHas('mysql_optimization_logs', [
-            'setting_name' => 'innodb_buffer_pool_size',
-            'current_value' => '128M',
-            'recommended_value' => '1G',
-            'priority' => 'high',
-        ]);
+        $this->assertDatabaseHas(
+            'mysql_optimization_logs',
+            [
+                'setting_name' => 'innodb_buffer_pool_size',
+                'current_value' => '128M',
+                'recommended_value' => '1G',
+                'priority' => 'high',
+            ],
+        );
     }
 
     #[Test]

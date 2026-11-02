@@ -17,11 +17,13 @@ class ProductObserverTest extends TestCase
         $events = Event::fake([FormDataChanged::class]);
         $user = User::factory()->create();
 
-        $product = Product::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Prod A',
-            'price' => 10,
-        ]);
+        $product = Product::factory()->create(
+            [
+                'user_id' => $user->id,
+                'name' => 'Prod A',
+                'price' => 10,
+            ],
+        );
         // Product create triggers ProductObserver + possibly other observers; assert at least once
         Event::assertDispatched(FormDataChanged::class);
 

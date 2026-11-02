@@ -16,28 +16,35 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
     #[Test]
     public function archives_document_party_references_and_stored_one_off_data(): void
     {
-        $invoice = Invoice::factory()->create([
-            'created_at' => now()->subYears(4),
-            'supplier_name' => 'Stored issuing business',
-            'customer_name' => 'Stored one-off customer',
-            'contact_id' => null,
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'created_at' => now()->subYears(4),
+                'supplier_name' => 'Stored issuing business',
+                'customer_name' => 'Stored one-off customer',
+                'contact_id' => null,
+            ],
+        );
         $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
-        $linked = Invoice::factory()->create([
-            'user_id' => $invoice->user_id,
-            'business_id' => $invoice->business_id,
-            'contact_id' => $contact->id,
-            'created_at' => now()->subYears(4),
-        ]);
+        $linked = Invoice::factory()->create(
+            [
+                'user_id' => $invoice->user_id,
+                'business_id' => $invoice->business_id,
+                'contact_id' => $contact->id,
+                'created_at' => now()->subYears(4),
+            ],
+        );
 
         $this->artisan('db:archive', ['--force' => true])->assertSuccessful();
 
         $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
-        $this->assertDatabaseHas('invoices_archive', [
-            'original_id' => $invoice->id,
-            'business_id' => $invoice->business_id,
-            'contact_id' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'invoices_archive',
+            [
+                'original_id' => $invoice->id,
+                'business_id' => $invoice->business_id,
+                'contact_id' => null,
+            ],
+        );
         $this->assertDatabaseHas('invoices_archive', ['original_id' => $linked->id, 'contact_id' => $contact->id]);
         $archive = DB::table('invoices_archive')->where('original_id', $invoice->id)->first();
         $stored = json_decode(

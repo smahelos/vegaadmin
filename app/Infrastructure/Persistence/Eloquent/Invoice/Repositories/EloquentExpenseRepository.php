@@ -29,7 +29,16 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
         DocumentParties $parties,
         array $attachments,
     ): ExpenseDTO {
-        return EloquentExpenseMapper::toDTO(Expense::create(EloquentExpenseMapper::toAttributes($userId, $data, $parties, $attachments)));
+        return EloquentExpenseMapper::toDTO(
+            Expense::create(
+                EloquentExpenseMapper::toAttributes(
+                    $userId,
+                    $data,
+                    $parties,
+                    $attachments,
+                ),
+            ),
+        );
     }
 
     public function update(
@@ -40,7 +49,14 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
         array $attachments,
     ): ExpenseDTO {
         $expense = Expense::query()->whereKey($id->value)->where('user_id', $userId->toInt())->firstOrFail();
-        $expense->fill(EloquentExpenseMapper::toAttributes($userId, $data, $parties, $attachments))->save();
+        $expense->fill(
+            EloquentExpenseMapper::toAttributes(
+                $userId,
+                $data,
+                $parties,
+                $attachments,
+            ),
+        )->save();
 
         return EloquentExpenseMapper::toDTO($expense);
     }

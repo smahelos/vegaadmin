@@ -30,7 +30,7 @@ final class MultiLineSignatureSniff implements Sniff
     {
         $tokens = $phpcsFile->getTokens();
 
-        if (! isset($tokens[$stackPtr]['parenthesis_opener'], $tokens[$stackPtr]['parenthesis_closer'])) {
+        if (!isset($tokens[$stackPtr]['parenthesis_opener'], $tokens[$stackPtr]['parenthesis_closer'])) {
             return;
         }
 

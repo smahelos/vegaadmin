@@ -38,23 +38,31 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous limit for default tests
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product_category',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product_category',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         // Define test routes
-        Route::post('/test-product-category', function (ProductCategoryRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-product-category',
+            function (ProductCategoryRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-product-category/{id}', function (ProductCategoryRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-product-category/{id}',
+            function (ProductCategoryRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     #[Test]
@@ -348,9 +356,18 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('products.categories.fields.name'), $attributes['name']);
-        $this->assertEquals(__('products.categories.fields.slug'), $attributes['slug']);
-        $this->assertEquals(__('products.categories.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('products.categories.fields.name'),
+            $attributes['name'],
+        );
+        $this->assertEquals(
+            __('products.categories.fields.slug'),
+            $attributes['slug'],
+        );
+        $this->assertEquals(
+            __('products.categories.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]

@@ -26,14 +26,18 @@ class SubscriptionPolicyFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Create permission
-        $permission = Permission::firstOrCreate([
-            'name' => 'frontend.can_create_subscription',
-            'guard_name' => 'web',
-        ]);
-        $permission2 = Permission::firstOrCreate([
-            'name' => 'frontend.can_view_subscription',
-            'guard_name' => 'web',
-        ]);
+        $permission = Permission::firstOrCreate(
+            [
+                'name' => 'frontend.can_create_subscription',
+                'guard_name' => 'web',
+            ],
+        );
+        $permission2 = Permission::firstOrCreate(
+            [
+                'name' => 'frontend.can_view_subscription',
+                'guard_name' => 'web',
+            ],
+        );
 
         $this->user->givePermissionTo($permission);
         $this->user->givePermissionTo($permission2);
@@ -139,11 +143,17 @@ class SubscriptionPolicyFeatureTest extends TestCase
         $this->actingAs($user);
 
         // Test using Laravel's authorization system
-        $this->assertTrue($user->can('view', $subscription));
-        $this->assertTrue($user->can('update', $subscription));
+        $this->assertTrue(
+            $user->can('view', $subscription),
+        );
+        $this->assertTrue(
+            $user->can('update', $subscription),
+        );
 
         // Delete requires admin permission which this user doesn't have
-        $this->assertFalse($user->can('delete', $subscription));
+        $this->assertFalse(
+            $user->can('delete', $subscription),
+        );
     }
 
     #[Test]
@@ -156,8 +166,14 @@ class SubscriptionPolicyFeatureTest extends TestCase
         $this->actingAs($user1);
 
         // Test using Laravel's authorization system
-        $this->assertFalse($user1->can('view', $subscription));
-        $this->assertFalse($user1->can('update', $subscription));
-        $this->assertFalse($user1->can('delete', $subscription));
+        $this->assertFalse(
+            $user1->can('view', $subscription),
+        );
+        $this->assertFalse(
+            $user1->can('update', $subscription),
+        );
+        $this->assertFalse(
+            $user1->can('delete', $subscription),
+        );
     }
 }

@@ -57,20 +57,30 @@ class ProductRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Define test routes
-        Route::post('/test-product', function (ProductRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::post(
+            '/test-product',
+            function (ProductRequest $request) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
 
-        Route::put('/test-product/{id}', function (ProductRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        Route::put(
+            '/test-product/{id}',
+            function (ProductRequest $request, $id) {
+                return response()->json(['success' => true]);
+            },
+        )->middleware('web');
     }
 
     #[Test]
     public function validation_passes_with_complete_valid_data(): void
     {
         Storage::fake('local');
-        $image = UploadedFile::fake()->image('product.jpg', 100, 100)->size(1024);
+        $image = UploadedFile::fake()->image(
+            'product.jpg',
+            100,
+            100,
+        )->size(1024);
 
         $validData = [
             'name' => 'Wireless Headphones',
@@ -175,10 +185,12 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        Product::factory()->create([
-            'slug' => 'existing-slug',
-            'user_id' => $this->productUser->id,
-        ]);
+        Product::factory()->create(
+            [
+                'slug' => 'existing-slug',
+                'user_id' => $this->productUser->id,
+            ],
+        );
 
         $invalidData = [
             'name' => 'Valid Product',
@@ -199,10 +211,12 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingProduct = Product::factory()->create([
-            'slug' => 'existing-slug',
-            'user_id' => $this->productUser->id,
-        ]);
+        $existingProduct = Product::factory()->create(
+            [
+                'slug' => 'existing-slug',
+                'user_id' => $this->productUser->id,
+            ],
+        );
 
         $validData = [
             'name' => 'Updated Product',
@@ -346,7 +360,11 @@ class ProductRequestFeatureTest extends TestCase
     public function validation_fails_with_oversized_image(): void
     {
         Storage::fake('local');
-        $oversizedImage = UploadedFile::fake()->image('large.jpg', 1000, 1000)->size(3000); // 3MB
+        $oversizedImage = UploadedFile::fake()->image(
+            'large.jpg',
+            1000,
+            1000,
+        )->size(3000); // 3MB
 
         $invalidData = [
             'name' => 'Valid Product',
@@ -367,7 +385,11 @@ class ProductRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_image(): void
     {
         Storage::fake('local');
-        $validImage = UploadedFile::fake()->image('product.jpg', 200, 200)->size(1000); // 1MB
+        $validImage = UploadedFile::fake()->image(
+            'product.jpg',
+            200,
+            200,
+        )->size(1000); // 1MB
 
         $validData = [
             'name' => 'Valid Product',
@@ -440,34 +462,42 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-product', [
-                'name' => 'Test Product',
-                'user_id' => $this->productUser->id,
-                'price' => 25.99,
-                'currency' => 'CZK',
-            ])
+            ->postJson(
+                '/test-product',
+                [
+                    'name' => 'Test Product',
+                    'user_id' => $this->productUser->id,
+                    'price' => 25.99,
+                    'currency' => 'CZK',
+                ],
+            )
             ->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-product', [
-            'name' => 'Test Product',
-            'user_id' => $this->productUser->id,
-            'price' => 25.99,
-            'currency' => 'CZK',
-        ])
+        $this->postJson(
+            '/test-product',
+            [
+                'name' => 'Test Product',
+                'user_id' => $this->productUser->id,
+                'price' => 25.99,
+                'currency' => 'CZK',
+            ],
+        )
             ->assertStatus(403);
     }
 
@@ -477,12 +507,15 @@ class ProductRequestFeatureTest extends TestCase
         $userNoPerm = User::factory()->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson('/test-product', [
-            'name' => 'No Perm Product',
-            'user_id' => $this->productUser->id,
-            'price' => 9.99,
-            'currency' => 'CZK',
-        ])->assertStatus(403);
+        $this->postJson(
+            '/test-product',
+            [
+                'name' => 'No Perm Product',
+                'user_id' => $this->productUser->id,
+                'price' => 9.99,
+                'currency' => 'CZK',
+            ],
+        )->assertStatus(403);
     }
 
     #[Test]
@@ -491,22 +524,27 @@ class ProductRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('product');
         $this->actingAs($this->adminUser, 'backpack');
 
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product',
-            'limit_value' => 1,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product',
+                'limit_value' => 1,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         // First creation passes
-        $this->postJson('/test-product', [
-            'name' => 'Product One',
-            'user_id' => $this->productUser->id,
-            'price' => 10,
-            'currency' => 'CZK',
-        ])->assertStatus(200);
+        $this->postJson(
+            '/test-product',
+            [
+                'name' => 'Product One',
+                'user_id' => $this->productUser->id,
+                'price' => 10,
+                'currency' => 'CZK',
+            ],
+        )->assertStatus(200);
 
         // Record usage manually (authorize only checks)
         $this->limitService->recordUsage(
@@ -526,12 +564,14 @@ class ProductRequestFeatureTest extends TestCase
                 return [];
             }
         };
-        $request->replace([
-            'name' => 'Product Two',
-            'user_id' => $this->productUser->id,
-            'price' => 20,
-            'currency' => 'CZK',
-        ]);
+        $request->replace(
+            [
+                'name' => 'Product Two',
+                'user_id' => $this->productUser->id,
+                'price' => 20,
+                'currency' => 'CZK',
+            ],
+        );
         $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
         $request->setMethod('POST');
         $request->authorize();
@@ -542,14 +582,16 @@ class ProductRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product',
-            'limit_value' => 0,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::factory()->create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product',
+                'limit_value' => 0,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $this->limitService->recordUsage(
             $this->adminUser->id,
@@ -566,13 +608,17 @@ class ProductRequestFeatureTest extends TestCase
                 return [];
             }
         };
-        $request->replace([
-            'name' => 'Updated Product',
-            'user_id' => $this->productUser->id,
-            'price' => 30,
-            'currency' => 'CZK',
-        ]);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-product-id']);
+        $request->replace(
+            [
+                'name' => 'Updated Product',
+                'user_id' => $this->productUser->id,
+                'price' => 30,
+                'currency' => 'CZK',
+            ],
+        );
+        $request->setRouteResolver(
+            fn () => (object) ['parameter' => fn ($n) => 'existing-product-id'],
+        );
         $request->setMethod('PUT');
         $this->assertTrue($request->authorize());
     }
@@ -581,14 +627,19 @@ class ProductRequestFeatureTest extends TestCase
     public function auto_generates_slug_when_missing(): void
     {
         $request = new ProductRequest;
-        $request->replace([
-            'name' => 'My Cool Product',
-            'user_id' => $this->productUser->id,
-            'price' => 12.5,
-            'currency' => 'CZK',
-        ]);
+        $request->replace(
+            [
+                'name' => 'My Cool Product',
+                'user_id' => $this->productUser->id,
+                'price' => 12.5,
+                'currency' => 'CZK',
+            ],
+        );
         $request->prepareForValidation();
-        $this->assertEquals('my-cool-product', $request->get('slug'));
+        $this->assertEquals(
+            'my-cool-product',
+            $request->get('slug'),
+        );
     }
 
     #[Test]

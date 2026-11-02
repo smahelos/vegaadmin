@@ -13,20 +13,25 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function can_create_database_health_alert(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create([
-            'alert_type' => 'memory',
-            'severity' => 'warning',
-            'message' => 'High memory usage detected',
-            'resolved' => false,
-        ]);
+        $alert = DatabaseHealthAlert::factory()->create(
+            [
+                'alert_type' => 'memory',
+                'severity' => 'warning',
+                'message' => 'High memory usage detected',
+                'resolved' => false,
+            ],
+        );
 
-        $this->assertDatabaseHas('database_health_alerts', [
-            'id' => $alert->id,
-            'alert_type' => 'memory',
-            'severity' => 'warning',
-            'message' => 'High memory usage detected',
-            'resolved' => false,
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_alerts',
+            [
+                'id' => $alert->id,
+                'alert_type' => 'memory',
+                'severity' => 'warning',
+                'message' => 'High memory usage detected',
+                'resolved' => false,
+            ],
+        );
     }
 
     #[Test]
@@ -61,15 +66,17 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create([
-            'metric_data' => [
-                'value' => 85.5,
-                'threshold' => 80,
-                'unit' => '%',
+        $alert = DatabaseHealthAlert::factory()->create(
+            [
+                'metric_data' => [
+                    'value' => 85.5,
+                    'threshold' => 80,
+                    'unit' => '%',
+                ],
+                'resolved' => '1',
+                'resolved_at' => '2024-01-01 10:00:00',
             ],
-            'resolved' => '1',
-            'resolved_at' => '2024-01-01 10:00:00',
-        ]);
+        );
 
         $this->assertIsArray($alert->metric_data);
         $this->assertEquals([

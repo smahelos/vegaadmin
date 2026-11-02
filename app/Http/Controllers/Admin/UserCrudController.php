@@ -45,8 +45,13 @@ class UserCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(User::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/user');
-        CRUD::setEntityNameStrings(__('users.entity.singular'), __('users.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/user',
+        );
+        CRUD::setEntityNameStrings(
+            __('users.entity.singular'),
+            __('users.entity.plural'),
+        );
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
@@ -59,26 +64,28 @@ class UserCrudController extends CrudController
      */
     public function setupListOperation(): void
     {
-        $this->crud->addColumns([
+        $this->crud->addColumns(
             [
-                'name' => 'name',
-                'label' => __('users.fields.name'),
-                'type' => 'text',
+                [
+                    'name' => 'name',
+                    'label' => __('users.fields.name'),
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'email',
+                    'label' => __('users.fields.email'),
+                    'type' => 'email',
+                ],
+                [ // n-n relationship (with pivot table)
+                    'label' => __('users.fields.roles'),
+                    'type' => 'select_multiple',
+                    'name' => 'roles',
+                    'entity' => 'roles',
+                    'attribute' => 'name',
+                    'model' => config('permission.models.role'),
+                ],
             ],
-            [
-                'name' => 'email',
-                'label' => __('users.fields.email'),
-                'type' => 'email',
-            ],
-            [ // n-n relationship (with pivot table)
-                'label' => __('users.fields.roles'),
-                'type' => 'select_multiple',
-                'name' => 'roles',
-                'entity' => 'roles',
-                'attribute' => 'name',
-                'model' => config('permission.models.role'),
-            ],
-        ]);
+        );
 
         if (backpack_pro()) {
             // Role Filter
@@ -113,13 +120,21 @@ class UserCrudController extends CrudController
                 ],
                 config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
                 function ($value): void {
-                    $this->crud->addClause(function ($query) use ($value): void {
-                        $query->whereHas('permissions', function ($q) use ($value): void {
-                            $q->where('id', $value);
-                        })->orWhereHas('roles.permissions', function ($q) use ($value): void {
-                            $q->where('id', $value);
-                        });
-                    });
+                    $this->crud->addClause(
+                        function ($query) use ($value): void {
+                            $query->whereHas(
+                                'permissions',
+                                function ($q) use ($value): void {
+                                    $q->where('id', $value);
+                                },
+                            )->orWhereHas(
+                                'roles.permissions',
+                                function ($q) use ($value): void {
+                                    $q->where('id', $value);
+                                },
+                            );
+                        },
+                    );
                 },
             );
         }
@@ -148,34 +163,44 @@ class UserCrudController extends CrudController
      */
     public function setupShowOperation(): void
     {
-        $this->crud->column('name')->label(__('users.fields.name'));
-        $this->crud->column('email')->label(__('users.fields.email'));
-        $this->crud->column([
-            'label' => __('users.fields.roles_permissions'),
-            'field_unique_name' => 'user_role_permission',
-            'type' => 'checklist_dependency',
-            'name' => 'roles_permissions',
-            'subfields' => [
-                'primary' => [
-                    'label' => __('users.fields.roles'),
-                    'name' => 'roles',
-                    'entity' => 'roles',
-                    'entity_secondary' => 'permissions',
-                    'attribute' => 'name',
-                    'model' => config('permission.models.role'),
-                ],
-                'secondary' => [
-                    'label' => __('users.fields.permissions'),
-                    'name' => 'permissions',
-                    'entity' => 'permissions',
-                    'entity_primary' => 'roles',
-                    'attribute' => 'name',
-                    'model' => config('permission.models.permission'),
+        $this->crud->column('name')->label(
+            __('users.fields.name'),
+        );
+        $this->crud->column('email')->label(
+            __('users.fields.email'),
+        );
+        $this->crud->column(
+            [
+                'label' => __('users.fields.roles_permissions'),
+                'field_unique_name' => 'user_role_permission',
+                'type' => 'checklist_dependency',
+                'name' => 'roles_permissions',
+                'subfields' => [
+                    'primary' => [
+                        'label' => __('users.fields.roles'),
+                        'name' => 'roles',
+                        'entity' => 'roles',
+                        'entity_secondary' => 'permissions',
+                        'attribute' => 'name',
+                        'model' => config('permission.models.role'),
+                    ],
+                    'secondary' => [
+                        'label' => __('users.fields.permissions'),
+                        'name' => 'permissions',
+                        'entity' => 'permissions',
+                        'entity_primary' => 'roles',
+                        'attribute' => 'name',
+                        'model' => config('permission.models.permission'),
+                    ],
                 ],
             ],
-        ]);
-        $this->crud->column('created_at')->label(__('users.fields.created_at'));
-        $this->crud->column('updated_at')->label(__('users.fields.updated_at'));
+        );
+        $this->crud->column('created_at')->label(
+            __('users.fields.created_at'),
+        );
+        $this->crud->column('updated_at')->label(
+            __('users.fields.updated_at'),
+        );
     }
 
     /**
@@ -184,7 +209,9 @@ class UserCrudController extends CrudController
     public function store(): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
-        $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
+        $this->crud->setRequest(
+            $this->handlePasswordInput($this->crud->getRequest()),
+        );
         $this->crud->unsetValidation();
 
         return $this->traitStore();
@@ -196,7 +223,9 @@ class UserCrudController extends CrudController
     public function update(): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
-        $this->crud->setRequest($this->handlePasswordInput($this->crud->getRequest()));
+        $this->crud->setRequest(
+            $this->handlePasswordInput($this->crud->getRequest()),
+        );
         $this->crud->unsetValidation();
 
         return $this->traitUpdate();
@@ -215,7 +244,12 @@ class UserCrudController extends CrudController
 
         // Hash password if provided
         if ($request->has('password')) {
-            $request->request->set('password', Hash::make($request->input('password')));
+            $request->request->set(
+                'password',
+                Hash::make(
+                    $request->input('password'),
+                ),
+            );
         }
 
         return $request;
@@ -226,55 +260,57 @@ class UserCrudController extends CrudController
      */
     protected function addUserFields(): void
     {
-        $this->crud->addFields([
+        $this->crud->addFields(
             [
-                'name' => 'name',
-                'label' => __('users.fields.name'),
-                'type' => 'text',
-            ],
-            [
-                'name' => 'email',
-                'label' => __('users.fields.email'),
-                'type' => 'email',
-            ],
-            [
-                'name' => 'password',
-                'label' => __('users.fields.password'),
-                'type' => 'password',
-            ],
-            [
-                'name' => 'password_confirmation',
-                'label' => __('users.fields.password_confirmation'),
-                'type' => 'password',
-            ],
-            [
-                'label' => __('users.fields.roles_permissions'),
-                'field_unique_name' => 'user_role_permission',
-                'type' => 'checklist_dependency',
-                'name' => 'roles,permissions',
-                'subfields' => [
-                    'primary' => [
-                        'label' => __('users.fields.roles'),
-                        'name' => 'roles',
-                        'entity' => 'roles',
-                        'entity_secondary' => 'permissions',
-                        'attribute' => 'name',
-                        'model' => config('permission.models.role'),
-                        'pivot' => true,
-                        'number_columns' => 3,
-                    ],
-                    'secondary' => [
-                        'label' => __('users.fields.permissions'),
-                        'name' => 'permissions',
-                        'entity' => 'permissions',
-                        'entity_primary' => 'roles',
-                        'attribute' => 'name',
-                        'model' => config('permission.models.permission'),
-                        'pivot' => true,
-                        'number_columns' => 3,
+                [
+                    'name' => 'name',
+                    'label' => __('users.fields.name'),
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'email',
+                    'label' => __('users.fields.email'),
+                    'type' => 'email',
+                ],
+                [
+                    'name' => 'password',
+                    'label' => __('users.fields.password'),
+                    'type' => 'password',
+                ],
+                [
+                    'name' => 'password_confirmation',
+                    'label' => __('users.fields.password_confirmation'),
+                    'type' => 'password',
+                ],
+                [
+                    'label' => __('users.fields.roles_permissions'),
+                    'field_unique_name' => 'user_role_permission',
+                    'type' => 'checklist_dependency',
+                    'name' => 'roles,permissions',
+                    'subfields' => [
+                        'primary' => [
+                            'label' => __('users.fields.roles'),
+                            'name' => 'roles',
+                            'entity' => 'roles',
+                            'entity_secondary' => 'permissions',
+                            'attribute' => 'name',
+                            'model' => config('permission.models.role'),
+                            'pivot' => true,
+                            'number_columns' => 3,
+                        ],
+                        'secondary' => [
+                            'label' => __('users.fields.permissions'),
+                            'name' => 'permissions',
+                            'entity' => 'permissions',
+                            'entity_primary' => 'roles',
+                            'attribute' => 'name',
+                            'model' => config('permission.models.permission'),
+                            'pivot' => true,
+                            'number_columns' => 3,
+                        ],
                     ],
                 ],
             ],
-        ]);
+        );
     }
 }

@@ -20,9 +20,17 @@
     <arg name="parallel" value="8"/>
     <arg value="s"/>
 
-    <rule ref="SlevomatCodingStandard.Functions.RequireMultiLineCall">
+    <rule ref="PSR12.ControlStructures.BooleanOperatorPlacement">
         <properties>
-            <property name="minParametersCount" value="3"/>
+            <property name="allowOnly" value="first"/>
+        </properties>
+    </rule>
+
+    <rule ref="PSR12.ControlStructures.ControlStructureSpacing"/>
+
+    <rule ref="Generic.Formatting.SpaceAfterNot">
+        <properties>
+            <property name="spacing" value="0"/>
         </properties>
     </rule>
 

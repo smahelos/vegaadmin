@@ -26,12 +26,14 @@ class ApiControllersDelegationTest extends TestCase
             $this->assertFileExists($path, "Controller missing: $rel");
             $code = file_get_contents($path);
             $issues = $this->analyze($code);
-            if (! empty($issues)) {
+            if (!empty($issues)) {
                 $violations[] = $rel . " =>\n  - " . implode("\n  - ", $issues);
             }
         }
-        if (! empty($violations)) {
-            $this->fail("API controller delegation violations:\n" . implode("\n", $violations));
+        if (!empty($violations)) {
+            $this->fail(
+                "API controller delegation violations:\n" . implode("\n", $violations),
+            );
         }
         $this->assertTrue(true);
     }
@@ -48,7 +50,12 @@ class ApiControllersDelegationTest extends TestCase
             $issues[] = 'Direct DB facade usage detected.';
         }
         // Disallow query builder chain tokens typical in controllers (select, join, groupBy) if not part of service call
-        if (preg_match('/->(select|join|leftJoin|groupBy|orderBy|where|whereIn)\s*\(/', $code)) {
+        if (
+            preg_match(
+                '/->(select|join|leftJoin|groupBy|orderBy|where|whereIn)\s*\(/',
+                $code,
+            )
+        ) {
             $issues[] = 'Query builder chain fragments detected.';
         }
 

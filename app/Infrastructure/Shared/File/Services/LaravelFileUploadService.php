@@ -158,13 +158,15 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             );
 
             if ($fileHash) {
-                FileHash::create([
-                    'disk' => $disk,
-                    'path' => $filePath,
-                    'hash' => $fileHash['hash'],
-                    'size' => $fileHash['size'],
-                    'ref_count' => 1,
-                ]);
+                FileHash::create(
+                    [
+                        'disk' => $disk,
+                        'path' => $filePath,
+                        'hash' => $fileHash['hash'],
+                        'size' => $fileHash['size'],
+                        'ref_count' => 1,
+                    ],
+                );
             }
 
             if ($this->imageProcessor->isImageMime($value->mime) && $options['createThumbnails']) {
@@ -246,13 +248,15 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             );
 
             if ($fileHash) {
-                FileHash::create([
-                    'disk' => $disk,
-                    'path' => $filePath,
-                    'hash' => $fileHash['hash'],
-                    'size' => $fileHash['size'],
-                    'ref_count' => 1,
-                ]);
+                FileHash::create(
+                    [
+                        'disk' => $disk,
+                        'path' => $filePath,
+                        'hash' => $fileHash['hash'],
+                        'size' => $fileHash['size'],
+                        'ref_count' => 1,
+                    ],
+                );
             }
 
             if ($this->imageProcessor->isImageMime((string) $value->getMimeType()) && $options['createThumbnails']) {
@@ -305,10 +309,12 @@ class LaravelFileUploadService implements FileUploadServiceInterface
                 return;
             }
         }
-        throw ValidationException::withMessages([
-            // Use ':attribute' placeholder to keep message generic as expected by tests
-            $attributeName => [trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute'])],
-        ]);
+        throw ValidationException::withMessages(
+            [
+                // Use ':attribute' placeholder to keep message generic as expected by tests
+                $attributeName => [trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute'])],
+            ],
+        );
     }
 
     private function assertAllowedSize(
@@ -326,10 +332,12 @@ class LaravelFileUploadService implements FileUploadServiceInterface
         $sizeBytes = max($reportedBytes, $realBytes);
         $sizeKb = (int) ceil($sizeBytes / 1024);
         if ($sizeKb > $maxKb) {
-            throw ValidationException::withMessages([
-                // Use ':attribute' placeholder to keep message generic as expected by tests
-                $attributeName => [trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute'])],
-            ]);
+            throw ValidationException::withMessages(
+                [
+                    // Use ':attribute' placeholder to keep message generic as expected by tests
+                    $attributeName => [trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute'])],
+                ],
+            );
         }
     }
 
@@ -350,7 +358,9 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             );
         }
         if ($options['randomizeFilename']) {
-            return md5($file->getClientOriginalName() . microtime(true)) . '.' . $extension;
+            return md5(
+                $file->getClientOriginalName() . microtime(true),
+            ) . '.' . $extension;
         }
 
         return Str::slug($originalName) . '.' . $extension;
@@ -373,7 +383,9 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             );
         }
         if ($options['randomizeFilename']) {
-            return md5($originalName . microtime(true)) . '.' . $extension;
+            return md5(
+                $originalName . microtime(true),
+            ) . '.' . $extension;
         }
 
         return Str::slug($base) . '.' . $extension;
@@ -401,9 +413,11 @@ class LaravelFileUploadService implements FileUploadServiceInterface
                 return;
             }
         }
-        throw ValidationException::withMessages([
-            $attributeName => [trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute'])],
-        ]);
+        throw ValidationException::withMessages(
+            [
+                $attributeName => [trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute'])],
+            ],
+        );
     }
 
     private function assertAllowedSizeFromVo(
@@ -413,9 +427,11 @@ class LaravelFileUploadService implements FileUploadServiceInterface
     ): void {
         $sizeKb = (int) ceil(((int) $file->sizeBytes) / 1024);
         if ($sizeKb > $maxKb) {
-            throw ValidationException::withMessages([
-                $attributeName => [trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute'])],
-            ]);
+            throw ValidationException::withMessages(
+                [
+                    $attributeName => [trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute'])],
+                ],
+            );
         }
     }
 
@@ -456,7 +472,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
         string $disk,
     ): void {
         $mime = Storage::mimeType($originalPath) ?? '';
-        if (! $this->imageProcessor->isImageMime($mime)) {
+        if (!$this->imageProcessor->isImageMime($mime)) {
             return;
         }
         $fileInfo = pathinfo($originalPath);
@@ -473,17 +489,17 @@ class LaravelFileUploadService implements FileUploadServiceInterface
     public function discardRolledBackUpload(string $path, string $disk): void
     {
         // The transaction already reverted reference counts. A surviving hash belongs to another record.
-        if (! FileHash::query()->where('disk', $disk)->where('path', $path)->exists()) {
+        if (!FileHash::query()->where('disk', $disk)->where('path', $path)->exists()) {
             Storage::disk($disk)->delete($path);
         }
     }
 
     public function deleteFile(?string $path, string $disk): bool
     {
-        if (! $path) {
+        if (!$path) {
             return false;
         }
-        if (! Storage::disk($disk)->exists($path)) {
+        if (!Storage::disk($disk)->exists($path)) {
             return false;
         }
         $record = FileHash::query()->where('disk', $disk)->where('path', $path)->first();
@@ -501,7 +517,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
 
     public function getFileUrl(?string $path, string $disk = 'public'): ?string
     {
-        if (! $path) {
+        if (!$path) {
             return null;
         }
         try {
@@ -516,7 +532,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
         string $disk = 'public',
         string $thumbnailPath = 'thumbnails',
     ): ?string {
-        if (! $path) {
+        if (!$path) {
             return null;
         }
         $mime = Storage::mimeType($path) ?? '';
@@ -542,7 +558,9 @@ class LaravelFileUploadService implements FileUploadServiceInterface
 
     public function getFileTypeIcon(string $filePath): string
     {
-        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $extension = strtolower(
+            pathinfo($filePath, PATHINFO_EXTENSION),
+        );
         $iconMap = [
             'pdf' => 'la-file-pdf',
             'doc' => 'la-file-word',
@@ -610,7 +628,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             100,
         );
 
-        return (! $filename || $filename === '.') ? 'file' : $filename;
+        return (!$filename || $filename === '.') ? 'file' : $filename;
     }
 
     public function generateUniqueFilename(

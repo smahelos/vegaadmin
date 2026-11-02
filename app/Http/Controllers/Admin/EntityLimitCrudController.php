@@ -34,7 +34,7 @@ class EntityLimitCrudController extends CrudController
     public function setup(): void
     {
         // Check permissions first
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
+        if (!backpack_user() || !backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
             // Deny access to operations
             CRUD::denyAccess([
                 'list',
@@ -46,8 +46,13 @@ class EntityLimitCrudController extends CrudController
         }
 
         CRUD::setModel(EntityLimit::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/entity-limit');
-        CRUD::setEntityNameStrings(__('entity_limits.entity.singular'), __('entity_limits.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/entity-limit',
+        );
+        CRUD::setEntityNameStrings(
+            __('entity_limits.entity.singular'),
+            __('entity_limits.entity.plural'),
+        );
     }
 
     /**
@@ -59,47 +64,77 @@ class EntityLimitCrudController extends CrudController
     {
         // Define columns for list view
         CRUD::column('permission_name')
-            ->label(__('entity_limits.fields.permission_name'))
+            ->label(
+                __('entity_limits.fields.permission_name'),
+            )
             ->type('text');
 
         CRUD::column('entity_type')
-            ->label(__('entity_limits.fields.entity_type'))
+            ->label(
+                __('entity_limits.fields.entity_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")])->all());
+            ->options(
+                collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")],
+                )->all(),
+            );
 
         CRUD::column('metric_type')
-            ->label(__('entity_limits.fields.metric_type'))
+            ->label(
+                __('entity_limits.fields.metric_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.metric_types.$type")])->all());
+            ->options(
+                collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.metric_types.$type")],
+                )->all(),
+            );
 
         CRUD::column('period_type')
-            ->label(__('entity_limits.fields.period_type'))
+            ->label(
+                __('entity_limits.fields.period_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.periods.$type")])->all());
+            ->options(
+                collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.periods.$type")],
+                )->all(),
+            );
 
         CRUD::column('limit_value')
-            ->label(__('entity_limits.fields.limit_value'))
+            ->label(
+                __('entity_limits.fields.limit_value'),
+            )
             ->type('closure')
-            ->function(function ($entry) {
-                if ($entry->metric_type === 'count') {
-                    return number_format($entry->limit_value ?? 0);
-                } elseif ($entry->metric_type === 'value') {
-                    return '€' . number_format($entry->limit_value ?? 0, 2);
-                } elseif ($entry->metric_type === 'size') {
-                    return $this->formatBytes($entry->limit_value ?? 0);
-                }
+            ->function(
+                function ($entry) {
+                    if ($entry->metric_type === 'count') {
+                        return number_format($entry->limit_value ?? 0);
+                    } elseif ($entry->metric_type === 'value') {
+                        return '€' . number_format($entry->limit_value ?? 0, 2);
+                    } elseif ($entry->metric_type === 'size') {
+                        return $this->formatBytes($entry->limit_value ?? 0);
+                    }
 
-                return __('general.placeholders.not_available');
-            })
+                    return __('general.placeholders.not_available');
+                },
+            )
             ->default('0');
 
         CRUD::column('is_active')
-            ->label(__('entity_limits.fields.is_active'))
+            ->label(
+                __('entity_limits.fields.is_active'),
+            )
             ->type('boolean')
-            ->options([0 => __('general.no'), 1 => __('general.yes')]);
+            ->options(
+                [0 => __('general.no'), 1 => __('general.yes')],
+            );
 
         CRUD::column('description')
-            ->label(__('entity_limits.fields.description'))
+            ->label(
+                __('entity_limits.fields.description'),
+            )
             ->type('text')
             ->limit(100);
 
@@ -122,55 +157,89 @@ class EntityLimitCrudController extends CrudController
         $permissions[EntityLimit::ANONYMOUS_PERMISSION] = __('entity_limits.labels.anonymous_users');
 
         CRUD::field('permission_name')
-            ->label(__('entity_limits.fields.permission_name'))
+            ->label(
+                __('entity_limits.fields.permission_name'),
+            )
             ->type('select_from_array')
             ->options($permissions)
             ->allows_null(false)
-            ->hint(__('entity_limits.hints.permission_name'));
+            ->hint(
+                __('entity_limits.hints.permission_name'),
+            );
 
         // Entity Type
         CRUD::field('entity_type')
-            ->label(__('entity_limits.fields.entity_type'))
+            ->label(
+                __('entity_limits.fields.entity_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")])->all())
+            ->options(
+                collect(EntityLimit::ENTITY_TYPES)->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")],
+                )->all(),
+            )
             ->allows_null(false);
 
         // Metric Type
         CRUD::field('metric_type')
-            ->label(__('entity_limits.fields.metric_type'))
+            ->label(
+                __('entity_limits.fields.metric_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.metric_types.$type")])->all())
+            ->options(
+                collect(EntityLimit::METRIC_TYPES)->keys()->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.metric_types.$type")],
+                )->all(),
+            )
             ->allows_null(false)
             ->default('count');
 
         // Period Type
         CRUD::field('period_type')
-            ->label(__('entity_limits.fields.period_type'))
+            ->label(
+                __('entity_limits.fields.period_type'),
+            )
             ->type('select_from_array')
-            ->options(collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(fn ($type) => [$type => __("entity_limits.periods.$type")])->all())
+            ->options(
+                collect(EntityLimit::PERIOD_TYPES)->keys()->mapWithKeys(
+                    fn ($type) => [$type => __("entity_limits.periods.$type")],
+                )->all(),
+            )
             ->allows_null(false)
             ->default('monthly');
 
         // Limit Value
         CRUD::field('limit_value')
-            ->label(__('entity_limits.fields.limit_value'))
+            ->label(
+                __('entity_limits.fields.limit_value'),
+            )
             ->type('number')
             ->attributes(['min' => 0, 'step' => 0.01])
-            ->hint(__('entity_limits.hints.limit_value'));
+            ->hint(
+                __('entity_limits.hints.limit_value'),
+            );
 
         // Description
         CRUD::field('description')
-            ->label(__('entity_limits.fields.description'))
+            ->label(
+                __('entity_limits.fields.description'),
+            )
             ->type('textarea')
             ->attributes(['rows' => 3])
-            ->hint(__('entity_limits.hints.description'));
+            ->hint(
+                __('entity_limits.hints.description'),
+            );
 
         // Is Active
         CRUD::field('is_active')
-            ->label(__('entity_limits.fields.is_active'))
+            ->label(
+                __('entity_limits.fields.is_active'),
+            )
             ->type('boolean')
             ->default(true)
-            ->hint(__('entity_limits.hints.is_active'));
+            ->hint(
+                __('entity_limits.hints.is_active'),
+            );
     }
 
     /**

@@ -34,7 +34,11 @@ class PermissionCatalogCoverageTest extends TestCase
         ];
 
         $missing = [];
-        foreach ((new Finder)->files()->in([app_path(), base_path('routes')])->name('*.php') as $file) {
+        foreach (
+            (new Finder)->files()->in(
+                [app_path(), base_path('routes')],
+            )->name('*.php') as $file
+        ) {
             $code = $file->getContents();
             foreach ($patterns as $pattern) {
                 preg_match_all(
@@ -44,11 +48,14 @@ class PermissionCatalogCoverageTest extends TestCase
                 );
                 foreach ($matches[1] as $permission) {
                     $guard = str_starts_with($permission, 'frontend.') ? PermissionCatalog::WEB : PermissionCatalog::BACKPACK;
-                    if (! PermissionCatalog::has($permission, $guard) && ! in_array(
-                        $permission,
-                        self::UNREACHABLE,
-                        true,
-                    )) {
+                    if (
+                        !PermissionCatalog::has($permission, $guard)
+                        && !in_array(
+                            $permission,
+                            self::UNREACHABLE,
+                            true,
+                        )
+                    ) {
                         $missing[] = "{$guard}:{$permission} (" . $file->getRelativePathname() . ')';
                     }
                 }
@@ -57,7 +64,9 @@ class PermissionCatalogCoverageTest extends TestCase
 
         $this->assertSame(
             [],
-            array_values(array_unique($missing)),
+            array_values(
+                array_unique($missing),
+            ),
             'Permissions missing in PermissionCatalog',
         );
     }
@@ -66,17 +75,21 @@ class PermissionCatalogCoverageTest extends TestCase
     public function admin_limit_bypass_permissions_are_in_the_catalog(): void
     {
         $missing = [];
-        foreach ((new Finder)->files()->in(app_path('Http/Requests/Admin'))->name('*.php') as $file) {
+        foreach (
+            (new Finder)->files()->in(
+                app_path('Http/Requests/Admin'),
+            )->name('*.php') as $file
+        ) {
             $class = 'App\\Http\\Requests\\Admin\\' . $file->getBasename('.php');
             $reflection = new \ReflectionClass($class);
-            if ($reflection->isAbstract() || ! $reflection->isSubclassOf(AdminBaseEntityRequest::class)) {
+            if ($reflection->isAbstract() || !$reflection->isSubclassOf(AdminBaseEntityRequest::class)) {
                 continue;
             }
 
             // Admin\BaseEntityRequest::hasUnlimitedAccess() checks can_create_{entity}_unlimited
             $entityType = $reflection->getMethod('getEntityType')->invoke($reflection->newInstance());
             $permission = "can_create_{$entityType}_unlimited";
-            if (! PermissionCatalog::has($permission, PermissionCatalog::BACKPACK)) {
+            if (!PermissionCatalog::has($permission, PermissionCatalog::BACKPACK)) {
                 $missing[] = $permission . ' (' . $file->getFilename() . ')';
             }
         }

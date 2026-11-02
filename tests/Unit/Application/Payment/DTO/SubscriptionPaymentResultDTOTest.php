@@ -13,12 +13,14 @@ final class SubscriptionPaymentResultDTOTest extends TestCase
     #[Test]
     public function maps_a_started_payment_with_its_gateway_redirect(): void
     {
-        $result = SubscriptionPaymentResultDTO::fromArray([
-            'success' => true,
-            'payment_id' => 555,
-            'status' => 'pending',
-            'payment_url' => 'https://gateway/redirect',
-        ]);
+        $result = SubscriptionPaymentResultDTO::fromArray(
+            [
+                'success' => true,
+                'payment_id' => 555,
+                'status' => 'pending',
+                'payment_url' => 'https://gateway/redirect',
+            ],
+        );
 
         $this->assertTrue($result->success);
         $this->assertSame(555, $result->paymentId);
@@ -42,6 +44,8 @@ final class SubscriptionPaymentResultDTOTest extends TestCase
     #[Test]
     public function result_without_a_success_flag_is_a_failure(): void
     {
-        $this->assertFalse(SubscriptionPaymentResultDTO::fromArray([])->success);
+        $this->assertFalse(
+            SubscriptionPaymentResultDTO::fromArray([])->success,
+        );
     }
 }

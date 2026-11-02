@@ -26,12 +26,15 @@ class PerformanceMetricFeatureTest extends TestCase
         $metric = PerformanceMetric::create($data);
 
         $this->assertInstanceOf(PerformanceMetric::class, $metric);
-        $this->assertDatabaseHas('performance_metrics', [
-            'metric_type' => 'query_time',
-            'table_name' => 'users',
-            'query_type' => 'SELECT',
-            'metric_unit' => 'ms',
-        ]);
+        $this->assertDatabaseHas(
+            'performance_metrics',
+            [
+                'metric_type' => 'query_time',
+                'table_name' => 'users',
+                'query_type' => 'SELECT',
+                'metric_unit' => 'ms',
+            ],
+        );
     }
 
     #[Test]
@@ -127,7 +130,10 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric = PerformanceMetric::factory()->recent()->create();
 
-        $this->assertGreaterThanOrEqual(now()->subDays(7), $metric->measured_at);
+        $this->assertGreaterThanOrEqual(
+            now()->subDays(7),
+            $metric->measured_at,
+        );
         $this->assertLessThanOrEqual(now(), $metric->measured_at);
     }
 
@@ -137,8 +143,14 @@ class PerformanceMetricFeatureTest extends TestCase
 
         $metric = PerformanceMetric::factory()->old()->create();
 
-        $this->assertLessThanOrEqual(now()->subMonths(2), $metric->measured_at);
-        $this->assertGreaterThanOrEqual(now()->subMonths(6), $metric->measured_at);
+        $this->assertLessThanOrEqual(
+            now()->subMonths(2),
+            $metric->measured_at,
+        );
+        $this->assertGreaterThanOrEqual(
+            now()->subMonths(6),
+            $metric->measured_at,
+        );
     }
 
     #[Test]
@@ -162,7 +174,10 @@ class PerformanceMetricFeatureTest extends TestCase
         ]);
 
         $this->assertInstanceOf(Carbon::class, $metric->measured_at);
-        $this->assertEquals('2023-01-01 10:00:00', $metric->measured_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2023-01-01 10:00:00',
+            $metric->measured_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]

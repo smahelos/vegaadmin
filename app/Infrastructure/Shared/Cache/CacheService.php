@@ -81,7 +81,7 @@ class CacheService implements CacheServiceInterface
 
     public function invalidateTags(array $tags): bool
     {
-        if (! empty($tags)) {
+        if (!empty($tags)) {
             Cache::tags($tags)->flush();
         }
 

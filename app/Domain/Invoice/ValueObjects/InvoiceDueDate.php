@@ -26,10 +26,15 @@ final readonly class InvoiceDueDate
     public static function fromIssueDateAndDays(DateTimeImmutable $issueDate, int $days): self
     {
         if ($days < 0 || $days > self::MAX_DAYS) {
-            throw new InvalidArgumentException('Due days must be between 0 and ' . self::MAX_DAYS . ", got: {$days}");
+            throw new InvalidArgumentException(
+                'Due days must be between 0 and ' . self::MAX_DAYS . ", got: {$days}",
+            );
         }
 
-        return new self($issueDate->setTime(0, 0), $days);
+        return new self(
+            $issueDate->setTime(0, 0),
+            $days,
+        );
     }
 
     public function date(): DateTimeImmutable

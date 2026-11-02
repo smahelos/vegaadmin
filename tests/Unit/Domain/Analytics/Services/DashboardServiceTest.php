@@ -91,7 +91,9 @@ final class DashboardServiceTest extends TestCase
         };
         $service = new AnalyticsDashboardService($stub, $analytics);
         $userId = 777;
-        $this->assertTrue($service->invalidateUserCache($userId));
+        $this->assertTrue(
+            $service->invalidateUserCache($userId),
+        );
         $this->assertSame([['analytics.user.777']], $stub->invalidated);
     }
 }

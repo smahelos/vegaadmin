@@ -39,7 +39,9 @@ final class BankAccountApplicationServiceTest extends TestCase
     public function the_first_account_of_an_owner_becomes_its_default_and_the_next_one_does_not(): void
     {
         $contact = Contact::factory()->create();
-        $owner = AccountOwner::contact(ContactId::fromInt($contact->id));
+        $owner = AccountOwner::contact(
+            ContactId::fromInt($contact->id),
+        );
 
         $first = $this->accounts->add(
             $this->ownerOf($contact),
@@ -53,7 +55,13 @@ final class BankAccountApplicationServiceTest extends TestCase
         );
 
         $this->assertSame($first->id->value, $contact->fresh()?->default_bank_account_id);
-        $this->assertCount(2, $this->accounts->listForOwner($this->ownerOf($contact), $owner));
+        $this->assertCount(
+            2,
+            $this->accounts->listForOwner(
+                $this->ownerOf($contact),
+                $owner,
+            ),
+        );
         $this->assertNotSame($first->id->value, $second->id->value);
     }
 
@@ -61,7 +69,9 @@ final class BankAccountApplicationServiceTest extends TestCase
     public function archiving_the_default_account_needs_another_active_account_as_the_default(): void
     {
         $business = Business::factory()->create();
-        $owner = AccountOwner::business(BusinessId::fromInt($business->id));
+        $owner = AccountOwner::business(
+            BusinessId::fromInt($business->id),
+        );
         $default = $this->accounts->add(
             $this->ownerOf($business),
             $owner,
@@ -92,14 +102,21 @@ final class BankAccountApplicationServiceTest extends TestCase
         );
 
         $this->assertSame($other->id->value, $business->fresh()?->default_bank_account_id);
-        $this->assertTrue($this->accounts->get($this->ownerOf($business), $default->id)->isArchived());
+        $this->assertTrue(
+            $this->accounts->get(
+                $this->ownerOf($business),
+                $default->id,
+            )->isArchived(),
+        );
     }
 
     #[Test]
     public function the_last_active_account_leaves_no_default_and_becomes_it_again_when_restored(): void
     {
         $business = Business::factory()->create();
-        $owner = AccountOwner::business(BusinessId::fromInt($business->id));
+        $owner = AccountOwner::business(
+            BusinessId::fromInt($business->id),
+        );
         $account = $this->accounts->add(
             $this->ownerOf($business),
             $owner,
@@ -127,7 +144,9 @@ final class BankAccountApplicationServiceTest extends TestCase
     {
         $business = Business::factory()->create();
         $sibling = Business::factory()->create(['user_id' => $business->user_id]);
-        $owner = AccountOwner::business(BusinessId::fromInt($business->id));
+        $owner = AccountOwner::business(
+            BusinessId::fromInt($business->id),
+        );
         $default = $this->accounts->add(
             $this->ownerOf($business),
             $owner,
@@ -160,7 +179,9 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->setDefault(
             $this->ownerOf($business),
-            AccountOwner::business(BusinessId::fromInt($business->id)),
+            AccountOwner::business(
+                BusinessId::fromInt($business->id),
+            ),
             BankAccountId::fromInt($archived->id),
         );
     }
@@ -175,7 +196,9 @@ final class BankAccountApplicationServiceTest extends TestCase
         try {
             $this->accounts->add(
                 $stranger,
-                AccountOwner::contact(ContactId::fromInt($contact->id)),
+                AccountOwner::contact(
+                    ContactId::fromInt($contact->id),
+                ),
                 $this->czechAccount(),
             );
             $this->fail('Another user added an account to the contact');
@@ -186,7 +209,9 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->setDefault(
             $stranger,
-            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            AccountOwner::contact(
+                ContactId::fromInt($contact->id),
+            ),
             BankAccountId::fromInt($account->id),
         );
     }
@@ -202,7 +227,9 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->accounts->update(
             $this->ownerOf($contact),
-            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            AccountOwner::contact(
+                ContactId::fromInt($contact->id),
+            ),
             BankAccountId::fromInt($account->id),
             $this->czechAccount('1234567899', '0100'),
         );
@@ -210,6 +237,8 @@ final class BankAccountApplicationServiceTest extends TestCase
 
     private function ownerOf(Business|Contact $party): UserId
     {
-        return $this->idOf(User::query()->findOrFail($party->user_id));
+        return $this->idOf(
+            User::query()->findOrFail($party->user_id),
+        );
     }
 }

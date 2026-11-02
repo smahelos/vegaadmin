@@ -51,8 +51,10 @@ class SubscriptionPolicy
         }
 
         // Users can cancel their own subscriptions
-        if ($user->id === $subscription->user_id &&
-            $user->hasPermissionTo('frontend.can_cancel_subscription', 'web')) {
+        if (
+            $user->id === $subscription->user_id
+            && $user->hasPermissionTo('frontend.can_cancel_subscription', 'web')
+        ) {
             return true;
         }
 

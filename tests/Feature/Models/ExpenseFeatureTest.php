@@ -32,21 +32,26 @@ final class ExpenseFeatureTest extends TestCase
     {
         $expense = Expense::factory()->create();
 
-        $this->assertDatabaseHas('expenses', [
-            'id' => $expense->id,
-            'amount' => $expense->amount,
-            'description' => $expense->description,
-        ]);
+        $this->assertDatabaseHas(
+            'expenses',
+            [
+                'id' => $expense->id,
+                'amount' => $expense->amount,
+                'description' => $expense->description,
+            ],
+        );
     }
 
     #[Test]
     public function stores_the_document_snapshot_with_the_expense(): void
     {
-        $expense = Expense::factory()->create([
-            'supplier_name' => 'Document supplier',
-            'customer_name' => 'Document customer',
-            'attachments' => ['receipts/receipt.pdf'],
-        ])->fresh();
+        $expense = Expense::factory()->create(
+            [
+                'supplier_name' => 'Document supplier',
+                'customer_name' => 'Document customer',
+                'attachments' => ['receipts/receipt.pdf'],
+            ],
+        )->fresh();
 
         $this->assertSame('Document supplier', $expense->supplier_name);
         $this->assertSame('Document customer', $expense->customer_name);
@@ -56,13 +61,15 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $expense = Expense::factory()->create([
-            'expense_date' => '2025-06-18',
-            'amount' => '123.45',
-            'tax_amount' => '25.67',
-            'tax_included' => 1,
-            'attachments' => ['file1.pdf', 'file2.jpg'],
-        ]);
+        $expense = Expense::factory()->create(
+            [
+                'expense_date' => '2025-06-18',
+                'amount' => '123.45',
+                'tax_amount' => '25.67',
+                'tax_included' => 1,
+                'attachments' => ['file1.pdf', 'file2.jpg'],
+            ],
+        );
 
         $this->assertInstanceOf(Carbon::class, $expense->expense_date);
         $this->assertIsString($expense->amount); // Decimal cast returns string
@@ -92,11 +99,13 @@ final class ExpenseFeatureTest extends TestCase
         $user = User::factory()->create();
         $contact = Contact::factory()->create(['user_id' => $user->id]);
         $account = BankAccount::factory()->ownedBy($contact)->create();
-        $expense = Expense::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'bank_account_id' => $account->id,
-        ]);
+        $expense = Expense::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+                'bank_account_id' => $account->id,
+            ],
+        );
 
         $this->assertSame($user->id, $expense->business->user_id);
         $this->assertSame($contact->id, $expense->contact->id);
@@ -162,7 +171,10 @@ final class ExpenseFeatureTest extends TestCase
         $date = new \DateTime('2025-01-15');
         $expense = Expense::factory()->fromDate($date)->create();
 
-        $this->assertEquals('2025-01-15', $expense->expense_date->format('Y-m-d'));
+        $this->assertEquals(
+            '2025-01-15',
+            $expense->expense_date->format('Y-m-d'),
+        );
     }
 
     #[Test]
@@ -178,10 +190,13 @@ final class ExpenseFeatureTest extends TestCase
 
         $expense->update($newData);
 
-        $this->assertDatabaseHas('expenses', array_merge(
-            ['id' => $expense->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'expenses',
+            array_merge(
+                ['id' => $expense->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
@@ -227,11 +242,13 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function tax_calculations_work_correctly(): void
     {
-        $expense = Expense::factory()->create([
-            'amount' => '100.00',
-            'tax_amount' => '21.00',
-            'tax_included' => true,
-        ]);
+        $expense = Expense::factory()->create(
+            [
+                'amount' => '100.00',
+                'tax_amount' => '21.00',
+                'tax_included' => true,
+            ],
+        );
 
         $this->assertEquals('100.00', $expense->amount);
         $this->assertEquals('21.00', $expense->tax_amount);

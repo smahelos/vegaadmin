@@ -73,7 +73,8 @@ final class DatabaseMonitorCommand extends Command
      */
     private function checkMySQLDatabaseSize(bool $store = false): void
     {
-        $sizes = DB::select("
+        $sizes = DB::select(
+            "
             SELECT
                 TABLE_NAME as table_name,
                 TABLE_ROWS as row_count,
@@ -85,7 +86,8 @@ final class DatabaseMonitorCommand extends Command
             AND TABLE_TYPE = 'BASE TABLE'
             ORDER BY (DATA_LENGTH + INDEX_LENGTH) DESC
             LIMIT 10
-        ");
+        ",
+        );
 
         $headers = [
             'Table',
@@ -124,12 +126,14 @@ final class DatabaseMonitorCommand extends Command
         $this->table($headers, $data);
 
         // Total database size
-        $totalSize = DB::selectOne('
+        $totalSize = DB::selectOne(
+            '
             SELECT
                 ROUND(SUM(DATA_LENGTH + INDEX_LENGTH) / 1024 / 1024, 2) as total_mb
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA = DATABASE()
-        ');
+        ',
+        );
 
         $this->info("💾 Total Database Size: {$totalSize->total_mb} MB");
     }
@@ -152,7 +156,8 @@ final class DatabaseMonitorCommand extends Command
     private function checkMySQLIndexUsage(bool $store = false): void
     {
         // Get index statistics
-        $indexes = DB::select("
+        $indexes = DB::select(
+            "
             SELECT
                 TABLE_NAME as table_name,
                 INDEX_NAME as index_name,
@@ -163,7 +168,8 @@ final class DatabaseMonitorCommand extends Command
             WHERE TABLE_SCHEMA = DATABASE()
             AND INDEX_NAME != 'PRIMARY'
             ORDER BY TABLE_NAME, INDEX_NAME
-        ");
+        ",
+        );
 
         $indexData = [];
         $currentIndex = null;
@@ -192,7 +198,14 @@ final class DatabaseMonitorCommand extends Command
             'Cardinality',
             'Column',
         ];
-        $this->table($headers, array_slice($indexData, 0, 15)); // Show first 15
+        $this->table(
+            $headers,
+            array_slice(
+                $indexData,
+                0,
+                15,
+            ),
+        ); // Show first 15
 
         if ($store) {
             $this->storeMetric(
@@ -224,7 +237,9 @@ final class DatabaseMonitorCommand extends Command
         $slowLogStatus = DB::selectOne("SHOW VARIABLES LIKE 'slow_query_log'");
         $longQueryTime = DB::selectOne("SHOW VARIABLES LIKE 'long_query_time'");
 
-        $this->info('Slow Query Log: ' . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'));
+        $this->info(
+            'Slow Query Log: ' . ($slowLogStatus->Value === 'ON' ? '✅ Enabled' : '❌ Disabled'),
+        );
         $this->info("Long Query Time: {$longQueryTime->Value}s");
 
         $this->performQueryTests($store);
@@ -296,7 +311,9 @@ final class DatabaseMonitorCommand extends Command
 
         $this->info("Current Connections: {$threadsConnected->Value}");
         $this->info("Max Connections: {$maxConnections->Value}");
-        $this->info('Connection Usage: ' . round(($threadsConnected->Value / $maxConnections->Value) * 100, 1) . '%');
+        $this->info(
+            'Connection Usage: ' . round(($threadsConnected->Value / $maxConnections->Value) * 100, 1) . '%',
+        );
 
         if ($store) {
             $this->storeMetric(
@@ -324,7 +341,8 @@ final class DatabaseMonitorCommand extends Command
 
         try {
             // Try to use the view if it exists (MySQL only)
-            $userStats = DB::select('
+            $userStats = DB::select(
+                '
                 SELECT
                     user_id,
                     user_name,
@@ -337,7 +355,8 @@ final class DatabaseMonitorCommand extends Command
                 FROM user_activity_summary
                 ORDER BY total_invoices DESC
                 LIMIT 10
-            ');
+            ',
+            );
 
             $headers = [
                 'User ID',
@@ -382,15 +401,17 @@ final class DatabaseMonitorCommand extends Command
         string $unit,
         array $metadata = [],
     ): void {
-        DB::table('performance_metrics')->insert([
-            'metric_type' => $metricType,
-            'table_name' => $tableName,
-            'metric_value' => $value,
-            'metric_unit' => $unit,
-            'metadata' => ! empty($metadata) ? json_encode($metadata) : null,
-            'measured_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        DB::table('performance_metrics')->insert(
+            [
+                'metric_type' => $metricType,
+                'table_name' => $tableName,
+                'metric_value' => $value,
+                'metric_unit' => $unit,
+                'metadata' => !empty($metadata) ? json_encode($metadata) : null,
+                'measured_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        );
     }
 }

@@ -26,7 +26,9 @@ class ProductCategoryCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(ProductCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/product-category');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/product-category',
+        );
         CRUD::setEntityNameStrings(
             __('products.categories.entity.singular'),
             __('products.categories.entity.plural'),
@@ -38,11 +40,21 @@ class ProductCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('products.categories.fields.name'));
-        CRUD::column('slug')->label(__('products.categories.fields.slug'));
-        CRUD::column('description')->label(__('products.categories.fields.description'));
-        CRUD::column('created_at')->label(__('products.categories.fields.created_at'));
-        CRUD::column('updated_at')->label(__('products.categories.fields.updated_at'));
+        CRUD::column('name')->label(
+            __('products.categories.fields.name'),
+        );
+        CRUD::column('slug')->label(
+            __('products.categories.fields.slug'),
+        );
+        CRUD::column('description')->label(
+            __('products.categories.fields.description'),
+        );
+        CRUD::column('created_at')->label(
+            __('products.categories.fields.created_at'),
+        );
+        CRUD::column('updated_at')->label(
+            __('products.categories.fields.updated_at'),
+        );
     }
 
     /**
@@ -52,13 +64,21 @@ class ProductCategoryCrudController extends CrudController
     {
         CRUD::setValidation(ProductCategoryRequest::class);
 
-        CRUD::field('name')->label(__('products.categories.fields.name'));
+        CRUD::field('name')->label(
+            __('products.categories.fields.name'),
+        );
         CRUD::field('slug')
-            ->label(__('products.categories.fields.slug'))
-            ->hint(__('products.categories.hints.slug'));
+            ->label(
+                __('products.categories.fields.slug'),
+            )
+            ->hint(
+                __('products.categories.hints.slug'),
+            );
         CRUD::field('description')
             ->type('textarea')
-            ->label(__('products.categories.fields.description'));
+            ->label(
+                __('products.categories.fields.description'),
+            );
     }
 
     /**

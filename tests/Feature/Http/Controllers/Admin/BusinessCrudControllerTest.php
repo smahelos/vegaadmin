@@ -24,13 +24,17 @@ final class BusinessCrudControllerTest extends TestCase
     {
         parent::setUp();
         $this->admin = User::factory()->create();
-        $this->admin->assignRole(Role::findByName('admin', 'backpack'));
+        $this->admin->assignRole(
+            Role::findByName('admin', 'backpack'),
+        );
     }
 
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/business')->assertRedirect(route('backpack.auth.login'));
+        $this->get('/admin/business')->assertRedirect(
+            route('backpack.auth.login'),
+        );
     }
 
     #[Test]
@@ -49,22 +53,28 @@ final class BusinessCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/business', [
-                'user_id' => $owner->id,
-                'name' => 'Admin Firma',
-                'registration_country' => 'CZ',
-                'company_number' => '27082440',
-                'street' => 'Hlavní 1',
-                'city' => 'Brno',
-                'postal_code' => '602 00',
-                'country' => 'CZ',
-                '_save_action' => 'save_and_back',
-            ])
+            ->post(
+                '/admin/business',
+                [
+                    'user_id' => $owner->id,
+                    'name' => 'Admin Firma',
+                    'registration_country' => 'CZ',
+                    'company_number' => '27082440',
+                    'street' => 'Hlavní 1',
+                    'city' => 'Brno',
+                    'postal_code' => '602 00',
+                    'country' => 'CZ',
+                    '_save_action' => 'save_and_back',
+                ],
+            )
             ->assertRedirect();
 
         $business = Business::query()->where('user_id', $owner->id)->sole();
         $this->assertSame('27082440', $business->company_number);
-        $this->assertSame('Brno', Address::query()->where('business_id', $business->id)->value('city'));
+        $this->assertSame(
+            'Brno',
+            Address::query()->where('business_id', $business->id)->value('city'),
+        );
         $this->assertSame($business->id, $owner->fresh()?->default_business_id);
     }
 
@@ -77,34 +87,45 @@ final class BusinessCrudControllerTest extends TestCase
 
         $this->actingAs($this->admin, 'backpack')
             ->from('/admin/business/create')
-            ->post('/admin/business', [
-                'user_id' => $owner->id,
-                'name' => 'Druhá',
-                'country' => 'CZ',
-            ])
+            ->post(
+                '/admin/business',
+                [
+                    'user_id' => $owner->id,
+                    'name' => 'Druhá',
+                    'country' => 'CZ',
+                ],
+            )
             ->assertRedirect('/admin/business/create');
 
-        $this->assertSame(1, Business::query()->where('user_id', $owner->id)->count());
+        $this->assertSame(
+            1,
+            Business::query()->where('user_id', $owner->id)->count(),
+        );
     }
 
     #[Test]
     public function a_czech_company_number_of_another_business_of_the_owner_is_refused(): void
     {
         $owner = $this->frontendUser();
-        Business::factory()->archived()->create([
-            'user_id' => $owner->id,
-            'company_number' => '27082440',
-        ]);
+        Business::factory()->archived()->create(
+            [
+                'user_id' => $owner->id,
+                'company_number' => '27082440',
+            ],
+        );
 
         $this->actingAs($this->admin, 'backpack')
             ->from('/admin/business/create')
-            ->post('/admin/business', [
-                'user_id' => $owner->id,
-                'name' => 'Kopie',
-                'registration_country' => 'CZ',
-                'company_number' => '27082440',
-                'country' => 'CZ',
-            ])
+            ->post(
+                '/admin/business',
+                [
+                    'user_id' => $owner->id,
+                    'name' => 'Kopie',
+                    'registration_country' => 'CZ',
+                    'company_number' => '27082440',
+                    'country' => 'CZ',
+                ],
+            )
             ->assertSessionHasErrors('company_number');
     }
 
@@ -114,13 +135,16 @@ final class BusinessCrudControllerTest extends TestCase
         $business = Business::factory()->create(['email' => 'old@example.test']);
 
         $this->actingAs($this->admin, 'backpack')
-            ->put('/admin/business/' . $business->id, [
-                'id' => $business->id,
-                'name' => 'Nový název',
-                'email' => '',
-                'country' => 'CZ',
-                '_save_action' => 'save_and_back',
-            ])
+            ->put(
+                '/admin/business/' . $business->id,
+                [
+                    'id' => $business->id,
+                    'name' => 'Nový název',
+                    'email' => '',
+                    'country' => 'CZ',
+                    '_save_action' => 'save_and_back',
+                ],
+            )
             ->assertRedirect();
 
         $business->refresh();
@@ -136,12 +160,16 @@ final class BusinessCrudControllerTest extends TestCase
         $owner->forceFill(['default_business_id' => $business->id])->save();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post(route('admin.businesses.archive', ['id' => $business->id]))
+            ->post(
+                route('admin.businesses.archive', ['id' => $business->id]),
+            )
             ->assertRedirect();
         $this->assertNotNull($business->fresh()?->archived_at);
         $this->assertNull($owner->fresh()?->default_business_id);
 
-        $this->post(route('admin.businesses.restore', ['id' => $business->id]))->assertRedirect();
+        $this->post(
+            route('admin.businesses.restore', ['id' => $business->id]),
+        )->assertRedirect();
         $this->assertNull($business->fresh()?->archived_at);
         $this->assertSame($business->id, $owner->fresh()?->default_business_id);
     }
@@ -153,12 +181,18 @@ final class BusinessCrudControllerTest extends TestCase
         $business = Business::factory()->create(['user_id' => $owner->id]);
         $replacement = Business::factory()->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
-        $this->actingAs($this->backendUser('can_archive_business', 'can_view_business'), 'backpack');
+        $this->actingAs(
+            $this->backendUser('can_archive_business', 'can_view_business'),
+            'backpack',
+        );
         $this->postJson('/admin/business/search', ['start' => 0, 'length' => 100])
             ->assertOk()->assertSee('replacement_business_id')->assertSee($replacement->name);
-        $this->post(route('admin.businesses.archive', ['id' => $business->id]), [
-            'replacement_business_id' => $replacement->id,
-        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->post(
+            route('admin.businesses.archive', ['id' => $business->id]),
+            [
+                'replacement_business_id' => $replacement->id,
+            ],
+        )->assertSessionHasNoErrors()->assertRedirect();
         $this->assertNotNull($business->fresh()->archived_at);
         $this->assertSame($replacement->id, $owner->fresh()->default_business_id);
     }
@@ -172,15 +206,20 @@ final class BusinessCrudControllerTest extends TestCase
         $archived = Business::factory()->archived()->create(['user_id' => $owner->id]);
         $foreign = Business::factory()->create();
         $this->actingAs($this->admin, 'backpack');
-        foreach ([
-            $business->id,
-            $archived->id,
-            $foreign->id,
-            'invalid',
-        ] as $replacement) {
-            $this->post(route('admin.businesses.archive', ['id' => $business->id]), [
-                'replacement_business_id' => $replacement,
-            ])->assertSessionHasErrors('replacement_business_id');
+        foreach (
+            [
+                $business->id,
+                $archived->id,
+                $foreign->id,
+                'invalid',
+            ] as $replacement
+        ) {
+            $this->post(
+                route('admin.businesses.archive', ['id' => $business->id]),
+                [
+                    'replacement_business_id' => $replacement,
+                ],
+            )->assertSessionHasErrors('replacement_business_id');
             $this->assertNull($business->fresh()->archived_at);
             $this->assertSame($business->id, $owner->fresh()->default_business_id);
         }
@@ -193,7 +232,9 @@ final class BusinessCrudControllerTest extends TestCase
         $backendUser = $this->backendUser('can_view_business');
 
         $this->actingAs($backendUser, 'backpack')
-            ->post(route('admin.businesses.archive', ['id' => $business->id]))
+            ->post(
+                route('admin.businesses.archive', ['id' => $business->id]),
+            )
             ->assertForbidden();
     }
 

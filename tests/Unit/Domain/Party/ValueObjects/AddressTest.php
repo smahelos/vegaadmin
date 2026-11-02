@@ -43,12 +43,14 @@ final class AddressTest extends TestCase
     #[Test]
     public function an_address_without_street_city_and_postal_code_is_not_stored_even_with_a_country(): void
     {
-        $this->assertNull(Address::fromParts(
-            '',
-            null,
-            ' ',
-            Country::CZ,
-        ));
+        $this->assertNull(
+            Address::fromParts(
+                '',
+                null,
+                ' ',
+                Country::CZ,
+            ),
+        );
     }
 
     #[Test]

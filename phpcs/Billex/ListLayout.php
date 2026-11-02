@@ -28,8 +28,9 @@ final class ListLayout
         int $closer,
         array $itemStarts,
         string $message,
+        int $minimumItems = self::MIN_ITEMS,
     ): void {
-        if (count($itemStarts) < self::MIN_ITEMS) {
+        if (count($itemStarts) < $minimumItems) {
             return;
         }
 
@@ -58,7 +59,7 @@ final class ListLayout
         );
         $closerShared = $tokens[$lastContent]['line'] === $tokens[$closer]['line'];
 
-        if ($sharedSeparators === [] && ! $closerShared) {
+        if ($sharedSeparators === [] && !$closerShared) {
             return;
         }
 
@@ -66,10 +67,10 @@ final class ListLayout
             $message,
             $opener,
             'ItemsOnSharedLine',
-            [self::MIN_ITEMS],
+            [$minimumItems],
         );
 
-        if (! $fix) {
+        if (!$fix) {
             return;
         }
 

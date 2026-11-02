@@ -11,6 +11,13 @@
                 "match",
                 "parameters"
             ]
+        },
+        "not_operator_with_successor_space": false,
+        "class_definition": {
+            "multi_line_extends_each_single_line": true,
+            "single_item_single_line": true,
+            "single_line": true,
+            "inline_constructor_arguments": false
         }
     },
     "exclude": [
@@ -18,6 +25,7 @@
         "storage",
         "vendor",
         "node_modules",
-        "backup"
+        "backup",
+        "dev_docs"
     ]
 }

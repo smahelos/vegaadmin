@@ -37,18 +37,30 @@ class PaymentController extends Controller
 
             if ($status === 'completed') {
                 return redirect()->route('subscriptions.my-subscription', ['locale' => app()->getLocale()])
-                    ->with('success', __('payments.messages.successful'));
+                    ->with(
+                        'success',
+                        __('payments.messages.successful'),
+                    );
             } elseif ($status === 'failed') {
                 return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                    ->with('error', __('payments.messages.failed'));
+                    ->with(
+                        'error',
+                        __('payments.messages.failed'),
+                    );
             }
 
             return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with('info', __('payments.messages.pending'));
+                ->with(
+                    'info',
+                    __('payments.messages.pending'),
+                );
         }
 
         return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-            ->with('error', __('payments.messages.error'));
+            ->with(
+                'error',
+                __('payments.messages.error'),
+            );
     }
 
     /**

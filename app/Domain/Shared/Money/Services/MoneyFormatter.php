@@ -82,10 +82,19 @@ class MoneyFormatter implements MoneyFormatterInterface
         // Determine scale of underlying amount
         $scale = 0;
         if (str_contains($amountStr, '.')) {
-            $scale = strlen(explode('.', $amountStr, 2)[1]);
+            $scale = strlen(
+                explode(
+                    '.',
+                    $amountStr,
+                    2,
+                )[1],
+            );
         }
         // Clamp displayed fraction according to available digits
-        $displayMax = min($max, max($scale, $min));
+        $displayMax = min(
+            $max,
+            max($scale, $min),
+        );
 
         // Format numeric part locale-aware (WITHOUT currency) using intl if possible
         $numberFormatted = $this->formatNumberPortion(
@@ -98,7 +107,7 @@ class MoneyFormatter implements MoneyFormatterInterface
         $currencyToken = $currency; // default to code
         $useSymbol = false;
 
-        if (! $forceCode) {
+        if (!$forceCode) {
             $symbol = $this->getIntlCurrencySymbol($currency, $locale);
             // Accept symbol if it is a single UTF-8 grapheme (length <= 3 bytes) and differs from code
             if ($symbol && $symbol !== $currency && $this->isShortSymbol($symbol)) {
@@ -158,7 +167,7 @@ class MoneyFormatter implements MoneyFormatterInterface
      */
     private function getIntlCurrencySymbol(string $currency, string $locale): ?string
     {
-        if (! class_exists(\NumberFormatter::class)) {
+        if (!class_exists(\NumberFormatter::class)) {
             return null;
         }
         try {
@@ -179,7 +188,13 @@ class MoneyFormatter implements MoneyFormatterInterface
     private function isShortSymbol(string $symbol): bool
     {
         // Trim whitespace / NBSP
-        $trimmed = trim(str_replace(["\u{00A0}", "\u{202F}"], ' ', $symbol));
+        $trimmed = trim(
+            str_replace(
+                ["\u{00A0}", "\u{202F}"],
+                ' ',
+                $symbol,
+            ),
+        );
 
         // If after trimming length (mb_strlen) <= 2 treat as short symbol
         return mb_strlen($trimmed, 'UTF-8') <= 2;

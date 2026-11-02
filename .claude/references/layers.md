@@ -69,17 +69,18 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 {
     public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO
     {
-        $contact = Contact::query()
-            ->whereKey($id->value)
-            ->where('user_id', $userId->value)
-            ->first();
+        $query = Contact::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $userId->value);
+        $contact = $query->first();
 
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);
     }
 
     public function create(UserId $userId, ContactWriteData $data): ContactDTO
     {
-        $contact = Contact::create(['user_id' => $userId->value] + EloquentContactMapper::toAttributes($data));
+        $attributes = ['user_id' => $userId->value] + EloquentContactMapper::toAttributes($data);
+        $contact = Contact::create($attributes);
 
         return EloquentContactMapper::toDTO($contact);
     }
@@ -93,6 +94,11 @@ final class EloquentContactMapper
 {
     public static function toDTO(Contact $contact): ContactDTO
     {
+        $archived = null;
+        if ($contact->archived_at !== null) {
+            $archived = DateTimeImmutable::createFromInterface($contact->archived_at);
+        }
+
         return new ContactDTO(
             id: ContactId::fromInt($contact->id),
             userId: UserId::fromInt($contact->user_id),
@@ -100,7 +106,7 @@ final class EloquentContactMapper
             companyNumber: $contact->company_number,
             vatNumber: $contact->vat_number,
             email: $contact->email,
-            archived: $contact->archived_at === null ? null : DateTimeImmutable::createFromInterface($contact->archived_at),
+            archived: $archived,
             created: DateTimeImmutable::createFromInterface($contact->created_at),
         );
     }
@@ -137,14 +143,18 @@ final class ContactApplicationService
 
     public function create(UserId $userId, ContactWriteData $data): ContactDTO
     {
-        $contact = $this->transactions->transaction(function () use ($userId, $data): ContactDTO {
-            // capacity limit: locks the owner, counts active contacts (rules/permissions.md)
-            $this->limits->assertCanCreate($userId, EntityType::Contact);
+        $contact = $this->transactions->transaction(
+            function () use ($userId, $data): ContactDTO {
+                // capacity limit: locks the owner, counts active contacts (rules/permissions.md)
+                $this->limits->assertCanCreate($userId, EntityType::Contact);
 
-            return $this->contactWriter->create($userId, $data);
-        });
+                return $this->contactWriter->create($userId, $data);
+            },
+        );
 
-        $this->events->publish(new ContactCreated($contact->id, $userId));
+        $this->events->publish(
+            new ContactCreated($contact->id, $userId),
+        );
 
         return $contact;
     }
@@ -162,6 +172,8 @@ No interface, no binding: the class is autowired.
 ## Delivery — form request and controller action
 
 ```php
+use Illuminate\Support\Facades\App;
+
 final class ContactController extends Controller
 {
     public function __construct(
@@ -170,11 +182,19 @@ final class ContactController extends Controller
 
     public function store(StoreContactRequest $request): RedirectResponse
     {
-        $this->contacts->create(UserId::fromInt($request->user()->id), $request->toWriteData());
+        $owner = UserId::fromInt($request->user()->id);
+        $this->contacts->create(
+            $owner,
+            $request->toWriteData(),
+        );
 
-        return redirect()
-            ->route('frontend.contacts.index', ['locale' => app()->getLocale()])
-            ->with('success', __('contacts.messages.created'));
+        $url = route('frontend.contacts.index', ['locale' => App::currentLocale()]);
+        $response = redirect($url);
+
+        return $response->with(
+            'success',
+            __('contacts.messages.created'),
+        );
     }
 }
 ```

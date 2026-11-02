@@ -41,7 +41,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
             ])
             ->first();
 
-        if (! $product) {
+        if (!$product) {
             throw new ModelNotFoundException('Product not found for user.');
         }
 

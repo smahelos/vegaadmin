@@ -15,10 +15,13 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $archivePolicy = ArchivePolicy::factory()->create();
 
-        $this->assertDatabaseHas('archive_policies', [
-            'id' => $archivePolicy->id,
-            'table_name' => $archivePolicy->table_name,
-        ]);
+        $this->assertDatabaseHas(
+            'archive_policies',
+            [
+                'id' => $archivePolicy->id,
+                'table_name' => $archivePolicy->table_name,
+            ],
+        );
     }
 
     #[Test]
@@ -45,11 +48,13 @@ class ArchivePolicyFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $archivePolicy = ArchivePolicy::factory()->create([
-            'enabled' => 1,
-            'retention_months' => '36',
-            'records_archived' => '500',
-        ]);
+        $archivePolicy = ArchivePolicy::factory()->create(
+            [
+                'enabled' => 1,
+                'retention_months' => '36',
+                'records_archived' => '500',
+            ],
+        );
 
         $this->assertIsBool($archivePolicy->enabled);
         $this->assertIsInt($archivePolicy->retention_months);
@@ -88,10 +93,13 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $policy->update($newData);
 
-        $this->assertDatabaseHas('archive_policies', array_merge(
-            ['id' => $policy->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'archive_policies',
+            array_merge(
+                ['id' => $policy->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
@@ -113,7 +121,10 @@ class ArchivePolicyFeatureTest extends TestCase
         $policy = ArchivePolicy::factory()->create(['last_archived_at' => '2024-01-15 10:30:00']);
 
         $this->assertInstanceOf(Carbon::class, $policy->last_archived_at);
-        $this->assertEquals('2024-01-15 10:30:00', $policy->last_archived_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2024-01-15 10:30:00',
+            $policy->last_archived_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]

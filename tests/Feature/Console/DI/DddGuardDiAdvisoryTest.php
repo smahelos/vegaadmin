@@ -21,7 +21,7 @@ class DddGuardDiAdvisoryTest extends TestCase
         // Use process ID to avoid conflicts in parallel test execution
         $this->processId = (string) getmypid();
         $this->tempControllerDir = base_path("app/Http/Controllers/Temp_{$this->processId}");
-        if (! is_dir($this->tempControllerDir)) {
+        if (!is_dir($this->tempControllerDir)) {
             mkdir(
                 $this->tempControllerDir,
                 0755,
@@ -96,12 +96,18 @@ PHP;
             ->assertExitCode(1);
 
         $this->assertFileExists($reportPath, 'JSON report file not generated');
-        $json = json_decode(file_get_contents($reportPath), true);
+        $json = json_decode(
+            file_get_contents($reportPath),
+            true,
+        );
         $this->assertIsArray($json);
         $this->assertArrayHasKey('violations', $json);
         $this->assertNotEmpty($json['violations'], 'Expected at least one violation');
         $foundConcrete = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
-        $this->assertTrue($foundConcrete, 'Expected at least one di_concrete_import violation in report');
+        $this->assertTrue(
+            $foundConcrete,
+            'Expected at least one di_concrete_import violation in report',
+        );
     }
 
     #[Test]
@@ -111,11 +117,14 @@ PHP;
         $reportPath = storage_path("app/ddd_guard_report_{$this->processId}.json");
         config(['ddd_guard.json_report_path' => $reportPath]);
 
-        $this->artisan('ddd:guard', [
-            '--di' => true,
-            '--format' => 'json',
-            '--fail-on-advisory' => true,
-        ])
+        $this->artisan(
+            'ddd:guard',
+            [
+                '--di' => true,
+                '--format' => 'json',
+                '--fail-on-advisory' => true,
+            ],
+        )
             ->assertExitCode(1); // Advisories should trigger failure with flag
     }
 
@@ -145,11 +154,17 @@ PHP;
             ->assertExitCode(1); // Hard violation should fail build now that interface exists
 
         // Inspect JSON report
-        $json = json_decode(file_get_contents($reportPath), true);
+        $json = json_decode(
+            file_get_contents($reportPath),
+            true,
+        );
         $this->assertIsArray($json);
         $this->assertArrayHasKey('violations', $json);
         $found = collect($json['violations'])->contains(fn ($v) => ($v['type'] ?? null) === 'di_concrete_import');
-        $this->assertTrue($found, 'Expected di_concrete_import violation once interface exists');
+        $this->assertTrue(
+            $found,
+            'Expected di_concrete_import violation once interface exists',
+        );
 
         @unlink($controllerFile);
     }

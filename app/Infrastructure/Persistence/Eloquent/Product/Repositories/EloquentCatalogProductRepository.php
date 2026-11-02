@@ -26,7 +26,9 @@ final class EloquentCatalogProductRepository implements CatalogProductReadReposi
                 '%' . $search . '%',
             )
             ->with(['tax', 'category'])->orderBy('name')->orderBy('id')->limit(50)->get()
-            ->map(EloquentCatalogProductMapper::toDTO(...))->all();
+            ->map(
+                EloquentCatalogProductMapper::toDTO(...),
+            )->all();
     }
 
     public function isOwnedBy(ProductId $id, UserId $userId): bool

@@ -16,6 +16,8 @@ final class ContactIdentityChangedException extends DomainException
     public function __construct(
         ContactId $contact,
     ) {
-        parent::__construct("The document party is not registered under the number of contact {$contact->value}");
+        parent::__construct(
+            "The document party is not registered under the number of contact {$contact->value}",
+        );
     }
 }

@@ -21,7 +21,9 @@ final class EloquentProductDtoRepositoryTest extends TestCase
         InvoiceProduct::factory()->create(['product_id' => $product->id]);
 
         try {
-            app(ProductDtoWriteRepositoryInterface::class)->delete(ProductId::fromInt($product->id));
+            app(ProductDtoWriteRepositoryInterface::class)->delete(
+                ProductId::fromInt($product->id),
+            );
             $this->fail('ProductInUseException was not thrown');
         } catch (ProductInUseException) {
             $this->assertDatabaseHas('products', ['id' => $product->id]);
@@ -33,7 +35,9 @@ final class EloquentProductDtoRepositoryTest extends TestCase
     {
         $product = Product::factory()->create();
 
-        app(ProductDtoWriteRepositoryInterface::class)->delete(ProductId::fromInt($product->id));
+        app(ProductDtoWriteRepositoryInterface::class)->delete(
+            ProductId::fromInt($product->id),
+        );
 
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }

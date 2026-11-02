@@ -61,16 +61,24 @@ class SubscriptionPlanFeatureTest extends TestCase
         $plan->features()->attach([$feature1->id, $feature2->id]);
 
         $this->assertEquals(2, $plan->features()->count());
-        $this->assertTrue($plan->features->contains($feature1));
-        $this->assertTrue($plan->features->contains($feature2));
+        $this->assertTrue(
+            $plan->features->contains($feature1),
+        );
+        $this->assertTrue(
+            $plan->features->contains($feature2),
+        );
 
         // Detach one feature
         $plan->features()->detach($feature1->id);
 
         $plan->refresh();
         $this->assertEquals(1, $plan->features()->count());
-        $this->assertFalse($plan->features->contains($feature1));
-        $this->assertTrue($plan->features->contains($feature2));
+        $this->assertFalse(
+            $plan->features->contains($feature1),
+        );
+        $this->assertTrue(
+            $plan->features->contains($feature2),
+        );
     }
 
     #[Test]
@@ -116,12 +124,14 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_casts_attributes_correctly(): void
     {
-        $plan = SubscriptionPlan::factory()->create([
-            'price' => '29.99',
-            'is_active' => '1',
-            'trial_days' => '14',
-            'billing_interval' => '1',
-        ]);
+        $plan = SubscriptionPlan::factory()->create(
+            [
+                'price' => '29.99',
+                'is_active' => '1',
+                'trial_days' => '14',
+                'billing_interval' => '1',
+            ],
+        );
 
         // Test that Laravel's casts work correctly
         $this->assertIsString($plan->price); // decimal cast returns string

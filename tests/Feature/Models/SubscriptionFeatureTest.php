@@ -18,13 +18,15 @@ class SubscriptionFeatureTest extends TestCase
         $user = User::factory()->create();
         $plan = SubscriptionPlan::factory()->create();
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'active',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-        ]);
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'active',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+            ],
+        );
 
         $this->assertInstanceOf(Subscription::class, $subscription);
         $this->assertEquals($user->id, $subscription->user_id);

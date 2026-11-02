@@ -25,7 +25,9 @@ final class ExpenseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can($this->isMethod('POST') ? 'can_create_expense' : 'can_update_expense') === true;
+        return backpack_user()?->can(
+            $this->isMethod('POST') ? 'can_create_expense' : 'can_update_expense',
+        ) === true;
     }
 
     /** @return array<string, mixed> */
@@ -41,24 +43,36 @@ final class ExpenseRequest extends FormRequest
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where('user_id', $this->integer('user_id')),
+                Rule::exists('businesses', 'id')->where(
+                    'user_id',
+                    $this->integer('user_id'),
+                ),
             ],
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where('user_id', $this->integer('user_id')),
+                Rule::exists('contacts', 'id')->where(
+                    'user_id',
+                    $this->integer('user_id'),
+                ),
             ],
             'bank_account_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('bank_accounts', 'id')->where('contact_id', $this->integer('contact_id')),
+                Rule::exists('bank_accounts', 'id')->where(
+                    'contact_id',
+                    $this->integer('contact_id'),
+                ),
             ],
             ...AdminDocumentPartyInput::rules(
                 $this->all(),
                 'supplier',
-                $this->filled('contact_id') && ! $this->keepsContact(),
+                $this->filled('contact_id') && !$this->keepsContact(),
             ),
-            ...DocumentPartyInput::accountRules($this->all(), ! $this->filled('bank_account_id') && BankAccountInput::isFilled($accountFields)),
+            ...DocumentPartyInput::accountRules(
+                $this->all(),
+                !$this->filled('bank_account_id') && BankAccountInput::isFilled($accountFields),
+            ),
             'expense_date' => 'required|date',
             'amount' => 'required|numeric|decimal:0,2|min:0|max:99999999.99',
             'currency' => ['required', Rule::enum(Currency::class)],
@@ -71,7 +85,10 @@ final class ExpenseRequest extends FormRequest
             'status_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('statuses', 'id')->whereIn('category_id', fn ($query) => $query->select('id')->from('status_categories')->where('slug', 'expense-statuses')),
+                Rule::exists('statuses', 'id')->whereIn(
+                    'category_id',
+                    fn ($query) => $query->select('id')->from('status_categories')->where('slug', 'expense-statuses'),
+                ),
             ],
             'attachments' => 'sometimes|nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:10240',
@@ -119,7 +136,12 @@ final class ExpenseRequest extends FormRequest
             (bool) ($data['tax_included'] ?? false),
             isset($data['status_id']) ? (int) $data['status_id'] : null,
             $uploads,
-            is_array($removed) ? array_values(array_filter($removed, is_string(...))) : [],
+            is_array($removed) ? array_values(
+                array_filter(
+                    $removed,
+                    is_string(...),
+                ),
+            ) : [],
             supplierLogo: $this->filled('contact_id') || $logo === null ? null : new IncomingFile(
                 $logo->getClientOriginalName(),
                 $logo->getClientOriginalExtension(),
@@ -139,27 +161,31 @@ final class ExpenseRequest extends FormRequest
             ...DocumentPartyInput::attributes('supplier'),
             ...DocumentPartyInput::accountAttributes(),
         ];
-        foreach ([
-            'expense_date',
-            'amount',
-            'currency',
-            'category_id',
-            'payment_method_id',
-            'reference_number',
-            'description',
-            'tax_amount',
-            'tax_included',
-            'status_id',
-            'attachments',
-        ] as $field) {
+        foreach (
+            [
+                'expense_date',
+                'amount',
+                'currency',
+                'category_id',
+                'payment_method_id',
+                'reference_number',
+                'description',
+                'tax_amount',
+                'tax_included',
+                'status_id',
+                'attachments',
+            ] as $field
+        ) {
             $attributes[$field] = __('expenses.fields.' . $field);
         }
-        foreach ([
-            'user_id',
-            'business_id',
-            'contact_id',
-            'bank_account_id',
-        ] as $field) {
+        foreach (
+            [
+                'user_id',
+                'business_id',
+                'contact_id',
+                'bank_account_id',
+            ] as $field
+        ) {
             $attributes[$field] = __('invoices.fields.' . $field);
         }
 
@@ -168,11 +194,27 @@ final class ExpenseRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (is_string($this->input('currency'))) {
-            $this->merge(['currency' => strtoupper($this->input('currency'))]);
+        if (
+            is_string(
+                $this->input('currency'),
+            )
+        ) {
+            $this->merge(
+                ['currency' => strtoupper(
+                    $this->input('currency'),
+                )],
+            );
         }
-        if (is_string($this->input('reference_number'))) {
-            $this->merge(['reference_number' => trim($this->input('reference_number'))]);
+        if (
+            is_string(
+                $this->input('reference_number'),
+            )
+        ) {
+            $this->merge(
+                ['reference_number' => trim(
+                    $this->input('reference_number'),
+                )],
+            );
         }
     }
 
@@ -183,6 +225,11 @@ final class ExpenseRequest extends FormRequest
             return false;
         }
 
-        return app(ExpenseApplicationService::class)->get(UserId::fromInt($this->integer('user_id')), ExpenseId::fromInt($id))->parties->contactId?->value === $this->integer('contact_id');
+        return app(ExpenseApplicationService::class)->get(
+            UserId::fromInt(
+                $this->integer('user_id'),
+            ),
+            ExpenseId::fromInt($id),
+        )->parties->contactId?->value === $this->integer('contact_id');
     }
 }

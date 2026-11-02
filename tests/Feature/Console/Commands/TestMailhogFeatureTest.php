@@ -39,10 +39,13 @@ class TestMailhogFeatureTest extends TestCase
     #[Test]
     public function command_sends_test_email(): void
     {
-        $exitCode = Artisan::call('mail:test-mailhog', [
-            '--to' => 'test@example.com',
-            '--subject' => 'Mailhog Test Email',
-        ]);
+        $exitCode = Artisan::call(
+            'mail:test-mailhog',
+            [
+                '--to' => 'test@example.com',
+                '--subject' => 'Mailhog Test Email',
+            ],
+        );
 
         $this->assertEquals(0, $exitCode);
 
@@ -108,10 +111,13 @@ class TestMailhogFeatureTest extends TestCase
     #[Test]
     public function command_sends_html_email(): void
     {
-        $exitCode = Artisan::call('mail:test-mailhog', [
-            '--to' => 'test@example.com',
-            '--subject' => 'HTML Test Email',
-        ]);
+        $exitCode = Artisan::call(
+            'mail:test-mailhog',
+            [
+                '--to' => 'test@example.com',
+                '--subject' => 'HTML Test Email',
+            ],
+        );
 
         $this->assertEquals(0, $exitCode);
     }
@@ -127,7 +133,9 @@ class TestMailhogFeatureTest extends TestCase
 
         // Should report whether email was sent successfully
         $this->assertIsString($output);
-        $this->assertNotEmpty(trim($output));
+        $this->assertNotEmpty(
+            trim($output),
+        );
     }
 
     #[Test]
@@ -142,10 +150,13 @@ class TestMailhogFeatureTest extends TestCase
     #[Test]
     public function command_creates_test_email_content(): void
     {
-        $exitCode = Artisan::call('mail:test-mailhog', [
-            '--to' => 'test@example.com',
-            '--subject' => 'Custom Test Subject',
-        ]);
+        $exitCode = Artisan::call(
+            'mail:test-mailhog',
+            [
+                '--to' => 'test@example.com',
+                '--subject' => 'Custom Test Subject',
+            ],
+        );
 
         $this->assertEquals(0, $exitCode);
 

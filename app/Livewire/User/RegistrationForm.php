@@ -92,20 +92,28 @@ final class RegistrationForm extends Component
 
         $account = Auth::loginUsingId($user->id);
         if ($account !== false) {
-            event(new Registered($account));
+            event(
+                new Registered($account),
+            );
             session()->regenerate();
         }
 
-        session()->flash('success', __('users.auth.registration_success'));
+        session()->flash(
+            'success',
+            __('users.auth.registration_success'),
+        );
         $this->redirectRoute('home', ['locale' => app()->getLocale()]);
     }
 
     public function render(): View
     {
-        return view('livewire.user.registration-form', [
-            'countries' => $this->countryOptions(),
-            'bankOptions' => $this->bankOptions($this->account->country),
-        ]);
+        return view(
+            'livewire.user.registration-form',
+            [
+                'countries' => $this->countryOptions(),
+                'bankOptions' => $this->bankOptions($this->account->country),
+            ],
+        );
     }
 
     /**

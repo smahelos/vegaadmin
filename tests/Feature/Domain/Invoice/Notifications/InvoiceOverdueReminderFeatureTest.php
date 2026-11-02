@@ -27,11 +27,13 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->invoice = Invoice::factory()->create([
-            'issue_date' => now()->subDays(35)->format('Y-m-d'), // 35 days ago
-            'due_in' => 14, // Due date = 35 - 14 = 21 days ago (overdue)
-            'invoice_vs' => '2024-001',
-        ]);
+        $this->invoice = Invoice::factory()->create(
+            [
+                'issue_date' => now()->subDays(35)->format('Y-m-d'), // 35 days ago
+                'due_in' => 14, // Due date = 35 - 14 = 21 days ago (overdue)
+                'invoice_vs' => '2024-001',
+            ],
+        );
 
         $this->user = User::factory()->create([
             'name' => 'Test User',
@@ -50,11 +52,15 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'customer',
         );
-        $this->user->notify(new InvoiceOverdueReminder($payload));
+        $this->user->notify(
+            new InvoiceOverdueReminder($payload),
+        );
 
         Notification::assertSentTo($this->user, InvoiceOverdueReminder::class);
     }
@@ -73,11 +79,15 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
-        $anonymousNotifiable->notify(new InvoiceOverdueReminder($payload));
+        $anonymousNotifiable->notify(
+            new InvoiceOverdueReminder($payload),
+        );
 
         Notification::assertSentTo($anonymousNotifiable, InvoiceOverdueReminder::class);
     }
@@ -93,11 +103,15 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
-        $this->user->notify(new InvoiceOverdueReminder($payload));
+        $this->user->notify(
+            new InvoiceOverdueReminder($payload),
+        );
 
         Notification::assertSentTo(
             $this->user,
@@ -117,7 +131,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -140,7 +156,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'customer',
         );
@@ -163,7 +181,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -176,7 +196,10 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
         $subjectProperty = $reflection->getProperty('subject');
         $subjectProperty->setAccessible(true);
 
-        $this->assertStringContainsString('2024-001', $subjectProperty->getValue($mailMessage));
+        $this->assertStringContainsString(
+            '2024-001',
+            $subjectProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -188,7 +211,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'customer',
         );
@@ -200,7 +225,10 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.overdue_customer', $viewProperty->getValue($mailMessage));
+        $this->assertEquals(
+            'emails.invoices.reminders.overdue_customer',
+            $viewProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -212,7 +240,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -224,7 +254,10 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
         $viewProperty = $reflection->getProperty('view');
         $viewProperty->setAccessible(true);
 
-        $this->assertEquals('emails.invoices.reminders.overdue_supplier', $viewProperty->getValue($mailMessage));
+        $this->assertEquals(
+            'emails.invoices.reminders.overdue_supplier',
+            $viewProperty->getValue($mailMessage),
+        );
     }
 
     #[Test]
@@ -236,7 +269,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -262,7 +297,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -277,7 +314,10 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
 
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
-        $this->assertSame(app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']), $viewData['dueDate']);
+        $this->assertSame(
+            app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']),
+            $viewData['dueDate'],
+        );
     }
 
     #[Test]
@@ -289,7 +329,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -316,7 +358,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -342,7 +386,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -368,7 +414,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -394,7 +442,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
@@ -423,11 +473,15 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'customer',
         );
-        $this->user->notify(new InvoiceOverdueReminder($clientPayload));
+        $this->user->notify(
+            new InvoiceOverdueReminder($clientPayload),
+        );
 
         // Test with supplier recipient type
         $supplierPayload = new InvoiceReminderDTO(
@@ -436,11 +490,15 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
-            dueDate: new \DateTimeImmutable(now()->subDays(21)->format('Y-m-d')),
+            dueDate: new \DateTimeImmutable(
+                now()->subDays(21)->format('Y-m-d'),
+            ),
             daysOverdue: 21,
             recipientType: 'supplier',
         );
-        $this->user->notify(new InvoiceOverdueReminder($supplierPayload));
+        $this->user->notify(
+            new InvoiceOverdueReminder($supplierPayload),
+        );
 
         Notification::assertSentTo(
             $this->user,

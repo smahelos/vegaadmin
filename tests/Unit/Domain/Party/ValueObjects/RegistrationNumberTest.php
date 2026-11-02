@@ -61,7 +61,9 @@ final class RegistrationNumberTest extends TestCase
     #[Test]
     public function a_number_needs_the_country_of_its_register(): void
     {
-        $this->expectExceptionObject(new InvalidRegistrationNumberException(RegistrationNumberProblem::MISSING_COUNTRY));
+        $this->expectExceptionObject(
+            new InvalidRegistrationNumberException(RegistrationNumberProblem::MISSING_COUNTRY),
+        );
 
         RegistrationNumber::fromParts(null, '27074358');
     }
@@ -69,8 +71,12 @@ final class RegistrationNumberTest extends TestCase
     #[Test]
     public function an_empty_number_is_no_registration_even_with_a_country(): void
     {
-        $this->assertNull(RegistrationNumber::fromParts(Country::CZ, '  '));
-        $this->assertNull(RegistrationNumber::fromParts(null, null));
+        $this->assertNull(
+            RegistrationNumber::fromParts(Country::CZ, '  '),
+        );
+        $this->assertNull(
+            RegistrationNumber::fromParts(null, null),
+        );
     }
 
     #[Test]
@@ -78,7 +84,15 @@ final class RegistrationNumberTest extends TestCase
     {
         $czech = RegistrationNumber::fromParts(Country::CZ, '27074358');
 
-        $this->assertTrue($czech?->equals(RegistrationNumber::fromParts(Country::CZ, ' 27074358 ') ?? $this->fail('Empty number')));
-        $this->assertFalse($czech?->equals(RegistrationNumber::fromParts(Country::SK, '27074358') ?? $this->fail('Empty number')));
+        $this->assertTrue(
+            $czech?->equals(
+                RegistrationNumber::fromParts(Country::CZ, ' 27074358 ') ?? $this->fail('Empty number'),
+            ),
+        );
+        $this->assertFalse(
+            $czech?->equals(
+                RegistrationNumber::fromParts(Country::SK, '27074358') ?? $this->fail('Empty number'),
+            ),
+        );
     }
 }

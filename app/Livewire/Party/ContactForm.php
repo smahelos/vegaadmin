@@ -48,7 +48,10 @@ final class ContactForm extends Component
         }
 
         $this->requirePermission('frontend.can_update_contact');
-        $contact = $contacts->get($this->userId(), ContactId::fromInt($contactId));
+        $contact = $contacts->get(
+            $this->userId(),
+            ContactId::fromInt($contactId),
+        );
 
         $this->contactId = $contactId;
         $this->party->fillFromProfile($contact->profile);
@@ -59,14 +62,16 @@ final class ContactForm extends Component
     public function save(ContactApplicationService $contacts, PartyLogoApplicationService $logos): void
     {
         $creating = $this->contactId === null;
-        $this->requirePermission($creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact');
+        $this->requirePermission(
+            $creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact',
+        );
         $this->limitMessage = null;
 
         $this->validate($this->rules());
         $this->party->validate();
 
         $profile = $this->party->profile();
-        if (! $this->passesDuplicateCheck($profile)) {
+        if (!$this->passesDuplicateCheck($profile)) {
             return;
         }
 
@@ -97,7 +102,7 @@ final class ContactForm extends Component
 
             return;
         } finally {
-            if (! $saved) {
+            if (!$saved) {
                 $this->discardNewLogo($logos, $logo);
             }
         }
@@ -106,11 +111,19 @@ final class ContactForm extends Component
             $logos->delete($this->currentLogo);
         }
 
-        session()->flash('success', __($creating ? 'contacts.messages.created' : 'contacts.messages.updated'));
-        $this->redirectRoute('frontend.contacts.show', [
-            'locale' => app()->getLocale(),
-            'contact' => $contact->id->value,
-        ]);
+        session()->flash(
+            'success',
+            __(
+                $creating ? 'contacts.messages.created' : 'contacts.messages.updated',
+            ),
+        );
+        $this->redirectRoute(
+            'frontend.contacts.show',
+            [
+                'locale' => app()->getLocale(),
+                'contact' => $contact->id->value,
+            ],
+        );
     }
 
     public function render(): View
@@ -159,9 +172,12 @@ final class ContactForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
-        return route('frontend.contacts.show', [
-            'locale' => app()->getLocale(),
-            'contact' => $id->value,
-        ]);
+        return route(
+            'frontend.contacts.show',
+            [
+                'locale' => app()->getLocale(),
+                'contact' => $id->value,
+            ],
+        );
     }
 }

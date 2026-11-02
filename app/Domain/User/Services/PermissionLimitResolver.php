@@ -106,7 +106,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         string $periodType = 'daily',
     ): int {
         // Handle anonymous users early
-        if (! $userId) {
+        if (!$userId) {
             return $this->getAnonymousLimit(
                 $entityType,
                 $metricType,
@@ -152,9 +152,9 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         $limits = $this->repo()->getActiveByPermissions([self::ANONYMOUS_PERMISSION]);
         foreach ($limits as $row) {
             if (
-                ($row['entity_type'] ?? null) === $entityType &&
-                ($row['metric_type'] ?? null) === $metricType &&
-                ($row['period_type'] ?? null) === $periodType
+                ($row['entity_type'] ?? null) === $entityType
+                && ($row['metric_type'] ?? null) === $metricType
+                && ($row['period_type'] ?? null) === $periodType
             ) {
                 return (int) $row['limit_value'];
             }
@@ -173,7 +173,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         string $periodType,
     ): int {
         // Check if user exists first
-        if (! $this->userPermissionService()->userExists($userId)) {
+        if (!$this->userPermissionService()->userExists($userId)) {
             return 0;
         }
 
@@ -245,19 +245,21 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
      */
     public function canUserCreateEntity(?int $userId, string $entityType): bool
     {
-        if (! $userId) {
+        if (!$userId) {
             return false;
         }
 
         // Check for any limit > 0 for any metric/period combination
         foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
             foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
-                if ($this->getUserLimit(
-                    $userId,
-                    $entityType,
-                    $metricType,
-                    $periodType,
-                ) > 0) {
+                if (
+                    $this->getUserLimit(
+                        $userId,
+                        $entityType,
+                        $metricType,
+                        $periodType,
+                    ) > 0
+                ) {
                     return true;
                 }
             }
@@ -273,7 +275,7 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
      */
     public function getUserPermissionLimits(?int $userId, string $entityType): array
     {
-        if (! $userId) {
+        if (!$userId) {
             // Return anonymous limits
             $anonymousLimits = [];
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
@@ -303,23 +305,30 @@ class PermissionLimitResolver implements PermissionLimitResolverInterface
         }
 
         // Preload all limits for user's permissions in one go using repository
-        $allLimits = array_values(array_filter(
-            $this->repo()->getActiveByPermissions($permissionNames),
-            fn (array $row) => ($row['entity_type'] ?? null) === $entityType,
-        ));
+        $allLimits = array_values(
+            array_filter(
+                $this->repo()->getActiveByPermissions($permissionNames),
+                fn (array $row) => ($row['entity_type'] ?? null) === $entityType,
+            ),
+        );
 
         foreach ($permissionNames as $permissionName) {
             $limits = [];
-            $permLimits = array_values(array_filter(
-                $allLimits,
-                fn (array $row) => ($row['permission_name'] ?? null) === $permissionName,
-            ));
+            $permLimits = array_values(
+                array_filter(
+                    $allLimits,
+                    fn (array $row) => ($row['permission_name'] ?? null) === $permissionName,
+                ),
+            );
 
             foreach (array_keys($this->repo()->getAllMetricTypes()) as $metricType) {
                 foreach (array_keys($this->repo()->getAllPeriodTypes()) as $periodType) {
                     $found = null;
                     foreach ($permLimits as $row) {
-                        if (($row['metric_type'] ?? null) === $metricType && ($row['period_type'] ?? null) === $periodType) {
+                        if (
+                            ($row['metric_type'] ?? null) === $metricType
+                            && ($row['period_type'] ?? null) === $periodType
+                        ) {
                             $found = $row;
                             break;
                         }

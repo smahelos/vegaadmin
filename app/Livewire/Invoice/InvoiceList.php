@@ -46,16 +46,18 @@ final class InvoiceList extends Component
 
     public function updating(string $property): void
     {
-        if (in_array(
-            $property,
-            [
-                'search',
-                'status',
-                'businessId',
-                'contactId',
-            ],
-            true,
-        )) {
+        if (
+            in_array(
+                $property,
+                [
+                    'search',
+                    'status',
+                    'businessId',
+                    'contactId',
+                ],
+                true,
+            )
+        ) {
             $this->resetPage();
         }
     }
@@ -112,14 +114,17 @@ final class InvoiceList extends Component
             abort(404);
         }
 
-        return view('livewire.invoice.invoice-list', [
-            'invoices' => $this->paginator($result),
-            'hasData' => $result->total() > 0,
-            'businesses' => $invoices->businessFilters($userId),
-            'contacts' => $invoices->contactFilters($userId),
-            'statuses' => InvoiceStatus::cases(),
-            'presenter' => $presenter,
-        ]);
+        return view(
+            'livewire.invoice.invoice-list',
+            [
+                'invoices' => $this->paginator($result),
+                'hasData' => $result->total() > 0,
+                'businesses' => $invoices->businessFilters($userId),
+                'contacts' => $invoices->contactFilters($userId),
+                'statuses' => InvoiceStatus::cases(),
+                'presenter' => $presenter,
+            ],
+        );
     }
 
     private function filterId(string $value): ?int

@@ -22,23 +22,33 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
             Invoice::where('user_id', $userId->toInt())->count(),
             Contact::where('user_id', $userId->toInt())->count(),
             Business::where('user_id', $userId->toInt())->count(),
-            Money::fromString((string) Invoice::where('user_id', $userId->toInt())->sum('payment_amount'), 'CZK'),
+            Money::fromString(
+                (string) Invoice::where('user_id', $userId->toInt())->sum('payment_amount'),
+                'CZK',
+            ),
         );
     }
 
     public function getCustomersWithTotals(UserId $userId): array
     {
-        $rows = CustomerRevenueQuery::group(Invoice::where('invoices.user_id', $userId->toInt()))
+        $rows = CustomerRevenueQuery::group(
+            Invoice::where('invoices.user_id', $userId->toInt()),
+        )
             ->orderByDesc('total')->toBase()->get();
-        $customers = $rows->map(fn (object $row) => EloquentAnalyticsMapper::customer(
-            $row->contact_id === null ? null : (int) $row->contact_id,
-            (string) $row->customer_name,
-            (string) $row->total,
-        ))->all();
+        $customers = $rows->map(
+            fn (object $row) => EloquentAnalyticsMapper::customer(
+                $row->contact_id === null ? null : (int) $row->contact_id,
+                (string) $row->customer_name,
+                (string) $row->total,
+            ),
+        )->all();
 
         // The dashboard filter also offers contacts that do not yet have invoices.
         $contacts = Contact::where('user_id', $userId->toInt())
-            ->whereNotIn('id', $rows->pluck('contact_id')->filter()->all())
+            ->whereNotIn(
+                'id',
+                $rows->pluck('contact_id')->filter()->all(),
+            )
             ->orderBy('name')->get();
         foreach ($contacts as $contact) {
             $customers[] = EloquentAnalyticsMapper::customer(

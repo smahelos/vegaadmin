@@ -73,6 +73,10 @@ final class DuplicateFinder
             return false;
         }
 
-        return mb_strtolower(trim($a)) === mb_strtolower(trim($b));
+        return mb_strtolower(
+            trim($a),
+        ) === mb_strtolower(
+            trim($b),
+        );
     }
 }

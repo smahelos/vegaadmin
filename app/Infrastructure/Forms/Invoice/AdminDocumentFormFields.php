@@ -117,18 +117,20 @@ final class AdminDocumentFormFields
             'name',
         );
         $fields = [];
-        foreach ([
-            'name' => 12,
-            'registration_country' => 4,
-            'company_number' => 4,
-            'vat_number' => 4,
-            'street' => 12,
-            'city' => 6,
-            'postal_code' => 3,
-            'country' => 3,
-            'email' => 6,
-            'phone' => 6,
-        ] as $name => $width) {
+        foreach (
+            [
+                'name' => 12,
+                'registration_country' => 4,
+                'company_number' => 4,
+                'vat_number' => 4,
+                'street' => 12,
+                'city' => 6,
+                'postal_code' => 3,
+                'country' => 3,
+                'email' => 6,
+                'phone' => 6,
+            ] as $name => $width
+        ) {
             $field = $profile[$name];
             $field['name'] = $role . '_' . $name;
             $field['wrapper'] = ['class' => 'form-group col-12 col-md-' . $width];
@@ -146,18 +148,20 @@ final class AdminDocumentFormFields
     public static function businessPreview(string $role, Invoice|Expense|null $document): array
     {
         $items = [];
-        foreach ([
-            'name',
-            'registration_country',
-            'company_number',
-            'vat_number',
-            'street',
-            'city',
-            'postal_code',
-            'country',
-            'email',
-            'phone',
-        ] as $name) {
+        foreach (
+            [
+                'name',
+                'registration_country',
+                'company_number',
+                'vat_number',
+                'street',
+                'city',
+                'postal_code',
+                'country',
+                'email',
+                'phone',
+            ] as $name
+        ) {
             $items[] = [
                 'key' => $name,
                 'label' => __('parties.fields.' . $name),
@@ -186,14 +190,16 @@ final class AdminDocumentFormFields
             'name',
         );
         $fields = [];
-        foreach ([
-            'country' => 3,
-            'number' => 5,
-            'bank_code' => 4,
-            'bank_name' => 12,
-            'iban' => 8,
-            'swift' => 4,
-        ] as $name => $width) {
+        foreach (
+            [
+                'country' => 3,
+                'number' => 5,
+                'bank_code' => 4,
+                'bank_name' => 12,
+                'iban' => 8,
+                'swift' => 4,
+            ] as $name => $width
+        ) {
             $field = $profile[$name];
             $field['name'] = 'account_' . $name;
             $field['wrapper'] = ['class' => 'form-group col-12 col-md-' . $width, 'data-document-account-field' => true];
@@ -201,7 +207,7 @@ final class AdminDocumentFormFields
             if ($field['type'] === 'select_from_array') {
                 $field['type'] = 'select2_from_array';
             }
-            if (! $oneOff) {
+            if (!$oneOff) {
                 $field['attributes']['disabled'] = 'disabled';
                 unset($field['hint']);
             }

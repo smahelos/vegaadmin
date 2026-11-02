@@ -67,7 +67,11 @@ class ProductServiceFeatureTest extends TestCase
             public function invalidateTags(array $tags): bool
             {
                 foreach ($this->tags as $k => $t) {
-                    if (count(array_intersect($t, $tags)) > 0) {
+                    if (
+                        count(
+                            array_intersect($t, $tags),
+                        ) > 0
+                    ) {
                         unset($this->store[$k], $this->tags[$k]);
                     }
                 }
@@ -87,7 +91,7 @@ class ProductServiceFeatureTest extends TestCase
 
             public function increment(string $key, int $amount): bool
             {
-                if (! array_key_exists($key, $this->store)) {
+                if (!array_key_exists($key, $this->store)) {
                     $this->store[$key] = 0;
                 } $this->store[$key] += $amount;
 
@@ -152,8 +156,13 @@ class ProductServiceFeatureTest extends TestCase
         $secondQueries = DB::getQueryLog();
 
         // Sorted asc by name
-        $this->assertSame(['Alpha', 'Zeta'], array_values($first));
+        $this->assertSame(
+            ['Alpha', 'Zeta'],
+            array_values($first),
+        );
         // Second call should hit cache and perform fewer (ideally zero) queries
-        $this->assertTrue(count($secondQueries) <= count($firstQueries));
+        $this->assertTrue(
+            count($secondQueries) <= count($firstQueries),
+        );
     }
 }

@@ -41,9 +41,11 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
         $isAppProperty = $property->isPublic() && str_starts_with($property->getDeclaringClass()->getName(), 'App\\');
         if ($this->readNames === null) {
             $this->readNames = [];
-            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::VIEWS_PATH));
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(self::VIEWS_PATH),
+            );
             foreach ($files as $file) {
-                if (! str_ends_with($file->getFilename(), '.blade.php')) {
+                if (!str_ends_with($file->getFilename(), '.blade.php')) {
                     continue;
                 }
                 preg_match_all(
@@ -71,11 +73,13 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
         }
 
         $this->calledNames = [];
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::VIEWS_PATH));
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(self::VIEWS_PATH),
+        );
 
         /** @var SplFileInfo $file */
         foreach ($files as $file) {
-            if (! str_ends_with($file->getFilename(), '.blade.php')) {
+            if (!str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
 

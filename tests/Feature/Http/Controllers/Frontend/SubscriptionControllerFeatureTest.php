@@ -46,7 +46,9 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->get(route('subscriptions.index', ['locale' => 'en']));
+        $response = $this->get(
+            route('subscriptions.index', ['locale' => 'en']),
+        );
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.subscriptions.index');
@@ -65,7 +67,9 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->get(route('subscriptions.index', ['locale' => 'en']));
+        $response = $this->get(
+            route('subscriptions.index', ['locale' => 'en']),
+        );
 
         $response->assertStatus(200);
         $response->assertViewHas('userSubscription', $subscription);
@@ -74,16 +78,20 @@ class SubscriptionControllerFeatureTest extends TestCase
     #[Test]
     public function my_subscription_shows_the_active_subscription(): void
     {
-        $subscription = Subscription::factory()->create([
-            'user_id' => $this->user->id,
-            'status' => 'active',
-            'trial_ends_at' => now()->addDays(3),
-            'ends_at' => now()->addDays(10),
-        ]);
+        $subscription = Subscription::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'status' => 'active',
+                'trial_ends_at' => now()->addDays(3),
+                'ends_at' => now()->addDays(10),
+            ],
+        );
 
         $this->actingAs($this->user);
 
-        $response = $this->get(route('subscriptions.my-subscription', ['locale' => 'en']));
+        $response = $this->get(
+            route('subscriptions.my-subscription', ['locale' => 'en']),
+        );
 
         $response->assertOk();
         $response->assertViewIs('frontend.subscriptions.my-subscription');
@@ -99,10 +107,12 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->bindSyntheticPaymentAppService();
 
-        $response = $this->get(route('subscriptions.show', [
-            'locale' => 'en',
-            'plan' => $plan->id,
-        ]));
+        $response = $this->get(
+            route('subscriptions.show', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+        );
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.subscriptions.show');
@@ -115,12 +125,16 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $plan = SubscriptionPlan::factory()->create();
 
-        $response = $this->post(route('subscriptions.subscribe', [
-            'locale' => 'en',
-            'plan' => $plan->id,
-        ]));
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+        );
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(
+            route('login'),
+        );
     }
 
     #[Test]
@@ -134,12 +148,15 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->post(route('subscriptions.subscribe', [
-            'locale' => 'en',
-            'plan' => $plan->id,
-        ]), [
-            'gateway' => 'gopay',
-        ]);
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+            [
+                'gateway' => 'gopay',
+            ],
+        );
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -150,12 +167,19 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $subscription = Subscription::factory()->create();
 
-        $response = $this->delete(route('subscriptions.cancel', [
-            'locale' => 'en',
-            'subscription' => $subscription->id,
-        ]));
+        $response = $this->delete(
+            route(
+                'subscriptions.cancel',
+                [
+                    'locale' => 'en',
+                    'subscription' => $subscription->id,
+                ],
+            ),
+        );
 
-        $response->assertRedirect(route('login'));
+        $response->assertRedirect(
+            route('login'),
+        );
     }
 
     #[Test]
@@ -171,10 +195,15 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->delete(route('subscriptions.cancel', [
-            'locale' => 'en',
-            'subscription' => $subscription->id,
-        ]));
+        $response = $this->delete(
+            route(
+                'subscriptions.cancel',
+                [
+                    'locale' => 'en',
+                    'subscription' => $subscription->id,
+                ],
+            ),
+        );
 
         $response->assertRedirect();
         $this->assertEquals('cancelled', $subscription->fresh()->status);
@@ -191,10 +220,15 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $this->actingAs($this->user);
 
-        $response = $this->delete(route('subscriptions.cancel', [
-            'locale' => 'en',
-            'subscription' => $subscription->id,
-        ]));
+        $response = $this->delete(
+            route(
+                'subscriptions.cancel',
+                [
+                    'locale' => 'en',
+                    'subscription' => $subscription->id,
+                ],
+            ),
+        );
 
         $response->assertForbidden();
         $this->assertEquals('active', $subscription->fresh()->status);
@@ -205,7 +239,9 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         $reflection = new \ReflectionClass(SubscriptionController::class);
 
-        $this->assertTrue($reflection->hasMethod('cancel'));
+        $this->assertTrue(
+            $reflection->hasMethod('cancel'),
+        );
 
         // Check if controller uses AuthorizesRequests trait
         $traits = $reflection->getTraitNames();

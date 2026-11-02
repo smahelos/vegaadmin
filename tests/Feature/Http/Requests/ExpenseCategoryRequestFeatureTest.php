@@ -214,7 +214,10 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
             $request = new ExpenseCategoryRequest;
             $validator = Validator::make($validData, $request->rules());
 
-            $this->assertFalse($validator->fails(), 'Validation should pass for is_active value: ' . json_encode($value));
+            $this->assertFalse(
+                $validator->fails(),
+                'Validation should pass for is_active value: ' . json_encode($value),
+            );
         }
     }
 

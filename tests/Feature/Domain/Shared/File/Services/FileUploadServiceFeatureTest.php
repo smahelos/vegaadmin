@@ -41,7 +41,9 @@ class FileUploadServiceFeatureTest extends TestCase
         $result = $this->service->deleteFile($filePath, 'public');
 
         $this->assertTrue($result);
-        $this->assertFalse(Storage::disk('public')->exists($filePath));
+        $this->assertFalse(
+            Storage::disk('public')->exists($filePath),
+        );
     }
 
     #[Test]
@@ -124,7 +126,9 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_validates_file_size(): void
     {
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            trans('validation.file_upload.size_exceeded', ['attribute' => ':attribute']),
+        );
 
         // Create a mock uploaded file with size that exceeds limit
         // Note: The original code divides by 20480 instead of 1024, so we need to account for that
@@ -142,7 +146,9 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_validates_file_type(): void
     {
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']),
+        );
 
         $file = UploadedFile::fake()->create('document.exe', 100);
 
@@ -183,7 +189,9 @@ class FileUploadServiceFeatureTest extends TestCase
         );
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']),
+        );
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -211,7 +219,9 @@ class FileUploadServiceFeatureTest extends TestCase
         ); // 500 KB
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.size_exceeded', ['attribute' => ':attribute']),
+        );
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -262,9 +272,14 @@ class FileUploadServiceFeatureTest extends TestCase
         );
 
         $this->assertNotNull($path);
-        $this->assertTrue(Storage::disk('public')->exists($path));
+        $this->assertTrue(
+            Storage::disk('public')->exists($path),
+        );
 
         // Expected thumbnail path structure
-        $this->assertTrue(Storage::disk('public')->exists('thumbnails/images/photo.jpg'), 'Thumbnail should be created at expected path.');
+        $this->assertTrue(
+            Storage::disk('public')->exists('thumbnails/images/photo.jpg'),
+            'Thumbnail should be created at expected path.',
+        );
     }
 }

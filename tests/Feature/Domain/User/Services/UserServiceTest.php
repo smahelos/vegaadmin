@@ -77,6 +77,8 @@ class UserServiceTest extends TestCase
     public function returns_null_for_non_existent_user_id(): void
     {
         // Service returns null when user not found; assert null instead of expecting exception
-        $this->assertNull($this->userService->findUserById(999999));
+        $this->assertNull(
+            $this->userService->findUserById(999999),
+        );
     }
 }

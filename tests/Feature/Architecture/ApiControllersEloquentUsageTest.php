@@ -18,8 +18,13 @@ class ApiControllersEloquentUsageTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $path = base_path('architecture/baselines/api_controller_eloquent_baseline.json');
-        $this->assertFileExists($path, 'Missing API controller baseline JSON: create api_controller_eloquent_baseline.json');
+        $path = base_path(
+            'architecture/baselines/api_controller_eloquent_baseline.json',
+        );
+        $this->assertFileExists(
+            $path,
+            'Missing API controller baseline JSON: create api_controller_eloquent_baseline.json',
+        );
         $json = json_decode(
             file_get_contents($path),
             true,
@@ -36,7 +41,7 @@ class ApiControllersEloquentUsageTest extends TestCase
         $violations = [];
         foreach ($this->controllers as $relPath) {
             $full = app_path($relPath);
-            if (! file_exists($full)) {
+            if (!file_exists($full)) {
                 continue; // new or removed
             }
             $content = file_get_contents($full);
@@ -46,7 +51,9 @@ class ApiControllersEloquentUsageTest extends TestCase
             }
         }
         if ($violations) {
-            $this->fail("API controller thinness violations:\n" . implode("\n", $violations));
+            $this->fail(
+                "API controller thinness violations:\n" . implode("\n", $violations),
+            );
         }
         $this->assertTrue(true);
     }
@@ -72,27 +79,33 @@ class ApiControllersEloquentUsageTest extends TestCase
         ];
         $total = 0;
         foreach ($methods as $m) {
-            if (preg_match_all(
-                '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\\s*\(/',
-                $content,
-                $mm,
-            )) {
+            if (
+                preg_match_all(
+                    '/App\\\\Models\\\\[A-Za-z0-9_]+::' . $m . '\\s*\(/',
+                    $content,
+                    $mm,
+                )
+            ) {
                 $total += count($mm[0]);
             }
         }
-        if (preg_match_all(
-            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+);/m',
-            $content,
-            $imports,
-        )) {
+        if (
+            preg_match_all(
+                '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+);/m',
+                $content,
+                $imports,
+            )
+        ) {
             $imported = array_unique($imports[1]);
             foreach ($imported as $short) {
                 foreach ($methods as $m) {
-                    if (preg_match_all(
-                        '/(?<![A-Za-z0-9_])' . $short . '::' . $m . '\\s*\(/',
-                        $content,
-                        $mm,
-                    )) {
+                    if (
+                        preg_match_all(
+                            '/(?<![A-Za-z0-9_])' . $short . '::' . $m . '\\s*\(/',
+                            $content,
+                            $mm,
+                        )
+                    ) {
                         $total += count($mm[0]);
                     }
                 }

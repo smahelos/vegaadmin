@@ -59,7 +59,7 @@ class SetLocale
     {
         // 0. From URL segment (highest priority)
         $locale = $request->segment(1);
-        if (! empty($locale)) {
+        if (!empty($locale)) {
             $availableLocales = config('app.available_locales', [
                 'cs',
                 'en',

@@ -36,7 +36,10 @@ final class ContactController extends Controller
         string $locale,
         int $contact,
     ): View {
-        return view('frontend.contacts.show', ['contactId' => $this->owned($request, $contact)]);
+        return view(
+            'frontend.contacts.show',
+            ['contactId' => $this->owned($request, $contact)],
+        );
     }
 
     public function edit(
@@ -44,7 +47,10 @@ final class ContactController extends Controller
         string $locale,
         int $contact,
     ): View {
-        return view('frontend.contacts.edit', ['contactId' => $this->owned($request, $contact)]);
+        return view(
+            'frontend.contacts.edit',
+            ['contactId' => $this->owned($request, $contact)],
+        );
     }
 
     /**
@@ -52,6 +58,9 @@ final class ContactController extends Controller
      */
     private function owned(Request $request, int $id): int
     {
-        return $this->contacts->get(UserId::fromInt((int) $request->user()?->getAuthIdentifier()), ContactId::fromInt($id))->id->value;
+        return $this->contacts->get(
+            UserId::fromInt((int) $request->user()?->getAuthIdentifier()),
+            ContactId::fromInt($id),
+        )->id->value;
     }
 }

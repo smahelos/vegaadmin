@@ -77,9 +77,11 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     {
         return Page::published()
             ->rootPages()
-            ->with(['children' => function ($q): void {
-                $q->published()->orderBy('sort_order');
-            }])
+            ->with(
+                ['children' => function ($q): void {
+                    $q->published()->orderBy('sort_order');
+                }],
+            )
             ->orderBy('sort_order')
             ->get();
     }
@@ -97,17 +99,21 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     public function getCategoriesWithPublishedPages(): Collection
     {
         return PageCategory::whereHas('pages', fn ($q) => $q->published())
-            ->with(['pages' => fn ($q) => $q->published()->orderBy('sort_order')])
+            ->with(
+                ['pages' => fn ($q) => $q->published()->orderBy('sort_order')],
+            )
             ->get();
     }
 
     public function searchPublished(string $keyword, string $locale): Collection
     {
-        return Page::published()->where(function ($q) use ($keyword, $locale): void {
-            $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-                ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-                ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
-        })->orderBy('sort_order')->get();
+        return Page::published()->where(
+            function ($q) use ($keyword, $locale): void {
+                $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
+                    ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
+                    ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
+            },
+        )->orderBy('sort_order')->get();
     }
 
     public function getRelatedByCategory(

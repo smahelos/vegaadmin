@@ -97,13 +97,17 @@ class EntityLimit extends Model
         parent::boot();
 
         // Clear cache when EntityLimit is saved or deleted
-        static::saved(function (): void {
-            Artisan::call('cache:clear');
-        });
+        static::saved(
+            function (): void {
+                Artisan::call('cache:clear');
+            },
+        );
 
-        static::deleted(function (): void {
-            Artisan::call('cache:clear');
-        });
+        static::deleted(
+            function (): void {
+                Artisan::call('cache:clear');
+            },
+        );
     }
 
     /*

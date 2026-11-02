@@ -20,10 +20,12 @@ final class DashboardApplicationService
 
         return new DashboardDTO(
             $statistics,
-            array_values(array_filter(
-                $this->dashboard->getCustomersWithInvoiceTotals($userId),
-                static fn (CustomerTotalDTO $customer): bool => $customer->contactId !== null,
-            )),
+            array_values(
+                array_filter(
+                    $this->dashboard->getCustomersWithInvoiceTotals($userId),
+                    static fn (CustomerTotalDTO $customer): bool => $customer->contactId !== null,
+                ),
+            ),
             $this->money->formatWithCode($statistics->totalAmount),
         );
     }

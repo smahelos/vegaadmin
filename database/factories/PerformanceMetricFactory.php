@@ -83,15 +83,17 @@ class PerformanceMetricFactory extends Factory
      */
     public function queryTime(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'query_time',
-            'metric_unit' => 'ms',
-            'metric_value' => $this->faker->randomFloat(
-                2,
-                0.1,
-                5000,
-            ),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'query_time',
+                'metric_unit' => 'ms',
+                'metric_value' => $this->faker->randomFloat(
+                    2,
+                    0.1,
+                    5000,
+                ),
+            ],
+        );
     }
 
     /**
@@ -99,15 +101,17 @@ class PerformanceMetricFactory extends Factory
      */
     public function tableSize(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'table_size',
-            'metric_unit' => 'MB',
-            'metric_value' => $this->faker->randomFloat(
-                2,
-                1,
-                10000,
-            ),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'table_size',
+                'metric_unit' => 'MB',
+                'metric_value' => $this->faker->randomFloat(
+                    2,
+                    1,
+                    10000,
+                ),
+            ],
+        );
     }
 
     /**
@@ -115,15 +119,17 @@ class PerformanceMetricFactory extends Factory
      */
     public function indexUsage(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'index_usage',
-            'metric_unit' => '%',
-            'metric_value' => $this->faker->randomFloat(
-                2,
-                0,
-                100,
-            ),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'index_usage',
+                'metric_unit' => '%',
+                'metric_value' => $this->faker->randomFloat(
+                    2,
+                    0,
+                    100,
+                ),
+            ],
+        );
     }
 
     /**
@@ -131,11 +137,13 @@ class PerformanceMetricFactory extends Factory
      */
     public function slowQueries(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'slow_queries',
-            'metric_unit' => 'count',
-            'metric_value' => $this->faker->numberBetween(0, 100),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'slow_queries',
+                'metric_unit' => 'count',
+                'metric_value' => $this->faker->numberBetween(0, 100),
+            ],
+        );
     }
 
     /**
@@ -143,13 +151,15 @@ class PerformanceMetricFactory extends Factory
      */
     public function connectionCount(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_type' => 'connection_count',
-            'metric_unit' => 'count',
-            'metric_value' => $this->faker->numberBetween(1, 300),
-            'table_name' => null,
-            'query_type' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_type' => 'connection_count',
+                'metric_unit' => 'count',
+                'metric_value' => $this->faker->numberBetween(1, 300),
+                'table_name' => null,
+                'query_type' => null,
+            ],
+        );
     }
 
     /**
@@ -177,9 +187,11 @@ class PerformanceMetricFactory extends Factory
      */
     public function recent(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
+            ],
+        );
     }
 
     /**
@@ -187,8 +199,10 @@ class PerformanceMetricFactory extends Factory
      */
     public function old(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'measured_at' => $this->faker->dateTimeBetween('-6 months', '-2 months'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'measured_at' => $this->faker->dateTimeBetween('-6 months', '-2 months'),
+            ],
+        );
     }
 }

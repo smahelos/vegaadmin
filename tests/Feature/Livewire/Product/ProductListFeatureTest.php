@@ -77,15 +77,19 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_search_by_name(): void
     {
-        $product1 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Awesome Product',
-        ]);
+        $product1 = Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Awesome Product',
+            ],
+        );
 
-        $product2 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Different Item',
-        ]);
+        $product2 = Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Different Item',
+            ],
+        );
 
         $this->actingAs($this->user);
 
@@ -100,17 +104,21 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_handles_search_by_description(): void
     {
-        $product1 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Product A',
-            'description' => 'This is an awesome product with great features',
-        ]);
+        $product1 = Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Product A',
+                'description' => 'This is an awesome product with great features',
+            ],
+        );
 
-        $product2 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Product B',
-            'description' => 'This is a different product',
-        ]);
+        $product2 = Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Product B',
+                'description' => 'This is a different product',
+            ],
+        );
 
         $this->actingAs($this->user);
 
@@ -333,15 +341,19 @@ class ProductListFeatureTest extends TestCase
     #[Test]
     public function component_applies_search_filter(): void
     {
-        Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Matching Product',
-        ]);
+        Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Matching Product',
+            ],
+        );
 
-        Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Different Product',
-        ]);
+        Product::factory()->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Different Product',
+            ],
+        );
 
         $this->actingAs($this->user);
 

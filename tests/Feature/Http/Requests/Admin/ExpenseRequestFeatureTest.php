@@ -51,7 +51,10 @@ final class ExpenseRequestFeatureTest extends TestCase
     public function rejects_invalid_document_input(string $field, mixed $value): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $this->post('/admin/expense', $this->expenseInput($business, [$field => $value]))->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
+        $this->post(
+            '/admin/expense',
+            $this->expenseInput($business, [$field => $value]),
+        )->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
     }
 
     #[Test]
@@ -60,11 +63,14 @@ final class ExpenseRequestFeatureTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
         $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
-        $this->assertDatabaseHas('expenses', [
-            'reference_number' => $data['reference_number'],
-            'bank_account_id' => null,
-            'account_number' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'expenses',
+            [
+                'reference_number' => $data['reference_number'],
+                'bank_account_id' => null,
+                'account_number' => null,
+            ],
+        );
     }
 
     #[Test]

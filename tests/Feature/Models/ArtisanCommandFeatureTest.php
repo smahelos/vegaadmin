@@ -18,11 +18,14 @@ class ArtisanCommandFeatureTest extends TestCase
     {
         $command = ArtisanCommand::factory()->create();
 
-        $this->assertDatabaseHas('artisan_commands', [
-            'id' => $command->id,
-            'name' => $command->name,
-            'command' => $command->command,
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            [
+                'id' => $command->id,
+                'name' => $command->name,
+                'command' => $command->command,
+            ],
+        );
     }
 
     #[Test]
@@ -122,10 +125,13 @@ class ArtisanCommandFeatureTest extends TestCase
 
         $command->update($newData);
 
-        $this->assertDatabaseHas('artisan_commands', array_merge(
-            ['id' => $command->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            array_merge(
+                ['id' => $command->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]

@@ -64,7 +64,9 @@ class ProductService implements ProductServiceInterface
         $created = $this->productWriteRepository->create($validatedWriteData);
 
         // Publish Domain Event for new product creation via unified publisher
-        $this->events->publish(new ProductCreated($created, $userId->toInt()));
+        $this->events->publish(
+            new ProductCreated($created, $userId->toInt()),
+        );
 
         return $created;
     }

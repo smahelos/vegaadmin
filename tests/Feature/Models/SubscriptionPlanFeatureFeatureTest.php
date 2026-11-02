@@ -24,11 +24,14 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         $feature = SubscriptionPlanFeature::factory()->create();
 
         $this->assertInstanceOf(SubscriptionPlanFeature::class, $feature);
-        $this->assertDatabaseHas('subscription_plan_features', [
-            'id' => $feature->id,
-            'name' => $feature->name,
-            'slug' => $feature->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plan_features',
+            [
+                'id' => $feature->id,
+                'name' => $feature->name,
+                'slug' => $feature->slug,
+            ],
+        );
     }
 
     #[Test]
@@ -51,8 +54,12 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         $feature->subscriptionPlans()->attach([$plan1->id, $plan2->id]);
 
         $this->assertEquals(2, $feature->subscriptionPlans()->count());
-        $this->assertTrue($feature->subscriptionPlans->contains($plan1));
-        $this->assertTrue($feature->subscriptionPlans->contains($plan2));
+        $this->assertTrue(
+            $feature->subscriptionPlans->contains($plan1),
+        );
+        $this->assertTrue(
+            $feature->subscriptionPlans->contains($plan2),
+        );
     }
 
     #[Test]

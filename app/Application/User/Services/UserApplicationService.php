@@ -32,7 +32,10 @@ class UserApplicationService implements UserApplicationServiceInterface
         int $perPage = 10,
         int $page = 1,
     ): LengthAwarePaginator {
-        $result = $this->userService->searchUsers($term, new PageRequest($page, $perPage));
+        $result = $this->userService->searchUsers(
+            $term,
+            new PageRequest($page, $perPage),
+        );
 
         // Convert domain pagination result to Laravel paginator for controllers/UI
         return PaginatorAdapter::toLengthAwarePaginator($result);

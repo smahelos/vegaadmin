@@ -94,10 +94,12 @@ class ExpenseFactory extends Factory
      */
     public function noTax(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'tax_amount' => 0,
-            'tax_included' => false,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'tax_amount' => 0,
+                'tax_included' => false,
+            ],
+        );
     }
 
     /**

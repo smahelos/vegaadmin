@@ -64,7 +64,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
                 $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
                 $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
-                $hasQr = ! empty($qrCode);
+                $hasQr = !empty($qrCode);
             }
         } catch (\Throwable) {
             // ignore QR generation errors in renderer
@@ -124,14 +124,16 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'minimal',
         ];
         $tpl = $template ?? 'default';
-        if (! in_array(
-            $tpl,
-            $available,
-            true,
-        )) {
+        if (
+            !in_array(
+                $tpl,
+                $available,
+                true,
+            )
+        ) {
             $tpl = 'default';
         }
-        if (! $this->templateFileExists($tpl)) {
+        if (!$this->templateFileExists($tpl)) {
             $tpl = 'default';
         }
 

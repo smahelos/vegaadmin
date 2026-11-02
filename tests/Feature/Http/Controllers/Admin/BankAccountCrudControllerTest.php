@@ -23,13 +23,17 @@ final class BankAccountCrudControllerTest extends TestCase
     {
         parent::setUp();
         $this->admin = User::factory()->create();
-        $this->admin->assignRole(Role::findByName('admin', 'backpack'));
+        $this->admin->assignRole(
+            Role::findByName('admin', 'backpack'),
+        );
     }
 
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/bank-account')->assertRedirect(route('backpack.auth.login'));
+        $this->get('/admin/bank-account')->assertRedirect(
+            route('backpack.auth.login'),
+        );
     }
 
     #[Test]
@@ -39,31 +43,41 @@ final class BankAccountCrudControllerTest extends TestCase
         $contact = Contact::factory()->create();
         $businessAccount = BankAccount::factory()->ownedBy($business)->create();
         $contactAccount = BankAccount::factory()->ownedBy($contact)->create(['iban' => 'DE89370400440532013000']);
-        foreach ([
+        foreach (
             [
-                'business',
-                $businessAccount,
-                $contactAccount,
-            ],
-            [
-                'contact',
-                $contactAccount,
-                $businessAccount,
-            ],
-        ] as [$type, $visible, $hidden]) {
-            $this->actingAs($this->backendUser('can_view_' . $type), 'backpack');
-            foreach ([
-                '',
-                '?business_id=' . $business->id,
-                '?contact_id=' . $contact->id,
-            ] as $filter) {
+                [
+                    'business',
+                    $businessAccount,
+                    $contactAccount,
+                ],
+                [
+                    'contact',
+                    $contactAccount,
+                    $businessAccount,
+                ],
+            ] as [$type, $visible, $hidden]
+        ) {
+            $this->actingAs(
+                $this->backendUser('can_view_' . $type),
+                'backpack',
+            );
+            foreach (
+                [
+                    '',
+                    '?business_id=' . $business->id,
+                    '?contact_id=' . $contact->id,
+                ] as $filter
+            ) {
                 $response = $this->postJson('/admin/bank-account/search' . $filter, ['start' => 0, 'length' => 100]);
                 $response->assertOk()->assertDontSee($hidden->iban);
                 if ($filter === '') {
                     $response->assertSee($visible->iban);
                 }
             }
-            $this->actingAs($this->backendUser('can_update_' . $type), 'backpack');
+            $this->actingAs(
+                $this->backendUser('can_update_' . $type),
+                'backpack',
+            );
             $this->get('/admin/bank-account/' . $hidden->id . '/edit')->assertForbidden();
             $this->get('/admin/bank-account/' . $visible->id . '/edit')->assertOk();
         }
@@ -75,13 +89,16 @@ final class BankAccountCrudControllerTest extends TestCase
         $contact = Contact::factory()->create();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/bank-account', [
-                'contact_id' => $contact->id,
-                'country' => 'CZ',
-                'number' => '2001234561',
-                'bank_code' => '2010',
-                '_save_action' => 'save_and_back',
-            ])
+            ->post(
+                '/admin/bank-account',
+                [
+                    'contact_id' => $contact->id,
+                    'country' => 'CZ',
+                    'number' => '2001234561',
+                    'bank_code' => '2010',
+                    '_save_action' => 'save_and_back',
+                ],
+            )
             ->assertRedirect();
 
         $account = BankAccount::query()->where('contact_id', $contact->id)->sole();
@@ -95,10 +112,13 @@ final class BankAccountCrudControllerTest extends TestCase
         $business = Business::factory()->create();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/bank-account', [
-                'business_id' => $business->id,
-                'iban' => 'CZ0000000000000000000000',
-            ])
+            ->post(
+                '/admin/bank-account',
+                [
+                    'business_id' => $business->id,
+                    'iban' => 'CZ0000000000000000000000',
+                ],
+            )
             ->assertSessionHasErrors('iban');
     }
 
@@ -110,7 +130,9 @@ final class BankAccountCrudControllerTest extends TestCase
         $business->forceFill(['default_bank_account_id' => $account->id])->save();
 
         $this->actingAs($this->admin, 'backpack')
-            ->post(route('admin.bank-accounts.archive', ['id' => $account->id]))
+            ->post(
+                route('admin.bank-accounts.archive', ['id' => $account->id]),
+            )
             ->assertRedirect();
 
         $this->assertNotNull($account->fresh()?->archived_at);
@@ -125,7 +147,9 @@ final class BankAccountCrudControllerTest extends TestCase
         $backendUser = $this->backendUser('can_update_business');
 
         $this->actingAs($backendUser, 'backpack')
-            ->post(route('admin.bank-accounts.archive', ['id' => $account->id]))
+            ->post(
+                route('admin.bank-accounts.archive', ['id' => $account->id]),
+            )
             ->assertForbidden();
     }
 }

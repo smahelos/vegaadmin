@@ -31,8 +31,12 @@ class InvoiceFactory extends Factory
             'invoice_vs' => 'INV-' . $rand4,
             'invoice_ks' => (random_int(0, 1) ? (string) $randKS : null),
             'invoice_ss' => (random_int(0, 1) ? (string) $randSS : null),
-            'issue_date' => now()->subDays(random_int(0, 30))->toDateString(),
-            'tax_point_date' => now()->subDays(random_int(0, 30))->toDateString(),
+            'issue_date' => now()->subDays(
+                random_int(0, 30),
+            )->toDateString(),
+            'tax_point_date' => now()->subDays(
+                random_int(0, 30),
+            )->toDateString(),
             'due_in' => random_int(14, 30),
             'user_id' => User::factory(),
             'business_id' => $this->businessOfUser(),

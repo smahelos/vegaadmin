@@ -25,12 +25,12 @@ trait Sorts
     /** Sort by the given key, toggling the direction when it is already the current one */
     public function sortBy(string $key): void
     {
-        if (! array_key_exists($key, $this->sortableColumns())) {
+        if (!array_key_exists($key, $this->sortableColumns())) {
             return;
         }
 
         if ($this->sortKey() === $key) {
-            $this->orderAsc = ! $this->orderAsc;
+            $this->orderAsc = !$this->orderAsc;
 
             return;
         }

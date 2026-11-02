@@ -24,7 +24,9 @@ class PaymentMethodRequest extends BaseEntityRequest
             'slug' => [
                 'required',
                 Rule::enum(PaymentMethodCode::class),
-                Rule::unique('payment_methods', 'slug')->ignore($this->route('id') ?: $this->id),
+                Rule::unique('payment_methods', 'slug')->ignore(
+                    $this->route('id') ?: $this->id,
+                ),
             ],
             'description' => 'nullable|string',
             'is_active' => 'boolean',

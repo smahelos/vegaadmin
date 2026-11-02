@@ -42,7 +42,9 @@ class PaymentMethod extends Model
     */
     public function getTranslatedNameAttribute(): string
     {
-        return __('payment_methods.methods.' . PaymentMethodCode::from($this->slug)->value);
+        return __(
+            'payment_methods.methods.' . PaymentMethodCode::from($this->slug)->value,
+        );
     }
 
     /*

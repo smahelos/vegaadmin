@@ -38,7 +38,9 @@ final class CacheInvalidationFeatureTest extends TestCase
             'test_value',
             60,
         );
-        $this->assertTrue(cache()->has('test_key'));
+        $this->assertTrue(
+            cache()->has('test_key'),
+        );
         $this->cacheService->invalidateTags(['test_tag']);
         $this->assertTrue(true);
     }
@@ -48,29 +50,43 @@ final class CacheInvalidationFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => 100,
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+                'payment_amount' => 100,
+            ],
+        );
 
-        $statsFirst = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+        $statsFirst = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(1, $statsFirst->invoiceCount);
         $this->assertInstanceOf(Money::class, $statsFirst->totalAmount);
         $this->assertSame(100.0, $statsFirst->totalAmount->toFloat());
 
-        Invoice::withoutEvents(function () use ($user, $contact): void {
-            Invoice::factory()->create([
-                'user_id' => $user->id,
-                'contact_id' => $contact->id,
-                'payment_amount' => 200,
-            ]);
-        });
-        $statsCached = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+        Invoice::withoutEvents(
+            function () use ($user, $contact): void {
+                Invoice::factory()->create(
+                    [
+                        'user_id' => $user->id,
+                        'contact_id' => $contact->id,
+                        'payment_amount' => 200,
+                    ],
+                );
+            },
+        );
+        $statsCached = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(1, $statsCached->invoiceCount);
 
-        app(Dispatcher::class)->dispatch(new UserDataChanged($user->id, 'invoice'));
-        $statsAfter = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+        app(Dispatcher::class)->dispatch(
+            new UserDataChanged($user->id, 'invoice'),
+        );
+        $statsAfter = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(2, $statsAfter->invoiceCount);
         $this->assertSame(300.0, $statsAfter->totalAmount->toFloat());
     }
@@ -80,30 +96,46 @@ final class CacheInvalidationFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $contactA = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contactA->id,
-            'payment_amount' => 80,
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contactA->id,
+                'payment_amount' => 80,
+            ],
+        );
 
-        $customersFirst = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        $customersFirst = $this->dashboardService->getCustomersWithInvoiceTotals(
+            UserId::fromInt($user->id),
+        );
         $this->assertCount(1, $customersFirst);
 
-        Contact::withoutEvents(function () use ($user, &$contactB): void {
-            $contactB = Contact::factory()->create(['user_id' => $user->id]);
-        });
-        Invoice::withoutEvents(function () use ($user, &$contactB): void {
-            Invoice::factory()->create([
-                'user_id' => $user->id,
-                'contact_id' => $contactB->id,
-                'payment_amount' => 40,
-            ]);
-        });
-        $customersCached = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        Contact::withoutEvents(
+            function () use ($user, &$contactB): void {
+                $contactB = Contact::factory()->create(['user_id' => $user->id]);
+            },
+        );
+        Invoice::withoutEvents(
+            function () use ($user, &$contactB): void {
+                Invoice::factory()->create(
+                    [
+                        'user_id' => $user->id,
+                        'contact_id' => $contactB->id,
+                        'payment_amount' => 40,
+                    ],
+                );
+            },
+        );
+        $customersCached = $this->dashboardService->getCustomersWithInvoiceTotals(
+            UserId::fromInt($user->id),
+        );
         $this->assertCount(1, $customersCached);
 
-        app(Dispatcher::class)->dispatch(new UserDataChanged($user->id, 'contact'));
-        $customersAfter = $this->dashboardService->getCustomersWithInvoiceTotals(UserId::fromInt($user->id));
+        app(Dispatcher::class)->dispatch(
+            new UserDataChanged($user->id, 'contact'),
+        );
+        $customersAfter = $this->dashboardService->getCustomersWithInvoiceTotals(
+            UserId::fromInt($user->id),
+        );
         $this->assertCount(2, $customersAfter);
         $this->assertInstanceOf(Money::class, $customersAfter[0]->totalAmount);
     }
@@ -113,27 +145,39 @@ final class CacheInvalidationFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => 10,
-        ]);
-
-        $stats = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
-        $this->assertSame(1, $stats->invoiceCount);
-
-        Invoice::withoutEvents(function () use ($user, $contact): void {
-            Invoice::factory()->create([
+        Invoice::factory()->create(
+            [
                 'user_id' => $user->id,
                 'contact_id' => $contact->id,
-                'payment_amount' => 20,
-            ]);
-        });
-        $cached = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+                'payment_amount' => 10,
+            ],
+        );
+
+        $stats = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
+        $this->assertSame(1, $stats->invoiceCount);
+
+        Invoice::withoutEvents(
+            function () use ($user, $contact): void {
+                Invoice::factory()->create(
+                    [
+                        'user_id' => $user->id,
+                        'contact_id' => $contact->id,
+                        'payment_amount' => 20,
+                    ],
+                );
+            },
+        );
+        $cached = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(1, $cached->invoiceCount);
 
         $this->dashboardService->invalidateUserCache($user->id);
-        $after = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+        $after = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(2, $after->invoiceCount);
         $this->assertSame(30.0, $after->totalAmount->toFloat());
     }
@@ -143,11 +187,13 @@ final class CacheInvalidationFeatureTest extends TestCase
     {
         $user = User::factory()->create();
         $contact = Contact::factory()->create(['user_id' => $user->id]);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => 5,
-        ]);
+        Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+                'payment_amount' => 5,
+            ],
+        );
 
         $uid = UserId::fromInt($user->id);
         $this->dashboardService->getUserStatistics($uid);
@@ -155,12 +201,16 @@ final class CacheInvalidationFeatureTest extends TestCase
 
         Cache::tags(['analytics.user.' . $user->id])->flush();
 
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'contact_id' => $contact->id,
-            'payment_amount' => 7,
-        ]);
-        $stats = $this->dashboardService->getUserStatistics(UserId::fromInt($user->id));
+        Invoice::factory()->create(
+            [
+                'user_id' => $user->id,
+                'contact_id' => $contact->id,
+                'payment_amount' => 7,
+            ],
+        );
+        $stats = $this->dashboardService->getUserStatistics(
+            UserId::fromInt($user->id),
+        );
         $this->assertSame(2, $stats->invoiceCount);
         $this->assertSame(12.0, $stats->totalAmount->toFloat());
     }

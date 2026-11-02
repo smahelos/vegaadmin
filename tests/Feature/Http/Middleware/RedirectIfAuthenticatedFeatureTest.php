@@ -22,7 +22,10 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
     public function guest_user_passes_through(): void
     {
         $request = Request::create('/login');
-        $result = $this->middleware->handle($request, fn () => response('OK'));
+        $result = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals('OK', $result->getContent());
     }
 
@@ -38,7 +41,10 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
             'web',
         );
         $this->assertEquals(302, $response->getStatusCode());
-        $this->assertStringContainsString('dashboard', $response->headers->get('Location'));
+        $this->assertStringContainsString(
+            'dashboard',
+            $response->headers->get('Location'),
+        );
     }
 
     #[Test]
@@ -53,6 +59,9 @@ class RedirectIfAuthenticatedFeatureTest extends TestCase
             'backpack',
         );
         $this->assertEquals(302, $response->getStatusCode());
-        $this->assertStringContainsString('admin', $response->headers->get('Location'));
+        $this->assertStringContainsString(
+            'admin',
+            $response->headers->get('Location'),
+        );
     }
 }

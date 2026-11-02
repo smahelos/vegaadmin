@@ -24,20 +24,25 @@ final class CustomerRevenueQuery
         $kind = "CASE WHEN invoices.contact_id IS NOT NULL THEN 'contact' WHEN NULLIF(invoices.customer_company_number, '') IS NOT NULL THEN 'registration' ELSE 'name' END";
 
         return $invoices
-            ->leftJoin('contacts', function (JoinClause $join): void {
-                $join->on(
-                    'contacts.id',
-                    '=',
-                    'invoices.contact_id',
-                )
-                    ->on(
-                        'contacts.user_id',
+            ->leftJoin(
+                'contacts',
+                function (JoinClause $join): void {
+                    $join->on(
+                        'contacts.id',
                         '=',
-                        'invoices.user_id',
-                    );
-            })
+                        'invoices.contact_id',
+                    )
+                        ->on(
+                            'contacts.user_id',
+                            '=',
+                            'invoices.user_id',
+                        );
+                },
+            )
             ->select('invoices.contact_id')
-            ->selectRaw('COALESCE(MAX(contacts.name), MIN(invoices.customer_name)) as customer_name')
+            ->selectRaw(
+                'COALESCE(MAX(contacts.name), MIN(invoices.customer_name)) as customer_name',
+            )
             ->selectRaw('SUM(invoices.payment_amount) as total')
             ->groupBy('invoices.contact_id')
             ->groupByRaw($kind)

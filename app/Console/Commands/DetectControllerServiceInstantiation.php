@@ -30,7 +30,7 @@ class DetectControllerServiceInstantiation extends Command
     public function handle(): int
     {
         $controllersDir = app_path('Http/Controllers');
-        if (! is_dir($controllersDir)) {
+        if (!is_dir($controllersDir)) {
             $this->error('Controllers directory not found: ' . $controllersDir);
 
             return 1;
@@ -51,12 +51,14 @@ class DetectControllerServiceInstantiation extends Command
             $violations = [];
 
             // use imports
-            if (preg_match_all(
-                $serviceUseRegex,
-                $content,
-                $m,
-                PREG_OFFSET_CAPTURE,
-            )) {
+            if (
+                preg_match_all(
+                    $serviceUseRegex,
+                    $content,
+                    $m,
+                    PREG_OFFSET_CAPTURE,
+                )
+            ) {
                 foreach ($m[1] as $match) {
                     [$fqcn, $offset] = $match;
                     $violations[] = [
@@ -67,12 +69,14 @@ class DetectControllerServiceInstantiation extends Command
                 }
             }
             // new expressions
-            if (preg_match_all(
-                $newRegex,
-                $content,
-                $m2,
-                PREG_OFFSET_CAPTURE,
-            )) {
+            if (
+                preg_match_all(
+                    $newRegex,
+                    $content,
+                    $m2,
+                    PREG_OFFSET_CAPTURE,
+                )
+            ) {
                 foreach ($m2[0] as $match) {
                     [, $offset] = $match;
                     $violations[] = [
@@ -83,20 +87,24 @@ class DetectControllerServiceInstantiation extends Command
                 }
             }
             // constructor concrete injections
-            if (preg_match_all(
-                $ctorRegex,
-                $content,
-                $m3,
-                PREG_OFFSET_CAPTURE,
-            )) {
+            if (
+                preg_match_all(
+                    $ctorRegex,
+                    $content,
+                    $m3,
+                    PREG_OFFSET_CAPTURE,
+                )
+            ) {
                 foreach ($m3[0] as $match) {
                     [, $offset] = $match;
                     // Extract each service fqcn inside constructor segment
-                    if (preg_match_all(
-                        '/App\\Domain\\[A-Z][A-Za-z0-9_]+\\Services\\[A-Z][A-Za-z0-9_]+Service/',
-                        $match[0],
-                        $inner,
-                    )) {
+                    if (
+                        preg_match_all(
+                            '/App\\Domain\\[A-Z][A-Za-z0-9_]+\\Services\\[A-Z][A-Za-z0-9_]+Service/',
+                            $match[0],
+                            $inner,
+                        )
+                    ) {
                         foreach ($inner[0] as $svcFqcn) {
                             $violations[] = [
                                 'type' => 'ctor',
@@ -124,11 +132,16 @@ class DetectControllerServiceInstantiation extends Command
         }
 
         if ($this->option('json')) {
-            $this->line(json_encode([
-                'status' => empty($rows) ? 'ok' : 'violations',
-                'controllers_scanned' => iterator_count($finder->getIterator()),
-                'violations' => $rows,
-            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+            $this->line(
+                json_encode(
+                    [
+                        'status' => empty($rows) ? 'ok' : 'violations',
+                        'controllers_scanned' => iterator_count($finder->getIterator()),
+                        'violations' => $rows,
+                    ],
+                    JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES,
+                ),
+            );
         } else {
             if (empty($rows)) {
                 $this->info('No direct concrete service usage detected in controllers.');
@@ -137,7 +150,9 @@ class DetectControllerServiceInstantiation extends Command
                 foreach ($rows as $r) {
                     $this->line('- ' . $r['controller'] . ' (' . $r['count'] . ' hits)');
                     foreach ($r['details'] as $v) {
-                        $this->line('   • ' . $v['type'] . ' @ line ' . $v['line'] . ' -> ' . $v['fqcn']);
+                        $this->line(
+                            '   • ' . $v['type'] . ' @ line ' . $v['line'] . ' -> ' . $v['fqcn'],
+                        );
                     }
                 }
             }
@@ -160,6 +175,13 @@ class DetectControllerServiceInstantiation extends Command
 
     private function offsetToLine(string $contents, int $offset): int
     {
-        return substr_count(substr($contents, 0, $offset), "\n") + 1;
+        return substr_count(
+            substr(
+                $contents,
+                0,
+                $offset,
+            ),
+            "\n",
+        ) + 1;
     }
 }

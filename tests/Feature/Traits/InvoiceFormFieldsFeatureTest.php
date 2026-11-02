@@ -70,21 +70,24 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert: the parties and the account are chosen in the DocumentPartyPicker, not in this field set
-        $this->assertSame([
-            'invoice_logo',
-            'template',
-            'invoice_vs',
-            'payment_status_id',
-            'invoice_ks',
-            'invoice_ss',
-            'issue_date',
-            'tax_point_date',
-            'payment_method_id',
-            'due_in',
-            'payment_amount',
-            'payment_currency',
-            'invoice_text',
-        ], array_column($result, 'name'));
+        $this->assertSame(
+            [
+                'invoice_logo',
+                'template',
+                'invoice_vs',
+                'payment_status_id',
+                'invoice_ks',
+                'invoice_ss',
+                'issue_date',
+                'tax_point_date',
+                'payment_method_id',
+                'due_in',
+                'payment_amount',
+                'payment_currency',
+                'invoice_text',
+            ],
+            array_column($result, 'name'),
+        );
     }
 
     #[Test]
@@ -119,8 +122,14 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $taxPointDateField = collect($result)->firstWhere('name', 'tax_point_date');
         $paymentAmountField = collect($result)->firstWhere('name', 'payment_amount');
 
-        $this->assertEquals(date('Y-m-d'), $issueDateField['default']);
-        $this->assertEquals(date('Y-m-d'), $taxPointDateField['default']);
+        $this->assertEquals(
+            date('Y-m-d'),
+            $issueDateField['default'],
+        );
+        $this->assertEquals(
+            date('Y-m-d'),
+            $taxPointDateField['default'],
+        );
         $this->assertEquals(0, $paymentAmountField['default']);
     }
 
@@ -176,7 +185,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertArrayHasKey(30, $dueInField['options']);
 
         // Check format includes days unit
-        $this->assertTrue(str_contains($dueInField['options'][1], 'days') || str_contains($dueInField['options'][1], 'dní'));
+        $this->assertTrue(
+            str_contains($dueInField['options'][1], 'days') || str_contains($dueInField['options'][1], 'dní'),
+        );
     }
 
     #[Test]
@@ -195,6 +206,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert
         $this->assertEquals($result1, $result2);
-        $this->assertCount(count($result1), $result2);
+        $this->assertCount(
+            count($result1),
+            $result2,
+        );
     }
 }

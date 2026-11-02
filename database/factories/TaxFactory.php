@@ -48,11 +48,13 @@ class TaxFactory extends Factory
      */
     public function standardVat(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Standard VAT',
-            'rate' => 21.00,
-            'slug' => 'standard-vat',
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'name' => 'Standard VAT',
+                'rate' => 21.00,
+                'slug' => 'standard-vat',
+            ],
+        );
     }
 
     /**
@@ -60,10 +62,12 @@ class TaxFactory extends Factory
      */
     public function reducedVat(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'name' => 'Reduced VAT',
-            'rate' => 15.00,
-            'slug' => 'reduced-vat',
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'name' => 'Reduced VAT',
+                'rate' => 15.00,
+                'slug' => 'reduced-vat',
+            ],
+        );
     }
 }

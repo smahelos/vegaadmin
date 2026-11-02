@@ -47,7 +47,9 @@ class ProductCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Product::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/product');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/product',
+        );
         CRUD::setEntityNameStrings(
             __('products.entity.singular'),
             __('products.entity.plural'),
@@ -78,43 +80,67 @@ class ProductCrudController extends CrudController
 
         CRUD::filter('user_id')
             ->type('select2')
-            ->label(__('products.fields.user_id'))
+            ->label(
+                __('products.fields.user_id'),
+            )
             ->values(
                 User::pluck('name', 'id')->toArray(),
             )
-            ->whenActive(function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'user_id',
-                    $value,
-                );
-            });
+            ->whenActive(
+                function ($value): void {
+                    CRUD::addClause(
+                        'where',
+                        'user_id',
+                        $value,
+                    );
+                },
+            );
 
         CRUD::column('user_id')
             ->type('integer')
-            ->label(__('products.fields.user_id'))
+            ->label(
+                __('products.fields.user_id'),
+            )
             ->entity('user')
             ->attribute('name')
-            ->value(function ($entry) {
-                return $entry->user_id ? $entry->user->name : 'N/A';
-            });
+            ->value(
+                function ($entry) {
+                    return $entry->user_id ? $entry->user->name : 'N/A';
+                },
+            );
 
-        CRUD::column('name')->label(__('products.fields.name'));
-        CRUD::column('price')->label(__('products.fields.price'));
+        CRUD::column('name')->label(
+            __('products.fields.name'),
+        );
+        CRUD::column('price')->label(
+            __('products.fields.price'),
+        );
         CRUD::column('category_id')
             ->type('select_from_array')
-            ->label(__('products.fields.category_id'))
-            ->value(function ($entry) {
-                return $entry->category ? $entry->category->name : 'N/A';
-            });
+            ->label(
+                __('products.fields.category_id'),
+            )
+            ->value(
+                function ($entry) {
+                    return $entry->category ? $entry->category->name : 'N/A';
+                },
+            );
         CRUD::column('tax_id')
             ->type('select_from_array')
-            ->label(__('products.fields.tax_id'))
-            ->value(function ($entry) {
-                return $entry->tax ? $entry->tax->name : 'N/A';
-            });
-        CRUD::column('is_default')->type('boolean')->label(__('products.fields.is_default'));
-        CRUD::column('created_at')->label(__('products.fields.created_at'));
+            ->label(
+                __('products.fields.tax_id'),
+            )
+            ->value(
+                function ($entry) {
+                    return $entry->tax ? $entry->tax->name : 'N/A';
+                },
+            );
+        CRUD::column('is_default')->type('boolean')->label(
+            __('products.fields.is_default'),
+        );
+        CRUD::column('created_at')->label(
+            __('products.fields.created_at'),
+        );
         // CRUD::column('updated_at');
     }
 
@@ -125,30 +151,46 @@ class ProductCrudController extends CrudController
     {
         CRUD::setValidation(ProductRequest::class);
 
-        CRUD::field('name')->label(__('products.fields.name'));
+        CRUD::field('name')->label(
+            __('products.fields.name'),
+        );
         CRUD::field('slug')
-            ->label(__('products.fields.slug'))
-            ->hint(__('products.hints.slug'));
+            ->label(
+                __('products.fields.slug'),
+            )
+            ->hint(
+                __('products.hints.slug'),
+            );
 
         CRUD::field('user_id')
             ->type('hidden')
-            ->label(__('products.fields.user_id'))
+            ->label(
+                __('products.fields.user_id'),
+            )
             ->entity('user')
             ->attribute('name')
-            ->options(function ($query) {
-                return $query->orderBy('name', 'ASC')->get();
-            });
+            ->options(
+                function ($query) {
+                    return $query->orderBy('name', 'ASC')->get();
+                },
+            );
 
         CRUD::field('price')
             ->type('number')
-            ->label(__('products.fields.price'))
+            ->label(
+                __('products.fields.price'),
+            )
             ->attributes(['step' => '0.01']);
 
         $currencyCodes = array_column(Currency::cases(), 'value');
         CRUD::field('currency')
             ->type('select_from_array')
-            ->label(__('products.fields.currency'))
-            ->options(array_combine($currencyCodes, $currencyCodes))
+            ->label(
+                __('products.fields.currency'),
+            )
+            ->options(
+                array_combine($currencyCodes, $currencyCodes),
+            )
             ->allows_null(false);
 
         // Get taxes from the service
@@ -156,7 +198,9 @@ class ProductCrudController extends CrudController
 
         CRUD::field('tax_id')
             ->type('select_from_array')
-            ->label(__('products.fields.tax_id'))
+            ->label(
+                __('products.fields.tax_id'),
+            )
             ->entity('tax')
             ->model('App\Models\Tax')
             ->attribute('name')
@@ -167,33 +211,46 @@ class ProductCrudController extends CrudController
 
         CRUD::field('category_id')
             ->type('select_from_array')
-            ->label(__('products.fields.category_id'))
+            ->label(
+                __('products.fields.category_id'),
+            )
             ->entity('category')
             ->model('App\Models\ProductCategory')
             ->pivot(true)
             ->attribute('name')
             ->options($productCategories);
-        CRUD::field('description')->type('textarea')->label(__('products.fields.description'));
-        CRUD::field('is_default')->type('checkbox')->label(__('products.fields.is_default'));
-        CRUD::field('is_active')->type('checkbox')->label(__('products.fields.is_active'));
+        CRUD::field('description')->type('textarea')->label(
+            __('products.fields.description'),
+        );
+        CRUD::field('is_default')->type('checkbox')->label(
+            __('products.fields.is_default'),
+        );
+        CRUD::field('is_active')->type('checkbox')->label(
+            __('products.fields.is_active'),
+        );
 
         CRUD::field('image')
             ->type('image_with_preview')
-            ->label(__('products.fields.image'))
+            ->label(
+                __('products.fields.image'),
+            )
             ->upload(true)
             // ->disk('public')
             // ->prefix('storage/')
             // ->uploadRoute('backpack.upload')
-            ->hint(__('products.hints.image'))
+            ->hint(
+                __('products.hints.image'),
+            )
             ->wrapper([
                 'class' => 'form-group col-md-6',
             ]);
 
         // Add JavaScript for better handling of the custom field
-        $this->crud->addField([
-            'name' => 'image_preview_scripts',
-            'type' => 'custom_html',
-            'value' => '<script>
+        $this->crud->addField(
+            [
+                'name' => 'image_preview_scripts',
+                'type' => 'custom_html',
+                'value' => '<script>
                 document.addEventListener("DOMContentLoaded", function() {
                     // This ensures the image preview is updated when form is submitted
                     document.querySelector("form").addEventListener("submit", function() {
@@ -211,7 +268,8 @@ class ProductCrudController extends CrudController
                     });
                 });
             </script>',
-        ]);
+            ],
+        );
     }
 
     /**
@@ -229,7 +287,7 @@ class ProductCrudController extends CrudController
     {
         if (backpack_user()) {
             $request = $this->crud->getRequest();
-            if (! $request->has('user_id') || empty($request->input('user_id'))) {
+            if (!$request->has('user_id') || empty($request->input('user_id'))) {
                 $request->merge(['user_id' => backpack_user()->id]);
             }
         }

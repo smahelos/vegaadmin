@@ -28,7 +28,7 @@ class DddGuardCommand extends Command
     public function handle(): int
     {
         $config = config('ddd_guard');
-        if (! $config) {
+        if (!$config) {
             $this->error('Missing config/ddd_guard.php');
 
             return 1;
@@ -67,7 +67,7 @@ class DddGuardCommand extends Command
                 continue; // skip standard handling
             }
 
-            if (! is_dir($path)) {
+            if (!is_dir($path)) {
                 continue; // Already removed -> no issue
             }
             $allowedFiles = $rule['allowed_files'] ?? [];
@@ -76,11 +76,13 @@ class DddGuardCommand extends Command
             if ($mode === 'no_new_files') {
                 foreach ($this->files->files($path) as $file) {
                     $base = $file->getFilename();
-                    if (! in_array(
-                        $base,
-                        $allowedFiles,
-                        true,
-                    )) {
+                    if (
+                        !in_array(
+                            $base,
+                            $allowedFiles,
+                            true,
+                        )
+                    ) {
                         $violations[] = [
                             'type' => 'new_file',
                             'path' => $file->getPathname(),
@@ -90,11 +92,13 @@ class DddGuardCommand extends Command
                 }
                 foreach ($this->files->directories($path) as $dir) {
                     $dirBase = basename($dir);
-                    if (! in_array(
-                        $dirBase,
-                        $allowedDirs,
-                        true,
-                    )) {
+                    if (
+                        !in_array(
+                            $dirBase,
+                            $allowedDirs,
+                            true,
+                        )
+                    ) {
                         $violations[] = [
                             'type' => 'new_directory',
                             'path' => $dir,
@@ -110,13 +114,13 @@ class DddGuardCommand extends Command
         if ($patterns) {
             foreach ($patterns as $patternRule) {
                 $pattern = $patternRule['pattern'] ?? null;
-                if (! $pattern) {
+                if (!$pattern) {
                     continue;
                 }
                 $description = $patternRule['description'] ?? 'Forbidden pattern';
                 $scopedPaths = $patternRule['paths'] ?? [base_path()];
                 foreach ($scopedPaths as $scanPath) {
-                    if (! is_dir($scanPath)) {
+                    if (!is_dir($scanPath)) {
                         continue;
                     }
                     $finder = (new Finder)
@@ -133,12 +137,14 @@ class DddGuardCommand extends Command
                     try {
                         foreach ($finder as $file) {
                             $contents = $file->getContents();
-                            if (! preg_match_all(
-                                $pattern,
-                                $contents,
-                                $matches,
-                                PREG_OFFSET_CAPTURE,
-                            )) {
+                            if (
+                                !preg_match_all(
+                                    $pattern,
+                                    $contents,
+                                    $matches,
+                                    PREG_OFFSET_CAPTURE,
+                                )
+                            ) {
                                 continue;
                             }
                             $lines = preg_split('/\r?\n/', $contents);
@@ -193,20 +199,26 @@ class DddGuardCommand extends Command
                     'di' => $this->option('di') ? $diReport : null,
                 ];
                 $this->persistJsonIfConfigured($config, $payload);
-                $this->line(json_encode($payload, JSON_PRETTY_PRINT));
+                $this->line(
+                    json_encode($payload, JSON_PRETTY_PRINT),
+                );
             } else {
                 $this->info('No DDD guard violations detected.');
-                if (! empty($advisories)) {
-                    $this->warn('Advisories (non-blocking): ' . count($advisories));
+                if (!empty($advisories)) {
+                    $this->warn(
+                        'Advisories (non-blocking): ' . count($advisories),
+                    );
                 }
-                if ($this->option('di') && (! empty($diReport['violations']) || ! empty($diReport['advisories']))) {
-                    $this->line('DI Scan: ' . count($diReport['violations']) . ' violations, ' . count($diReport['advisories']) . ' advisories');
+                if ($this->option('di') && (!empty($diReport['violations']) || !empty($diReport['advisories']))) {
+                    $this->line(
+                        'DI Scan: ' . count($diReport['violations']) . ' violations, ' . count($diReport['advisories']) . ' advisories',
+                    );
                 }
             }
             if ($this->option('suppress-exit')) {
                 return 0;
             }
-            if ($failOnAdvisory && ! empty($advisories)) {
+            if ($failOnAdvisory && !empty($advisories)) {
                 return 1;
             }
 
@@ -222,21 +234,27 @@ class DddGuardCommand extends Command
                 'di' => $this->option('di') ? $diReport : null,
             ];
             $this->persistJsonIfConfigured($config, $payload);
-            $this->line(json_encode($payload, JSON_PRETTY_PRINT));
+            $this->line(
+                json_encode($payload, JSON_PRETTY_PRINT),
+            );
         } else {
             $this->error('DDD guard violations:');
             foreach ($violations as $v) {
                 $lineInfo = isset($v['line']) ? (':' . $v['line']) : '';
-                $this->line(" - [{$v['type']}] {$v['path']}{$lineInfo} :: {$v['message']}");
+                $this->line(
+                    " - [{$v['type']}] {$v['path']}{$lineInfo} :: {$v['message']}",
+                );
             }
-            if (! empty($advisories)) {
+            if (!empty($advisories)) {
                 $this->warn('Advisories (non-blocking):');
                 foreach ($advisories as $a) {
                     $lineInfo = isset($a['line']) ? (':' . $a['line']) : '';
                     $this->line(" - [advisory] {$a['path']}{$lineInfo} :: {$a['message']}");
                 }
             }
-            $this->error(count($violations) . ' violation(s) detected.');
+            $this->error(
+                count($violations) . ' violation(s) detected.',
+            );
         }
         if ($this->option('suppress-exit')) {
             return 0;
@@ -244,7 +262,7 @@ class DddGuardCommand extends Command
         if ($violations !== []) {
             return 1;
         }
-        if ($failOnAdvisory && ! empty($advisories)) {
+        if ($failOnAdvisory && !empty($advisories)) {
             return 1;
         }
 
@@ -274,26 +292,30 @@ class DddGuardCommand extends Command
         $ctorRegex = '/__construct\([^)]*?App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\[A-Z][A-Za-z0-9]+' . $serviceSuffix . '\s+\$/s';
 
         foreach ($paths as $scanPath) {
-            if (! is_dir($scanPath)) {
+            if (!is_dir($scanPath)) {
                 continue;
             }
             $phpFiles = (new Finder)->files()->in($scanPath)->name('*.php');
             foreach ($phpFiles as $file) {
                 $contents = $file->getContents();
                 // Use import detection
-                if (preg_match_all(
-                    $useRegex,
-                    $contents,
-                    $matches,
-                    PREG_OFFSET_CAPTURE,
-                )) {
+                if (
+                    preg_match_all(
+                        $useRegex,
+                        $contents,
+                        $matches,
+                        PREG_OFFSET_CAPTURE,
+                    )
+                ) {
                     foreach ($matches[1] as $idx => $m) {
                         [$fqcn, $offset] = $m;
-                        if (in_array(
-                            $fqcn,
-                            $allowlist,
-                            true,
-                        )) {
+                        if (
+                            in_array(
+                                $fqcn,
+                                $allowlist,
+                                true,
+                            )
+                        ) {
                             continue;
                         }
                         $line = $this->offsetToLine($contents, $offset);
@@ -319,27 +341,33 @@ class DddGuardCommand extends Command
                     }
                 }
                 // Constructor parameter detection
-                if (preg_match_all(
-                    $ctorRegex,
-                    $contents,
-                    $ctorMatches,
-                    PREG_OFFSET_CAPTURE,
-                )) {
+                if (
+                    preg_match_all(
+                        $ctorRegex,
+                        $contents,
+                        $ctorMatches,
+                        PREG_OFFSET_CAPTURE,
+                    )
+                ) {
                     foreach ($ctorMatches[0] as $m) {
                         [, $offset] = $m;
                         $line = $this->offsetToLine($contents, $offset);
                         // Simplistic extraction of service class within match
-                        if (preg_match(
-                            '/App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+' . $serviceSuffix . ')/',
-                            $m[0],
-                            $svcMatch,
-                        )) {
+                        if (
+                            preg_match(
+                                '/App\\\\Domain\\\\[A-Z][A-Za-z0-9]+\\\\Services\\\\([A-Z][A-Za-z0-9]+' . $serviceSuffix . ')/',
+                                $m[0],
+                                $svcMatch,
+                            )
+                        ) {
                             $svcFqcn = $svcMatch[0];
-                            if (in_array(
-                                $svcFqcn,
-                                $allowlist,
-                                true,
-                            )) {
+                            if (
+                                in_array(
+                                    $svcFqcn,
+                                    $allowlist,
+                                    true,
+                                )
+                            ) {
                                 continue;
                             }
                             if ($this->classExistsByPathGuess($svcFqcn, $interfaceSuffix)) {
@@ -385,11 +413,14 @@ class DddGuardCommand extends Command
      */
     private function classExistsByPathGuess(string $serviceFqcn, string $interfaceSuffix): bool
     {
-        if (! str_starts_with($serviceFqcn, 'App\\Domain\\')) {
+        if (!str_starts_with($serviceFqcn, 'App\\Domain\\')) {
             return false;
         }
         // Pattern: App\Domain\<Domain>\Services\<ServiceClass>
-        $trimmed = substr($serviceFqcn, strlen('App\\Domain\\'));
+        $trimmed = substr(
+            $serviceFqcn,
+            strlen('App\\Domain\\'),
+        );
         $segments = explode('\\', $trimmed);
         // Expect at least: [Domain, Services, FooService]
         if (count($segments) < 3) {
@@ -400,10 +431,12 @@ class DddGuardCommand extends Command
         }
         $domain = $segments[0];
         $serviceClass = $segments[2];
-        if (! $serviceClass || ! str_ends_with($serviceClass, 'Service')) {
+        if (!$serviceClass || !str_ends_with($serviceClass, 'Service')) {
             return false; // Only enforce for *Service classes
         }
-        $interfaceFile = base_path('app/Domain/' . $domain . '/Contracts/' . $serviceClass . $interfaceSuffix . '.php');
+        $interfaceFile = base_path(
+            'app/Domain/' . $domain . '/Contracts/' . $serviceClass . $interfaceSuffix . '.php',
+        );
 
         return is_file($interfaceFile);
     }
@@ -413,7 +446,10 @@ class DddGuardCommand extends Command
     {
         if (isset($config['json_report_path']) && is_string($config['json_report_path'])) {
             try {
-                @file_put_contents($config['json_report_path'], json_encode($payload, JSON_PRETTY_PRINT));
+                @file_put_contents(
+                    $config['json_report_path'],
+                    json_encode($payload, JSON_PRETTY_PRINT),
+                );
             } catch (\Throwable $e) {
                 // Silent fail – report persistence is best-effort
             }

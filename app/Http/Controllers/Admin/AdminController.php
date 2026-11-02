@@ -31,7 +31,10 @@ final class AdminController extends BackpackAdminController
         // Get user activity statistics
         $userActivityStats = $this->getUserActivityStats();
 
-        return view(backpack_view('dashboard'), compact('dashboardStats', 'userActivityStats'));
+        return view(
+            backpack_view('dashboard'),
+            compact('dashboardStats', 'userActivityStats'),
+        );
     }
 
     /**

@@ -41,17 +41,21 @@ class LoginControllerTest extends TestCase
         $this->validPassword = 'password123';
 
         // Create test user with valid credentials
-        if (! $this->user) {
-            $this->user = User::factory()->create([
-                'email' => $this->validEmail,
-                'password' => Hash::make($this->validPassword),
-            ]);
+        if (!$this->user) {
+            $this->user = User::factory()->create(
+                [
+                    'email' => $this->validEmail,
+                    'password' => Hash::make($this->validPassword),
+                ],
+            );
         } else {
             // Ensure user exists with valid credentials
-            $this->user->update([
-                'email' => $this->validEmail,
-                'password' => Hash::make($this->validPassword),
-            ]);
+            $this->user->update(
+                [
+                    'email' => $this->validEmail,
+                    'password' => Hash::make($this->validPassword),
+                ],
+            );
 
         }
 
@@ -89,10 +93,13 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_successful_with_valid_credentials(): void
     {
-        $response = $this->post('/en/login', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-        ]);
+        $response = $this->post(
+            '/en/login',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+            ],
+        );
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
@@ -105,10 +112,13 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_fails_with_invalid_credentials(): void
     {
-        $response = $this->post('/en/login', [
-            'email' => $this->validEmail,
-            'password' => 'wrongpassword',
-        ]);
+        $response = $this->post(
+            '/en/login',
+            [
+                'email' => $this->validEmail,
+                'password' => 'wrongpassword',
+            ],
+        );
 
         $response->assertRedirect();
         $this->assertFalse(Auth::check());
@@ -120,10 +130,13 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_fails_with_nonexistent_email(): void
     {
-        $response = $this->post('/en/login', [
-            'email' => 'nonexistent-' . uniqid() . '@example.com',
-            'password' => $this->validPassword,
-        ]);
+        $response = $this->post(
+            '/en/login',
+            [
+                'email' => 'nonexistent-' . uniqid() . '@example.com',
+                'password' => $this->validPassword,
+            ],
+        );
 
         $response->assertRedirect();
         $this->assertFalse(Auth::check());
@@ -152,10 +165,13 @@ class LoginControllerTest extends TestCase
     {
         // Laravel 12's AuthenticatesUsers trait doesn't validate email format by default
         // It only checks required|string|email and Laravel is lenient with email validation
-        $response = $this->post('/en/login', [
-            'email' => 'invalid-email-format',
-            'password' => $this->validPassword,
-        ]);
+        $response = $this->post(
+            '/en/login',
+            [
+                'email' => 'invalid-email-format',
+                'password' => $this->validPassword,
+            ],
+        );
 
         // This should not have validation errors but should fail authentication
         $response->assertRedirect();
@@ -191,7 +207,9 @@ class LoginControllerTest extends TestCase
 
         Auth::shouldReceive('attempt')
             ->once()
-            ->andThrow(new \Exception('Database connection error'));
+            ->andThrow(
+                new \Exception('Database connection error'),
+            );
 
         // Expect log to be called
         Log::shouldReceive('error')
@@ -464,7 +482,10 @@ class LoginControllerTest extends TestCase
         $property = $reflection->getProperty('redirectTo');
         $property->setAccessible(true);
 
-        $this->assertEquals('/dashboard', $property->getValue($this->controller));
+        $this->assertEquals(
+            '/dashboard',
+            $property->getValue($this->controller),
+        );
     }
 
     /**
@@ -473,11 +494,14 @@ class LoginControllerTest extends TestCase
     #[Test]
     public function login_with_remember_me(): void
     {
-        $response = $this->post('/en/login', [
-            'email' => $this->validEmail,
-            'password' => $this->validPassword,
-            'remember' => 'on',
-        ]);
+        $response = $this->post(
+            '/en/login',
+            [
+                'email' => $this->validEmail,
+                'password' => $this->validPassword,
+                'remember' => 'on',
+            ],
+        );
 
         $response->assertRedirect();
         $this->assertTrue(Auth::check());
@@ -498,7 +522,9 @@ class LoginControllerTest extends TestCase
 
         Auth::shouldReceive('attempt')
             ->once()
-            ->andThrow(new \Exception('Test exception'));
+            ->andThrow(
+                new \Exception('Test exception'),
+            );
 
         // Expect log to be called
         Log::shouldReceive('error')
@@ -542,7 +568,9 @@ class LoginControllerTest extends TestCase
 
         Auth::shouldReceive('attempt')
             ->once()
-            ->andThrow(new \Exception('Test exception'));
+            ->andThrow(
+                new \Exception('Test exception'),
+            );
 
         // Expect log to be called
         Log::shouldReceive('error')->once();
@@ -565,7 +593,9 @@ class LoginControllerTest extends TestCase
 
         // Check that error message is flashed to session
         $session = $request->getSession();
-        $this->assertTrue($session->has('error'));
+        $this->assertTrue(
+            $session->has('error'),
+        );
     }
 
     /**

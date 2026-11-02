@@ -94,6 +94,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.
 - **Fix:** an invoice detail presenter using `MoneyFormatterInterface`, like `app/Application/Analytics/Presenters/*`.
 
+### Invoice numbering ignores the requested year
+- **Where:** `app/Domain/Invoice/Services/InvoiceService.php::generateInvoiceNumber()`, `app/Domain/Invoice/ValueObjects/InvoiceNumber.php::generateNext()`.
+- **Problem:** the service ignores its `$year` argument and queries the current system year through `date('Y')`; the value object independently reads the system year again. Requesting another year still generates a number for the current year, and an injected clock cannot control the year boundary (`rules/domain.md`, Time).
+- **Fix:** with issue-time numbering in step 8, resolve the year once in the use case (honour an explicit year; derive current time through `ClockInterface`) and pass the same year to the repository query and pure number generator. Cover a requested year different from the system year and a year rollover with behaviour tests.
+
 ## Payment
 
 ### GoPay is called inside the database transaction
@@ -112,8 +117,8 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Fix:** when refunds are needed: a `RefundState` value object computes the new state (accumulation, partial or full), the gateway refunds through the payment port, the repository only persists the result, returned as `RefundResult` (`rules/architecture.md`, Data classes).
 
 ### Typed GoPay request with real customer data
-- **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`
-- **Problem:** `createPayment(array $paymentData)` is untyped and the amount is not checked against gateway limits; a `PaymentAmount` value object for the limits had no caller and was deleted with its `payment:limits` report (commit "Delete unused payment code", branch `ls-dead-code`). Without customer data the gateway sends a placeholder customer (`Test User`, `test@example.com`); `SubscriptionController` passes none.
+- **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`, `app/Domain/Payment/Services/SubscriptionPaymentService.php`
+- **Problem:** `createPayment(array $paymentData)` is untyped and the amount is not checked against gateway limits; a `PaymentAmount` value object for the limits had no caller and was deleted with its `payment:limits` report (commit "Delete unused payment code", branch `ls-dead-code`). `SubscriptionPaymentService` also receives amounts in an array and casts the subscription amount to float. Without customer data the gateway sends a placeholder customer (`Test User`, `test@example.com`); `SubscriptionController` passes none.
 - **Fix:** build `PaymentAmount` (`Money` checked against the gateway's limits) and a request DTO (amount as `PaymentAmount`, plan, customer, URLs) filled with the subscriber's real data. Do this with the subscription plans work.
 
 ### Payment DTOs do not match the model casts
@@ -264,6 +269,16 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time.
 
+### PHP syntax and readability rollout
+- **Where:** project PHP, maintained PHP examples and authored PHP expressions in Blade; enforcement in `phpcs.xml`, `pint.json` and `phpcs/Billex/`.
+- **Status:** in progress. Mechanical formatting is complete across all standalone project PHP covered by the current PHP_CodeSniffer configuration, including application code, tests, migrations, routes, configuration and tooling. Significant-token comparisons preserve expressions, comments and literals, allowing only layout and trailing commas; repeated formatting passes are stable. Chained calls and complex ternaries still require controlled conversion. Some ternaries became multiline when their call or array operands were formatted and now require `if`/`else`. `app/Domain/Party/` passes both syntax and formatting checks. Raw Blade templates remain excluded from PHP_CodeSniffer and need separate authored-PHP coverage.
+- **Arrow arguments:** `ComplexCallLayoutSniff` now retains the comma terminating an arrow function when locating following arguments. Rejection and fixer/convergence regressions cover typed, nested and named arrows, their siblings and internal commas. The observed call in `ProductWriteData::toArray()` remains correctly laid out. Subsequent mechanical inventories must use this corrected detector.
+- **Call argument counting:** the existing Billex call-layout rule now enforces both the three-argument threshold and complex arguments through the same structural traversal. It replaces Slevomat `RequireMultiLineCall`, whose counting treated commas in match arms, closure bodies and anonymous-class bodies as argument separators. Regression coverage pins accepted brace contents, three real arguments, dynamic calls and constructors, including `self`, `parent`, `static` and anonymous classes. Pint preserves multiline anonymous-class constructor arguments, avoiding a conflict with its class-header formatter. No suppression or vendor edit is used.
+- **Multiline condition enforcement:** repaired to inspect operator and grouping positions rather than total line counts, excluding boolean expressions owned by call arguments or other operand bodies. Regressions cover nested grouping, multiline calls, comments and PHPCBF → Pint convergence. All newly visible condition layouts have completed mechanical formatting.
+- **Separate User conversion:** the formatted User services, mapper, repositories and authorization adapters still need the PHP shape, typing, naming and error-handling changes below: `strict_types`, `final`, constructor promotion, typed DTO/repository boundaries, imported exception/date classes and comments that explain invariants. `SpatieAuthorizationAdapter` still catches `Throwable`; `UniversalLimitService` catches broad exceptions and returns arrays/false; `EloquentUserRepository` exposes models/collections and boolean write failures. `EntityLimitUsageRepository` concatenates a numeric SQL increment instead of using bindings (`rules/persistence.md`). Convert these contracts and failures with the User context, and replace the SQL increment with a bound query-builder operation. Existing call chains and the granular subscription-permission naming work also remain separate from mechanical formatting.
+- **Separate Party/Product conversion:** the formatted persistence still contains chained queries and complex ternaries. Older Product classes also lack `strict_types`/`final`, expose models through an Application repository, and repeat implementation details in docblocks (`rules/php.md`, `rules/persistence.md`). `EloquentProductMapper` supplies a currency default instead of only mapping stored values; Product observers publish cache-related events, and `ProductCategoryObserver` obtains the actor through `auth()` (`rules/architecture.md`, Events). Convert Product to Domain repository ports and typed mapper boundaries, assign defaults in the owning use case/domain input, and publish events from use cases with explicit ownership; move cache invalidation to after-commit listeners. Convert Party/Product chains and ternaries separately while preserving owner scoping, lock order, selected branches and terminal return values.
+- **Fix:** the agreed standard in `rules/php.md` and [the enforcement design](design/DESIGN_PHP_STYLE.md). Keep mechanical formatting separate from controlled chain and ternary conversion, retain all required return values and conditional evaluation, and verify application behaviour. This rollout does not resolve the architectural and typing items below.
+
 ### Larastan level
 - **Where:** `phpstan.neon`
 - **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 770 more errors (2026-10-26; among them a call to a method that does not exist, which broke saving a default supplier until the branch `ls-dead-code`, and "Subscription activation ignores the plan's duration"), level 6 over 4000. One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
@@ -352,8 +367,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** after the conversion, replace with Larastan and architecture tests of the dependency table in `rules/architecture.md`; delete the baselines and their commands.
 
 ### Comments
-- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (`bootstrap/app.php` and 11 other files), `TODO`s without an item here
-- **Fix:** per `rules/php.md` (Comments).
+- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), commented-out logging and unused timing/counters in `app/Domain/Shared/Events/DomainEventDispatcher.php`, `TODO`s without an item here
+- **Fix:** per `rules/php.md` (Comments, Readability), with each affected context's conversion: English explanations of non-obvious reasons, remove commented-out code and unused timing/counters.
 
 ### Rename IČO and DIČ to `company_number` and `vat_number`
 - **Status:** implemented for business/contact entities, document parties, requests, forms, translations and analytics on `ls-businesses-contacts`. Unused `UserWriteData` copies are removed. Historical migrations retain the names needed for rollback; the ARES adapter reads `ico` / `dic` only as names in the external provider's response.

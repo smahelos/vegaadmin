@@ -57,8 +57,10 @@ class UserCrudControllerTest extends TestCase
 
         // Either 403 (forbidden) or 302 (redirect) is acceptable
         // When a user doesn't have permissions, Backpack may redirect to dashboard
-        $this->assertTrue(in_array($response->status(), [302, 403]),
-            'Expected status 302 or 403, got: ' . $response->status());
+        $this->assertTrue(
+            in_array($response->status(), [302, 403]),
+            'Expected status 302 or 403, got: ' . $response->status(),
+        );
     }
 
     #[Test]
@@ -142,11 +144,18 @@ class UserCrudControllerTest extends TestCase
         $response = $this->delete("/admin/user/{$user->id}");
 
         // Check for successful deletion response
-        $this->assertTrue(in_array($response->status(), [200, 302]),
-            'Expected status 200 or 302, got: ' . $response->status());
+        $this->assertTrue(
+            in_array($response->status(), [200, 302]),
+            'Expected status 200 or 302, got: ' . $response->status(),
+        );
 
         // For soft deletes the row remains with deleted_at set
-        if (in_array('Illuminate\\Database\\Eloquent\\SoftDeletes', class_uses_recursive(User::class))) {
+        if (
+            in_array(
+                'Illuminate\\Database\\Eloquent\\SoftDeletes',
+                class_uses_recursive(User::class),
+            )
+        ) {
             $this->assertSoftDeleted('users', ['id' => $user->id]);
         } else {
             $this->assertDatabaseMissing('users', ['id' => $user->id]);
@@ -174,6 +183,8 @@ class UserCrudControllerTest extends TestCase
 
         $user = User::where('email', $testEmail)->first();
         $this->assertNotEquals($testPassword, $user->password);
-        $this->assertTrue(Hash::check($testPassword, $user->password));
+        $this->assertTrue(
+            Hash::check($testPassword, $user->password),
+        );
     }
 }

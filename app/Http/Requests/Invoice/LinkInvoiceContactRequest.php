@@ -34,6 +34,8 @@ final class LinkInvoiceContactRequest extends FormRequest
 
     public function contactId(): ContactId
     {
-        return ContactId::fromInt($this->integer('contact_id'));
+        return ContactId::fromInt(
+            $this->integer('contact_id'),
+        );
     }
 }

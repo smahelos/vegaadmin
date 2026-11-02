@@ -34,7 +34,9 @@ class BankCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Bank::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/bank');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/bank',
+        );
         CRUD::setEntityNameStrings('bank', 'banks');
     }
 

@@ -65,7 +65,10 @@ final class BusinessDetailTest extends TestCase
 
         Livewire::test(BusinessDetail::class, ['businessId' => $archived->id])
             ->call('restore')
-            ->assertSet('successMessage', __('businesses.messages.restored'));
+            ->assertSet(
+                'successMessage',
+                __('businesses.messages.restored'),
+            );
 
         $this->assertNull($archived->fresh()?->archived_at);
         $this->assertSame($archived->id, $this->user->fresh()?->default_business_id);
@@ -80,7 +83,10 @@ final class BusinessDetailTest extends TestCase
 
         Livewire::test(BusinessDetail::class, ['businessId' => $archived->id])
             ->call('restore')
-            ->assertSet('errorMessage', __('businesses.messages.limit_exceeded'));
+            ->assertSet(
+                'errorMessage',
+                __('businesses.messages.limit_exceeded'),
+            );
 
         $this->assertNotNull($archived->fresh()?->archived_at);
     }

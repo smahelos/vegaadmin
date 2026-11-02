@@ -73,11 +73,14 @@ class TaxFeatureTest extends TestCase
 
         $tax = Tax::create($taxData);
 
-        $this->assertDatabaseHas('taxes', [
-            'name' => 'Test Tax',
-            'rate' => 25.50,
-            'slug' => 'test-tax',
-        ]);
+        $this->assertDatabaseHas(
+            'taxes',
+            [
+                'name' => 'Test Tax',
+                'rate' => 25.50,
+                'slug' => 'test-tax',
+            ],
+        );
 
         $this->assertEquals('Test Tax', $tax->name);
         $this->assertEquals(25.50, $tax->rate);
@@ -97,11 +100,14 @@ class TaxFeatureTest extends TestCase
             'rate' => 20.00,
         ]);
 
-        $this->assertDatabaseHas('taxes', [
-            'id' => $tax->id,
-            'name' => 'Updated Tax',
-            'rate' => 20.00,
-        ]);
+        $this->assertDatabaseHas(
+            'taxes',
+            [
+                'id' => $tax->id,
+                'name' => 'Updated Tax',
+                'rate' => 20.00,
+            ],
+        );
 
         $this->assertDatabaseMissing('taxes', [
             'id' => $tax->id,
@@ -195,9 +201,15 @@ class TaxFeatureTest extends TestCase
         $searchResults = Tax::whereRaw('LOWER(name) LIKE ?', ['%vat%'])->get();
 
         $this->assertCount(2, $searchResults);
-        $this->assertTrue($searchResults->pluck('name')->contains('Standard VAT'));
-        $this->assertTrue($searchResults->pluck('name')->contains('Reduced VAT'));
-        $this->assertFalse($searchResults->pluck('name')->contains('Zero Rate'));
+        $this->assertTrue(
+            $searchResults->pluck('name')->contains('Standard VAT'),
+        );
+        $this->assertTrue(
+            $searchResults->pluck('name')->contains('Reduced VAT'),
+        );
+        $this->assertFalse(
+            $searchResults->pluck('name')->contains('Zero Rate'),
+        );
     }
 
     #[Test]
@@ -225,8 +237,14 @@ class TaxFeatureTest extends TestCase
         // Bulk update
         Tax::where('rate', 21.00)->update(['rate' => 23.00]);
 
-        $this->assertEquals(0, Tax::where('rate', 21.00)->count());
-        $this->assertEquals(5, Tax::where('rate', 23.00)->count());
+        $this->assertEquals(
+            0,
+            Tax::where('rate', 21.00)->count(),
+        );
+        $this->assertEquals(
+            5,
+            Tax::where('rate', 23.00)->count(),
+        );
     }
 
     #[Test]

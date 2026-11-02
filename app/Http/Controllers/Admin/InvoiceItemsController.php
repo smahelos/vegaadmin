@@ -23,21 +23,35 @@ final class InvoiceItemsController extends Controller
 
     public function catalog(InvoiceItemsRequest $request): AnonymousResourceCollection
     {
-        return CatalogProductResource::collection($this->items->catalog(
-            UserId::fromInt((int) backpack_user()->id),
-            UserId::fromInt($request->integer('user_id')),
-            Currency::from($request->validated('payment_currency')),
-            $request->string('q')->toString(),
-        ));
+        return CatalogProductResource::collection(
+            $this->items->catalog(
+                UserId::fromInt((int) backpack_user()->id),
+                UserId::fromInt(
+                    $request->integer('user_id'),
+                ),
+                Currency::from(
+                    $request->validated('payment_currency'),
+                ),
+                $request->string('q')->toString(),
+            ),
+        );
     }
 
     public function preview(InvoiceItemsRequest $request): InvoiceTotalsResource
     {
-        return new InvoiceTotalsResource($this->items->preview(
-            UserId::fromInt((int) backpack_user()->id),
-            UserId::fromInt($request->integer('user_id')),
-            Currency::from($request->validated('payment_currency')),
-            $this->assembler->fromValidated($request->validated('invoice-products', [])),
-        ));
+        return new InvoiceTotalsResource(
+            $this->items->preview(
+                UserId::fromInt((int) backpack_user()->id),
+                UserId::fromInt(
+                    $request->integer('user_id'),
+                ),
+                Currency::from(
+                    $request->validated('payment_currency'),
+                ),
+                $this->assembler->fromValidated(
+                    $request->validated('invoice-products', []),
+                ),
+            ),
+        );
     }
 }

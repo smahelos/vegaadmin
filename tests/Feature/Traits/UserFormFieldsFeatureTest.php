@@ -107,11 +107,14 @@ class UserFormFieldsFeatureTest extends TestCase
         $this->assertCount(3, $fields);
 
         $fieldNames = array_column($fields, 'name');
-        $this->assertEquals([
-            'password',
-            'password_confirmation',
-            'current_password',
-        ], $fieldNames);
+        $this->assertEquals(
+            [
+                'password',
+                'password_confirmation',
+                'current_password',
+            ],
+            $fieldNames,
+        );
     }
 
     #[Test]
@@ -123,11 +126,14 @@ class UserFormFieldsFeatureTest extends TestCase
         $this->assertCount(3, $fields);
 
         $fieldNames = array_column($fields, 'name');
-        $this->assertEquals([
-            'password',
-            'password_confirmation',
-            'current_password',
-        ], $fieldNames);
+        $this->assertEquals(
+            [
+                'password',
+                'password_confirmation',
+                'current_password',
+            ],
+            $fieldNames,
+        );
     }
 
     #[Test]

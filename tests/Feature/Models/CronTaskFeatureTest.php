@@ -23,12 +23,15 @@ class CronTaskFeatureTest extends TestCase
     {
         $cronTask = CronTask::factory()->create();
 
-        $this->assertDatabaseHas('cron_tasks', [
-            'id' => $cronTask->id,
-            'name' => $cronTask->name,
-            'command' => $cronTask->command,
-            'frequency' => $cronTask->frequency,
-        ]);
+        $this->assertDatabaseHas(
+            'cron_tasks',
+            [
+                'id' => $cronTask->id,
+                'name' => $cronTask->name,
+                'command' => $cronTask->command,
+                'frequency' => $cronTask->frequency,
+            ],
+        );
     }
 
     #[Test]
@@ -50,12 +53,15 @@ class CronTaskFeatureTest extends TestCase
 
         $cronTask = CronTask::create($data);
 
-        $this->assertDatabaseHas('cron_tasks', [
-            'name' => $data['name'],
-            'command' => $data['command'],
-            'frequency' => $data['frequency'],
-            'description' => $data['description'],
-        ]);
+        $this->assertDatabaseHas(
+            'cron_tasks',
+            [
+                'name' => $data['name'],
+                'command' => $data['command'],
+                'frequency' => $data['frequency'],
+                'description' => $data['description'],
+            ],
+        );
         $this->assertEquals($data['name'], $cronTask->name);
         $this->assertEquals($data['command'], $cronTask->command);
     }
@@ -63,17 +69,22 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $cronTask = CronTask::factory()->create([
-            'run_at' => '15:30:00',
-            'last_run' => '2025-06-17 10:00:00',
-            'is_active' => 1,
-            'day_of_week' => '3',
-            'day_of_month' => '15',
-        ]);
+        $cronTask = CronTask::factory()->create(
+            [
+                'run_at' => '15:30:00',
+                'last_run' => '2025-06-17 10:00:00',
+                'is_active' => 1,
+                'day_of_week' => '3',
+                'day_of_month' => '15',
+            ],
+        );
 
         // run_at uses datetime cast
         $this->assertInstanceOf(Carbon::class, $cronTask->run_at);
-        $this->assertEquals('15:30:00', $cronTask->run_at->format('H:i:s'));
+        $this->assertEquals(
+            '15:30:00',
+            $cronTask->run_at->format('H:i:s'),
+        );
 
         // last_run uses datetime cast
         $this->assertInstanceOf(Carbon::class, $cronTask->last_run);
@@ -148,7 +159,9 @@ class CronTaskFeatureTest extends TestCase
         $recentTask = CronTask::factory()->recentlyRun()->create();
 
         $this->assertNotNull($recentTask->last_run);
-        $this->assertTrue($recentTask->last_run->isAfter(now()->subDay()));
+        $this->assertTrue(
+            $recentTask->last_run->isAfter(now()->subDay()),
+        );
         $this->assertNotNull($recentTask->last_output);
         $this->assertStringContainsString('successfully', $recentTask->last_output);
     }
@@ -235,7 +248,9 @@ class CronTaskFeatureTest extends TestCase
         $result = $task->simulateRun();
 
         // The actual implementation may vary, but it should return something
-        $this->assertTrue(is_string($result) || is_array($result) || is_null($result) || is_bool($result) || is_int($result));
+        $this->assertTrue(
+            is_string($result) || is_array($result) || is_null($result) || is_bool($result) || is_int($result),
+        );
     }
 
     #[Test]
@@ -251,10 +266,13 @@ class CronTaskFeatureTest extends TestCase
 
         $cronTask->update($newData);
 
-        $this->assertDatabaseHas('cron_tasks', array_merge(
-            ['id' => $cronTask->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'cron_tasks',
+            array_merge(
+                ['id' => $cronTask->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]

@@ -28,7 +28,9 @@ final class AresCompanyRegistry implements CompanyRegistryInterface
         try {
             $response = Http::acceptJson()
                 ->timeout(self::TIMEOUT_SECONDS)
-                ->get(self::URL . rawurlencode($number->number));
+                ->get(
+                    self::URL . rawurlencode($number->number),
+                );
         } catch (ConnectionException $e) {
             throw new CompanyRegistryUnavailableException($e);
         }
@@ -38,15 +40,19 @@ final class AresCompanyRegistry implements CompanyRegistryInterface
         }
 
         $name = $response->json('obchodniJmeno');
-        if (! $response->successful() || ! is_string($name)) {
+        if (!$response->successful() || !is_string($name)) {
             throw new CompanyRegistryUnavailableException($response->toException());
         }
 
         // A member of a VAT group has no VAT number of its own and states the group's number on its documents.
         $ownVatNumber = $response->json('dic');
         $groupVatNumber = $response->json('dicSkDph');
-        $vatNumber = VatNumber::fromNullable(is_string($ownVatNumber) ? $ownVatNumber : null)
-            ?? VatNumber::fromNullable(is_string($groupVatNumber) ? $groupVatNumber : null);
+        $vatNumber = VatNumber::fromNullable(
+            is_string($ownVatNumber) ? $ownVatNumber : null,
+        )
+            ?? VatNumber::fromNullable(
+                is_string($groupVatNumber) ? $groupVatNumber : null,
+            );
         $seat = $response->json('sidlo');
 
         return new RegisteredCompanyDTO(
@@ -77,7 +83,9 @@ final class AresCompanyRegistry implements CompanyRegistryInterface
             $street,
             $this->text($seat, 'nazevObce'),
             $this->text($seat, 'psc'),
-            Country::tryFrom($this->text($seat, 'kodStatu') ?? '') ?? Country::CZ,
+            Country::tryFrom(
+                $this->text($seat, 'kodStatu') ?? '',
+            ) ?? Country::CZ,
         );
     }
 

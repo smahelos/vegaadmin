@@ -24,7 +24,9 @@ class EloquentPaymentMethodDtoRepository implements PaymentMethodDtoReadReposito
     {
         $paymentMethods = $this->paymentMethodRepository->all();
 
-        return $paymentMethods->map(fn ($paymentMethod) => $this->mapper->toDto($paymentMethod))->toArray();
+        return $paymentMethods->map(
+            fn ($paymentMethod) => $this->mapper->toDto($paymentMethod),
+        )->toArray();
     }
 
     public function getAllForDropdown(): array

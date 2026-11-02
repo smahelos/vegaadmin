@@ -65,7 +65,7 @@ final class FakeGoPayPayments extends Payments
         if ($this->failStatus) {
             return $this->response(500, ['error' => 'status_failed']);
         }
-        if (! isset($this->payments[$id])) {
+        if (!isset($this->payments[$id])) {
             return $this->response(404, ['error' => 'not_found']);
         }
 
@@ -74,7 +74,7 @@ final class FakeGoPayPayments extends Payments
 
     public function voidAuthorization($id): Response
     {
-        if ($this->failCancel || ! isset($this->payments[$id])) {
+        if ($this->failCancel || !isset($this->payments[$id])) {
             return $this->response(400, ['error' => 'cancel_failed']);
         }
         $this->payments[$id]['state'] = 'CANCELED';
@@ -87,7 +87,7 @@ final class FakeGoPayPayments extends Payments
      */
     public function refundPayment($id, $data): Response
     {
-        if ($this->failRefund || ! isset($this->payments[$id])) {
+        if ($this->failRefund || !isset($this->payments[$id])) {
             return $this->response(400, ['error' => 'refund_failed']);
         }
         $payment = &$this->payments[$id];
@@ -102,7 +102,9 @@ final class FakeGoPayPayments extends Payments
      */
     private function response(int $statusCode, array $json): Response
     {
-        $response = new Response(json_encode($json, JSON_THROW_ON_ERROR));
+        $response = new Response(
+            json_encode($json, JSON_THROW_ON_ERROR),
+        );
         $response->statusCode = $statusCode;
         $response->json = $json;
 

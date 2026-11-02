@@ -14,7 +14,7 @@ class ProvidersSnapshotCommand extends Command
     public function handle(): int
     {
         $config = config('ddd_guard.provider_snapshot');
-        if (! $config) {
+        if (!$config) {
             $this->error('Missing provider_snapshot config');
 
             return 1;
@@ -33,14 +33,17 @@ class ProvidersSnapshotCommand extends Command
         $warnings = [];
 
         if ($diff && is_file($snapshotPath)) {
-            $previous = json_decode(file_get_contents($snapshotPath), true) ?: [];
+            $previous = json_decode(
+                file_get_contents($snapshotPath),
+                true,
+            ) ?: [];
             [$errors, $warnings] = $this->diffSnapshots(
                 $previous,
                 $current,
                 $allowedMoves,
                 $strictMoves || $strictFlag,
             );
-        } elseif ($diff && ! is_file($snapshotPath)) {
+        } elseif ($diff && !is_file($snapshotPath)) {
             $warnings[] = 'No existing snapshot to diff against (first run).';
         }
 
@@ -51,7 +54,10 @@ class ProvidersSnapshotCommand extends Command
                 0777,
                 true,
             );
-            file_put_contents($snapshotPath, json_encode($current, JSON_PRETTY_PRINT));
+            file_put_contents(
+                $snapshotPath,
+                json_encode($current, JSON_PRETTY_PRINT),
+            );
         }
 
         if ($format === 'json') {
@@ -61,15 +67,17 @@ class ProvidersSnapshotCommand extends Command
                 'warnings' => $warnings,
                 'snapshot' => $current,
             ];
-            $this->line(json_encode($payload, JSON_PRETTY_PRINT));
+            $this->line(
+                json_encode($payload, JSON_PRETTY_PRINT),
+            );
         } else {
-            if (! empty($errors)) {
+            if (!empty($errors)) {
                 $this->error('Errors:');
                 foreach ($errors as $e) {
                     $this->line(' - ' . $e);
                 }
             }
-            if (! empty($warnings)) {
+            if (!empty($warnings)) {
                 $this->warn('Warnings:');
                 foreach ($warnings as $w) {
                     $this->line(' - ' . $w);
@@ -89,7 +97,9 @@ class ProvidersSnapshotCommand extends Command
         $bindings = []; // contract => provider => [implementation, provider, method]
 
         foreach ($this->applicationProviderFiles() as $providerClass => $path) {
-            $contents = $this->stripComments(file_get_contents($path));
+            $contents = $this->stripComments(
+                file_get_contents($path),
+            );
             $imports = $this->extractImports($contents, $providerClass);
             $binds = $this->extractBinds(
                 $contents,
@@ -130,7 +140,9 @@ class ProvidersSnapshotCommand extends Command
         $contracts = [];
         $contractFiles = (new Finder)
             ->files()
-            ->in([app_path('Domain'), app_path('Application')])
+            ->in(
+                [app_path('Domain'), app_path('Application')],
+            )
             ->name('*Interface.php')
             ->sortByName();
         foreach ($contractFiles as $cf) {
@@ -162,7 +174,7 @@ class ProvidersSnapshotCommand extends Command
     {
         $files = [];
         foreach (require base_path('bootstrap/providers.php') as $providerClass) {
-            if (! str_starts_with($providerClass, 'App\\') || ! class_exists($providerClass)) {
+            if (!str_starts_with($providerClass, 'App\\') || !class_exists($providerClass)) {
                 continue;
             }
             $files[$providerClass] = (new \ReflectionClass($providerClass))->getFileName();
@@ -175,11 +187,14 @@ class ProvidersSnapshotCommand extends Command
     {
         $code = '';
         foreach (token_get_all($contents) as $token) {
-            if (is_array($token) && in_array(
-                $token[0],
-                [T_COMMENT, T_DOC_COMMENT],
-                true,
-            )) {
+            if (
+                is_array($token)
+                && in_array(
+                    $token[0],
+                    [T_COMMENT, T_DOC_COMMENT],
+                    true,
+                )
+            ) {
                 continue;
             }
             $code .= is_array($token) ? $token[1] : $token;
@@ -207,7 +222,10 @@ class ProvidersSnapshotCommand extends Command
         );
         foreach ($matches as $m) {
             $fqcn = ltrim($m[1], '\\');
-            $imports[$m[2] ?? substr(strrchr('\\' . $fqcn, '\\'), 1)] = $fqcn;
+            $imports[$m[2] ?? substr(
+                strrchr('\\' . $fqcn, '\\'),
+                1,
+            )] = $fqcn;
         }
 
         return $imports;
@@ -223,20 +241,25 @@ class ProvidersSnapshotCommand extends Command
         array $imports,
     ): array {
         $pattern = '/\$this->app->' . $method . '\(\s*([\w\\\\]+)::class\s*(?:,\s*(?:([\w\\\\]+)::class)?)?/';
-        if (! preg_match_all(
-            $pattern,
-            $contents,
-            $matches,
-            PREG_SET_ORDER,
-        )) {
+        if (
+            !preg_match_all(
+                $pattern,
+                $contents,
+                $matches,
+                PREG_SET_ORDER,
+            )
+        ) {
             return [];
         }
         $result = [];
         foreach ($matches as $m) {
             $abstract = $this->resolveClassName($m[1], $imports);
             $concrete = match (true) {
-                ! empty($m[2]) => $this->resolveClassName($m[2], $imports),
-                str_ends_with(rtrim($m[0]), ',') => 'closure',
+                !empty($m[2]) => $this->resolveClassName($m[2], $imports),
+                str_ends_with(
+                    rtrim($m[0]),
+                    ',',
+                ) => 'closure',
                 default => $abstract,
             };
             $result[] = [
@@ -255,7 +278,10 @@ class ProvidersSnapshotCommand extends Command
         }
         $first = explode('\\', $name)[0];
         if (isset($imports[$first])) {
-            return $imports[$first] . substr($name, strlen($first));
+            return $imports[$first] . substr(
+                $name,
+                strlen($first),
+            );
         }
 
         return str_contains($name, '\\') ? $name : $imports[''] . '\\' . $name;
@@ -303,17 +329,26 @@ class ProvidersSnapshotCommand extends Command
 
         // Detect new contracts without binding
         foreach ($currContracts as $contract => $meta) {
-            if (! isset($prevContracts[$contract]) && $meta['status'] === 'missing_binding') {
+            if (!isset($prevContracts[$contract]) && $meta['status'] === 'missing_binding') {
                 $errors[] = "New contract {$contract} without binding";
             }
         }
         // Detect provider changes
         foreach ($currContracts as $contract => $meta) {
-            if (! isset($prevContracts[$contract])) {
+            if (!isset($prevContracts[$contract])) {
                 continue;
             }
             $prevMeta = $prevContracts[$contract];
-            if (($prevMeta['status'] === 'ok' || $prevMeta['status'] === 'wrong_provider') && ($meta['status'] === 'ok' || $meta['status'] === 'wrong_provider')) {
+            if (
+                (
+                    $prevMeta['status'] === 'ok'
+                    || $prevMeta['status'] === 'wrong_provider'
+                )
+                && (
+                    $meta['status'] === 'ok'
+                    || $meta['status'] === 'wrong_provider'
+                )
+            ) {
                 $prevProv = $prevMeta['actual']['provider'] ?? '';
                 $currProv = $meta['actual']['provider'] ?? '';
                 if ($prevProv && $currProv && $prevProv !== $currProv) {

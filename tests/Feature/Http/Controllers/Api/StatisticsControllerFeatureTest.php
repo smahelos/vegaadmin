@@ -26,7 +26,12 @@ final class StatisticsControllerFeatureTest extends TestCase
 
         $this->statistics = new FakeApiStatisticsRepository;
         $this->app->instance(ApiStatisticsRepository::class, $this->statistics);
-        $this->app->instance(ClockInterface::class, new FixedClock(new DateTimeImmutable('2026-10-24 12:00:00')));
+        $this->app->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-10-24 12:00:00'),
+            ),
+        );
     }
 
     /**
@@ -47,7 +52,9 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[DataProvider('routes')]
     public function guest_gets_401(string $route): void
     {
-        $this->getJson(route($route))->assertUnauthorized();
+        $this->getJson(
+            route($route),
+        )->assertUnauthorized();
 
         $this->assertSame([], $this->statistics->calls);
     }
@@ -59,7 +66,9 @@ final class StatisticsControllerFeatureTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('frontend.api.access');
 
-        $this->actingAs($user, 'web')->getJson(route($route))->assertForbidden();
+        $this->actingAs($user, 'web')->getJson(
+            route($route),
+        )->assertForbidden();
 
         $this->assertSame([], $this->statistics->calls);
     }
@@ -70,7 +79,9 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         $user = $this->statisticsUser();
 
-        $this->actingAs($user, 'web')->getJson(route($route))->assertOk();
+        $this->actingAs($user, 'web')->getJson(
+            route($route),
+        )->assertOk();
 
         $this->assertNotEmpty($this->statistics->calls);
         foreach ($this->statistics->calls as $call) {
@@ -84,9 +95,14 @@ final class StatisticsControllerFeatureTest extends TestCase
         config(['sanctum.stateful' => ['billex.test']]);
 
         $this->withCredentials()
-            ->withCookie(config('session.cookie'), $this->storedSessionOf($this->statisticsUser()))
+            ->withCookie(
+                config('session.cookie'),
+                $this->storedSessionOf($this->statisticsUser()),
+            )
             ->withHeader('Referer', 'https://billex.test/cs/dashboard')
-            ->getJson(route('api.statistics.monthly-revenue'))
+            ->getJson(
+                route('api.statistics.monthly-revenue'),
+            )
             ->assertOk();
     }
 
@@ -96,9 +112,14 @@ final class StatisticsControllerFeatureTest extends TestCase
         config(['sanctum.stateful' => ['billex.test']]);
 
         $this->withCredentials()
-            ->withCookie(config('session.cookie'), $this->storedSessionOf($this->statisticsUser()))
+            ->withCookie(
+                config('session.cookie'),
+                $this->storedSessionOf($this->statisticsUser()),
+            )
             ->withHeader('Referer', 'https://elsewhere.test/')
-            ->getJson(route('api.statistics.monthly-revenue'))
+            ->getJson(
+                route('api.statistics.monthly-revenue'),
+            )
             ->assertUnauthorized();
     }
 
@@ -106,12 +127,17 @@ final class StatisticsControllerFeatureTest extends TestCase
     public function defaults_to_the_last_year_in_whole_months(): void
     {
         $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.monthly-revenue'))
+            ->getJson(
+                route('api.statistics.monthly-revenue'),
+            )
             ->assertOk()
             ->assertJsonPath('data.0.month', '2026-01');
 
         $call = $this->statistics->calls[0];
-        $this->assertSame('2025-10-01', $call['from']->format('Y-m-d'));
+        $this->assertSame(
+            '2025-10-01',
+            $call['from']->format('Y-m-d'),
+        );
         $this->assertNull($call['to']);
         $this->assertSame([], $call['contactIds']);
     }
@@ -119,41 +145,61 @@ final class StatisticsControllerFeatureTest extends TestCase
     #[Test]
     public function passes_the_period_dates_and_contacts_to_the_query(): void
     {
-        $query = http_build_query([
-            'time_range' => 'half_year',
-            'date_to' => '2026-09-30',
-            'contacts' => [3, 7],
-        ]);
+        $query = http_build_query(
+            [
+                'time_range' => 'half_year',
+                'date_to' => '2026-09-30',
+                'contacts' => [3, 7],
+            ],
+        );
 
         $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.invoice-status') . '?' . $query)
+            ->getJson(
+                route('api.statistics.invoice-status') . '?' . $query,
+            )
             ->assertOk();
 
         $call = $this->statistics->calls[0];
-        $this->assertSame('2026-04-01', $call['from']->format('Y-m-d'));
-        $this->assertSame('2026-09-30', $call['to']?->format('Y-m-d'));
-        $this->assertSame([3, 7], array_map(static fn ($id): int => $id->value, $call['contactIds']));
+        $this->assertSame(
+            '2026-04-01',
+            $call['from']->format('Y-m-d'),
+        );
+        $this->assertSame(
+            '2026-09-30',
+            $call['to']?->format('Y-m-d'),
+        );
+        $this->assertSame(
+            [3, 7],
+            array_map(static fn ($id): int => $id->value, $call['contactIds']),
+        );
     }
 
     #[Test]
     public function an_explicit_start_date_wins_over_the_period(): void
     {
         $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.customer-revenue', [
-                'time_range' => 'month',
-                'date_from' => '2026-01-15',
-            ]))
+            ->getJson(
+                route('api.statistics.customer-revenue', [
+                    'time_range' => 'month',
+                    'date_from' => '2026-01-15',
+                ]),
+            )
             ->assertOk()
             ->assertJsonPath('data.0.customer_name', 'Acme');
 
-        $this->assertSame('2026-01-15', $this->statistics->calls[0]['from']->format('Y-m-d'));
+        $this->assertSame(
+            '2026-01-15',
+            $this->statistics->calls[0]['from']->format('Y-m-d'),
+        );
     }
 
     #[Test]
     public function merges_revenue_and_expenses_ordered_by_month(): void
     {
         $response = $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.revenue-expenses'))
+            ->getJson(
+                route('api.statistics.revenue-expenses'),
+            )
             ->assertOk();
 
         $this->assertSame(
@@ -162,7 +208,10 @@ final class StatisticsControllerFeatureTest extends TestCase
                 ['2026-01', 'expense'],
                 ['2026-02', 'revenue'],
             ],
-            array_map(static fn (array $row): array => [$row['month'], $row['type']], $response->json('data')),
+            array_map(
+                static fn (array $row): array => [$row['month'], $row['type']],
+                $response->json('data'),
+            ),
         );
     }
 
@@ -187,7 +236,9 @@ final class StatisticsControllerFeatureTest extends TestCase
     public function rejects_an_invalid_filter(array $filter, string $field): void
     {
         $this->actingAs($this->statisticsUser(), 'web')
-            ->getJson(route('api.statistics.monthly-revenue', $filter))
+            ->getJson(
+                route('api.statistics.monthly-revenue', $filter),
+            )
             ->assertUnprocessable()
             ->assertJsonValidationErrors($field);
 
@@ -200,8 +251,13 @@ final class StatisticsControllerFeatureTest extends TestCase
     private function storedSessionOf(User $user): string
     {
         $session = $this->app['session']->driver();
-        $session->setId(Str::random(40));
-        $session->put(Auth::guard('web')->getName(), $user->id);
+        $session->setId(
+            Str::random(40),
+        );
+        $session->put(
+            Auth::guard('web')->getName(),
+            $user->id,
+        );
         $session->save();
         $session->flush();
 

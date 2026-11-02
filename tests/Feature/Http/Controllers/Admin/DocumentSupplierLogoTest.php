@@ -43,7 +43,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function an_invoice_copies_its_business_logo_and_keeps_the_file_after_the_source_is_replaced(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('business.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('business.png')],
+        );
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -55,7 +57,9 @@ final class DocumentSupplierLogoTest extends TestCase
         $this->assertOwnCopy($business->logo, $copy);
         $this->get('/admin/invoice/' . $invoice->id . '/show')->assertOk()->assertSee($copy);
         Storage::disk('public')->delete($business->logo);
-        $business->update(['logo' => $this->sourceLogo('new.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('new.png')],
+        );
         $this->put('/admin/invoice/' . $invoice->id, $data)->assertSessionHasNoErrors()->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
         Storage::disk('public')->assertExists($copy);
@@ -65,7 +69,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function changing_the_business_replaces_the_invoice_copy_and_clears_it_when_the_business_has_no_logo(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('first.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('first.png')],
+        );
         $data = $this->invoiceInput(
             $business,
             $account,
@@ -87,7 +93,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function a_failed_invoice_save_removes_its_new_logo_copy(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('business.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('business.png')],
+        );
         $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
         $data = $this->invoiceInput(
             $business,
@@ -99,7 +107,10 @@ final class DocumentSupplierLogoTest extends TestCase
             ],
         );
         $this->post('/admin/invoice', $data)->assertSessionHasErrors('contact_id');
-        $this->assertSame([], Storage::disk('public')->allFiles('documents/logos'));
+        $this->assertSame(
+            [],
+            Storage::disk('public')->allFiles('documents/logos'),
+        );
         Storage::disk('public')->assertExists($business->logo);
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
@@ -108,7 +119,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function an_expense_uses_the_external_contact_logo_and_keeps_it_when_its_business_changes(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('own-company.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('own-company.png')],
+        );
         $contact = $this->supplierContact('external.png');
         $data = $this->expenseInput($business, ['contact_id' => $contact->id]);
         $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
@@ -116,7 +129,10 @@ final class DocumentSupplierLogoTest extends TestCase
         $copy = $expense->supplier_logo;
         $this->assertOwnCopy($contact->logo, $copy);
         $this->get('/admin/expense/' . $expense->id . '/show')->assertOk()->assertSee($copy);
-        $this->assertNotSame(Storage::disk('public')->get($business->logo), Storage::disk('public')->get($copy));
+        $this->assertNotSame(
+            Storage::disk('public')->get($business->logo),
+            Storage::disk('public')->get($copy),
+        );
         Storage::disk('public')->delete($contact->logo);
         $contact->update(['logo' => null]);
         [$secondBusiness] = $this->issuerOf($this->adminUser);
@@ -155,8 +171,13 @@ final class DocumentSupplierLogoTest extends TestCase
     public function a_one_off_expense_logo_belongs_only_to_that_document(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('own.png')]);
-        $data = $this->expenseInput($business, ['supplier_logo' => UploadedFile::fake()->image('external.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('own.png')],
+        );
+        $data = $this->expenseInput(
+            $business,
+            ['supplier_logo' => UploadedFile::fake()->image('external.png')],
+        );
         $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
         $expense = Expense::where('reference_number', $data['reference_number'])->sole();
         $copy = $expense->supplier_logo;
@@ -176,13 +197,19 @@ final class DocumentSupplierLogoTest extends TestCase
     public function rejects_an_invalid_one_off_logo(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $this->post('/admin/expense', $this->expenseInput($business, [
-            'supplier_logo' => UploadedFile::fake()->create(
-                'document.pdf',
-                10,
-                'application/pdf',
+        $this->post(
+            '/admin/expense',
+            $this->expenseInput(
+                $business,
+                [
+                    'supplier_logo' => UploadedFile::fake()->create(
+                        'document.pdf',
+                        10,
+                        'application/pdf',
+                    ),
+                ],
             ),
-        ]))->assertSessionHasErrors('supplier_logo');
+        )->assertSessionHasErrors('supplier_logo');
     }
 
     #[Test]
@@ -190,13 +217,18 @@ final class DocumentSupplierLogoTest extends TestCase
     {
         $this->get('/admin/contact/create')->assertOk()->assertSee('enctype="multipart/form-data"', false);
         $owner = User::factory()->create();
-        $owner->assignRole(Role::findByName('frontend_user', 'web'));
+        $owner->assignRole(
+            Role::findByName('frontend_user', 'web'),
+        );
         $name = 'Contact with logo ' . uniqid();
-        $this->post('/admin/contact', [
-            'user_id' => $owner->id,
-            'name' => $name,
-            'logo' => UploadedFile::fake()->image('logo.png'),
-        ])->assertSessionHasNoErrors()->assertRedirect();
+        $this->post(
+            '/admin/contact',
+            [
+                'user_id' => $owner->id,
+                'name' => $name,
+                'logo' => UploadedFile::fake()->image('logo.png'),
+            ],
+        )->assertSessionHasNoErrors()->assertRedirect();
         $contact = Contact::where('name', $name)->sole();
         $this->assertNotNull($contact->logo);
         Storage::disk('public')->assertExists($contact->logo);
@@ -204,14 +236,17 @@ final class DocumentSupplierLogoTest extends TestCase
         $first = $contact->logo;
         $this->put('/admin/contact/' . $contact->id, ['name' => $name])->assertSessionHasNoErrors();
         $this->assertSame($first, $contact->fresh()->logo);
-        $this->put('/admin/contact/' . $contact->id, [
-            'name' => $name,
-            'logo' => UploadedFile::fake()->image(
-                'replacement.png',
-                300,
-                120,
-            ),
-        ])->assertSessionHasNoErrors();
+        $this->put(
+            '/admin/contact/' . $contact->id,
+            [
+                'name' => $name,
+                'logo' => UploadedFile::fake()->image(
+                    'replacement.png',
+                    300,
+                    120,
+                ),
+            ],
+        )->assertSessionHasNoErrors();
         $second = $contact->fresh()->logo;
         $this->assertNotSame($first, $second);
         Storage::disk('public')->assertMissing($first);
@@ -225,7 +260,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function documents_with_the_same_source_have_independent_files(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('shared.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('shared.png')],
+        );
         $firstInput = $this->invoiceInput(
             $business,
             $account,
@@ -254,7 +291,9 @@ final class DocumentSupplierLogoTest extends TestCase
     public function a_failed_replacement_keeps_the_saved_logo_and_cleans_only_the_new_copy(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(['logo' => $this->sourceLogo('before.png')]);
+        $business->update(
+            ['logo' => $this->sourceLogo('before.png')],
+        );
         $input = $this->invoiceInput(
             $business,
             $account,
@@ -263,52 +302,66 @@ final class DocumentSupplierLogoTest extends TestCase
         $this->post('/admin/invoice', $input)->assertSessionHasNoErrors();
         $invoice = Invoice::where('invoice_vs', $input['invoice_vs'])->sole();
         [$nextBusiness, $nextAccount] = $this->issuerOf($this->adminUser);
-        $nextBusiness->update(['logo' => $this->sourceLogo('after.png')]);
+        $nextBusiness->update(
+            ['logo' => $this->sourceLogo('after.png')],
+        );
         $contact = Contact::factory()->create(['user_id' => $this->adminUser->id]);
         $input['business_id'] = $nextBusiness->id;
         $input['bank_account_id'] = $nextAccount->id;
         $input['contact_id'] = $contact->id;
         $this->put('/admin/invoice/' . $invoice->id, $input)->assertSessionHasErrors('contact_id');
         $this->assertSame($invoice->supplier_logo, $invoice->fresh()->supplier_logo);
-        $this->assertSame([$invoice->supplier_logo], Storage::disk('public')->allFiles('documents/logos'));
+        $this->assertSame(
+            [$invoice->supplier_logo],
+            Storage::disk('public')->allFiles('documents/logos'),
+        );
         Storage::disk('public')->assertExists($nextBusiness->logo);
     }
 
     #[Test]
     public function a_failed_expense_save_discards_both_the_logo_and_attachments(): void
     {
-        $this->app->instance(ExpenseWriteRepositoryInterface::class, new class implements ExpenseWriteRepositoryInterface
-        {
-            public function create(
-                UserId $userId,
-                ExpenseWriteData $data,
-                DocumentParties $parties,
-                array $attachments,
-            ): ExpenseDTO {
-                throw new RuntimeException('Expense persistence failed');
-            }
+        $this->app->instance(
+            ExpenseWriteRepositoryInterface::class,
+            new class implements ExpenseWriteRepositoryInterface
+            {
+                public function create(
+                    UserId $userId,
+                    ExpenseWriteData $data,
+                    DocumentParties $parties,
+                    array $attachments,
+                ): ExpenseDTO {
+                    throw new RuntimeException('Expense persistence failed');
+                }
 
-            public function update(
-                ExpenseId $id,
-                UserId $userId,
-                ExpenseWriteData $data,
-                DocumentParties $parties,
-                array $attachments,
-            ): ExpenseDTO {
-                throw new RuntimeException('Expense persistence failed');
-            }
-        });
+                public function update(
+                    ExpenseId $id,
+                    UserId $userId,
+                    ExpenseWriteData $data,
+                    DocumentParties $parties,
+                    array $attachments,
+                ): ExpenseDTO {
+                    throw new RuntimeException('Expense persistence failed');
+                }
+            },
+        );
         [$business] = $this->issuerOf($this->adminUser);
-        $data = $this->expenseInput($business, [
-            'supplier_logo' => UploadedFile::fake()->image('supplier.png'),
-            'attachments' => [UploadedFile::fake()->create(
-                'receipt.pdf',
-                12,
-                'application/pdf',
-            )],
-        ]);
+        $data = $this->expenseInput(
+            $business,
+            [
+                'supplier_logo' => UploadedFile::fake()->image('supplier.png'),
+                'attachments' => [UploadedFile::fake()->create(
+                    'receipt.pdf',
+                    12,
+                    'application/pdf',
+                )],
+            ],
+        );
         $this->post('/admin/expense', $data)->assertServerError();
-        $this->assertSame([], Storage::disk('public')->allFiles());
+        $this->assertSame(
+            [],
+            Storage::disk('public')->allFiles(),
+        );
         $this->assertDatabaseMissing('expenses', ['reference_number' => $data['reference_number']]);
     }
 
@@ -322,7 +375,9 @@ final class DocumentSupplierLogoTest extends TestCase
 
     private function supplierContact(string $logo): Contact
     {
-        $contact = Contact::factory()->create(['user_id' => $this->adminUser->id, 'logo' => $this->sourceLogo($logo)]);
+        $contact = Contact::factory()->create(
+            ['user_id' => $this->adminUser->id, 'logo' => $this->sourceLogo($logo)],
+        );
         Address::factory()->create(['business_id' => null, 'contact_id' => $contact->id]);
 
         return $contact;
@@ -333,6 +388,9 @@ final class DocumentSupplierLogoTest extends TestCase
         $this->assertNotNull($copy);
         $this->assertNotSame($source, $copy);
         $this->assertStringStartsWith('documents/logos/', $copy);
-        $this->assertSame(Storage::disk('public')->get($source), Storage::disk('public')->get($copy));
+        $this->assertSame(
+            Storage::disk('public')->get($source),
+            Storage::disk('public')->get($copy),
+        );
     }
 }

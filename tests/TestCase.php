@@ -49,14 +49,16 @@ abstract class TestCase extends BaseTestCase
     {
         // A test that already failed keeps its own message, even when it lost the transaction on the way
         $failed = $this->status()->isFailure() || $this->status()->isError();
-        $leftTransaction = ! $failed
+        $leftTransaction = !$failed
             && isset($this->app)
-            && ! $this->app->make('db')->connection()->getPdo()->inTransaction();
+            && !$this->app->make('db')->connection()->getPdo()->inTransaction();
 
         parent::tearDown();
 
-        if ($leftTransaction && ! $this->implicitCommitAllowed) {
-            $this->fail('The test ended outside the RefreshDatabase transaction, so the next test would migrate and seed again');
+        if ($leftTransaction && !$this->implicitCommitAllowed) {
+            $this->fail(
+                'The test ended outside the RefreshDatabase transaction, so the next test would migrate and seed again',
+            );
         }
     }
 
@@ -74,10 +76,14 @@ abstract class TestCase extends BaseTestCase
      */
     protected function beforeRefreshingDatabase(): void
     {
-        $database = (string) config('database.connections.' . config('database.default') . '.database');
+        $database = (string) config(
+            'database.connections.' . config('database.default') . '.database',
+        );
 
         if (preg_match('/_testing(_test_\d+)?$/', $database) !== 1) {
-            throw new RuntimeException('Tests run only against a *_testing database, not "' . $database . '"');
+            throw new RuntimeException(
+                'Tests run only against a *_testing database, not "' . $database . '"',
+            );
         }
     }
 }

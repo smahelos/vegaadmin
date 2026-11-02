@@ -28,13 +28,17 @@ final class TestInvoiceReminder extends Command
             default => null,
         };
         if ($types === null) {
-            $this->error('Invalid reminder type. Valid types: upcoming, due, overdue, all.');
+            $this->error(
+                'Invalid reminder type. Valid types: upcoming, due, overdue, all.',
+            );
 
             return self::FAILURE;
         }
         $id = $this->argument('invoice_id') ?: $this->option('invoice');
         if ($id === null) {
-            $this->info("Testing {$type} reminder functionality without specific invoice. No notification was sent.");
+            $this->info(
+                "Testing {$type} reminder functionality without specific invoice. No notification was sent.",
+            );
 
             return self::SUCCESS;
         }
@@ -49,7 +53,10 @@ final class TestInvoiceReminder extends Command
             return self::FAILURE;
         }
         try {
-            $reminders->sendForInvoice(InvoiceId::fromInt($id), $types);
+            $reminders->sendForInvoice(
+                InvoiceId::fromInt($id),
+                $types,
+            );
             $this->info('Testing finished.');
         } catch (Throwable $exception) {
             Log::error('Invoice test reminder failed', ['exception' => $exception]);

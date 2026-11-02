@@ -33,8 +33,13 @@ class StatusCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Status::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/status');
-        CRUD::setEntityNameStrings(__('statuses.entity.singular'), __('statuses.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/status',
+        );
+        CRUD::setEntityNameStrings(
+            __('statuses.entity.singular'),
+            __('statuses.entity.plural'),
+        );
 
         // Filter by category_id from URL
         if (request()->has('category_id')) {
@@ -45,7 +50,9 @@ class StatusCrudController extends CrudController
             );
 
             // Get category name for a more descriptive page title
-            $category = StatusCategory::find(request()->input('category_id'));
+            $category = StatusCategory::find(
+                request()->input('category_id'),
+            );
             if ($category) {
                 CRUD::setEntityNameStrings(
                     $category->name . ' ' . __('statuses.entity.singular'),
@@ -60,29 +67,35 @@ class StatusCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('statuses.fields.name'));
-        CRUD::column('slug')->label(__('statuses.fields.slug'));
+        CRUD::column('name')->label(
+            __('statuses.fields.name'),
+        );
+        CRUD::column('slug')->label(
+            __('statuses.fields.slug'),
+        );
 
         // Add column for category
-        CRUD::addColumn([
-            'name' => 'category',
-            'label' => __('statuses.fields.category_id'),
-            'type' => 'relationship',
-            'relation_type' => 'BelongsTo',
-            'entity' => 'category',
-            'model' => StatusCategory::class,
-            'attribute' => 'name',
-            'wrapper' => [
-                'href' => function (
-                    $crud,
-                    $column,
-                    $entry,
-                    $related_key,
-                ) {
-                    return backpack_url('status-category/' . $entry->category_id . '/show');
-                },
+        CRUD::addColumn(
+            [
+                'name' => 'category',
+                'label' => __('statuses.fields.category_id'),
+                'type' => 'relationship',
+                'relation_type' => 'BelongsTo',
+                'entity' => 'category',
+                'model' => StatusCategory::class,
+                'attribute' => 'name',
+                'wrapper' => [
+                    'href' => function (
+                        $crud,
+                        $column,
+                        $entry,
+                        $related_key,
+                    ) {
+                        return backpack_url('status-category/' . $entry->category_id . '/show');
+                    },
+                ],
             ],
-        ])->afterColumn('slug');
+        )->afterColumn('slug');
 
         // Add a filter for category
         CRUD::addFilter(
@@ -105,14 +118,18 @@ class StatusCrudController extends CrudController
 
         CRUD::column('color_preview')
             ->type('custom_html')
-            ->label(__('statuses.fields.color'))
+            ->label(
+                __('statuses.fields.color'),
+            )
             ->value(fn ($entry) => $entry->color_preview);
 
-        CRUD::addColumn([
-            'name' => 'is_active',
-            'label' => __('statuses.fields.is_active'),
-            'type' => 'boolean',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'is_active',
+                'label' => __('statuses.fields.is_active'),
+                'type' => 'boolean',
+            ],
+        );
     }
 
     /**
@@ -122,38 +139,48 @@ class StatusCrudController extends CrudController
     {
         CRUD::setValidation(StatusRequest::class);
 
-        CRUD::field('name')->label(__('statuses.fields.name'));
-        CRUD::field('slug')->label(__('statuses.fields.slug'));
+        CRUD::field('name')->label(
+            __('statuses.fields.name'),
+        );
+        CRUD::field('slug')->label(
+            __('statuses.fields.slug'),
+        );
 
         // Add field for category selection
-        CRUD::addField([
-            'name' => 'category_id',
-            'label' => __('statuses.fields.category_id'),
-            'type' => 'relationship',
-            'entity' => 'category',
-            'attribute' => 'name',
-            'required' => true,
-            'model' => StatusCategory::class,
-        ])->afterField('type');
-
-        CRUD::addField([
-            'name' => 'color',
-            'label' => __('statuses.fields.color'),
-            'type' => 'select_from_array',
-            'options' => [
-                'green' => __('general.colors.green'),
-                'yellow' => __('general.colors.yellow'),
-                'red' => __('general.colors.red'),
-                'blue' => __('general.colors.blue'),
-                'gray' => __('general.colors.gray'),
-                'purple' => __('general.colors.purple'),
-                'indigo' => __('general.colors.indigo'),
-                'pink' => __('general.colors.pink'),
+        CRUD::addField(
+            [
+                'name' => 'category_id',
+                'label' => __('statuses.fields.category_id'),
+                'type' => 'relationship',
+                'entity' => 'category',
+                'attribute' => 'name',
+                'required' => true,
+                'model' => StatusCategory::class,
             ],
-            'allows_null' => false,
-            'default' => 'gray',
-        ]);
-        CRUD::field('is_active')->label(__('statuses.fields.is_active'))->type('boolean');
+        )->afterField('type');
+
+        CRUD::addField(
+            [
+                'name' => 'color',
+                'label' => __('statuses.fields.color'),
+                'type' => 'select_from_array',
+                'options' => [
+                    'green' => __('general.colors.green'),
+                    'yellow' => __('general.colors.yellow'),
+                    'red' => __('general.colors.red'),
+                    'blue' => __('general.colors.blue'),
+                    'gray' => __('general.colors.gray'),
+                    'purple' => __('general.colors.purple'),
+                    'indigo' => __('general.colors.indigo'),
+                    'pink' => __('general.colors.pink'),
+                ],
+                'allows_null' => false,
+                'default' => 'gray',
+            ],
+        );
+        CRUD::field('is_active')->label(
+            __('statuses.fields.is_active'),
+        )->type('boolean');
     }
 
     /**

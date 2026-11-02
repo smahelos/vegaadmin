@@ -18,7 +18,7 @@ class LocaleService implements LocaleServiceInterface
     public function localeFromCountry(?string $country): string
     {
         $fallback = $this->locale->getFallbackLocale();
-        if (! $country) {
+        if (!$country) {
             return $fallback;
         }
         $map = $this->locale->getCountryLocaleMap();

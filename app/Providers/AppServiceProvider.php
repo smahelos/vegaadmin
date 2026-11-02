@@ -40,9 +40,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         // Add Blade directive for checking users with admin access
-        Blade::if('backpackUser', function () {
-            return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
-        });
+        Blade::if(
+            'backpackUser',
+            function () {
+                return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
+            },
+        );
 
         // Register custom Blade components
         Blade::component('application-logo', ApplicationLogo::class);

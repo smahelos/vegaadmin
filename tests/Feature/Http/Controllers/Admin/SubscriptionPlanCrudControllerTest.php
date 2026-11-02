@@ -69,16 +69,22 @@ class SubscriptionPlanCrudControllerTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->post(backpack_url('subscription-plan'), $data);
+        $response = $this->post(
+            backpack_url('subscription-plan'),
+            $data,
+        );
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('subscription_plans', [
-            'name' => $uniquePlanName,
-            'description' => 'A premium subscription plan',
-            'price' => 99.99,
-            'currency' => 'CZK',
-            'trial_days' => 14,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plans',
+            [
+                'name' => $uniquePlanName,
+                'description' => 'A premium subscription plan',
+                'price' => 99.99,
+                'currency' => 'CZK',
+                'trial_days' => 14,
+            ],
+        );
     }
 
     #[Test]
@@ -156,17 +162,20 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         // HTTP testing for Backpack updates is complex due to CSRF tokens and middleware
         $plan->update($data);
 
-        $this->assertDatabaseHas('subscription_plans', [
-            'id' => $plan->id,
-            'name' => 'Updated Plan',
-            'description' => 'Updated description',
-            'price' => 75.00,
-            'currency' => 'EUR',
-            'billing_period' => 'yearly',
-            'billing_interval' => 1,
-            'trial_days' => 30,
-            'is_active' => false,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plans',
+            [
+                'id' => $plan->id,
+                'name' => 'Updated Plan',
+                'description' => 'Updated description',
+                'price' => 75.00,
+                'currency' => 'EUR',
+                'billing_period' => 'yearly',
+                'billing_interval' => 1,
+                'trial_days' => 30,
+                'is_active' => false,
+            ],
+        );
     }
 
     #[Test]
@@ -218,14 +227,16 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription-plan', $data);
 
         $response->assertStatus(422); // Validation error
-        $response->assertJsonValidationErrors([
-            'name',
-            'price',
-            'currency',
-            'billing_period',
-            'billing_interval',
-            'trial_days',
-        ]);
+        $response->assertJsonValidationErrors(
+            [
+                'name',
+                'price',
+                'currency',
+                'billing_period',
+                'billing_interval',
+                'trial_days',
+            ],
+        );
     }
 
     #[Test]

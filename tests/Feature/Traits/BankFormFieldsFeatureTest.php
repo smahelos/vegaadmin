@@ -84,7 +84,10 @@ class BankFormFieldsFeatureTest extends TestCase
         $fields = $this->traitInstance->callGetBankFields();
 
         $countryField = collect($fields)->firstWhere('name', 'country');
-        $this->assertSame(app(CountryOptionsPresenter::class)->options('cs'), $countryField['options']);
+        $this->assertSame(
+            app(CountryOptionsPresenter::class)->options('cs'),
+            $countryField['options'],
+        );
         $this->assertSame('Česko', $countryField['options']['CZ']);
     }
 

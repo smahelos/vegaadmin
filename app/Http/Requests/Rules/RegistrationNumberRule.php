@@ -25,7 +25,7 @@ final class RegistrationNumberRule implements ValidationRule
         Closure $fail,
     ): void {
         // A missing country is reported on the country field
-        if ($this->country === null || ! is_string($value)) {
+        if ($this->country === null || !is_string($value)) {
             return;
         }
 

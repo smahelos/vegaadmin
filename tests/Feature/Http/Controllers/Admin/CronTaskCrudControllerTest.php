@@ -14,7 +14,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 // No Mockery needed; simple in-memory stub implements interface
 
 // Lightweight stub for ArtisanCommandsServiceInterface to avoid mocking framework overhead
-if (! class_exists(CronTaskCommandsServiceStub::class)) {
+if (!class_exists(CronTaskCommandsServiceStub::class)) {
     class CronTaskCommandsServiceStub implements ArtisanCommandsServiceInterface
     {
         public function getAllCommands(bool $onlyNames = false): array
@@ -55,7 +55,7 @@ class CronTaskCrudControllerTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Trait already ensures permission list including can_create_edit_cron_task for backpack guard
-        if (! $this->adminUser->hasPermissionTo('can_create_edit_cron_task', 'backpack')) {
+        if (!$this->adminUser->hasPermissionTo('can_create_edit_cron_task', 'backpack')) {
             $this->adminUser->givePermissionTo('can_create_edit_cron_task');
         }
     }
@@ -136,9 +136,14 @@ class CronTaskCrudControllerTest extends TestCase
 
         $this->actingAs($this->adminUser, 'backpack')
             ->from('/admin/cron-task')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->post(
+                route('admin.cron-tasks.run', ['id' => $task->id]),
+            )
             ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas('alert_messages.success', [__('cron_tasks.messages.task_executed')])
+            ->assertSessionHas(
+                'alert_messages.success',
+                [__('cron_tasks.messages.task_executed')],
+            )
             ->assertSessionMissing('alert_messages.error');
 
         $this->assertNotNull($task->fresh()->last_run);
@@ -151,9 +156,14 @@ class CronTaskCrudControllerTest extends TestCase
 
         $this->actingAs($this->adminUser, 'backpack')
             ->from('/admin/cron-task')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->post(
+                route('admin.cron-tasks.run', ['id' => $task->id]),
+            )
             ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas('alert_messages.error', [__('cron_tasks.messages.execution_failed')])
+            ->assertSessionHas(
+                'alert_messages.error',
+                [__('cron_tasks.messages.execution_failed')],
+            )
             ->assertSessionMissing('alert_messages.success');
     }
 
@@ -180,11 +190,17 @@ class CronTaskCrudControllerTest extends TestCase
             'last_run' => null,
         ]);
         $user = User::factory()->create();
-        $user->assignRole(Role::findByName('backend_user', 'backpack'));
-        $user->givePermissionTo(Permission::findByName('backpack.access', 'backpack'));
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
+        $user->givePermissionTo(
+            Permission::findByName('backpack.access', 'backpack'),
+        );
 
         $this->actingAs($user, 'backpack')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
+            ->post(
+                route('admin.cron-tasks.run', ['id' => $task->id]),
+            )
             ->assertForbidden();
 
         $this->assertNull($task->fresh()->last_run);

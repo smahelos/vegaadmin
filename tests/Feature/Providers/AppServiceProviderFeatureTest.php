@@ -23,20 +23,26 @@ class AppServiceProviderFeatureTest extends TestCase
     public function invoice_observer_is_registered(): void
     {
         // Test that observer is actually working by creating an invoice
-        $invoice = Invoice::factory()->create([
-            'invoice_text' => json_encode([
-                [
-                    'name' => 'Test Product',
-                    'quantity' => 1,
-                    'price' => 100,
-                ],
-            ]),
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'invoice_text' => json_encode(
+                    [
+                        [
+                            'name' => 'Test Product',
+                            'quantity' => 1,
+                            'price' => 100,
+                        ],
+                    ],
+                ),
+            ],
+        );
 
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id]);
 
         // Check if observer is registered by testing that observer class exists
-        $this->assertTrue(class_exists(InvoiceObserver::class));
+        $this->assertTrue(
+            class_exists(InvoiceObserver::class),
+        );
     }
 
     #[Test]
@@ -86,9 +92,15 @@ class AppServiceProviderFeatureTest extends TestCase
     public function helper_files_are_loaded(): void
     {
         // Test that BackpackHelpers functions are available
-        $this->assertTrue(function_exists('backpack_auth'));
-        $this->assertTrue(function_exists('backpack_guard_name'));
-        $this->assertTrue(function_exists('backpack_user'));
+        $this->assertTrue(
+            function_exists('backpack_auth'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_guard_name'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_user'),
+        );
     }
 
     #[Test]

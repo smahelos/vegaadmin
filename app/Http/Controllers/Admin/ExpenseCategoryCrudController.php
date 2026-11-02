@@ -32,8 +32,13 @@ class ExpenseCategoryCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(ExpenseCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/expense-category');
-        CRUD::setEntityNameStrings(__('expenses.categories.entity.singular'), __('expenses.categories.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/expense-category',
+        );
+        CRUD::setEntityNameStrings(
+            __('expenses.categories.entity.singular'),
+            __('expenses.categories.entity.plural'),
+        );
     }
 
     /**
@@ -45,19 +50,29 @@ class ExpenseCategoryCrudController extends CrudController
     {
         // CRUD::setFromDb(); // set columns from db columns.
 
-        CRUD::column('name')->label(__('expenses.categories.fields.name'));
-        CRUD::column('slug')->label(__('expenses.categories.fields.slug'));
-        CRUD::column('description')->label(__('expenses.categories.fields.description'));
+        CRUD::column('name')->label(
+            __('expenses.categories.fields.name'),
+        );
+        CRUD::column('slug')->label(
+            __('expenses.categories.fields.slug'),
+        );
+        CRUD::column('description')->label(
+            __('expenses.categories.fields.description'),
+        );
 
         CRUD::column('color_preview')
             ->type('custom_html')
-            ->label(__('expenses.categories.fields.color'))
-            ->value(function ($entry) {
-                // Tabler has no plain bg-gray badge color
-                $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
+            ->label(
+                __('expenses.categories.fields.color'),
+            )
+            ->value(
+                function ($entry) {
+                    // Tabler has no plain bg-gray badge color
+                    $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
 
-                return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
-            });
+                    return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
+                },
+            );
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
@@ -74,32 +89,42 @@ class ExpenseCategoryCrudController extends CrudController
         CRUD::setValidation(ExpenseCategoryRequest::class);
         // CRUD::setFromDb(); // set fields from db columns.
 
-        CRUD::field('name')->label(__('expenses.categories.fields.name'));
+        CRUD::field('name')->label(
+            __('expenses.categories.fields.name'),
+        );
         CRUD::field('slug')
-            ->label(__('expenses.categories.fields.slug'))
-            ->hint(__('expenses.categories.hints.slug'));
+            ->label(
+                __('expenses.categories.fields.slug'),
+            )
+            ->hint(
+                __('expenses.categories.hints.slug'),
+            );
 
         CRUD::field('description')
-            ->label(__('expenses.categories.fields.description'))
+            ->label(
+                __('expenses.categories.fields.description'),
+            )
             ->type('textarea');
 
-        CRUD::addField([
-            'name' => 'color',
-            'label' => __('expenses.categories.fields.color'),
-            'type' => 'select_from_array',
-            'options' => [
-                'green' => __('general.colors.green'),
-                'yellow' => __('general.colors.yellow'),
-                'red' => __('general.colors.red'),
-                'blue' => __('general.colors.blue'),
-                'gray' => __('general.colors.gray'),
-                'purple' => __('general.colors.purple'),
-                'indigo' => __('general.colors.indigo'),
-                'pink' => __('general.colors.pink'),
+        CRUD::addField(
+            [
+                'name' => 'color',
+                'label' => __('expenses.categories.fields.color'),
+                'type' => 'select_from_array',
+                'options' => [
+                    'green' => __('general.colors.green'),
+                    'yellow' => __('general.colors.yellow'),
+                    'red' => __('general.colors.red'),
+                    'blue' => __('general.colors.blue'),
+                    'gray' => __('general.colors.gray'),
+                    'purple' => __('general.colors.purple'),
+                    'indigo' => __('general.colors.indigo'),
+                    'pink' => __('general.colors.pink'),
+                ],
+                'allows_null' => false,
+                'default' => 'gray',
             ],
-            'allows_null' => false,
-            'default' => 'gray',
-        ]);
+        );
         /**
          * Fields can be defined using the fluent syntax:
          * - CRUD::field('price')->type('number');

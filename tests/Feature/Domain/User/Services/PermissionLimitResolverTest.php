@@ -35,14 +35,16 @@ class PermissionLimitResolverTest extends TestCase
     public function resolves_invoice_limit_for_basic_user(): void
     {
         // Create entity limit for basic permission
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
@@ -77,23 +79,27 @@ class PermissionLimitResolverTest extends TestCase
     public function resolves_highest_limit_for_user_with_multiple_permissions(): void
     {
         // Create multiple limits for different permissions
-        EntityLimit::create([
-            'permission_name' => 'basic_user',
-            'entity_type' => 'invoice',
-            'limit_value' => 5,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'basic_user',
+                'entity_type' => 'invoice',
+                'limit_value' => 5,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
-        EntityLimit::create([
-            'permission_name' => 'premium_user',
-            'entity_type' => 'invoice',
-            'limit_value' => 25,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'premium_user',
+                'entity_type' => 'invoice',
+                'limit_value' => 25,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo(['basic_user', 'premium_user']);
@@ -113,14 +119,16 @@ class PermissionLimitResolverTest extends TestCase
     public function returns_unlimited_for_api_permission(): void
     {
         // Create entity limit with very high value (simulating unlimited)
-        EntityLimit::create([
-            'permission_name' => 'can_use_api',
-            'entity_type' => 'invoice',
-            'limit_value' => 999999,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_use_api',
+                'entity_type' => 'invoice',
+                'limit_value' => 999999,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_use_api');
@@ -139,14 +147,16 @@ class PermissionLimitResolverTest extends TestCase
     public function can_create_invoice_returns_true_when_user_has_permission(): void
     {
         // Create entity limit
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 5,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 5,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
@@ -170,14 +180,16 @@ class PermissionLimitResolverTest extends TestCase
     #[Test]
     public function resolves_user_limit_for_generic_permission(): void
     {
-        EntityLimit::create([
-            'permission_name' => 'basic_user',
-            'entity_type' => 'contact',
-            'limit_value' => 15,
-            'period_type' => 'daily',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'basic_user',
+                'entity_type' => 'contact',
+                'limit_value' => 15,
+                'period_type' => 'daily',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('basic_user');
@@ -212,14 +224,16 @@ class PermissionLimitResolverTest extends TestCase
     public function handles_mixed_permission_guards(): void
     {
         // Create limits for web guard permission
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 20,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 20,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
@@ -238,14 +252,16 @@ class PermissionLimitResolverTest extends TestCase
     public function ignores_inactive_entity_limits(): void
     {
         // Create inactive limit
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => false, // Inactive
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => false, // Inactive
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');
@@ -264,14 +280,16 @@ class PermissionLimitResolverTest extends TestCase
     #[Test]
     public function gets_subscription_limits_overview(): void
     {
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'limit_value' => 15,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'limit_value' => 15,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         $user = User::factory()->create();
         $user->givePermissionTo('can_create_edit_invoice');

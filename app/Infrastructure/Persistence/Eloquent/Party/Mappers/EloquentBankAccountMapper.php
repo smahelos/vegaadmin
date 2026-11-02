@@ -21,8 +21,12 @@ final class EloquentBankAccountMapper
         return new BankAccountDTO(
             id: BankAccountId::fromInt($account->id),
             owner: $account->business_id === null
-                ? AccountOwner::contact(ContactId::fromInt($account->contact_id))
-                : AccountOwner::business(BusinessId::fromInt($account->business_id)),
+                ? AccountOwner::contact(
+                    ContactId::fromInt($account->contact_id),
+                )
+                : AccountOwner::business(
+                    BusinessId::fromInt($account->business_id),
+                ),
             label: $account->label,
             account: BankAccount::fromParts(
                 $account->iban,

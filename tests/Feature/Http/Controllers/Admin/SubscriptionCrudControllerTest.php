@@ -71,12 +71,15 @@ class SubscriptionCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription', $data);
 
         $response->assertStatus(302); // Redirect after creation
-        $this->assertDatabaseHas('subscriptions', [
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'active',
-            'amount' => 99.99,
-        ]);
+        $this->assertDatabaseHas(
+            'subscriptions',
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'active',
+                'amount' => 99.99,
+            ],
+        );
     }
 
     #[Test]
@@ -150,12 +153,15 @@ class SubscriptionCrudControllerTest extends TestCase
         // HTTP update has complex Backpack dependencies similar to other CRUD operations
         $subscription->update($data);
 
-        $this->assertDatabaseHas('subscriptions', [
-            'id' => $subscription->id,
-            'status' => 'active',
-            'amount' => 75.00,
-            'currency' => 'EUR',
-        ]);
+        $this->assertDatabaseHas(
+            'subscriptions',
+            [
+                'id' => $subscription->id,
+                'status' => 'active',
+                'amount' => 75.00,
+                'currency' => 'EUR',
+            ],
+        );
     }
 
     #[Test]
@@ -207,12 +213,14 @@ class SubscriptionCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription', $data);
 
         $response->assertStatus(422); // Validation error
-        $response->assertJsonValidationErrors([
-            'user_id',
-            'subscription_plan_id',
-            'amount',
-            'currency',
-        ]);
+        $response->assertJsonValidationErrors(
+            [
+                'user_id',
+                'subscription_plan_id',
+                'amount',
+                'currency',
+            ],
+        );
     }
 
     #[Test]
@@ -336,6 +344,8 @@ class SubscriptionCrudControllerTest extends TestCase
         // If the page loads successfully, the model is correctly set
         // We can verify by checking the response contains subscription-related content
         $response->assertStatus(200);
-        $response->assertSee(__('subscriptions.entity.plural'));
+        $response->assertSee(
+            __('subscriptions.entity.plural'),
+        );
     }
 }

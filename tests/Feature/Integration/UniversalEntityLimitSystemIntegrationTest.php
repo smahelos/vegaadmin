@@ -54,11 +54,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         // New creation should fail
         $newRequest = new InvoiceRequest;
         $newRequest->setMethod('POST');
-        $newRequest->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $newRequest->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->expectException(EntityLimitExceededException::class);
         $newRequest->authorize();
@@ -80,11 +82,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         // But update should succeed even with 0 limit
         $updateRequest = new InvoiceRequest;
         $updateRequest->setMethod('PUT');
-        $updateRequest->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return 'existing-invoice-id';
-            }]; // Update
-        });
+        $updateRequest->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return 'existing-invoice-id';
+                }]; // Update
+            },
+        );
 
         $this->assertTrue($updateRequest->authorize());
     }
@@ -93,7 +97,9 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
     public function unlimited_access_bypasses_all_limits(): void
     {
         // Create a user with unlimited access
-        $unlimitedPermission = Permission::firstOrCreate(['name' => 'can_create_invoice_unlimited', 'guard_name' => 'backpack']);
+        $unlimitedPermission = Permission::firstOrCreate(
+            ['name' => 'can_create_invoice_unlimited', 'guard_name' => 'backpack'],
+        );
         $this->user->givePermissionTo($unlimitedPermission);
         $this->actingAs($this->user);
 
@@ -107,11 +113,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // Should succeed despite limit due to unlimited access
         $request = new InvoiceRequest;
-        $request->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $request->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->assertTrue($request->authorize());
     }
@@ -123,11 +131,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // No limits configured - should always allow
         $request = new InvoiceRequest;
-        $request->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $request->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->assertTrue($request->authorize());
     }

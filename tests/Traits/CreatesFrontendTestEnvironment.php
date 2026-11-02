@@ -37,10 +37,12 @@ trait CreatesFrontendTestEnvironment
         ]);
 
         // Create unauthorized admin role (without entity view permissions)
-        $unauthorizedRole = Role::firstOrCreate([
-            'name' => 'unauthorized_admin',
-            'guard_name' => 'backpack',
-        ]);
+        $unauthorizedRole = Role::firstOrCreate(
+            [
+                'name' => 'unauthorized_admin',
+                'guard_name' => 'backpack',
+            ],
+        );
 
         // Ensure frontend_user role exists
         $frontendUserRole = Role::firstOrCreate([
@@ -53,11 +55,13 @@ trait CreatesFrontendTestEnvironment
         $adminRole->syncPermissions($frontendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (! isset($this->adminUser)) {
-            $this->adminUser = User::factory()->create([
-                'name' => 'Admin User',
-                'email' => 'admin@example.com',
-            ]);
+        if (!isset($this->adminUser)) {
+            $this->adminUser = User::factory()->create(
+                [
+                    'name' => 'Admin User',
+                    'email' => 'admin@example.com',
+                ],
+            );
         }
         $this->adminUser->assignRole($adminRole);
 
@@ -66,11 +70,13 @@ trait CreatesFrontendTestEnvironment
         $backendAdminRole->syncPermissions($backendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (! isset($this->backendAdminUser)) {
-            $this->backendAdminUser = User::factory()->create([
-                'name' => 'Backend Admin User',
-                'email' => 'backend.admin@example.com',
-            ]);
+        if (!isset($this->backendAdminUser)) {
+            $this->backendAdminUser = User::factory()->create(
+                [
+                    'name' => 'Backend Admin User',
+                    'email' => 'backend.admin@example.com',
+                ],
+            );
         }
         $this->backendAdminUser->assignRole($backendAdminRole);
 
@@ -81,16 +87,18 @@ trait CreatesFrontendTestEnvironment
         $unauthorizedRole->syncPermissions($basicBackpackPermissions);
 
         // Create unauthorized admin user with admin role (if not already set)
-        if (! isset($this->unauthorizedAdmin)) {
-            $this->unauthorizedAdmin = User::factory()->create([
-                'name' => 'Unauthorized Admin',
-                'email' => 'unauthorized@example.com',
-            ]);
+        if (!isset($this->unauthorizedAdmin)) {
+            $this->unauthorizedAdmin = User::factory()->create(
+                [
+                    'name' => 'Unauthorized Admin',
+                    'email' => 'unauthorized@example.com',
+                ],
+            );
         }
         $this->unauthorizedAdmin->assignRole($unauthorizedRole);
 
         // Create regular user with limited role (if not already set)
-        if (! isset($this->user)) {
+        if (!isset($this->user)) {
             $this->user = User::factory()->create();
         }
         $this->user->assignRole($frontendUserRole);

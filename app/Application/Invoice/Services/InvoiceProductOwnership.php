@@ -17,7 +17,7 @@ final class InvoiceProductOwnership
     public function assertOwned(UserId $userId, array $lines): void
     {
         foreach ($lines as $line) {
-            if ($line->productId !== null && ! $this->products->isOwnedBy($line->productId, $userId)) {
+            if ($line->productId !== null && !$this->products->isOwnedBy($line->productId, $userId)) {
                 throw new InvoiceNotFoundException('Invoice product not accessible for user');
             }
         }

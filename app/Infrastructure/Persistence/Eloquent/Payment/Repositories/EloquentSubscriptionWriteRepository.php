@@ -10,14 +10,16 @@ class EloquentSubscriptionWriteRepository implements SubscriptionWriteRepository
     public function activateById(int $subscriptionId, int $durationDays): bool
     {
         $subscription = Subscription::find($subscriptionId);
-        if (! $subscription) {
+        if (!$subscription) {
             return false;
         }
 
-        return $subscription->update([
-            'status' => 'active',
-            'starts_at' => now(),
-            'ends_at' => now()->addDays($durationDays),
-        ]);
+        return $subscription->update(
+            [
+                'status' => 'active',
+                'starts_at' => now(),
+                'ends_at' => now()->addDays($durationDays),
+            ],
+        );
     }
 }

@@ -119,9 +119,18 @@ class PageCategoryCrudControllerTest extends TestCase
         ]);
 
         // Test helper methods work correctly
-        $this->assertEquals('Test Category', $category->getName('cs'));
-        $this->assertEquals('test-category', $category->getSlug('cs'));
-        $this->assertEquals('Test description', $category->getDescription('cs'));
+        $this->assertEquals(
+            'Test Category',
+            $category->getName('cs'),
+        );
+        $this->assertEquals(
+            'test-category',
+            $category->getSlug('cs'),
+        );
+        $this->assertEquals(
+            'Test description',
+            $category->getDescription('cs'),
+        );
 
         $this->assertNotNull($category->id, 'Category should be created with ID');
     }
@@ -222,8 +231,14 @@ class PageCategoryCrudControllerTest extends TestCase
 
         // Test using helper methods instead of direct database comparison
         $updatedCategory = $category->fresh();
-        $this->assertEquals('Updated Category', $updatedCategory->getName('cs'));
-        $this->assertEquals('Updated description', $updatedCategory->getDescription('cs'));
+        $this->assertEquals(
+            'Updated Category',
+            $updatedCategory->getName('cs'),
+        );
+        $this->assertEquals(
+            'Updated description',
+            $updatedCategory->getDescription('cs'),
+        );
 
         $this->assertDatabaseHas('page_categories', [
             'id' => $category->id,

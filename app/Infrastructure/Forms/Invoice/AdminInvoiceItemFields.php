@@ -19,17 +19,19 @@ final class AdminInvoiceItemFields
         if (is_string($items)) {
             $items = json_decode($items, true);
         }
-        $items ??= $invoice?->invoiceProducts->map(fn (InvoiceProduct $line): array => [
-            'product_id' => $line->product_id,
-            'name' => $line->name,
-            'quantity' => $line->quantity,
-            'unit' => $line->unit,
-            'price' => $line->price,
-            'currency' => $line->currency,
-            'tax_rate' => $line->tax_rate,
-            'category' => $line->category,
-            'description' => $line->description,
-        ])->all() ?? [];
+        $items ??= $invoice?->invoiceProducts->map(
+            fn (InvoiceProduct $line): array => [
+                'product_id' => $line->product_id,
+                'name' => $line->name,
+                'quantity' => $line->quantity,
+                'unit' => $line->unit,
+                'price' => $line->price,
+                'currency' => $line->currency,
+                'tax_rate' => $line->tax_rate,
+                'category' => $line->category,
+                'description' => $line->description,
+            ],
+        )->all() ?? [];
 
         $units = [];
         foreach (Unit::cases() as $unit) {
@@ -48,7 +50,9 @@ final class AdminInvoiceItemFields
             'items' => $items,
             'units' => $units,
             'currencies' => array_column(Currency::cases(), 'value'),
-            'tax_rates' => array_values(array_unique($taxRates)),
+            'tax_rates' => array_values(
+                array_unique($taxRates),
+            ),
         ];
     }
 }

@@ -29,10 +29,14 @@ final class UnitTestsWithoutFrameworkTest extends TestCase
     public function unit_tests_use_neither_laravel_nor_models(): void
     {
         $violations = [];
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(base_path('tests/Unit')));
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(
+                base_path('tests/Unit'),
+            ),
+        );
 
         foreach ($files as $file) {
-            if (! str_ends_with($file->getFilename(), '.php')) {
+            if (!str_ends_with($file->getFilename(), '.php')) {
                 continue;
             }
 
@@ -49,11 +53,13 @@ final class UnitTestsWithoutFrameworkTest extends TestCase
                 }
             }
 
-            if (preg_match(
-                self::HELPER_PATTERN,
-                $source,
-                $match,
-            ) === 1) {
+            if (
+                preg_match(
+                    self::HELPER_PATTERN,
+                    $source,
+                    $match,
+                ) === 1
+            ) {
                 $violations[] = "{$path} calls the Laravel helper {$match[1]}()";
             }
         }

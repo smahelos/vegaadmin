@@ -49,7 +49,7 @@ final class UsageRecordingHandler implements DomainEventHandler
             default => true, // Return true for events we don't handle
         };
 
-        if (! $success) {
+        if (!$success) {
             $this->logger->log(
                 'warning',
                 'Failed to record entity usage',

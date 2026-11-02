@@ -32,7 +32,10 @@ final class InvoiceReminderApplicationService
             throw new InvalidArgumentException('Reminder offsets must be positive integers');
         }
         $today = $this->clock->now();
-        $counts = array_fill_keys(array_column(InvoiceReminderType::cases(), 'value'), 0);
+        $counts = array_fill_keys(
+            array_column(InvoiceReminderType::cases(), 'value'),
+            0,
+        );
         foreach ($this->invoices->unpaidForReminders() as $invoice) {
             $days = $invoice->dueDate->daysUntil($today);
             $type = match ($days) {

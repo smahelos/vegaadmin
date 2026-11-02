@@ -43,7 +43,7 @@ class UserPassword
     {
         self::validatePlainPassword($plainPassword);
         $hasher = $hasher ?? self::$defaultHasher;
-        if (! $hasher) {
+        if (!$hasher) {
             throw new InvalidArgumentException('Hash service is not configured');
         }
         $hashedPassword = $hasher->hash($plainPassword);
@@ -72,7 +72,12 @@ class UserPassword
             '123456789',
         ];
 
-        if (in_array(strtolower($password), $weakPasswords)) {
+        if (
+            in_array(
+                strtolower($password),
+                $weakPasswords,
+            )
+        ) {
             throw new InvalidArgumentException('Password is too common and weak');
         }
     }

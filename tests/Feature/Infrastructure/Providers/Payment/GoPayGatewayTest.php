@@ -27,11 +27,13 @@ final class GoPayGatewayTest extends TestCase
     #[Test]
     public function creates_a_payment_in_cents_and_returns_the_gateway_url(): void
     {
-        $result = $this->gateway->createPayment([
-            'amount' => 25.50,
-            'currency' => 'EUR',
-            'order_number' => 'SUB-1',
-        ]);
+        $result = $this->gateway->createPayment(
+            [
+                'amount' => 25.50,
+                'currency' => 'EUR',
+                'order_number' => 'SUB-1',
+            ],
+        );
 
         $this->assertTrue($result['success']);
         $this->assertSame('GP-1', $result['payment_id']);

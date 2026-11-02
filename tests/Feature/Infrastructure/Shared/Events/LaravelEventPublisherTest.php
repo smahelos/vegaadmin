@@ -25,7 +25,9 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->publisher()->publish(new FormDataChanged(1, 'products'));
+        $this->publisher()->publish(
+            new FormDataChanged(1, 'products'),
+        );
 
         Event::assertDispatchedTimes(FormDataChanged::class, 1);
     }
@@ -35,11 +37,15 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->transactions()->transaction(function (): void {
-            $this->publisher()->publish(new FormDataChanged(1, 'products'));
+        $this->transactions()->transaction(
+            function (): void {
+                $this->publisher()->publish(
+                    new FormDataChanged(1, 'products'),
+                );
 
-            Event::assertNotDispatched(FormDataChanged::class);
-        });
+                Event::assertNotDispatched(FormDataChanged::class);
+            },
+        );
 
         Event::assertDispatchedTimes(FormDataChanged::class, 1);
     }
@@ -50,11 +56,15 @@ final class LaravelEventPublisherTest extends TestCase
         Event::fake([FormDataChanged::class]);
 
         try {
-            $this->transactions()->transaction(function (): void {
-                $this->publisher()->publish(new FormDataChanged(1, 'products'));
+            $this->transactions()->transaction(
+                function (): void {
+                    $this->publisher()->publish(
+                        new FormDataChanged(1, 'products'),
+                    );
 
-                throw new RuntimeException('Use case failed');
-            });
+                    throw new RuntimeException('Use case failed');
+                },
+            );
         } catch (RuntimeException) {
         }
 
@@ -66,21 +76,32 @@ final class LaravelEventPublisherTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $this->transactions()->transaction(function (): void {
-            $this->publisher()->publish(new FormDataChanged(1, 'outer'));
+        $this->transactions()->transaction(
+            function (): void {
+                $this->publisher()->publish(
+                    new FormDataChanged(1, 'outer'),
+                );
 
-            try {
-                $this->transactions()->transaction(function (): void {
-                    $this->publisher()->publish(new FormDataChanged(1, 'inner'));
+                try {
+                    $this->transactions()->transaction(
+                        function (): void {
+                            $this->publisher()->publish(
+                                new FormDataChanged(1, 'inner'),
+                            );
 
-                    throw new RuntimeException('Inner step failed');
-                });
-            } catch (RuntimeException) {
-            }
-        });
+                            throw new RuntimeException('Inner step failed');
+                        },
+                    );
+                } catch (RuntimeException) {
+                }
+            },
+        );
 
         Event::assertDispatchedTimes(FormDataChanged::class, 1);
-        Event::assertDispatched(FormDataChanged::class, fn (FormDataChanged $event): bool => $event->changeType === 'outer');
+        Event::assertDispatched(
+            FormDataChanged::class,
+            fn (FormDataChanged $event): bool => $event->changeType === 'outer',
+        );
     }
 
     #[Test]
@@ -88,17 +109,24 @@ final class LaravelEventPublisherTest extends TestCase
     {
         $log = new RecordingLog;
         $this->app->instance(LogInterface::class, $log);
-        Event::listen(FormDataChanged::class, function (): void {
-            throw new RuntimeException('Cache is down');
-        });
+        Event::listen(
+            FormDataChanged::class,
+            function (): void {
+                throw new RuntimeException('Cache is down');
+            },
+        );
         $handler = $this->recordingHandler();
         $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
 
-        $result = $this->transactions()->transaction(function (): string {
-            $this->publisher()->publish(new FormDataChanged(1, 'products'));
+        $result = $this->transactions()->transaction(
+            function (): string {
+                $this->publisher()->publish(
+                    new FormDataChanged(1, 'products'),
+                );
 
-            return 'committed';
-        });
+                return 'committed';
+            },
+        );
 
         $this->assertSame('committed', $result);
         $this->assertCount(1, $handler->transactionLevels);
@@ -115,9 +143,13 @@ final class LaravelEventPublisherTest extends TestCase
         $this->app->make(DomainEventDispatcher::class)->register(FormDataChanged::class, $handler);
         $levelOutside = DB::transactionLevel();
 
-        $this->transactions()->transaction(function (): void {
-            $this->publisher()->publish(new FormDataChanged(1, 'products'));
-        });
+        $this->transactions()->transaction(
+            function (): void {
+                $this->publisher()->publish(
+                    new FormDataChanged(1, 'products'),
+                );
+            },
+        );
 
         $this->assertSame([$levelOutside + 1], $handler->transactionLevels);
     }

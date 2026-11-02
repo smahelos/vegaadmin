@@ -104,7 +104,9 @@ final class RestrictedDeleteOperationTest extends TestCase
 
         $this->deleteJson('/admin/' . $route . '/' . $id)
             ->assertOk()
-            ->assertExactJson(['error' => [__('general.messages.delete_referenced')]]);
+            ->assertExactJson(
+                ['error' => [__('general.messages.delete_referenced')]],
+            );
 
         $this->assertDatabaseHas($table, ['id' => $id]);
     }

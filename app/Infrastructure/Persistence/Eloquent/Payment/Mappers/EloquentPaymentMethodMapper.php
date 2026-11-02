@@ -17,14 +17,18 @@ class EloquentPaymentMethodMapper
      */
     public function toDto(PaymentMethod $model): PaymentMethodDTO
     {
-        return PaymentMethodDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'code' => PaymentMethodCode::from($model->getAttribute('slug')),
-            'description' => $model->getAttribute('description'),
-            'is_active' => (bool) $model->getAttribute('is_active'),
-            'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-            'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
-        ]);
+        return PaymentMethodDTO::fromArray(
+            [
+                'id' => $model->getAttribute('id'),
+                'name' => $model->getAttribute('name'),
+                'code' => PaymentMethodCode::from(
+                    $model->getAttribute('slug'),
+                ),
+                'description' => $model->getAttribute('description'),
+                'is_active' => (bool) $model->getAttribute('is_active'),
+                'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
+                'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
+            ],
+        );
     }
 }

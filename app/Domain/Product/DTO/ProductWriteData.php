@@ -71,12 +71,17 @@ class ProductWriteData
                     '',
                 );
         }
-        if ($normCurrency === null && isset($data['amount']) && isset($data['currency']) && is_string($data['currency'])) {
+        if (
+            $normCurrency === null
+            && isset($data['amount'])
+            && isset($data['currency'])
+            && is_string($data['currency'])
+        ) {
             $normCurrency = strtoupper($data['currency']);
         }
 
         // Case 4: legacy price float/string + optional currency
-        if ($normPrice === null && isset($data['price']) && ! $data['price'] instanceof Money) {
+        if ($normPrice === null && isset($data['price']) && !$data['price'] instanceof Money) {
             $normPrice = is_string($data['price'])
                 ? self::normalizeAmountString($data['price'])
                 : number_format(
@@ -118,7 +123,7 @@ class ProductWriteData
             ['', '.'],
             trim($amount),
         );
-        if (! preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
+        if (!preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
             // Fallback - cast to float and format
             return number_format(
                 (float) $amount,
@@ -160,6 +165,9 @@ class ProductWriteData
         $properties = get_object_vars($this);
         $filtered = array_filter($properties, fn ($value) => $value !== null);
 
-        return array_map(fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value, $filtered);
+        return array_map(
+            fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value,
+            $filtered,
+        );
     }
 }

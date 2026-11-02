@@ -140,9 +140,12 @@ class PaymentServiceProvider extends ServiceProvider
         );
 
         // Named binding for GoPay gateway as expected by tests
-        $this->app->singleton('payment.gateway.gopay', function ($app) {
-            return $app->make(GoPayGateway::class);
-        });
+        $this->app->singleton(
+            'payment.gateway.gopay',
+            function ($app) {
+                return $app->make(GoPayGateway::class);
+            },
+        );
 
         // QR code rendering
         $this->app->bind(

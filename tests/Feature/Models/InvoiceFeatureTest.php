@@ -98,7 +98,10 @@ class InvoiceFeatureTest extends TestCase
             ?? Status::factory()->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
         $invoice = Invoice::factory()->create(['payment_status_id' => $status->id]);
 
-        $this->assertSame(__('statuses.statuses.partially-paid'), $invoice->payment_status_name);
+        $this->assertSame(
+            __('statuses.statuses.partially-paid'),
+            $invoice->payment_status_name,
+        );
     }
 
     #[Test]
@@ -149,7 +152,10 @@ class InvoiceFeatureTest extends TestCase
             'due_in' => 30,
         ]);
 
-        $this->assertSame('2025-01-31', $invoice->due_date->format('Y-m-d'));
+        $this->assertSame(
+            '2025-01-31',
+            $invoice->due_date->format('Y-m-d'),
+        );
     }
 
     #[Test]
@@ -160,14 +166,21 @@ class InvoiceFeatureTest extends TestCase
             'due_in' => 0,
         ]);
 
-        $this->assertSame('2025-01-01', $invoice->due_date->format('Y-m-d'));
+        $this->assertSame(
+            '2025-01-01',
+            $invoice->due_date->format('Y-m-d'),
+        );
     }
 
     #[Test]
     public function paid_reflects_the_paid_status(): void
     {
-        $this->assertTrue($this->invoiceDueDaysAgo(InvoiceStatus::PAID, 0)->paid);
-        $this->assertFalse($this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 0)->paid);
+        $this->assertTrue(
+            $this->invoiceDueDaysAgo(InvoiceStatus::PAID, 0)->paid,
+        );
+        $this->assertFalse(
+            $this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 0)->paid,
+        );
     }
 
     #[Test]
@@ -199,12 +212,14 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoice = Invoice::factory()->create();
 
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'name' => 'Test Product',
-            'quantity' => 2,
-            'price' => 100.00,
-        ]);
+        InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'name' => 'Test Product',
+                'quantity' => 2,
+                'price' => 100.00,
+            ],
+        );
 
         $invoiceProductsData = $invoice->getInvoiceProductsDataAttribute();
 
@@ -218,10 +233,12 @@ class InvoiceFeatureTest extends TestCase
     #[Test]
     public function payment_amount_money_attribute_returns_money_value_object(): void
     {
-        $invoice = Invoice::factory()->create([
-            'payment_amount' => 1234.56,
-            'payment_currency' => 'eur',
-        ]);
+        $invoice = Invoice::factory()->create(
+            [
+                'payment_amount' => 1234.56,
+                'payment_currency' => 'eur',
+            ],
+        );
 
         $money = $invoice->payment_amount_money; // Money VO
         $this->assertEquals('1234.56', $money->getAmount());
@@ -236,18 +253,22 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         // Two products: (100 * 2) + (50 * 3) = 350.00
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'price' => 100.00,
-            'quantity' => 2,
-            'currency' => 'CZK',
-        ]);
-        InvoiceProduct::factory()->create([
-            'invoice_id' => $invoice->id,
-            'price' => 50.00,
-            'quantity' => 3,
-            'currency' => 'CZK',
-        ]);
+        InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'price' => 100.00,
+                'quantity' => 2,
+                'currency' => 'CZK',
+            ],
+        );
+        InvoiceProduct::factory()->create(
+            [
+                'invoice_id' => $invoice->id,
+                'price' => 50.00,
+                'quantity' => 3,
+                'currency' => 'CZK',
+            ],
+        );
 
         $money = $invoice->subtotal_money; // Money VO
         $this->assertEquals('350', $money->getAmount());
@@ -262,32 +283,36 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         // The stored tax of each line is summed as it is
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'P1',
-            'quantity' => 1,
-            'price' => 100.00,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 21,
-            'tax_amount' => '21.00',
-            'total_price' => '121.00',
-        ]);
-        InvoiceProduct::create([
-            'invoice_id' => $invoice->id,
-            'product_id' => Product::factory()->create()->id,
-            'name' => 'P2',
-            'quantity' => 2,
-            'price' => 50.00,
-            'currency' => 'USD',
-            'unit' => 'pieces',
-            'is_custom_product' => false,
-            'tax_rate' => 12,
-            'tax_amount' => '12.00',
-            'total_price' => '112.00',
-        ]);
+        InvoiceProduct::create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => Product::factory()->create()->id,
+                'name' => 'P1',
+                'quantity' => 1,
+                'price' => 100.00,
+                'currency' => 'USD',
+                'unit' => 'pieces',
+                'is_custom_product' => false,
+                'tax_rate' => 21,
+                'tax_amount' => '21.00',
+                'total_price' => '121.00',
+            ],
+        );
+        InvoiceProduct::create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => Product::factory()->create()->id,
+                'name' => 'P2',
+                'quantity' => 2,
+                'price' => 50.00,
+                'currency' => 'USD',
+                'unit' => 'pieces',
+                'is_custom_product' => false,
+                'tax_rate' => 12,
+                'tax_amount' => '12.00',
+                'total_price' => '112.00',
+            ],
+        );
 
         $money = $invoice->total_tax_money;
         $this->assertEquals('33', $money->getAmount());
@@ -296,10 +321,12 @@ class InvoiceFeatureTest extends TestCase
 
     private function invoiceDueDaysAgo(InvoiceStatus $status, int $days): Invoice
     {
-        return Invoice::factory()->create([
-            'payment_status_id' => Status::where('slug', $status->value)->firstOrFail()->id,
-            'issue_date' => now()->subDays(14 + $days)->toDateString(),
-            'due_in' => 14,
-        ]);
+        return Invoice::factory()->create(
+            [
+                'payment_status_id' => Status::where('slug', $status->value)->firstOrFail()->id,
+                'issue_date' => now()->subDays(14 + $days)->toDateString(),
+                'due_in' => 14,
+            ],
+        );
     }
 }
