@@ -59,7 +59,8 @@ final class InvoiceReminderRenderingTest extends TestCase
             ['name' => 'Changed source business', 'archived_at' => now()],
         );
 
-        app(InvoiceReminderApplicationService::class)->sendForInvoice(
+        $invoiceReminderApplicationService = app(InvoiceReminderApplicationService::class);
+        $invoiceReminderApplicationService->sendForInvoice(
             InvoiceId::fromInt($invoice->id),
             [$type],
         );
@@ -72,16 +73,18 @@ final class InvoiceReminderRenderingTest extends TestCase
             $message = $notification->toMail($sent['notifiable']);
             $html = (string) $message->render();
             $this->assertStringContainsString('20260042', $html);
+            $moneyFormatter = app(MoneyFormatterInterface::class);
             $this->assertStringContainsString(
-                app(MoneyFormatterInterface::class)->formatWithCode(
+                $moneyFormatter->formatWithCode(
                     Money::fromString('1234.56', 'EUR'),
                     $locale,
                 ),
                 html_entity_decode($html),
             );
             $dueDate = $invoice->issue_date->toDateTimeImmutable()->modify('+' . $invoice->due_in . ' days');
+            $dateFormatter = app(DateFormatterInterface::class);
             $this->assertStringContainsString(
-                app(DateFormatterInterface::class)->formatDate($dueDate, $locale),
+                $dateFormatter->formatDate($dueDate, $locale),
                 $html,
             );
             $this->assertStringContainsString('Stored issuing business', $html);

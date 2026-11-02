@@ -248,7 +248,8 @@ class LoginControllerTest extends TestCase
         $request = Request::create('/login', 'POST');
 
         // Set app locale
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -276,7 +277,8 @@ class LoginControllerTest extends TestCase
         $request = Request::create('/login', 'POST');
 
         // Set different locale
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
 
         // Use reflection to call protected method
         $reflection = new \ReflectionClass($this->controller);
@@ -303,7 +305,8 @@ class LoginControllerTest extends TestCase
         $this->assertTrue(Auth::check());
 
         // Set app locale
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
 
         $response = $this->post('/en/logout');
 
@@ -328,7 +331,8 @@ class LoginControllerTest extends TestCase
         // Store original session ID
         $originalSessionId = session()->getId();
 
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
 
         $response = $this->post('/en/logout');
 

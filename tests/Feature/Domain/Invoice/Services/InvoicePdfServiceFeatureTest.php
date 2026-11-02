@@ -137,7 +137,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function print_uses_only_the_document_logo_and_tolerates_a_missing_file(): void
     {
         Storage::fake('public');
-        $file = UploadedFile::fake()->image('logo.png');
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image('logo.png');
         $disk = Storage::disk('public');
         $disk->put(
             'documents/logos/saved.png',
@@ -172,26 +173,30 @@ final class InvoicePdfServiceFeatureTest extends TestCase
             )->setTime(14, 7),
         );
         $invoice = $this->invoice();
-        $previous = app()->getLocale();
+        $application = app();
+        $previous = $application->getLocale();
         $print = $this->printable($invoice);
         $german = $this->renderPdfHtml(
             $print,
             'default',
             'de',
         );
-        $this->assertSame($previous, app()->getLocale());
+        $application2 = app();
+        $this->assertSame($previous, $application2->getLocale());
         $english = $this->renderPdfHtml(
             $print,
             'default',
             'en',
         );
-        $this->assertSame($previous, app()->getLocale());
+        $application3 = app();
+        $this->assertSame($previous, $application3->getLocale());
         $this->assertStringContainsString('05.03.2026', $german);
         $this->assertStringContainsString('19.03.2026', $german);
         $this->assertStringContainsString('20.03.2026, 14:07', $german);
         $this->assertStringContainsString('Mar 5, 2026', $english);
+        $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertStringContainsString(
-            app(MoneyFormatterInterface::class)->format($print->totalAmount, 'en'),
+            $moneyFormatter->format($print->totalAmount, 'en'),
             $english,
         );
     }
@@ -201,11 +206,13 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function a_guest_prints_the_same_snapshot_shape_and_server_totals(string $template): void
     {
         $invoice = $this->invoice();
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
+        $dto = $invoiceDtoReadRepository->findByIdForUser(
             InvoiceId::fromInt($invoice->id),
             UserId::fromInt($invoice->user_id),
         );
-        $print = app(TemporaryInvoicePrintDataFactoryInterface::class)->fromArray(
+        $temporaryInvoicePrintDataFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
+        $print = $temporaryInvoicePrintDataFactory->fromArray(
             [
                 'supplier' => $dto->parties->supplier,
                 'customer' => $dto->parties->customer,
@@ -236,8 +243,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         @$dom->loadHTML($html);
         $lastCell = (new DOMXPath($dom))->query("//tr[td[1][normalize-space()='Guest service']]/td[last()]")->item(0);
         $this->assertNotNull($lastCell);
+        $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertSame(
-            app(MoneyFormatterInterface::class)->format($print->totalAmount, 'cs'),
+            $moneyFormatter->format($print->totalAmount, 'cs'),
             trim($lastCell->textContent),
         );
         $this->assertStringContainsString('Saved supplier', $html);
@@ -249,7 +257,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function renders_a_downloadable_pdf_and_falls_back_from_an_unknown_template(): void
     {
         $print = $this->printable($this->invoice());
-        $pdf = app(InvoicePdfRenderer::class)->render(
+        $invoicePdfRenderer = app(InvoicePdfRenderer::class);
+        $pdf = $invoicePdfRenderer->render(
             $print,
             'unknown-template',
             'cs',
@@ -289,11 +298,14 @@ final class InvoicePdfServiceFeatureTest extends TestCase
 
     private function printable(Invoice $invoice): PrintableInvoiceDTO
     {
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
+        $dto = $invoiceDtoReadRepository->findByIdForUser(
             InvoiceId::fromInt($invoice->id),
             UserId::fromInt($invoice->user_id),
         );
 
-        return app(InvoicePrintDataBuilder::class)->build($dto);
+        $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
+
+        return $invoicePrintDataBuilder->build($dto);
     }
 }

@@ -23,7 +23,8 @@ final class EloquentProductDtoRepositoryTest extends TestCase
         $invoiceProductFactory->create(['product_id' => $product->id]);
 
         try {
-            app(ProductDtoWriteRepositoryInterface::class)->delete(
+            $productDtoWriteRepository = app(ProductDtoWriteRepositoryInterface::class);
+            $productDtoWriteRepository->delete(
                 ProductId::fromInt($product->id),
             );
             $this->fail('ProductInUseException was not thrown');
@@ -38,7 +39,8 @@ final class EloquentProductDtoRepositoryTest extends TestCase
         $productFactory = Product::factory();
         $product = $productFactory->create();
 
-        app(ProductDtoWriteRepositoryInterface::class)->delete(
+        $productDtoWriteRepository = app(ProductDtoWriteRepositoryInterface::class);
+        $productDtoWriteRepository->delete(
             ProductId::fromInt($product->id),
         );
 

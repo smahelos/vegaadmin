@@ -37,7 +37,8 @@ abstract class TestCase extends BaseTestCase
         $this->withoutMiddleware(SetLocale::class);
 
         // Reset Spatie\Permission cached permissions to avoid memory bloat across long test runs
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissionRegistrar = app(PermissionRegistrar::class);
+        $permissionRegistrar->forgetCachedPermissions();
     }
 
     /**

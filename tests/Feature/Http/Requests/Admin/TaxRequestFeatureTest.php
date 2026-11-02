@@ -93,8 +93,10 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('rate', $errors2->toArray());
     }
 
     /**
@@ -113,7 +115,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     /**
@@ -132,7 +135,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**
@@ -151,7 +155,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**

@@ -22,7 +22,8 @@ final class PaginatesTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
         URL::defaults(['locale' => 'cs']);
         $this->user = $this->frontendUser();
         $contactFactory = Contact::factory();

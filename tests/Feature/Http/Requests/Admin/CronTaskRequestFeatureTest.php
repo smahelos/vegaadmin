@@ -137,7 +137,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -152,7 +153,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('base_command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('base_command', $errors->toArray());
     }
 
     #[Test]
@@ -168,7 +170,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('frequency', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('frequency', $errors->toArray());
     }
 
     #[Test]
@@ -185,7 +188,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('custom_expression', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('custom_expression', $errors->toArray());
     }
 
     #[Test]
@@ -207,10 +211,12 @@ class CronTaskRequestFeatureTest extends TestCase
         $request->setContainer(app());
 
         // Run validation through the request
-        $validator = app('validator')->make($data, $request->rules());
+        $validator2 = app('validator');
+        $validator = $validator2->make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('custom_expression', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('custom_expression', $errors->toArray());
     }
 
     #[Test]
@@ -227,7 +233,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('day_of_week', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('day_of_week', $errors->toArray());
     }
 
     #[Test]
@@ -244,7 +251,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('day_of_month', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('day_of_month', $errors->toArray());
     }
 
     #[Test]
@@ -261,7 +269,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('run_at', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('run_at', $errors->toArray());
     }
 
     #[Test]
@@ -277,7 +286,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -293,7 +303,8 @@ class CronTaskRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('base_command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('base_command', $errors->toArray());
     }
 
     #[Test]

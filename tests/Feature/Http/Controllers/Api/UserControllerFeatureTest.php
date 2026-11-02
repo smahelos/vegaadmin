@@ -58,7 +58,8 @@ class UserControllerFeatureTest extends TestCase
         $this->userServiceStub->seedFromModels(
             array_filter($models),
         );
-        app()->instance(UserServiceInterface::class, $this->userServiceStub);
+        $application = app();
+        $application->instance(UserServiceInterface::class, $this->userServiceStub);
     }
 
     /**

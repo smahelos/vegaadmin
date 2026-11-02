@@ -17,7 +17,8 @@ class ProductImageValidationFeatureTest extends TestCase
         Storage::fake('public');
         $productFactory = Product::factory();
         $product = $productFactory->create();
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'malicious.exe',
             10,
             'application/octet-stream',
@@ -34,7 +35,8 @@ class ProductImageValidationFeatureTest extends TestCase
         $productFactory = Product::factory();
         $product = $productFactory->create();
         // 11 MB (KB calculation: 11 * 1024 = 11264)
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'big.png',
             11264,
             'image/png',
@@ -50,7 +52,8 @@ class ProductImageValidationFeatureTest extends TestCase
         Storage::fake('public');
         $productFactory = Product::factory();
         $product = $productFactory->create();
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image(
             'ok.png',
             100,
             100,

@@ -328,7 +328,8 @@ final class InvoiceRequestFeatureTest extends TestCase
                 'bank_account_id' => $accountOfAnotherBusiness->id,
             ] + $this->validInvoiceData,
         );
-        $this->assertSame([], $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertSame([], $errors->toArray());
         $this->assertArrayNotHasKey('bank_account_id', $validator->validated());
 
         $guestValidator = $this->validator(
@@ -561,11 +562,13 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_invoice_logo_file(): void
     {
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
             'logo.png',
             100,
             100,
-        )->size(1000);
+        );
+        $file = $fakeFile->size(1000);
 
         $this->assertSame(
             [],
@@ -579,7 +582,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_invoice_logo_format(): void
     {
-        $file = UploadedFile::fake()->create('document.pdf', 1000);
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create('document.pdf', 1000);
 
         $this->assertArrayHasKey(
             'invoice_logo',
@@ -593,11 +597,13 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_oversized_invoice_logo(): void
     {
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
             'logo.png',
             100,
             100,
-        )->size(3000);
+        );
+        $file = $fakeFile->size(3000);
 
         $this->assertArrayHasKey(
             'invoice_logo',
@@ -632,11 +638,13 @@ final class InvoiceRequestFeatureTest extends TestCase
                 'svg',
             ] as $format
         ) {
-            $file = UploadedFile::fake()->image(
+            $fileFactory = UploadedFile::fake();
+            $fakeFile = $fileFactory->image(
                 "logo.{$format}",
                 100,
                 100,
-            )->size(1000);
+            );
+            $file = $fakeFile->size(1000);
 
             $this->assertSame(
                 [],
@@ -731,7 +739,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function an_item_tax_rate_must_be_one_the_form_offers(): void
     {
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
         $errors = $this->itemErrors(
             [$this->item(['tax_rate' => '17'])],
         );

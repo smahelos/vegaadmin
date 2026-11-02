@@ -94,12 +94,14 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'total_price' => '1210',
             ],
         );
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
+        $dto = $invoiceDtoReadRepository->findByIdForUser(
             InvoiceId::fromInt($invoice->id),
             UserId::fromInt($invoice->user_id),
         );
+        $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
         $html = $this->renderPdfHtml(
-            app(InvoicePrintDataBuilder::class)->build($dto),
+            $invoicePrintDataBuilder->build($dto),
             $template,
         );
         $normalized = trim(

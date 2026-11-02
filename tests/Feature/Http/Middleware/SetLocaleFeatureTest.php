@@ -34,7 +34,8 @@ class SetLocaleFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $this->assertEquals('en', app()->getLocale());
+        $application = app();
+        $this->assertEquals('en', $application->getLocale());
     }
 
     #[Test]
@@ -45,7 +46,8 @@ class SetLocaleFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $this->assertEquals('cs', app()->getLocale());
+        $application = app();
+        $this->assertEquals('cs', $application->getLocale());
     }
 
     #[Test]
@@ -57,6 +59,7 @@ class SetLocaleFeatureTest extends TestCase
             $request,
             fn () => response('OK'),
         );
-        $this->assertEquals('de', app()->getLocale());
+        $application = app();
+        $this->assertEquals('de', $application->getLocale());
     }
 }

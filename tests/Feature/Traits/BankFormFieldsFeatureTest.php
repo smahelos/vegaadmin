@@ -79,13 +79,15 @@ class BankFormFieldsFeatureTest extends TestCase
     #[Test]
     public function get_bank_fields_offers_countries_named_in_the_app_locale(): void
     {
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
 
         $fields = $this->traitInstance->callGetBankFields();
 
         $countryField = collect($fields)->firstWhere('name', 'country');
+        $countryOptionsPresenter = app(CountryOptionsPresenter::class);
         $this->assertSame(
-            app(CountryOptionsPresenter::class)->options('cs'),
+            $countryOptionsPresenter->options('cs'),
             $countryField['options'],
         );
         $this->assertSame('Česko', $countryField['options']['CZ']);

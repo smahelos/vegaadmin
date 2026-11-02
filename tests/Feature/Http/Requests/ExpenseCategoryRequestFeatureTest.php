@@ -66,7 +66,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($this->validExpenseCategoryData, $request->rules());
 
         $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $errors = $validator->errors();
+        $this->assertEmpty($errors->all());
     }
 
     #[Test]
@@ -84,9 +85,10 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
             $validator = Validator::make($invalidData, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
+            $errors = $validator->errors();
             $this->assertArrayHasKey(
                 $field,
-                $validator->errors()->toArray(),
+                $errors->toArray(),
                 "Should have error for missing {$field}",
             );
         }
@@ -104,7 +106,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -119,7 +122,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -138,7 +142,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -159,7 +164,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($updateData, $request->rules());
 
         $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $errors = $validator->errors();
+        $this->assertEmpty($errors->all());
     }
 
     #[Test]
@@ -176,7 +182,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($minimalData, $request->rules());
 
         $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $errors = $validator->errors();
+        $this->assertEmpty($errors->all());
     }
 
     #[Test]
@@ -191,7 +198,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]
@@ -293,7 +301,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         // Should fail because slug is required and not provided in validation rules
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -308,6 +317,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('color', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('color', $errors->toArray());
     }
 }

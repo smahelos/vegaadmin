@@ -82,9 +82,12 @@ class BankRequestFeatureTest extends TestCase
         $request = new BankRequest;
         $validator = Validator::make([], $request->rules());
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('code', $validator->errors()->toArray());
-        $this->assertArrayHasKey('country', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('code', $errors2->toArray());
+        $errors3 = $validator->errors();
+        $this->assertArrayHasKey('country', $errors3->toArray());
     }
 
     #[Test]
@@ -102,7 +105,8 @@ class BankRequestFeatureTest extends TestCase
             $request->rules(),
         );
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('code', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('code', $errors->toArray());
     }
 
     #[Test]

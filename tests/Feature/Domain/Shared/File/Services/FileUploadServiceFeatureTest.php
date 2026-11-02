@@ -134,7 +134,8 @@ class FileUploadServiceFeatureTest extends TestCase
 
         // Create a mock uploaded file with size that exceeds limit
         // Note: The original code divides by 20480 instead of 1024, so we need to account for that
-        $file = UploadedFile::fake()->create('large.txt', 50000); // 50MB file
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create('large.txt', 50000); // 50MB file
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -152,7 +153,8 @@ class FileUploadServiceFeatureTest extends TestCase
             trans('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']),
         );
 
-        $file = UploadedFile::fake()->create('document.exe', 100);
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create('document.exe', 100);
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -165,7 +167,8 @@ class FileUploadServiceFeatureTest extends TestCase
     #[Test]
     public function handle_file_upload_accepts_allowed_file_type(): void
     {
-        $file = UploadedFile::fake()->create('document.pdf', 100);
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create('document.pdf', 100);
 
         $result = $this->service->handleFileUpload(
             $this->normalize($file),
@@ -184,7 +187,8 @@ class FileUploadServiceFeatureTest extends TestCase
     {
         Storage::fake('public');
 
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'malware.exe',
             10,
             'application/octet-stream',
@@ -214,7 +218,8 @@ class FileUploadServiceFeatureTest extends TestCase
     public function handle_file_upload_throws_exception_when_file_exceeds_size_limit(): void
     {
         Storage::fake('public');
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'large.png',
             500,
             'image/png',
@@ -245,7 +250,8 @@ class FileUploadServiceFeatureTest extends TestCase
     public function thumbnail_is_created_for_image_when_enabled(): void
     {
         Storage::fake('public');
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image(
             'photo.jpg',
             400,
             400,

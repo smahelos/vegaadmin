@@ -80,7 +80,8 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(3, $statsAfterThird->invoiceCount);
 
         // Manual dispatch is idempotent (no change in counts)
-        app(Dispatcher::class)->dispatch(
+        $dispatcher = app(Dispatcher::class);
+        $dispatcher->dispatch(
             new UserDataChanged($user->id, 'invoice'),
         );
         $statsAfterManual = $this->service->getUserStatistics(
@@ -146,7 +147,8 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $this->assertSame(1, $statsB1->invoiceCount);
 
         // Manual dispatch does not change counts further
-        app(Dispatcher::class)->dispatch(
+        $dispatcher = app(Dispatcher::class);
+        $dispatcher->dispatch(
             new UserDataChanged($userA->id, 'invoice'),
         );
         $statsA3 = $this->service->getUserStatistics(

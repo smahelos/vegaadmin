@@ -13,7 +13,8 @@ final class FileUploadConfigTest extends TestCase
     #[Test]
     public function default_context_returns_configured_defaults(): void
     {
-        $context = app(FileUploadConfig::class)->forContext();
+        $fileUploadConfig = app(FileUploadConfig::class);
+        $context = $fileUploadConfig->forContext();
 
         $this->assertGreaterThan(0, $context->getMaxKb());
         $this->assertContains('jpg', $context->getAllowedExtensions());
@@ -23,7 +24,8 @@ final class FileUploadConfigTest extends TestCase
     #[Test]
     public function specific_context_overrides_defaults(): void
     {
-        $context = app(FileUploadConfig::class)->forContext('invoice_logo');
+        $fileUploadConfig = app(FileUploadConfig::class);
+        $context = $fileUploadConfig->forContext('invoice_logo');
 
         $this->assertSame(2048, $context->getMaxKb());
         $this->assertContains('png', $context->getAllowedExtensions());

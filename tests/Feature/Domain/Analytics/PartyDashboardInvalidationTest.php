@@ -118,7 +118,8 @@ final class PartyDashboardInvalidationTest extends TestCase
         try {
             DB::transaction(
                 function () use ($uid): void {
-                    app(ContactApplicationService::class)->create(
+                    $contactApplicationService = app(ContactApplicationService::class);
+                    $contactApplicationService->create(
                         $uid,
                         new ContactWriteData(
                             $this->profile('Rolled back'),

@@ -45,12 +45,14 @@ final class SharedProductCatalogTest extends TestCase
     {
         $productFactory = Product::factory();
         $product = $productFactory->create(['price' => '123.45', 'currency' => 'CZK']);
-        $dto = app(ProductDtoReadRepositoryInterface::class)->findByIdForUser(
+        $productDtoReadRepository = app(ProductDtoReadRepositoryInterface::class);
+        $dto = $productDtoReadRepository->findByIdForUser(
             ProductId::fromInt($product->id),
             UserId::fromInt($product->user_id),
         );
         $this->assertSame('123.45', $dto->price->getAmount());
-        $updated = app(ProductApplicationServiceInterface::class)->updateProduct(
+        $productApplicationService = app(ProductApplicationServiceInterface::class);
+        $updated = $productApplicationService->updateProduct(
             $product->id,
             ['name' => 'Updated shared product', 'price' => '200.50'],
             $product->user_id,

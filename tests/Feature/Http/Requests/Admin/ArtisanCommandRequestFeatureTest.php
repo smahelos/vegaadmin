@@ -52,9 +52,12 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
-        $this->assertArrayHasKey('category_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('command', $errors2->toArray());
+        $errors3 = $validator->errors();
+        $this->assertArrayHasKey('category_id', $errors3->toArray());
     }
 
     #[Test]
@@ -73,7 +76,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -92,7 +96,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('command', $errors->toArray());
     }
 
     #[Test]
@@ -113,7 +118,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('command', $errors->toArray());
     }
 
     #[Test]
@@ -152,7 +158,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('category_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('category_id', $errors->toArray());
     }
 
     #[Test]
@@ -210,7 +217,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]
@@ -259,7 +267,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('sort_order', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('sort_order', $errors->toArray());
     }
 
     #[Test]

@@ -179,7 +179,8 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function guest_can_preview_pdf_by_token(): void
     {
-        $stored = app(GuestInvoiceApplicationServiceInterface::class)->storeGuestInvoice(
+        $guestInvoiceApplicationService = app(GuestInvoiceApplicationServiceInterface::class);
+        $stored = $guestInvoiceApplicationService->storeGuestInvoice(
             $this->guestInput(),
             $this->party('Dodavatel s.r.o.'),
             $this->party('Odběratel s.r.o.'),

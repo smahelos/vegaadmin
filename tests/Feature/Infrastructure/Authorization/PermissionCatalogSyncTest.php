@@ -76,7 +76,8 @@ class PermissionCatalogSyncTest extends TestCase
         $backendUser->givePermissionTo([$custom, 'can_view_user']);
         $permissionCount = Permission::count();
 
-        app(PermissionCatalogSync::class)->sync();
+        $permissionCatalogSync = app(PermissionCatalogSync::class);
+        $permissionCatalogSync->sync();
 
         $this->assertEqualsCanonicalizing(
             [$custom->name, 'can_view_user'],

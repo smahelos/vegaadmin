@@ -41,7 +41,8 @@ final class BankAccountDefaultSerializationTest extends TestCase
             $this->lockError($connection, $userId),
         );
 
-        app(BankAccountApplicationService::class)->setDefault(
+        $bankAccountApplicationService = app(BankAccountApplicationService::class);
+        $bankAccountApplicationService->setDefault(
             UserId::fromInt($userId),
             AccountOwner::contact(
                 ContactId::fromInt($contact->id),

@@ -75,7 +75,8 @@ final class QrPaymentServiceFeatureTest extends TestCase
             ),
             'Saved bank',
         );
-        $payload = app(QrPaymentMapper::class)->fromSnapshot(
+        $qrPaymentMapper = app(QrPaymentMapper::class);
+        $payload = $qrPaymentMapper->fromSnapshot(
             '20260001',
             Money::fromString('1500.50', $currency),
             $snapshot,
@@ -126,12 +127,15 @@ final class QrPaymentServiceFeatureTest extends TestCase
             ],
         );
         $business->update(['archived_at' => now()]);
-        $stored = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
+        $stored = $invoiceDtoReadRepository->findByIdForUser(
             InvoiceId::fromInt($invoice->id),
             UserId::fromInt($invoice->user_id),
         );
-        $printable = app(InvoicePrintDataBuilderInterface::class)->build($stored);
-        $payment = app(QrPaymentMapper::class)->fromPrintableInvoice($printable);
+        $invoicePrintDataBuilder = app(InvoicePrintDataBuilderInterface::class);
+        $printable = $invoicePrintDataBuilder->build($stored);
+        $qrPaymentMapper = app(QrPaymentMapper::class);
+        $payment = $qrPaymentMapper->fromPrintableInvoice($printable);
         $renderer = $this->createMock(QrCodeRendererInterface::class);
         $renderer->expects($this->once())->method('renderDataUrl')->willReturnCallback(
             function (string $qr): string {
@@ -151,7 +155,8 @@ final class QrPaymentServiceFeatureTest extends TestCase
     {
         $renderer = $this->createMock(QrCodeRendererInterface::class);
         $renderer->expects($this->never())->method('renderDataUrl');
-        $payload = app(QrPaymentMapper::class)->fromSnapshot(
+        $qrPaymentMapper = app(QrPaymentMapper::class);
+        $payload = $qrPaymentMapper->fromSnapshot(
             '20260001',
             Money::fromString('100', 'CZK'),
             null,

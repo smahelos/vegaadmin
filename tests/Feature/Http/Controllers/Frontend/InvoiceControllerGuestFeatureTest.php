@@ -225,7 +225,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function download_with_token_not_found_returns_404(): void
     {
         $this->withoutExceptionHandling();
-        app()->bind(
+        $application = app();
+        $application->bind(
             InvoicePdfApplicationServiceInterface::class,
             function () {
                 return new class implements InvoicePdfApplicationServiceInterface
@@ -269,7 +270,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     public function download_with_token_generic_failure_returns_500(): void
     {
         $this->withoutExceptionHandling();
-        app()->bind(
+        $application = app();
+        $application->bind(
             InvoicePdfApplicationServiceInterface::class,
             function () {
                 return new class implements InvoicePdfApplicationServiceInterface

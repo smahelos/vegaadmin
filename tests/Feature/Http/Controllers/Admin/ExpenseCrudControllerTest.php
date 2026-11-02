@@ -364,10 +364,11 @@ final class ExpenseCrudControllerTest extends TestCase
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
         $receipt = '%PDF-1.4 shared receipt';
+        $fileFactory = UploadedFile::fake();
         $httpResponse = $this->post(
             '/admin/expense',
             $data + [
-                'attachments' => [UploadedFile::fake()->createWithContent('receipt.pdf', $receipt)],
+                'attachments' => [$fileFactory->createWithContent('receipt.pdf', $receipt)],
             ],
         );
         $httpResponse->assertSessionHasNoErrors();
@@ -385,6 +386,7 @@ final class ExpenseCrudControllerTest extends TestCase
         );
         $this->withoutExceptionHandling();
         try {
+            $fileFactory2 = UploadedFile::fake();
             $this->post(
                 '/admin/expense',
                 array_replace(
@@ -392,7 +394,7 @@ final class ExpenseCrudControllerTest extends TestCase
                     [
                         'reference_number' => 'FAILED',
                         'attachments' => [
-                            UploadedFile::fake()->createWithContent('receipt.pdf', $receipt),
+                            $fileFactory2->createWithContent('receipt.pdf', $receipt),
                             UploadedFile::fake()->createWithContent('new.pdf', '%PDF-1.4 new receipt'),
                         ],
                     ],
@@ -421,9 +423,10 @@ final class ExpenseCrudControllerTest extends TestCase
         Storage::fake('public');
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
+        $fileFactory = UploadedFile::fake();
         $httpResponse = $this->post(
             '/admin/expense',
-            $data + ['attachments' => [UploadedFile::fake()->create(
+            $data + ['attachments' => [$fileFactory->create(
                 'receipt.pdf',
                 12,
                 'application/pdf',

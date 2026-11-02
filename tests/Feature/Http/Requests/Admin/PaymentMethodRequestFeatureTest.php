@@ -74,7 +74,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Card'], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -82,7 +83,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Bank Transfer', 'slug' => 'bank-transfer'], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -91,7 +93,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $request = new PaymentMethodRequest;
         $validator = Validator::make(['slug' => 'something'], $request->rules());
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -99,7 +102,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Cash', 'slug' => PaymentMethodCode::CASH->value], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -111,7 +115,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
         ];
         $validator = Validator::make($data, $request->rules());
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]

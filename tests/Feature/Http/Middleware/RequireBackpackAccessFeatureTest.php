@@ -26,7 +26,8 @@ class RequireBackpackAccessFeatureTest extends TestCase
     #[Test]
     public function unauthenticated_json_request_gets_401(): void
     {
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
         $request = Request::create(
             '/admin/dashboard',
             'GET',
@@ -52,7 +53,8 @@ class RequireBackpackAccessFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
         $request = Request::create(
             '/admin/dashboard',
             'GET',

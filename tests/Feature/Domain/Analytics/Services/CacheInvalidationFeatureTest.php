@@ -84,7 +84,8 @@ final class CacheInvalidationFeatureTest extends TestCase
         );
         $this->assertSame(1, $statsCached->invoiceCount);
 
-        app(Dispatcher::class)->dispatch(
+        $dispatcher = app(Dispatcher::class);
+        $dispatcher->dispatch(
             new UserDataChanged($user->id, 'invoice'),
         );
         $statsAfter = $this->dashboardService->getUserStatistics(

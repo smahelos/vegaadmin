@@ -76,11 +76,13 @@ class ProductRequestFeatureTest extends TestCase
     public function validation_passes_with_complete_valid_data(): void
     {
         Storage::fake('local');
-        $image = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
             'product.jpg',
             100,
             100,
-        )->size(1024);
+        );
+        $image = $fakeFile->size(1024);
 
         $validData = [
             'name' => 'Wireless Headphones',
@@ -125,9 +127,12 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('user_id', $errors2->toArray());
+        $errors3 = $validator->errors();
+        $this->assertArrayHasKey('price', $errors3->toArray());
     }
 
     #[Test]
@@ -144,7 +149,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -161,7 +167,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -179,7 +186,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -206,7 +214,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -260,7 +269,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('user_id', $errors->toArray());
     }
 
     #[Test]
@@ -277,7 +287,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('price', $errors->toArray());
     }
 
     #[Test]
@@ -294,7 +305,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('price', $errors->toArray());
     }
 
     #[Test]
@@ -312,7 +324,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('tax_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('tax_id', $errors->toArray());
     }
 
     #[Test]
@@ -330,14 +343,16 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('category_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('category_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_invalid_image_format(): void
     {
         Storage::fake('local');
-        $invalidImage = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $invalidImage = $fileFactory->create(
             'document.txt',
             100,
             'text/plain',
@@ -355,18 +370,21 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('image', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('image', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_oversized_image(): void
     {
         Storage::fake('local');
-        $oversizedImage = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
             'large.jpg',
             1000,
             1000,
-        )->size(3000); // 3MB
+        );
+        $oversizedImage = $fakeFile->size(3000); // 3MB
 
         $invalidData = [
             'name' => 'Valid Product',
@@ -380,18 +398,21 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('image', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('image', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_valid_image(): void
     {
         Storage::fake('local');
-        $validImage = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
             'product.jpg',
             200,
             200,
-        )->size(1000); // 1MB
+        );
+        $validImage = $fakeFile->size(1000); // 1MB
 
         $validData = [
             'name' => 'Valid Product',

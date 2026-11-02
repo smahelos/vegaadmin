@@ -314,8 +314,9 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
 
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
+        $dateFormatter = app(DateFormatterInterface::class);
         $this->assertSame(
-            app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']),
+            $dateFormatter->formatDate($payload->dueDate, $viewData['locale']),
             $viewData['dueDate'],
         );
     }

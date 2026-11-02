@@ -110,9 +110,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 return $this->meta;
             }
         };
-        app()->instance(GatewayRegistryInterface::class, $registryStub);
+        $application = app();
+        $application->instance(GatewayRegistryInterface::class, $registryStub);
         // Rebind PaymentDtoWriteRepositoryInterface to a safe test implementation (avoid loading undefined relations)
-        app()->bind(
+        $application2 = app();
+        $application2->bind(
             PaymentDtoWriteRepositoryInterface::class,
             function ($app) {
                 $eloquent = $app->make(EloquentPaymentWriteRepository::class);
@@ -149,7 +151,8 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
             },
         );
         // Bind a safe SubscriptionDtoReadRepositoryInterface stub to bypass faulty mapper subscriptionPlan handling
-        app()->bind(
+        $application3 = app();
+        $application3->bind(
             SubscriptionDtoReadRepositoryInterface::class,
             function () {
                 return new class implements SubscriptionDtoReadRepositoryInterface

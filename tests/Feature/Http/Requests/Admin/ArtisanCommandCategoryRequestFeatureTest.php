@@ -46,8 +46,10 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors2->toArray());
     }
 
     #[Test]
@@ -62,7 +64,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -77,7 +80,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -95,7 +99,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -133,7 +138,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make(['name' => 'Updated Category', 'slug' => 'taken-slug'], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -178,7 +184,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]

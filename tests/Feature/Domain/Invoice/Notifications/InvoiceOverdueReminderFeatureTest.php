@@ -314,8 +314,9 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
 
         $this->assertArrayHasKey('dueDate', $viewData);
         $this->assertIsString($viewData['dueDate']);
+        $dateFormatter = app(DateFormatterInterface::class);
         $this->assertSame(
-            app(DateFormatterInterface::class)->formatDate($payload->dueDate, $viewData['locale']),
+            $dateFormatter->formatDate($payload->dueDate, $viewData['locale']),
             $viewData['dueDate'],
         );
     }
@@ -458,7 +459,8 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
         $viewData = $viewDataProperty->getValue($mailMessage);
 
         $this->assertArrayHasKey('locale', $viewData);
-        $this->assertSame(app()->getLocale(), $viewData['locale']);
+        $application = app();
+        $this->assertSame($application->getLocale(), $viewData['locale']);
     }
 
     #[Test]

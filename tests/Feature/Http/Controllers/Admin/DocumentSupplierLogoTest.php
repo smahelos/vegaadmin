@@ -206,9 +206,10 @@ final class DocumentSupplierLogoTest extends TestCase
         $business->update(
             ['logo' => $this->sourceLogo('own.png')],
         );
+        $fileFactory = UploadedFile::fake();
         $data = $this->expenseInput(
             $business,
-            ['supplier_logo' => UploadedFile::fake()->image('external.png')],
+            ['supplier_logo' => $fileFactory->image('external.png')],
         );
         $httpResponse = $this->post('/admin/expense', $data);
         $httpResponse->assertSessionHasNoErrors();
@@ -234,12 +235,13 @@ final class DocumentSupplierLogoTest extends TestCase
     public function rejects_an_invalid_one_off_logo(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
+        $fileFactory = UploadedFile::fake();
         $httpResponse = $this->post(
             '/admin/expense',
             $this->expenseInput(
                 $business,
                 [
-                    'supplier_logo' => UploadedFile::fake()->create(
+                    'supplier_logo' => $fileFactory->create(
                         'document.pdf',
                         10,
                         'application/pdf',
@@ -262,12 +264,13 @@ final class DocumentSupplierLogoTest extends TestCase
             Role::findByName('frontend_user', 'web'),
         );
         $name = 'Contact with logo ' . uniqid();
+        $fileFactory = UploadedFile::fake();
         $httpResponse2 = $this->post(
             '/admin/contact',
             [
                 'user_id' => $owner->id,
                 'name' => $name,
-                'logo' => UploadedFile::fake()->image('logo.png'),
+                'logo' => $fileFactory->image('logo.png'),
             ],
         );
         $httpResponse2 = $httpResponse2->assertSessionHasNoErrors();
@@ -284,11 +287,12 @@ final class DocumentSupplierLogoTest extends TestCase
         $httpResponse4 = $this->put('/admin/contact/' . $contact->id, ['name' => $name]);
         $httpResponse4->assertSessionHasNoErrors();
         $this->assertSame($first, $contact->fresh()->logo);
+        $fileFactory2 = UploadedFile::fake();
         $httpResponse5 = $this->put(
             '/admin/contact/' . $contact->id,
             [
                 'name' => $name,
-                'logo' => UploadedFile::fake()->image(
+                'logo' => $fileFactory2->image(
                     'replacement.png',
                     300,
                     120,
@@ -413,10 +417,11 @@ final class DocumentSupplierLogoTest extends TestCase
             },
         );
         [$business] = $this->issuerOf($this->adminUser);
+        $fileFactory = UploadedFile::fake();
         $data = $this->expenseInput(
             $business,
             [
-                'supplier_logo' => UploadedFile::fake()->image('supplier.png'),
+                'supplier_logo' => $fileFactory->image('supplier.png'),
                 'attachments' => [UploadedFile::fake()->create(
                     'receipt.pdf',
                     12,

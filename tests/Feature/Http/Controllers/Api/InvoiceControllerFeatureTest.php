@@ -39,7 +39,8 @@ class InvoiceControllerFeatureTest extends TestCase
         // Prepare invoices dataset
         $this->stub = new InMemoryInvoiceServiceStub;
         $this->stub->seed($this->backendAdminUser, $this->frontendUser);
-        app()->instance(InvoiceListingApplicationServiceInterface::class, $this->stub);
+        $application = app();
+        $application->instance(InvoiceListingApplicationServiceInterface::class, $this->stub);
     }
 
     // ---------------------------------------------------------------

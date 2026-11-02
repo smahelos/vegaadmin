@@ -17,7 +17,8 @@ final class PartyLogoStorageIntegrationTest extends TestCase
     public function identical_party_logos_are_independent_and_deleting_one_keeps_the_other(): void
     {
         Storage::fake('public');
-        $upload = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $upload = $fileFactory->image(
             'logo.png',
             140,
             140,

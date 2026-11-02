@@ -326,7 +326,8 @@ class PageCategoryFeatureTest extends TestCase
         $category = PageCategory::create($categoryData);
 
         // Fallback should return CS when EN is empty
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
         $this->assertEquals('Česká kategorie', $category->getName());
         $this->assertEquals('ceska-kategorie', $category->getSlug());
         $this->assertEquals('Český popis', $category->getDescription());

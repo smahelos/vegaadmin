@@ -14,7 +14,8 @@ final class UnitOptionsTest extends TestCase
     #[Test]
     public function lists_every_unit_with_its_translated_label(): void
     {
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
 
         $view = $this->component(UnitOptions::class);
 

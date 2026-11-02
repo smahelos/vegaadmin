@@ -29,12 +29,14 @@ final class InvoicePrintDataBuilderTest extends TestCase
                 'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             ],
         );
-        $dto = app(InvoiceDtoReadRepositoryInterface::class)->findByIdForUser(
+        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
+        $dto = $invoiceDtoReadRepository->findByIdForUser(
             InvoiceId::fromInt($invoice->id),
             UserId::fromInt($invoice->user_id),
         );
 
-        $printData = app(InvoicePrintDataBuilder::class)->build($dto);
+        $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
+        $printData = $invoicePrintDataBuilder->build($dto);
 
         $this->assertSame(
             '2026-09-30',

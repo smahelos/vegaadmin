@@ -338,11 +338,13 @@ final class InvoiceItemsControllerTest extends TestCase
         [$business, $account] = $this->issuerOf($this->regularUser);
         $productFactory = Product::factory();
         $product = $productFactory->create();
-        $items = app(InvoiceProductWriteDataAssembler::class)->fromValidated(
+        $invoiceProductWriteDataAssembler = app(InvoiceProductWriteDataAssembler::class);
+        $items = $invoiceProductWriteDataAssembler->fromValidated(
             [$this->invoiceItem(['product_id' => (string) $product->id])],
         );
         $this->expectException(InvoiceNotFoundException::class);
-        app(InvoiceCrudApplicationServiceInterface::class)->create(
+        $invoiceCrudApplicationService = app(InvoiceCrudApplicationServiceInterface::class);
+        $invoiceCrudApplicationService->create(
             UserId::fromInt($this->regularUser->id),
             [],
             new InvoicePartySelection(

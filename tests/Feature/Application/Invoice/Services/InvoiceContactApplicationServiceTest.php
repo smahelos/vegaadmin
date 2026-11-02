@@ -75,7 +75,8 @@ final class InvoiceContactApplicationServiceTest extends TestCase
             $reader->findByIdForUser($invoiceId, $ownerId)->parties->contactId,
         );
 
-        $linked = app(InvoiceContactApplicationService::class)->saveCustomerToContacts($ownerId, $invoiceId);
+        $invoiceContactApplicationService = app(InvoiceContactApplicationService::class);
+        $linked = $invoiceContactApplicationService->saveCustomerToContacts($ownerId, $invoiceId);
 
         $this->assertSame($contact->id, $linked->value);
         $contactQuery = Contact::where('user_id', $owner->id);

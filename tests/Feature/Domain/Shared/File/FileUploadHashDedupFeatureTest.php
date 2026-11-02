@@ -31,7 +31,8 @@ class FileUploadHashDedupFeatureTest extends TestCase
     public function identical_files_are_deduplicated_and_ref_count_incremented(): void
     {
         $service = app(FileUploadServiceInterface::class);
-        $fileA = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $fileA = $fileFactory->create(
             'doc1.png',
             100,
             'image/png',
@@ -99,7 +100,8 @@ class FileUploadHashDedupFeatureTest extends TestCase
     public function deleting_one_reference_keeps_file_until_last_reference_removed(): void
     {
         $service = app(FileUploadServiceInterface::class);
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'doc1.png',
             100,
             'image/png',

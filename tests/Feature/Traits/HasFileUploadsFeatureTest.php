@@ -92,7 +92,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function handle_file_upload_integrates_with_file_upload_service(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image('test.jpg');
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image('test.jpg');
         $this->attributes = ['old_file' => 'old_file.jpg'];
 
         // Act
@@ -128,7 +129,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function handle_file_upload_passes_options_to_service(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image('test.jpg');
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image('test.jpg');
         $options = ['maxFileSize' => 2048, 'allowedMimeTypes' => ['image/jpeg']];
 
         // Act - Should not throw exception with valid options
@@ -376,7 +378,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function trait_handles_file_upload_workflow_correctly(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image(
             'upload.jpg',
             100,
             100,
@@ -410,8 +413,9 @@ class HasFileUploadsFeatureTest extends TestCase
     public function trait_methods_work_together_seamlessly(): void
     {
         // Arrange
+        $fileFactory = UploadedFile::fake();
         $files = [
-            UploadedFile::fake()->image('image1.jpg'),
+            $fileFactory->image('image1.jpg'),
             UploadedFile::fake()->create('document.pdf', 100),
             UploadedFile::fake()->image('image2.png'),
         ];

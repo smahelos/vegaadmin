@@ -433,12 +433,13 @@ class PageCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $slug = 'stranka-s-pdf-' . uniqid();
 
+        $fileFactory = UploadedFile::fake();
         $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s PDF',
                 'slug_cs' => $slug,
-                'main_image' => UploadedFile::fake()->create(
+                'main_image' => $fileFactory->create(
                     'hero.pdf',
                     100,
                     'application/pdf',

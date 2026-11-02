@@ -65,7 +65,8 @@ class DomainServiceProviderBindingsTest extends TestCase
             }
 
             // Assert container has explicit binding (bound()). If not, mark missing.
-            if (!app()->bound($fqcn)) {
+            $application = app();
+            if (!$application->bound($fqcn)) {
                 $missingBindings[] = $fqcn;
 
                 continue; // do not attempt resolution
@@ -73,7 +74,8 @@ class DomainServiceProviderBindingsTest extends TestCase
 
             // Attempt to resolve & ensure instance implements interface
             try {
-                $instance = app()->make($fqcn);
+                $application2 = app();
+                $instance = $application2->make($fqcn);
                 if (!$instance instanceof $fqcn) {
                     $resolutionErrors[] = $fqcn . ' resolved to ' . get_debug_type($instance) . ' which does not implement it';
                 }

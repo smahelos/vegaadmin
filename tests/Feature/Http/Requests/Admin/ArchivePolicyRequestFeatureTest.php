@@ -85,9 +85,12 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('table_name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
-        $this->assertArrayHasKey('date_column', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('table_name', $errors->toArray());
+        $errors2 = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors2->toArray());
+        $errors3 = $validator->errors();
+        $this->assertArrayHasKey('date_column', $errors3->toArray());
     }
 
     #[Test]
@@ -103,7 +106,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('table_name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('table_name', $errors->toArray());
     }
 
     #[Test]
@@ -119,7 +123,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('date_column', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('date_column', $errors->toArray());
     }
 
     #[Test]
@@ -135,7 +140,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -151,7 +157,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -167,7 +174,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -184,7 +192,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('description', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('description', $errors->toArray());
     }
 
     #[Test]
