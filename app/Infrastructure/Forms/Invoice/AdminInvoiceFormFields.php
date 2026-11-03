@@ -10,6 +10,8 @@ use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\StatusCategory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 final class AdminInvoiceFormFields
 {
@@ -22,7 +24,8 @@ final class AdminInvoiceFormFields
     public function fields(array $countries, ?Invoice $document): array
     {
         $fields = [];
-        $categoryId = StatusCategory::where('slug', 'invoice-statuses')->value('id');
+        $query = StatusCategory::where('slug', 'invoice-statuses');
+        $categoryId = $query->value('id');
         foreach ($this->getInvoiceFields() as $field) {
             if ($field['name'] === 'invoice_logo') {
                 continue;
@@ -49,12 +52,20 @@ final class AdminInvoiceFormFields
                     $field['type'] = 'select2';
                     unset($field['options']);
                     if ($field['name'] === 'payment_status_id') {
-                        $field['options'] = fn ($query) => $query->where('category_id', $categoryId)->where('is_active', true)->orderBy('name')->get();
+                        $field['options'] = function (Builder $query) use ($categoryId): Collection {
+                            $query->where('category_id', $categoryId);
+                            $query->where('is_active', true);
+                            $query->orderBy('name');
+
+                            return $query->get();
+                        };
                         if ($document === null) {
-                            $field['default'] = Status::where('slug', InvoiceStatus::PENDING->value)->value('id');
+                            $query = Status::where('slug', InvoiceStatus::PENDING->value);
+                            $field['default'] = $query->value('id');
                         }
                     } elseif ($document === null) {
-                        $field['default'] = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->value('id');
+                        $query = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+                        $field['default'] = $query->value('id');
                     }
                     break;
                 case 'file':

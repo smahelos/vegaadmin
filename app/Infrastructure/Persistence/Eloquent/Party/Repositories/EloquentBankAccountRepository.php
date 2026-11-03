@@ -22,51 +22,53 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
 {
     public function findByIdForUser(BankAccountId $id, UserId $userId): ?BankAccountDTO
     {
-        $account = BankAccount::query()
-            ->whereKey($id->value)
-            ->where(
-                function (Builder $owner) use ($userId): void {
-                    $owner
-                        ->whereHas(
-                            'business',
-                            fn (Builder $business) => $business->where('user_id', $userId->toInt()),
-                        )
-                        ->orWhereHas(
-                            'contact',
-                            fn (Builder $contact) => $contact->where('user_id', $userId->toInt()),
-                        );
-                },
-            )
-            ->first();
+        $query = BankAccount::query();
+        $query->whereKey($id->value);
+        $query->where(
+            function (Builder $owner) use ($userId): void {
+                $owner->whereHas(
+                    'business',
+                    fn (Builder $business) => $business->where('user_id', $userId->toInt()),
+                );
+                $owner->orWhereHas(
+                    'contact',
+                    fn (Builder $contact) => $contact->where('user_id', $userId->toInt()),
+                );
+            },
+        );
+        $account = $query->first();
 
         return $account === null ? null : EloquentBankAccountMapper::toDTO($account);
     }
 
     public function listForOwner(AccountOwner $owner): array
     {
-        return BankAccount::query()
-            ->where(
-                EloquentBankAccountMapper::toOwnerAttributes($owner),
-            )
-            ->orderBy('id')
-            ->get()
-            ->map(
-                fn (BankAccount $account): BankAccountDTO => EloquentBankAccountMapper::toDTO($account),
-            )
-            ->values()
-            ->all();
+        $query = BankAccount::query();
+        $query->where(
+            EloquentBankAccountMapper::toOwnerAttributes($owner),
+        );
+        $query->orderBy('id');
+        $accounts = $query->get();
+        $accounts = $accounts->map(
+            fn (BankAccount $account): BankAccountDTO => EloquentBankAccountMapper::toDTO($account),
+        );
+        $accounts = $accounts->values();
+
+        return $accounts->all();
     }
 
     public function findDefaultIdForOwner(AccountOwner $owner): ?BankAccountId
     {
-        $id = $this->ownerQuery($owner)->value('default_bank_account_id');
+        $query = $this->ownerQuery($owner);
+        $id = $query->value('default_bank_account_id');
 
         return $id === null ? null : BankAccountId::fromInt($id);
     }
 
     public function create(AccountOwner $owner, BankAccountWriteData $data): BankAccountDTO
     {
-        $account = BankAccount::query()->create(
+        $query = BankAccount::query();
+        $account = $query->create(
             EloquentBankAccountMapper::toOwnerAttributes($owner) + EloquentBankAccountMapper::toAttributes($data),
         );
 
@@ -75,7 +77,8 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
 
     public function update(BankAccountId $id, BankAccountWriteData $data): BankAccountDTO
     {
-        $account = BankAccount::query()->findOrFail($id->value);
+        $query = BankAccount::query();
+        $account = $query->findOrFail($id->value);
         $account->update(
             EloquentBankAccountMapper::toAttributes($data),
         );
@@ -85,21 +88,22 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
 
     public function archive(BankAccountId $id, DateTimeImmutable $archived): void
     {
-        BankAccount::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => $archived]);
+        $query = BankAccount::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => $archived]);
     }
 
     public function restore(BankAccountId $id): void
     {
-        BankAccount::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => null]);
+        $query = BankAccount::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => null]);
     }
 
     public function setDefaultForOwner(AccountOwner $owner, ?BankAccountId $id): void
     {
-        $this->ownerQuery($owner)->update(['default_bank_account_id' => $id?->value]);
+        $query = $this->ownerQuery($owner);
+        $query->update(['default_bank_account_id' => $id?->value]);
     }
 
     /**
@@ -108,9 +112,15 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
     private function ownerQuery(AccountOwner $owner): Builder
     {
         if ($owner->businessId !== null) {
-            return Business::query()->whereKey($owner->businessId->value);
+            $query = Business::query();
+            $query->whereKey($owner->businessId->value);
+
+            return $query;
         }
 
-        return Contact::query()->whereKey($owner->contactId?->value);
+        $query = Contact::query();
+        $query->whereKey($owner->contactId?->value);
+
+        return $query;
     }
 }

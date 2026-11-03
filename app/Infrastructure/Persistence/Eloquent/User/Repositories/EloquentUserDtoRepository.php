@@ -51,7 +51,9 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
 
     public function getAllUsers(): array
     {
-        return $this->userRepository->getAllUsers()->toArray();
+        $users = $this->userRepository->getAllUsers();
+
+        return $users->toArray();
     }
 
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult
@@ -76,16 +78,16 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
 
     public function lockForUpdate(UserId $id): void
     {
-        User::query()
-            ->whereKey($id->toInt())
-            ->lockForUpdate()
-            ->firstOrFail();
+        $query = User::query();
+        $query->whereKey($id->toInt());
+        $query->lockForUpdate();
+        $query->firstOrFail();
     }
 
     public function assignRole(UserId $id, string $role): void
     {
-        User::query()
-            ->findOrFail($id->toInt())
-            ->assignRole($role);
+        $query = User::query();
+        $user = $query->findOrFail($id->toInt());
+        $user->assignRole($role);
     }
 }

@@ -30,19 +30,19 @@ final class PermissionCatalogSync
                     }
                 }
 
-                $roleClass::firstOrCreate(
+                $adminRole = $roleClass::firstOrCreate(
                     ['name' => PermissionCatalog::ADMIN_ROLE, 'guard_name' => PermissionCatalog::BACKPACK],
-                )
-                    ->givePermissionTo(
-                        array_values($permissions[PermissionCatalog::BACKPACK]),
-                    );
+                );
+                $adminRole->givePermissionTo(
+                    array_values($permissions[PermissionCatalog::BACKPACK]),
+                );
 
                 foreach (PermissionCatalog::ROLES as $guard => $roles) {
                     foreach ($roles as $role => $names) {
-                        $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard])
-                            ->givePermissionTo(
-                                array_map(fn (string $name) => $permissions[$guard][$name], $names),
-                            );
+                        $roleModel = $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard]);
+                        $roleModel->givePermissionTo(
+                            array_map(fn (string $name) => $permissions[$guard][$name], $names),
+                        );
                     }
                 }
             },

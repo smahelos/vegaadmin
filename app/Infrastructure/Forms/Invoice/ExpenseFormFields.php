@@ -10,6 +10,8 @@ use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Tax;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 
 final class ExpenseFormFields
 {
@@ -69,10 +71,15 @@ final class ExpenseFormFields
                 'wrapper' => $half,
             ];
             if ($name === 'status_id') {
-                $field['options'] = fn ($query) => $query->whereHas(
-                    'category',
-                    fn ($category) => $category->where('slug', 'expense-statuses'),
-                )->where('is_active', true)->get();
+                $field['options'] = function (Builder $query): Collection {
+                    $query->whereHas(
+                        'category',
+                        fn (Builder $category) => $category->where('slug', 'expense-statuses'),
+                    );
+                    $query->where('is_active', true);
+
+                    return $query->get();
+                };
             }
             $fields[] = $field;
         }
@@ -84,11 +91,13 @@ final class ExpenseFormFields
             'accept' => 'image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt',
             'hint' => __('expenses.hints.attachments'),
         ];
+        $query = Tax::where('slug', 'dph');
+        $taxRates = $query->pluck('name', 'rate');
         $fields[] = [
             'name' => 'tax_rate',
             'label' => __('expenses.fields.tax_rate'),
             'type' => 'select_from_array',
-            'options' => Tax::where('slug', 'dph')->pluck('name', 'rate')->all(),
+            'options' => $taxRates->all(),
             'wrapper' => $half,
         ];
         $fields[] = [

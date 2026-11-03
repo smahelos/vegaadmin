@@ -11,8 +11,10 @@ class ProductCategoryObserver
     /** Handle the ProductCategory "created" event. */
     public function created(ProductCategory $category): void
     {
-        $userId = auth()->id() ?? 0;
-        app(EventPublisherInterface::class)->publish(
+        $auth = auth();
+        $userId = $auth->id() ?? 0;
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
             new FormDataChanged($userId, 'categories'),
         );
     }
@@ -21,8 +23,10 @@ class ProductCategoryObserver
     public function updated(ProductCategory $category): void
     {
         if ($category->isDirty(['name'])) {
-            $userId = auth()->id() ?? 0;
-            app(EventPublisherInterface::class)->publish(
+            $auth = auth();
+            $userId = $auth->id() ?? 0;
+            $publisher = app(EventPublisherInterface::class);
+            $publisher->publish(
                 new FormDataChanged($userId, 'categories'),
             );
         }
@@ -31,8 +35,10 @@ class ProductCategoryObserver
     /** Handle the ProductCategory "deleted" event. */
     public function deleted(ProductCategory $category): void
     {
-        $userId = auth()->id() ?? 0;
-        app(EventPublisherInterface::class)->publish(
+        $auth = auth();
+        $userId = $auth->id() ?? 0;
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
             new FormDataChanged($userId, 'categories'),
         );
     }

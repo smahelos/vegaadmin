@@ -11,7 +11,8 @@ class ProductObserver
     /** Handle the Product "created" event. */
     public function created(Product $product): void
     {
-        app(EventPublisherInterface::class)->publish(
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
             new FormDataChanged((int) $product->user_id, 'products'),
         );
     }
@@ -26,7 +27,8 @@ class ProductObserver
                 'category_id',
             ])
         ) {
-            app(EventPublisherInterface::class)->publish(
+            $publisher = app(EventPublisherInterface::class);
+            $publisher->publish(
                 new FormDataChanged((int) $product->user_id, 'products'),
             );
         }
@@ -35,7 +37,8 @@ class ProductObserver
     /** Handle the Product "deleted" event. */
     public function deleted(Product $product): void
     {
-        app(EventPublisherInterface::class)->publish(
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
             new FormDataChanged((int) $product->user_id, 'products'),
         );
     }

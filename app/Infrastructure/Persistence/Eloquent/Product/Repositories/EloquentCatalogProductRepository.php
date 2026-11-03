@@ -18,21 +18,33 @@ final class EloquentCatalogProductRepository implements CatalogProductReadReposi
         Currency $currency,
         string $search,
     ): array {
-        return Product::query()->where('user_id', $userId->toInt())
-            ->where('currency', $currency->value)->where('is_active', true)
-            ->where(
-                'name',
-                'like',
-                '%' . $search . '%',
-            )
-            ->with(['tax', 'category'])->orderBy('name')->orderBy('id')->limit(50)->get()
-            ->map(
-                EloquentCatalogProductMapper::toDTO(...),
-            )->all();
+        $query = Product::query();
+        $query->where('user_id', $userId->toInt());
+        $query->where('currency', $currency->value);
+        $query->where('is_active', true);
+        $query->where(
+            'name',
+            'like',
+            '%' . $search . '%',
+        );
+        $query->with(['tax', 'category']);
+        $query->orderBy('name');
+        $query->orderBy('id');
+        $query->limit(50);
+        $products = $query->get();
+        $products = $products->map(
+            EloquentCatalogProductMapper::toDTO(...),
+        );
+
+        return $products->all();
     }
 
     public function isOwnedBy(ProductId $id, UserId $userId): bool
     {
-        return Product::query()->where('user_id', $userId->toInt())->whereKey($id->getValue())->exists();
+        $query = Product::query();
+        $query->where('user_id', $userId->toInt());
+        $query->whereKey($id->getValue());
+
+        return $query->exists();
     }
 }

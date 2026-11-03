@@ -62,7 +62,9 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
 
     public function isUsedOnInvoices(ProductId $id): bool
     {
-        return InvoiceProduct::where('product_id', $id->getValue())->exists();
+        $query = InvoiceProduct::where('product_id', $id->getValue());
+
+        return $query->exists();
     }
 
     /**

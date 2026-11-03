@@ -27,9 +27,9 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 
     public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO
     {
-        $contact = $this->ofUser($userId)
-            ->whereKey($id->value)
-            ->first();
+        $query = $this->ofUser($userId);
+        $query->whereKey($id->value);
+        $contact = $query->first();
 
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);
     }
@@ -117,8 +117,10 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 
     public function update(ContactId $id, ContactWriteData $data): ContactDTO
     {
+        $query = Contact::query();
+        $contact = $query->findOrFail($id->value);
         $contact = $this->records->save(
-            Contact::query()->findOrFail($id->value),
+            $contact,
             EloquentContactMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -128,16 +130,16 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 
     public function archive(ContactId $id, DateTimeImmutable $archived): void
     {
-        Contact::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => $archived]);
+        $query = Contact::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => $archived]);
     }
 
     public function restore(ContactId $id): void
     {
-        Contact::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => null]);
+        $query = Contact::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => null]);
     }
 
     /**
@@ -145,9 +147,11 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
      */
     private function ofUser(UserId $userId): Builder
     {
-        return Contact::query()
-            ->with('address')
-            ->where('user_id', $userId->toInt());
+        $query = Contact::query();
+        $query->with('address');
+        $query->where('user_id', $userId->toInt());
+
+        return $query;
     }
 
     /**
@@ -156,14 +160,14 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
      */
     private function list(Builder $query): array
     {
-        return $query
-            ->orderBy('name')
-            ->orderBy('id')
-            ->get()
-            ->map(
-                fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
-            )
-            ->values()
-            ->all();
+        $query->orderBy('name');
+        $query->orderBy('id');
+        $contacts = $query->get();
+        $contacts = $contacts->map(
+            fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
+        );
+        $contacts = $contacts->values();
+
+        return $contacts->all();
     }
 }

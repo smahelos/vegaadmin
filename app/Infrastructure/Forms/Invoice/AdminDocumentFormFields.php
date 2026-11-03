@@ -71,7 +71,8 @@ final class AdminDocumentFormFields
         $fields[3]['display_value'] = EloquentDocumentPartyOptionMapper::label(...);
         $fields[3]['select_default'] = $role === 'customer';
         if ($role === 'customer') {
-            $fields[3]['bank_transfer_method_id'] = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->value('id');
+            $query = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+            $fields[3]['bank_transfer_method_id'] = $query->value('id');
         }
 
         return $fields;

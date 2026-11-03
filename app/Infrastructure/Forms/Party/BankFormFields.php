@@ -11,7 +11,9 @@ trait BankFormFields
      */
     protected function getBankFields(): array
     {
-        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
+        $presenter = app(CountryOptionsPresenter::class);
+        $application = app();
+        $countries = $presenter->options($application->getLocale());
 
         return [
             [

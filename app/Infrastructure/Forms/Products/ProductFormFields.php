@@ -15,7 +15,8 @@ trait ProductFormFields
     protected function getProductFields(array $productCategories = [], array $taxRates = []): array
     {
         // Get currency codes from CurrencyService
-        $currencies = App::make(CurrencyServiceInterface::class)->getAllCurrencies();
+        $currencyService = App::make(CurrencyServiceInterface::class);
+        $currencies = $currencyService->getAllCurrencies();
 
         // Default currencies if not provided
         if (empty($currencies)) {

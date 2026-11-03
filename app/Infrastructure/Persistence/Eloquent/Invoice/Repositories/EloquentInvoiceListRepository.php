@@ -22,7 +22,9 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
         InvoiceSearch $search,
         PageRequest $page,
     ): PaginatedResult {
-        $query = Invoice::query()->with(['paymentMethod', 'paymentStatus'])->where('user_id', $userId->toInt());
+        $query = Invoice::query();
+        $query->with(['paymentMethod', 'paymentStatus']);
+        $query->where('user_id', $userId->toInt());
         if ($search->term !== '') {
             $query->where(
                 static function (Builder $query) use ($search): void {
@@ -30,12 +32,12 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
                         'invoice_vs',
                         'like',
                         '%' . $search->term . '%',
-                    )
-                        ->orWhere(
-                            'customer_name',
-                            'like',
-                            '%' . $search->term . '%',
-                        );
+                    );
+                    $query->orWhere(
+                        'customer_name',
+                        'like',
+                        '%' . $search->term . '%',
+                    );
                 },
             );
         }
@@ -73,17 +75,21 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
         } else {
             $query->orderBy($sort, $direction);
         }
-        $result = $query->orderBy('id', $direction)->paginate(
+        $query->orderBy('id', $direction);
+        $result = $query->paginate(
             $page->perPage(),
             ['*'],
             'page',
             $page->page(),
         );
 
+        $invoices = $result->getCollection();
+        $invoices = $invoices->map(
+            EloquentInvoiceListMapper::toDTO(...),
+        );
+
         return new PaginatedResult(
-            $result->getCollection()->map(
-                EloquentInvoiceListMapper::toDTO(...),
-            )->all(),
+            $invoices->all(),
             $result->total(),
             $result->perPage(),
             $result->currentPage(),
@@ -92,25 +98,37 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
 
     public function businessFiltersForUser(UserId $userId): array
     {
-        return Business::query()->where('user_id', $userId->toInt())->orderBy('name')->orderBy('id')
-            ->get([
-                'id',
-                'name',
-                'archived_at',
-            ])->map(
-                EloquentInvoiceListMapper::businessFilter(...),
-            )->all();
+        $query = Business::query();
+        $query->where('user_id', $userId->toInt());
+        $query->orderBy('name');
+        $query->orderBy('id');
+        $businesses = $query->get([
+            'id',
+            'name',
+            'archived_at',
+        ]);
+        $businesses = $businesses->map(
+            EloquentInvoiceListMapper::businessFilter(...),
+        );
+
+        return $businesses->all();
     }
 
     public function contactFiltersForUser(UserId $userId): array
     {
-        return Contact::query()->where('user_id', $userId->toInt())->orderBy('name')->orderBy('id')
-            ->get([
-                'id',
-                'name',
-                'archived_at',
-            ])->map(
-                EloquentInvoiceListMapper::contactFilter(...),
-            )->all();
+        $query = Contact::query();
+        $query->where('user_id', $userId->toInt());
+        $query->orderBy('name');
+        $query->orderBy('id');
+        $contacts = $query->get([
+            'id',
+            'name',
+            'archived_at',
+        ]);
+        $contacts = $contacts->map(
+            EloquentInvoiceListMapper::contactFilter(...),
+        );
+
+        return $contacts->all();
     }
 }

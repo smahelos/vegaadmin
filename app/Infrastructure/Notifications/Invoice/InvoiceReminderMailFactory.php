@@ -23,7 +23,8 @@ final class InvoiceReminderMailFactory
         ?string $locale,
         string $fallbackName,
     ): MailMessage {
-        $locale ??= $payload->locale ?? app()->getLocale();
+        $application = app();
+        $locale ??= $payload->locale ?? $application->getLocale();
         $view = match ($type) {
             InvoiceReminderType::UPCOMING_DUE => $payload->recipientType === 'customer'
                 ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',
@@ -33,32 +34,34 @@ final class InvoiceReminderMailFactory
                 ? 'emails.invoices.reminders.overdue_customer' : 'emails.invoices.reminders.overdue_supplier',
         };
 
-        return (new MailMessage)
-            ->subject(
-                __(
-                    'invoices.reminders.' . $type->value . '_subject',
-                    ['number' => $payload->invoiceNumber],
+        $message = new MailMessage;
+        $message->subject(
+            __(
+                'invoices.reminders.' . $type->value . '_subject',
+                ['number' => $payload->invoiceNumber],
+                $locale,
+            ),
+        );
+        $message->view(
+            $view,
+            [
+                'invoiceNumber' => $payload->invoiceNumber,
+                'supplierName' => $payload->supplierName,
+                'customerName' => $payload->customerName,
+                'formattedAmount' => $this->money->formatWithCode($payload->total, $locale),
+                'dueDate' => $this->dates->formatDate($payload->dueDate, $locale),
+                'daysLeft' => $payload->daysLeft,
+                'daysOverdue' => $payload->daysOverdue,
+                'greeting' => __(
+                    'invoices.reminders.greeting',
+                    ['name' => $payload->recipientName !== '' ? $payload->recipientName : $fallbackName],
                     $locale,
                 ),
-            )
-            ->view(
-                $view,
-                [
-                    'invoiceNumber' => $payload->invoiceNumber,
-                    'supplierName' => $payload->supplierName,
-                    'customerName' => $payload->customerName,
-                    'formattedAmount' => $this->money->formatWithCode($payload->total, $locale),
-                    'dueDate' => $this->dates->formatDate($payload->dueDate, $locale),
-                    'daysLeft' => $payload->daysLeft,
-                    'daysOverdue' => $payload->daysOverdue,
-                    'greeting' => __(
-                        'invoices.reminders.greeting',
-                        ['name' => $payload->recipientName !== '' ? $payload->recipientName : $fallbackName],
-                        $locale,
-                    ),
-                    'locale' => $locale,
-                    'invoiceUrl' => route('frontend.invoice.show', ['id' => $payload->invoiceId->value, 'locale' => $locale]),
-                ],
-            );
+                'locale' => $locale,
+                'invoiceUrl' => route('frontend.invoice.show', ['id' => $payload->invoiceId->value, 'locale' => $locale]),
+            ],
+        );
+
+        return $message;
     }
 }

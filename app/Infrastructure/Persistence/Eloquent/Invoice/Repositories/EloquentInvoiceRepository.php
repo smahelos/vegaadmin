@@ -10,9 +10,10 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
 {
     public function findForUser(int $userId, int $invoiceId): ?Invoice
     {
-        return Invoice::with(['invoiceProducts'])
-            ->where('user_id', $userId)
-            ->find($invoiceId);
+        $query = Invoice::with(['invoiceProducts']);
+        $query->where('user_id', $userId);
+
+        return $query->find($invoiceId);
     }
 
     public function create(array $data): Invoice
@@ -27,14 +28,15 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
 
     public function findInvoiceNumbersForYear(int $userId, int $year): array
     {
-        return Invoice::where('user_id', $userId)
-            ->where(
-                'invoice_vs',
-                'like',
-                $year . '%',
-            )
-            ->pluck('invoice_vs')
-            ->all();
+        $query = Invoice::where('user_id', $userId);
+        $query->where(
+            'invoice_vs',
+            'like',
+            $year . '%',
+        );
+        $numbers = $query->pluck('invoice_vs');
+
+        return $numbers->all();
     }
 
     public function setTemplate(int $id, string $template): bool

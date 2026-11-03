@@ -19,26 +19,35 @@ final class AdminInvoiceItemFields
         if (is_string($items)) {
             $items = json_decode($items, true);
         }
-        $items ??= $invoice?->invoiceProducts->map(
-            fn (InvoiceProduct $line): array => [
-                'product_id' => $line->product_id,
-                'name' => $line->name,
-                'quantity' => $line->quantity,
-                'unit' => $line->unit,
-                'price' => $line->price,
-                'currency' => $line->currency,
-                'tax_rate' => $line->tax_rate,
-                'category' => $line->category,
-                'description' => $line->description,
-            ],
-        )->all() ?? [];
+        if ($items === null) {
+            $items = [];
+            if ($invoice !== null) {
+                $lines = $invoice->invoiceProducts->map(
+                    fn (InvoiceProduct $line): array => [
+                        'product_id' => $line->product_id,
+                        'name' => $line->name,
+                        'quantity' => $line->quantity,
+                        'unit' => $line->unit,
+                        'price' => $line->price,
+                        'currency' => $line->currency,
+                        'tax_rate' => $line->tax_rate,
+                        'category' => $line->category,
+                        'description' => $line->description,
+                    ],
+                );
+                $items = $lines->all();
+            }
+        }
 
         $units = [];
         foreach (Unit::cases() as $unit) {
             $units[$unit->value] = __('invoices.units.' . $unit->value);
         }
         $taxRates = ['0'];
-        foreach (Tax::query()->where('slug', 'dph')->pluck('rate') as $rate) {
+        $query = Tax::query();
+        $query->where('slug', 'dph');
+        $rates = $query->pluck('rate');
+        foreach ($rates as $rate) {
             $taxRates[] = (string) $rate;
         }
 

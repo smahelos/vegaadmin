@@ -18,14 +18,17 @@ class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
             return null;
         }
 
-        return Payment::where('gateway_payment_id', $gatewayPaymentId)->first();
+        $query = Payment::where('gateway_payment_id', $gatewayPaymentId);
+
+        return $query->first();
     }
 
     public function findPendingBySubscription(int $subscriptionId): array
     {
-        return Payment::where('subscription_id', $subscriptionId)
-            ->whereIn('status', ['pending', 'processing'])
-            ->get()
-            ->all();
+        $query = Payment::where('subscription_id', $subscriptionId);
+        $query->whereIn('status', ['pending', 'processing']);
+        $payments = $query->get();
+
+        return $payments->all();
     }
 }

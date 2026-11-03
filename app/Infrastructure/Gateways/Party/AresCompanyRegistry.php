@@ -26,11 +26,11 @@ final class AresCompanyRegistry implements CompanyRegistryInterface
     public function findCzechCompany(RegistrationNumber $number): ?RegisteredCompanyDTO
     {
         try {
-            $response = Http::acceptJson()
-                ->timeout(self::TIMEOUT_SECONDS)
-                ->get(
-                    self::URL . rawurlencode($number->number),
-                );
+            $request = Http::acceptJson();
+            $request->timeout(self::TIMEOUT_SECONDS);
+            $response = $request->get(
+                self::URL . rawurlencode($number->number),
+            );
         } catch (ConnectionException $e) {
             throw new CompanyRegistryUnavailableException($e);
         }

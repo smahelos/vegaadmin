@@ -70,6 +70,14 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             // ignore QR generation errors in renderer
         }
 
+        $logoPath = null;
+        if ($data->supplierLogo !== null) {
+            $disk = Storage::disk('public');
+            if ($disk->exists($data->supplierLogo)) {
+                $logoPath = $disk->path($data->supplierLogo);
+            }
+        }
+
         $viewData = [
             'invoice' => $data,
             'issueDateFormatted' => $this->formatDate($data->issueDate, $locale),
@@ -83,8 +91,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'bankName' => $data->account?->bankName,
             'iban' => $data->account?->account->iban,
             'swift' => $data->account?->account->swift,
-            'logoPath' => $data->supplierLogo !== null && Storage::disk('public')->exists($data->supplierLogo)
-                ? Storage::disk('public')->path($data->supplierLogo) : null,
+            'logoPath' => $logoPath,
             'paymentMethod' => $data->paymentMethod,
             'qrCode' => $qrCode,
             'hasQrCode' => $hasQr,
@@ -97,13 +104,14 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
         ];
 
-        $previousLocale = app()->getLocale();
+        $application = app();
+        $previousLocale = $application->getLocale();
         try {
-            app()->setLocale($locale);
+            $application->setLocale($locale);
 
             return Pdf::loadView($templateName, $viewData);
         } finally {
-            app()->setLocale($previousLocale);
+            $application->setLocale($previousLocale);
         }
     }
 

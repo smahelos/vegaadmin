@@ -36,22 +36,22 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         \DateTimeImmutable $periodEnd,
     ): int|float {
         $now = CarbonImmutable::now();
-        $row = DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                '<=',
-                $now,
-            )
-            ->where(
-                'period_end',
-                '>',
-                $now,
-            )
-            ->first();
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            '<=',
+            $now,
+        );
+        $query->where(
+            'period_end',
+            '>',
+            $now,
+        );
+        $row = $query->first();
 
         Log::debug(
             'EntityLimitUsageRepository: Fetched current value',
@@ -80,27 +80,27 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
     ): bool {
         $now = CarbonImmutable::now();
         // Try update first
-        $updated = DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                '<=',
-                $now,
-            )
-            ->where(
-                'period_end',
-                '>',
-                $now,
-            )
-            ->update(
-                [
-                    'current_value' => DB::raw('current_value + ' . ((float) $value)),
-                    'updated_at' => now(),
-                ],
-            );
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            '<=',
+            $now,
+        );
+        $query->where(
+            'period_end',
+            '>',
+            $now,
+        );
+        $updated = $query->update(
+            [
+                'current_value' => DB::raw('current_value + ' . ((float) $value)),
+                'updated_at' => now(),
+            ],
+        );
 
         Log::debug(
             'UELS: Increment usage attempt',
@@ -122,7 +122,8 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         }
 
         // Create if not exists
-        $inserted = DB::table('entity_limit_usage')->insert(
+        $query = DB::table('entity_limit_usage');
+        $inserted = $query->insert(
             [
                 'user_id' => $userId,
                 'entity_type' => $entityType,
@@ -147,20 +148,21 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         \DateTimeImmutable $periodStart,
         \DateTimeImmutable $periodEnd,
     ): int {
-        return DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                CarbonImmutable::instance($periodStart),
-            )
-            ->where(
-                'period_end',
-                CarbonImmutable::instance($periodEnd),
-            )
-            ->delete();
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            CarbonImmutable::instance($periodStart),
+        );
+        $query->where(
+            'period_end',
+            CarbonImmutable::instance($periodEnd),
+        );
+
+        return $query->delete();
     }
 
     /**

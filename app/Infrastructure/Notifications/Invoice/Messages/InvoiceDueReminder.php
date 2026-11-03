@@ -25,7 +25,9 @@ final class InvoiceDueReminder extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return app(InvoiceReminderMailFactory::class)->create(
+        $factory = app(InvoiceReminderMailFactory::class);
+
+        return $factory->create(
             $this->payload,
             InvoiceReminderType::DUE_TODAY,
             $this->locale,

@@ -28,7 +28,8 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoRead
     {
         $product = $this->productRepository->create(
             $this->mapper->toAttributes($invoiceId, $data),
-        )->toArray();
+        );
+        $product = $product->toArray();
 
         return InvoiceProductDTO::fromArray($product);
     }
@@ -52,9 +53,13 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoRead
 
     public function amountsForInvoice(InvoiceId $invoiceId): array
     {
-        return InvoiceProduct::query()->where('invoice_id', $invoiceId->getValue())->get()
-            ->map(
-                fn (InvoiceProduct $line): InvoiceLineAmountDTO => $this->mapper->toAmounts($line),
-            )->all();
+        $query = InvoiceProduct::query();
+        $query->where('invoice_id', $invoiceId->getValue());
+        $lines = $query->get();
+        $lines = $lines->map(
+            fn (InvoiceProduct $line): InvoiceLineAmountDTO => $this->mapper->toAmounts($line),
+        );
+
+        return $lines->all();
     }
 }

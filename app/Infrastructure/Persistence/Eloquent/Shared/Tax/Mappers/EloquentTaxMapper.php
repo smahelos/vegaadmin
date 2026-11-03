@@ -16,6 +16,9 @@ class EloquentTaxMapper
      */
     public function toDto(Tax $model): TaxDTO
     {
+        $createdAt = $model->getAttribute('created_at');
+        $updatedAt = $model->getAttribute('updated_at');
+
         return TaxDTO::fromArray(
             [
                 'id' => $model->getAttribute('id'),
@@ -24,8 +27,8 @@ class EloquentTaxMapper
                 'rate' => (float) $model->getAttribute('rate'),
                 'description' => $model->getAttribute('description'),
                 'is_active' => (bool) $model->getAttribute('is_active'),
-                'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-                'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
+                'created_at' => $createdAt?->toDateTimeString(),
+                'updated_at' => $updatedAt?->toDateTimeString(),
             ],
         );
     }

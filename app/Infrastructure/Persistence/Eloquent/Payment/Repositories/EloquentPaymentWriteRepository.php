@@ -14,7 +14,8 @@ class EloquentPaymentWriteRepository implements PaymentWriteRepositoryInterface
 
     public function updateById(int $id, array $data): ?Payment
     {
-        $model = Payment::query()->find($id);
+        $query = Payment::query();
+        $model = $query->find($id);
         if (!$model) {
             return null;
         }

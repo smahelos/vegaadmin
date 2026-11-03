@@ -37,6 +37,12 @@ class EloquentProductMapper
             )
             : null;
 
+        $invoiceIds = [];
+        if ($model->relationLoaded('invoices')) {
+            $invoiceIds = $model->invoices->pluck('id');
+            $invoiceIds = $invoiceIds->all();
+        }
+
         return ProductDTO::fromArray(
             [
                 'id' => $model->getAttribute('id'),
@@ -49,7 +55,7 @@ class EloquentProductMapper
                 'currency' => $model->getAttribute('currency'),
                 'unit' => $model->getAttribute('unit'),
                 'tax' => $tax,
-                'invoices' => $model->relationLoaded('invoices') ? $model->invoices->pluck('id')->all() : [],
+                'invoices' => $invoiceIds,
                 'category_id' => $model->getAttribute('category_id'),
                 'category' => $category,
                 'is_default' => $model->getAttribute('is_default'),

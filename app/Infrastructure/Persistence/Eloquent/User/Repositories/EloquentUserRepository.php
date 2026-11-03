@@ -44,12 +44,12 @@ class EloquentUserRepository
                 'name',
                 'like',
                 '%' . $term . '%',
-            )
-                ->orWhere(
-                    'email',
-                    'like',
-                    '%' . $term . '%',
-                );
+            );
+            $query->orWhere(
+                'email',
+                'like',
+                '%' . $term . '%',
+            );
         }
 
         return $query->paginate(

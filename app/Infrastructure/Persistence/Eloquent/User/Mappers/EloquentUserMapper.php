@@ -16,14 +16,18 @@ class EloquentUserMapper
      */
     public function toDto(User $model): UserDTO
     {
+        $emailVerifiedAt = $model->getAttribute('email_verified_at');
+        $createdAt = $model->getAttribute('created_at');
+        $updatedAt = $model->getAttribute('updated_at');
+
         return UserDTO::fromArray(
             [
                 'id' => $model->getAttribute('id'),
                 'name' => $model->getAttribute('name'),
                 'email' => $model->getAttribute('email'),
-                'email_verified_at' => $model->getAttribute('email_verified_at')?->toDateTimeString(),
-                'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-                'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
+                'email_verified_at' => $emailVerifiedAt?->toDateTimeString(),
+                'created_at' => $createdAt?->toDateTimeString(),
+                'updated_at' => $updatedAt?->toDateTimeString(),
             ],
         );
     }

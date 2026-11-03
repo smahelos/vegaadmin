@@ -16,15 +16,16 @@ class EloquentBankDtoRepository implements BankDtoRepository
 
     public function listActiveForCountry(Country $country): array
     {
-        return Bank::query()
-            ->where('country', $country->value)
-            ->where('active', true)
-            ->orderBy('code')
-            ->get()
-            ->map(
-                fn (Bank $bank): BankDTO => $this->mapper->toDto($bank),
-            )
-            ->values()
-            ->all();
+        $query = Bank::query();
+        $query->where('country', $country->value);
+        $query->where('active', true);
+        $query->orderBy('code');
+        $banks = $query->get();
+        $banks = $banks->map(
+            fn (Bank $bank): BankDTO => $this->mapper->toDto($bank),
+        );
+        $banks = $banks->values();
+
+        return $banks->all();
     }
 }

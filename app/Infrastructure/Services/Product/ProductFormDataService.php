@@ -30,12 +30,13 @@ class ProductFormDataService implements ProductFormDataServiceInterface
             $cacheKey,
             function () {
                 // Get product categories for dropdown
-                $productCategories = ProductCategory::pluck('slug', 'id')->toArray();
+                $productCategories = ProductCategory::pluck('slug', 'id');
+                $productCategories = $productCategories->toArray();
 
                 // Get tax rates for dropdown
-                $taxRates = Tax::where('slug', 'dph')
-                    ->pluck('rate', 'id')
-                    ->toArray();
+                $query = Tax::where('slug', 'dph');
+                $taxRates = $query->pluck('rate', 'id');
+                $taxRates = $taxRates->toArray();
 
                 // Format tax rates with percentage sign
                 foreach ($taxRates as $key => $value) {
@@ -62,7 +63,8 @@ class ProductFormDataService implements ProductFormDataServiceInterface
             function () {
                 $query = ProductCategory::query();
 
-                $categories = $query->orderBy('name')->get();
+                $query->orderBy('name');
+                $categories = $query->get();
 
                 $result = [];
                 foreach ($categories as $category) {

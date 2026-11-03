@@ -16,6 +16,11 @@ class EloquentPaymentMapper
      */
     public function toDto(Payment $model): PaymentDTO
     {
+        $paidAt = $model->getAttribute('paid_at');
+        $expiresAt = $model->getAttribute('expires_at');
+        $createdAt = $model->getAttribute('created_at');
+        $updatedAt = $model->getAttribute('updated_at');
+
         return PaymentDTO::fromArray(
             [
                 'id' => $model->getAttribute('id'),
@@ -29,10 +34,10 @@ class EloquentPaymentMapper
                 'gateway_payment' => $model->getAttribute('gateway_payment'),
                 'gateway_data' => $model->getAttribute('gateway_data'),
                 'failure_reason' => $model->getAttribute('failure_reason'),
-                'paid_at' => $model->getAttribute('paid_at')?->toDateTimeString(),
-                'expires_at' => $model->getAttribute('expires_at')?->toDateTimeString(),
-                'created_at' => $model->getAttribute('created_at')?->toDateTimeString(),
-                'updated_at' => $model->getAttribute('updated_at')?->toDateTimeString(),
+                'paid_at' => $paidAt?->toDateTimeString(),
+                'expires_at' => $expiresAt?->toDateTimeString(),
+                'created_at' => $createdAt?->toDateTimeString(),
+                'updated_at' => $updatedAt?->toDateTimeString(),
             ],
         );
     }

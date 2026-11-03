@@ -17,11 +17,11 @@ class SimpleQrCodeRenderer implements QrCodeRendererInterface
         int $margin = 2,
         string $errorCorrection = 'H',
     ): string {
-        $png = QrCode::format('png')
-            ->size($size)
-            ->margin($margin)
-            ->errorCorrection($errorCorrection)
-            ->generate($qrString);
+        $qrCode = QrCode::format('png');
+        $qrCode->size($size);
+        $qrCode->margin($margin);
+        $qrCode->errorCorrection($errorCorrection);
+        $png = $qrCode->generate($qrString);
 
         return 'data:image/png;base64,' . base64_encode($png);
     }

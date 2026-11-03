@@ -21,6 +21,9 @@ final class EloquentInvoiceProductMapper
      */
     public function toAttributes(InvoiceId $invoiceId, InvoiceProductWriteData $data): array
     {
+        $taxAmount = $data->taxAmount();
+        $total = $data->total();
+
         return [
             'invoice_id' => $invoiceId->getValue(),
             'product_id' => $data->productId?->getValue(),
@@ -32,8 +35,8 @@ final class EloquentInvoiceProductMapper
             'price' => $data->price->getAmount(),
             'currency' => $data->price->getCurrency(),
             'tax_rate' => $data->taxRate,
-            'tax_amount' => $data->taxAmount()->getAmount(),
-            'total_price' => $data->total()->getAmount(),
+            'tax_amount' => $taxAmount->getAmount(),
+            'total_price' => $total->getAmount(),
             'is_custom_product' => $data->isCustomProduct(),
         ];
     }

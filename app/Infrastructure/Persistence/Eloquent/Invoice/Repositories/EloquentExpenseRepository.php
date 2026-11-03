@@ -18,7 +18,10 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
 {
     public function findByIdForUser(ExpenseId $id, UserId $userId): ?ExpenseDTO
     {
-        $expense = Expense::query()->whereKey($id->value)->where('user_id', $userId->toInt())->first();
+        $query = Expense::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $userId->toInt());
+        $expense = $query->first();
 
         return $expense === null ? null : EloquentExpenseMapper::toDTO($expense);
     }
@@ -48,7 +51,10 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
         DocumentParties $parties,
         array $attachments,
     ): ExpenseDTO {
-        $expense = Expense::query()->whereKey($id->value)->where('user_id', $userId->toInt())->firstOrFail();
+        $query = Expense::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $userId->toInt());
+        $expense = $query->firstOrFail();
         $expense->fill(
             EloquentExpenseMapper::toAttributes(
                 $userId,
@@ -56,7 +62,8 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
                 $parties,
                 $attachments,
             ),
-        )->save();
+        );
+        $expense->save();
 
         return EloquentExpenseMapper::toDTO($expense);
     }

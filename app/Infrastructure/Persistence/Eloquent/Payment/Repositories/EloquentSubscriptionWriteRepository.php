@@ -4,6 +4,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
 use App\Models\Subscription;
+use Carbon\CarbonImmutable;
 
 class EloquentSubscriptionWriteRepository implements SubscriptionWriteRepositoryInterface
 {
@@ -14,11 +15,13 @@ class EloquentSubscriptionWriteRepository implements SubscriptionWriteRepository
             return false;
         }
 
+        $now = CarbonImmutable::now();
+
         return $subscription->update(
             [
                 'status' => 'active',
-                'starts_at' => now(),
-                'ends_at' => now()->addDays($durationDays),
+                'starts_at' => $now,
+                'ends_at' => $now->addDays($durationDays),
             ],
         );
     }
