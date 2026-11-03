@@ -110,10 +110,11 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
     private function pendingInvoiceId(): int
     {
         $invoiceFactory = Invoice::factory();
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
-                'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+                'payment_status_id' => $statusQuery->firstOrFail()->id,
             ],
         );
 

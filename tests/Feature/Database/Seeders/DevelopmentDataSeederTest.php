@@ -130,12 +130,13 @@ final class DevelopmentDataSeederTest extends TestCase
 
         $this->seed(DevelopmentDataSeeder::class);
 
+        $userQuery = User::whereIn(
+            'email',
+            array_keys(DevelopmentDataSeeder::ACCOUNTS),
+        );
         $this->assertSame(
             count(DevelopmentDataSeeder::ACCOUNTS),
-            User::whereIn(
-                'email',
-                array_keys(DevelopmentDataSeeder::ACCOUNTS),
-            )->count(),
+            $userQuery->count(),
         );
         $this->assertSame(
             $first,
@@ -163,11 +164,18 @@ final class DevelopmentDataSeederTest extends TestCase
         $businessQuery = Business::whereIn('user_id', $userIds);
         $businessQuery->orderBy('name');
         $businessValues = $businessQuery->pluck('name');
+        $contactQuery = Contact::whereIn('user_id', $userIds);
+        $contactQuery->orderBy('name');
+        $contactValues = $contactQuery->pluck('name');
+        $expenseQuery = Expense::whereIn('user_id', $userIds);
+        $expenseQuery->orderBy('expense_date');
+        $expenseQuery->orderBy('amount');
+        $expenseValues = $expenseQuery->pluck('amount');
 
         return [
             'businesses' => $businessValues->all(),
-            'contacts' => Contact::whereIn('user_id', $userIds)->orderBy('name')->pluck('name')->all(),
-            'expenses' => Expense::whereIn('user_id', $userIds)->orderBy('expense_date')->orderBy('amount')->pluck('amount')->all(),
+            'contacts' => $contactValues->all(),
+            'expenses' => $expenseValues->all(),
         ];
     }
 }

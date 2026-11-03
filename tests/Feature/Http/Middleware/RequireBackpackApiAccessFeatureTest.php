@@ -80,7 +80,9 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $role = $roleQuery->first();
         $user->assignRole($role);
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/api/resource');

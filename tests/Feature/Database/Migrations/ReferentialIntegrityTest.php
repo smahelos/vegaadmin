@@ -111,7 +111,8 @@ final class ReferentialIntegrityTest extends TestCase
         $invoiceProductFactory = InvoiceProduct::factory();
         $line = $invoiceProductFactory->create();
 
-        Invoice::findOrFail($line->invoice_id)->delete();
+        $invoice = Invoice::findOrFail($line->invoice_id);
+        $invoice->delete();
 
         $this->assertDatabaseMissing('invoice_products', ['id' => $line->id]);
     }

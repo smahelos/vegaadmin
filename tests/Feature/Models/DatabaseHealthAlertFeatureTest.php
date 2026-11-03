@@ -45,7 +45,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $unresolvedFactory = $databaseHealthAlertFactory->unresolved();
         $unresolvedAlert = $unresolvedFactory->create();
 
-        $results = DatabaseHealthAlert::unresolved()->get();
+        $alertQuery = DatabaseHealthAlert::unresolved();
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($unresolvedAlert->id, $results->first()->id);
@@ -62,7 +63,8 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $criticalFactory = $databaseHealthAlertFactory->critical();
         $criticalAlert = $criticalFactory->create();
 
-        $results = DatabaseHealthAlert::severity('critical')->get();
+        $alertQuery = DatabaseHealthAlert::severity('critical');
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($criticalAlert->id, $results->first()->id);
@@ -141,7 +143,9 @@ class DatabaseHealthAlertFeatureTest extends TestCase
         $unresolvedFactory = $criticalFactory->unresolved();
         $targetAlert = $unresolvedFactory->create();
 
-        $results = DatabaseHealthAlert::unresolved()->severity('critical')->get();
+        $alertQuery = DatabaseHealthAlert::unresolved();
+        $alertQuery = $alertQuery->severity('critical');
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($targetAlert->id, $results->first()->id);

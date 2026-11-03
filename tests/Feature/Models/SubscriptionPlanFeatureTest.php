@@ -97,7 +97,8 @@ class SubscriptionPlanFeatureTest extends TestCase
         $subscriptionPlanFactory->create(['is_active' => true]);
         $subscriptionPlanFactory->create(['is_active' => false]);
 
-        $activePlans = SubscriptionPlan::active()->get();
+        $planQuery = SubscriptionPlan::active();
+        $activePlans = $planQuery->get();
 
         $this->assertCount(1, $activePlans);
         $this->assertTrue($activePlans->first()->is_active);

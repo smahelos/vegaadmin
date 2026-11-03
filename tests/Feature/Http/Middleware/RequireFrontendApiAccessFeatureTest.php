@@ -75,7 +75,8 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $role = Role::where('name', 'frontend_user')->first();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $role = $roleQuery->first();
         $user->assignRole($role);
         $this->actingAs($user, 'web');
         $request = Request::create('/api/frontend/resource');

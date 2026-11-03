@@ -102,9 +102,12 @@ final class CapacityLimitTest extends TestCase
         $userQuery = User::query();
         $user = $userQuery->findOrFail($ownerId);
         $user->assignRole('frontend_user');
+        $activeQuery = DB::table($table);
+        $activeQuery->where('user_id', $ownerId);
+        $activeQuery->whereNull('archived_at');
         $this->assertSame(
             $limit - 1,
-            DB::table($table)->where('user_id', $ownerId)->whereNull('archived_at')->count(),
+            $activeQuery->count(),
         );
 
         // The competing request commits after this transaction established its consistent-read snapshot.

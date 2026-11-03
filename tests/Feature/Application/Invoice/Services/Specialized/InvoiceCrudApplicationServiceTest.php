@@ -110,6 +110,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
         try {
             $invoiceService = $this->app->make(InvoiceCrudApplicationServiceInterface::class);
+            $paymentMethodQuery = PaymentMethod::where('slug', 'cash');
+            $statusQuery = Status::where('slug', 'pending');
             $invoiceService->create(
                 $this->idOf($user),
                 [
@@ -118,8 +120,8 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
                     'tax_point_date' => '2026-01-01',
                     'due_in' => 14,
                     'payment_currency' => 'CZK',
-                    'payment_method_id' => PaymentMethod::where('slug', 'cash')->value('id'),
-                    'payment_status_id' => Status::where('slug', 'pending')->value('id'),
+                    'payment_method_id' => $paymentMethodQuery->value('id'),
+                    'payment_status_id' => $statusQuery->value('id'),
                 ],
                 new InvoicePartySelection(
                     BusinessId::fromInt($business->id),

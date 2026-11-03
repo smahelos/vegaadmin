@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -141,7 +142,9 @@ class PageFeatureTest extends TestCase
             ],
         );
         // Nastavíme images přímo do DB (obejdeme mutator)
-        \DB::table('pages')->where('id', $pageNull->id)->update(['images' => null]);
+        $pageQuery = DB::table('pages');
+        $pageQuery->where('id', $pageNull->id);
+        $pageQuery->update(['images' => null]);
         $this->assertNull($pageNull->fresh()->images);
 
         // Test 2: Prázdný array
@@ -154,7 +157,9 @@ class PageFeatureTest extends TestCase
                 'published_by' => $user->id,
             ],
         );
-        \DB::table('pages')->where('id', $pageEmpty->id)->update(['images' => '[]']);
+        $pageQuery = DB::table('pages');
+        $pageQuery->where('id', $pageEmpty->id);
+        $pageQuery->update(['images' => '[]']);
         $this->assertIsArray($pageEmpty->fresh()->images);
         $this->assertEquals([], $pageEmpty->fresh()->images);
 
@@ -168,7 +173,9 @@ class PageFeatureTest extends TestCase
                 'published_by' => $user->id,
             ],
         );
-        \DB::table('pages')->where('id', $pageWithData->id)->update(
+        $pageQuery = DB::table('pages');
+        $pageQuery->where('id', $pageWithData->id);
+        $pageQuery->update(
             [
                 'images' => json_encode(['image1.jpg', 'image2.jpg']),
             ],
@@ -328,7 +335,8 @@ class PageFeatureTest extends TestCase
             ],
         );
 
-        $publishedPages = Page::published()->get();
+        $pageQuery = Page::published();
+        $publishedPages = $pageQuery->get();
 
         $this->assertCount(1, $publishedPages);
         $this->assertTrue(
@@ -356,7 +364,8 @@ class PageFeatureTest extends TestCase
         $pageInCategory1 = $pageFactory->create(['category_id' => $category1->id]);
         $pageInCategory2 = $pageFactory->create(['category_id' => $category2->id]);
 
-        $pagesInCategory1 = Page::byCategory($category1->id)->get();
+        $pageQuery = Page::byCategory($category1->id);
+        $pagesInCategory1 = $pageQuery->get();
 
         $this->assertCount(1, $pagesInCategory1);
         $this->assertTrue(
@@ -375,7 +384,8 @@ class PageFeatureTest extends TestCase
         $rootPage = $pageFactory->create(['parent_id' => null]);
         $childPage = $pageFactory->create(['parent_id' => $parentPage->id]);
 
-        $rootPages = Page::rootPages()->get();
+        $pageQuery = Page::rootPages();
+        $rootPages = $pageQuery->get();
 
         $this->assertTrue(
             $rootPages->contains('id', $parentPage->id),

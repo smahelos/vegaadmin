@@ -119,7 +119,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
             ],
         );
 
-        $recentMetrics = DatabaseHealthMetric::recent()->get();
+        $metricQuery = DatabaseHealthMetric::recent();
+        $recentMetrics = $metricQuery->get();
 
         $this->assertCount(2, $recentMetrics);
         $this->assertTrue(

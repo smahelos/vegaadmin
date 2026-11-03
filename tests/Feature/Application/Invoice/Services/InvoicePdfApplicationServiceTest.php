@@ -123,14 +123,17 @@ class InvoicePdfApplicationServiceTest extends TestCase
      */
     private function guestInput(): array
     {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
+            'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             'payment_currency' => 'EUR',
             'issue_date' => now()->format('Y-m-d'),
             'tax_point_date' => now()->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'payment_status_id' => $statusQuery->firstOrFail()->id,
             'invoice_text' => 'Test invoice',
             'invoice-products' => [
                 [

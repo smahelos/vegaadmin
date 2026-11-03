@@ -274,6 +274,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     ): void {
         $invoiceFactory = Invoice::factory();
         $statusQuery = Status::where('slug', $status);
+        $paymentMethodQuery = PaymentMethod::where('slug', 'bankaccount');
         $invoiceFactory->create(
             [
                 'user_id' => $client->user_id,
@@ -282,7 +283,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
                 'due_in' => 14,
                 'payment_amount' => $amount,
                 'payment_status_id' => $statusQuery->value('id'),
-                'payment_method_id' => PaymentMethod::where('slug', 'bankaccount')->value('id'),
+                'payment_method_id' => $paymentMethodQuery->value('id'),
             ],
         );
     }

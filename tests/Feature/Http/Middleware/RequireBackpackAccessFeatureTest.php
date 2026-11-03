@@ -79,7 +79,8 @@ class RequireBackpackAccessFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $role = Role::where('name', 'admin')->first();
+        $roleQuery = Role::where('name', 'admin');
+        $role = $roleQuery->first();
         $user->assignRole($role);
         $this->actingAs($user, 'backpack');
         $request = Request::create('/admin/dashboard');

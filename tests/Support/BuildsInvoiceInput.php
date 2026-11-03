@@ -91,10 +91,13 @@ trait BuildsInvoiceInput
      */
     private function invoiceDetailsInput(): array
     {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
+            'payment_status_id' => $statusQuery->firstOrFail()->id,
             'issue_date' => now()->toDateString(),
             'tax_point_date' => now()->toDateString(),
             'due_in' => 14,

@@ -53,20 +53,27 @@ final class InvoiceContactApplicationServiceTest extends TestCase
                 $query->delete();
             },
         );
+        $roleQuery = Role::on('contact_race');
+        $roleQuery->where('name', 'frontend_user');
+        $roleQuery->where('guard_name', 'web');
         $owner->assignRole(
-            Role::on('contact_race')->where('name', 'frontend_user')->where('guard_name', 'web')->firstOrFail(),
+            $roleQuery->firstOrFail(),
         );
         $businessFactory = Business::factory();
         $businessFactory = $businessFactory->connection('contact_race');
         $business = $businessFactory->create(['user_id' => $owner->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory = $invoiceFactory->connection('contact_race');
+        $paymentMethodQuery = PaymentMethod::on('contact_race');
+        $paymentMethodQuery->where('slug', 'cash');
+        $statusQuery = Status::on('contact_race');
+        $statusQuery->where('slug', 'pending');
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $owner->id,
                 'business_id' => $business->id,
-                'payment_method_id' => PaymentMethod::on('contact_race')->where('slug', 'cash')->value('id'),
-                'payment_status_id' => Status::on('contact_race')->where('slug', 'pending')->value('id'),
+                'payment_method_id' => $paymentMethodQuery->value('id'),
+                'payment_status_id' => $statusQuery->value('id'),
                 'customer_company_number' => null,
             ],
         );

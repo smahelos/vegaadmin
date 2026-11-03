@@ -166,6 +166,12 @@ class AdminCrudSmokeTest extends TestCase
 
     private function createRecord(string $model): Model
     {
+        if ($model === PaymentMethod::class) {
+            $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+
+            return $paymentMethodQuery->firstOrFail();
+        }
+
         return match ($model) {
             EntityLimitUsage::class => EntityLimitUsage::create(
                 [
@@ -178,7 +184,6 @@ class AdminCrudSmokeTest extends TestCase
                     'current_value' => 1,
                 ],
             ),
-            PaymentMethod::class => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail(),
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             default => $this->createFromFactory($model),

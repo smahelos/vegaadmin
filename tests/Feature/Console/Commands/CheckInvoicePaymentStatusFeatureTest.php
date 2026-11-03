@@ -50,12 +50,13 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $date = $now->startOfDay();
         $date = $date->subDays(10);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
                 'issue_date' => $date->addDays($days),
                 'due_in' => 10,
-                'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
+                'payment_status_id' => $statusQuery->sole()->id,
                 'contact_id' => null,
                 'supplier_name' => 'Saved supplier',
                 'supplier_email' => 'saved-supplier@example.test',
@@ -207,12 +208,13 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $invoiceFactory = Invoice::factory();
 
         $now = CarbonImmutable::now();
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
 
         return $invoiceFactory->create(
             $overrides + [
                 'issue_date' => $now->subDays(10),
                 'due_in' => 10,
-                'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
+                'payment_status_id' => $statusQuery->sole()->id,
                 'supplier_email' => 'supplier@example.test',
                 'customer_email' => 'customer@example.test',
             ],
