@@ -18,14 +18,26 @@ final class BladeComponentUsageProvider extends ReflectionBasedMemberUsageProvid
 {
     protected function shouldMarkMethodAsUsed(ReflectionMethod $method): ?VirtualUsageData
     {
-        return $method->isPublic() && $method->getDeclaringClass()->isSubclassOf(Component::class)
+        if (!$method->isPublic()) {
+            return null;
+        }
+
+        $declaringClass = $method->getDeclaringClass();
+
+        return $declaringClass->isSubclassOf(Component::class)
             ? VirtualUsageData::withNote('Blade component constructor or template method')
             : null;
     }
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
     {
-        return $property->isPublic() && $property->getDeclaringClass()->isSubclassOf(Component::class)
+        if (!$property->isPublic()) {
+            return null;
+        }
+
+        $declaringClass = $property->getDeclaringClass();
+
+        return $declaringClass->isSubclassOf(Component::class)
             ? VirtualUsageData::withNote('Blade component template variable')
             : null;
     }

@@ -29,7 +29,11 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
 
     protected function shouldMarkMethodAsUsed(ReflectionMethod $method): ?VirtualUsageData
     {
-        $isAppMethod = $method->isPublic() && str_starts_with($method->getDeclaringClass()->getName(), 'App\\');
+        $isAppMethod = false;
+        if ($method->isPublic()) {
+            $declaringClass = $method->getDeclaringClass();
+            $isAppMethod = str_starts_with($declaringClass->getName(), 'App\\');
+        }
 
         return $isAppMethod && isset($this->calledNames()[$method->getName()])
             ? VirtualUsageData::withNote('Called by a Blade template')
@@ -38,7 +42,12 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
     {
-        $isAppProperty = $property->isPublic() && str_starts_with($property->getDeclaringClass()->getName(), 'App\\');
+        $isAppProperty = false;
+        if ($property->isPublic()) {
+            $declaringClass = $property->getDeclaringClass();
+            $isAppProperty = str_starts_with($declaringClass->getName(), 'App\\');
+        }
+
         if ($this->readNames === null) {
             $this->readNames = [];
             $files = new RecursiveIteratorIterator(
