@@ -25,7 +25,8 @@ final class ClosureColumnTest extends TestCase
     {
         parent::setUp();
 
-        $this->admin = User::factory()->create();
+        $userFactory = User::factory();
+        $this->admin = $userFactory->create();
         $this->admin->assignRole(
             Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK),
         );

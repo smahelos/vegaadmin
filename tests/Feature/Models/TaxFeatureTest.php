@@ -39,7 +39,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_zero_rate_tax(): void
     {
-        $tax = Tax::factory()->zero()->create();
+        $taxFactory = Tax::factory();
+        $zeroFactory = $taxFactory->zero();
+        $tax = $zeroFactory->create();
 
         $this->assertEquals(0.00, $tax->rate);
     }
@@ -47,7 +49,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_standard_vat(): void
     {
-        $tax = Tax::factory()->standardVat()->create();
+        $taxFactory = Tax::factory();
+        $standardVatFactory = $taxFactory->standardVat();
+        $tax = $standardVatFactory->create();
 
         $this->assertEquals('Standard VAT', $tax->name);
         $this->assertEquals(21.00, $tax->rate);
@@ -57,7 +61,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_reduced_vat(): void
     {
-        $tax = Tax::factory()->reducedVat()->create();
+        $taxFactory = Tax::factory();
+        $reducedVatFactory = $taxFactory->reducedVat();
+        $tax = $reducedVatFactory->create();
 
         $this->assertEquals('Reduced VAT', $tax->name);
         $this->assertEquals(15.00, $tax->rate);
@@ -231,8 +237,10 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_filter_taxes_by_zero_rate(): void
     {
-        Tax::factory()->zero()->count(2)->create();
         $taxFactory = Tax::factory();
+        $zeroFactory = $taxFactory->zero();
+        $zeroFactory = $zeroFactory->count(2);
+        $zeroFactory->create();
         $taxFactory = $taxFactory->count(3);
         $taxFactory->create(['rate' => 21.00]);
 

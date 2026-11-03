@@ -26,7 +26,8 @@ class PageRequestFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
-        $this->category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $this->category = $pageCategoryFactory->create();
         $this->request = new PageRequest;
 
         $route = Route::post(

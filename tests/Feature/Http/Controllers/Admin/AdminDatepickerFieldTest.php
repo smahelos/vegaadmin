@@ -61,7 +61,8 @@ class AdminDatepickerFieldTest extends TestCase
         string $expected,
     ): void {
         $this->actingAs($this->adminUser, 'backpack');
-        $record = $model::factory()->create([$field => '2026-03-15 10:20:30']);
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create([$field => '2026-03-15 10:20:30']);
 
         $httpResponse = $this->get("/admin/{$route}/{$record->getKey()}/edit");
         $httpResponse = $httpResponse->assertOk();

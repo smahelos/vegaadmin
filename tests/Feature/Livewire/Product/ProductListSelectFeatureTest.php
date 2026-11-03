@@ -20,7 +20,8 @@ class ProductListSelectFeatureTest extends TestCase
         parent::setUp();
 
         $this->setupTestRoutes();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
         $this->actingAs($this->user);
     }
 
@@ -601,7 +602,9 @@ class ProductListSelectFeatureTest extends TestCase
     public function select_product_does_not_reveal_another_users_product(): void
     {
         $productFactory = Product::factory();
-        $foreign = $productFactory->create(['user_id' => User::factory()->create()->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $foreign = $productFactory->create(['user_id' => $user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
         $component->call('selectProduct', $foreign->id);
@@ -623,9 +626,11 @@ class ProductListSelectFeatureTest extends TestCase
                 'name' => 'Own Product ' . uniqid(),
             ],
         );
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $productFactory->create(
             [
-                'user_id' => User::factory()->create()->id,
+                'user_id' => $user->id,
                 'name' => 'Foreign Product ' . uniqid(),
             ],
         );

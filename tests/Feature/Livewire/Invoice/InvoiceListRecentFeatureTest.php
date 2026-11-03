@@ -20,7 +20,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]

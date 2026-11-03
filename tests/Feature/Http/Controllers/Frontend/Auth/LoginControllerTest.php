@@ -42,7 +42,8 @@ class LoginControllerTest extends TestCase
 
         // Create test user with valid credentials
         if (!$this->user) {
-            $this->user = User::factory()->create(
+            $userFactory = User::factory();
+            $this->user = $userFactory->create(
                 [
                     'email' => $this->validEmail,
                     'password' => Hash::make($this->validPassword),

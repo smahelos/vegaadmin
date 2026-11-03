@@ -107,7 +107,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     {
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $planWithTrial = $subscriptionPlanFactory->create(['trial_days' => 14]);
-        $planWithoutTrial = SubscriptionPlan::factory()->withoutTrial()->create();
+        $withoutTrialFactory = $subscriptionPlanFactory->withoutTrial();
+        $planWithoutTrial = $withoutTrialFactory->create();
 
         $this->assertTrue($planWithTrial->hasTrialPeriod());
         $this->assertFalse($planWithoutTrial->hasTrialPeriod());

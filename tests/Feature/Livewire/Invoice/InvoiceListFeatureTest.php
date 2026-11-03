@@ -168,8 +168,12 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function archived_parties_remain_filterable_without_restoration(): void
     {
-        $business = Business::factory()->archived()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->archived()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $archivedBusinessFactory = $businessFactory->archived();
+        $business = $archivedBusinessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $archivedContactFactory = $contactFactory->archived();
+        $contact = $archivedContactFactory->create(['user_id' => $this->user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(
             [
@@ -360,7 +364,8 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function rejects_a_user_without_invoice_view_permission(): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
         $component = Livewire::test(InvoiceList::class);
         $component->assertForbidden();
     }

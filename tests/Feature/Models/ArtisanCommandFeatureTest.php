@@ -112,8 +112,11 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $activeCommand = ArtisanCommand::factory()->active()->create();
-        $inactiveCommand = ArtisanCommand::factory()->inactive()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $activeFactory = $artisanCommandFactory->active();
+        $activeCommand = $activeFactory->create();
+        $inactiveFactory = $artisanCommandFactory->inactive();
+        $inactiveCommand = $inactiveFactory->create();
 
         $this->assertTrue($activeCommand->is_active);
         $this->assertFalse($inactiveCommand->is_active);

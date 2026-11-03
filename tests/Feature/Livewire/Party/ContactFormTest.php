@@ -86,7 +86,9 @@ final class ContactFormTest extends TestCase
     #[Test]
     public function an_archived_contact_with_the_same_czech_company_number_blocks_a_copy(): void
     {
-        Contact::factory()->archived()->create(
+        $contactFactory = Contact::factory();
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(
             [
                 'user_id' => $this->user->id,
                 'company_number' => self::VALID_COMPANY_NUMBER,

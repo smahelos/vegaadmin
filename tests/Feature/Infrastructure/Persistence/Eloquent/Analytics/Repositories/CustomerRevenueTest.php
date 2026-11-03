@@ -23,13 +23,18 @@ final class CustomerRevenueTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $business = Business::factory()->archived()->create(['user_id' => $user->id]);
-        $contact = Contact::factory()->archived()->create(['user_id' => $user->id, 'name' => 'Current contact name']);
+        $businessFactory = Business::factory();
+        $archivedBusinessFactory = $businessFactory->archived();
+        $business = $archivedBusinessFactory->create(['user_id' => $user->id]);
+        $contactFactory = Contact::factory();
+        $archivedContactFactory = $contactFactory->archived();
+        $contact = $archivedContactFactory->create(['user_id' => $user->id, 'name' => 'Current contact name']);
         $base = [
             'user_id' => $user->id,
             'business_id' => $business->id,
             'issue_date' => '2026-10-20',
         ];
+        $invoiceFactory = Invoice::factory();
         foreach (
             [
                 [
@@ -66,9 +71,8 @@ final class CustomerRevenueTest extends TestCase
                 ['customer_name' => '123', 'payment_amount' => '0.08'],
             ] as $attributes
         ) {
-            Invoice::factory()->create($attributes + $base);
+            $invoiceFactory->create($attributes + $base);
         }
-        $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['issue_date' => '2026-10-20', 'payment_amount' => '9999']);
         $uid = UserId::fromInt($user->id);
         $repository = app(EloquentApiStatisticsRepository::class);

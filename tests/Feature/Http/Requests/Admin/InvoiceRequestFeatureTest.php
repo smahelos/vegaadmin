@@ -93,11 +93,13 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
         $invoiceFactory = Invoice::factory();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
-                'contact_id' => Contact::factory()->create(['user_id' => $this->adminUser->id])->id,
+                'contact_id' => $contact->id,
             ],
         );
         $httpResponse = $this->put(

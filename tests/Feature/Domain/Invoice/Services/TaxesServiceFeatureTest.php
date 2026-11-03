@@ -80,7 +80,9 @@ class TaxesServiceFeatureTest extends TestCase
         $wormhole->minutes();
         $t2 = Model::withoutEvents(
             function () {
-                return Tax::factory()->create(['name' => 'New Tax']);
+                $taxFactory = Tax::factory();
+
+                return $taxFactory->create(['name' => 'New Tax']);
             },
         );
         $beforeExpire = $this->service->getAllTaxesForSelect();

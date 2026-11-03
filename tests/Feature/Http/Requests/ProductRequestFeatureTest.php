@@ -41,7 +41,8 @@ class ProductRequestFeatureTest extends TestCase
 
         // Create regular user with limited role
         if (!$this->user) {
-            $this->user = User::factory()->create(
+            $userFactory = User::factory();
+            $this->user = $userFactory->create(
                 [
                     'email' => $this->faker->unique()->safeEmail,
                     'name' => $this->faker->name,

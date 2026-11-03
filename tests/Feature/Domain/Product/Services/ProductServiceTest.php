@@ -23,7 +23,8 @@ class ProductServiceTest extends TestCase
         parent::setUp();
 
         $this->productService = $this->app->make(ProductServiceInterface::class);
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]

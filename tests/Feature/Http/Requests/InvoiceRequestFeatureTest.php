@@ -44,8 +44,9 @@ final class InvoiceRequestFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
+        $taxFactory = Tax::factory();
         foreach (['12.00', '21.00'] as $rate) {
-            Tax::factory()->create(
+            $taxFactory->create(
                 [
                     'name' => 'DPH ' . $rate . ' ' . uniqid(),
                     'slug' => 'dph',
@@ -201,11 +202,13 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function a_guest_cannot_refer_to_stored_parties(): void
     {
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
         $data = $this->guestInvoiceInput(
             [
                 'business_id' => $this->business->id,
                 'bank_account_id' => $this->account->id,
-                'contact_id' => Contact::factory()->create(['user_id' => $this->user->id])->id,
+                'contact_id' => $contact->id,
                 'save_customer_to_contacts' => '1',
                 'invoice-products' => [$this->item()],
             ],
@@ -439,7 +442,8 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function the_business_account_and_contact_must_be_the_users_own(): void
     {
-        [$foreignBusiness, $foreignAccount] = $this->issuerOf(User::factory()->create());
+        $userFactory = User::factory();
+        [$foreignBusiness, $foreignAccount] = $this->issuerOf($userFactory->create());
         [, $accountOfAnotherBusiness] = $this->issuerOf($this->user);
         $contactFactory = Contact::factory();
         $foreignContact = $contactFactory->create();

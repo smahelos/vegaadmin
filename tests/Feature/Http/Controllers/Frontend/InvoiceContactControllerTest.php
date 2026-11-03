@@ -32,7 +32,8 @@ final class InvoiceContactControllerTest extends TestCase
     #[Test]
     public function a_guest_is_sent_to_the_login(): void
     {
-        $invoice = $this->invoiceOf(User::factory()->create());
+        $userFactory = User::factory();
+        $invoice = $this->invoiceOf($userFactory->create());
 
         $httpResponse = $this->post(
             route('frontend.invoices.save-to-contacts', ['invoice' => $invoice->id]),
@@ -73,7 +74,8 @@ final class InvoiceContactControllerTest extends TestCase
     public function another_users_invoice_is_not_found(): void
     {
         $user = $this->frontendUser();
-        $foreign = $this->invoiceOf(User::factory()->create());
+        $userFactory = User::factory();
+        $foreign = $this->invoiceOf($userFactory->create());
         $contact = $this->contactOf($user, self::CUSTOMER_NUMBER);
 
         $httpClient = $this->actingAs($user);
@@ -189,7 +191,8 @@ final class InvoiceContactControllerTest extends TestCase
     {
         $user = $this->frontendUser();
         $invoice = $this->invoiceOf($user);
-        $foreign = $this->contactOf(User::factory()->create(), self::CUSTOMER_NUMBER);
+        $userFactory = User::factory();
+        $foreign = $this->contactOf($userFactory->create(), self::CUSTOMER_NUMBER);
 
         $httpClient = $this->actingAs($user);
         $httpResponse = $httpClient->post(

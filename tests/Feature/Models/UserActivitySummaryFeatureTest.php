@@ -21,10 +21,12 @@ final class UserActivitySummaryFeatureTest extends TestCase
         $user = $userFactory->create();
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $user->id]);
-        Business::factory()->archived()->create(['user_id' => $user->id]);
+        $archivedBusinessFactory = $businessFactory->archived();
+        $archivedBusinessFactory->create(['user_id' => $user->id]);
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $user->id]);
-        Contact::factory()->archived()->create(['user_id' => $user->id]);
+        $archivedContactFactory = $contactFactory->archived();
+        $archivedContactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(['user_id' => $user->id, 'business_id' => $business->id]);
         $contactFactory->create();

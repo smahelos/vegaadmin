@@ -106,8 +106,9 @@ class InvoiceFeatureTest extends TestCase
     public function payment_status_name_is_translated_by_status_slug(): void
     {
         $statusQuery = Status::where('slug', 'partially-paid');
+        $statusFactory = Status::factory();
         $status = $statusQuery->first()
-            ?? Status::factory()->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
+            ?? $statusFactory->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
 
@@ -310,10 +311,12 @@ class InvoiceFeatureTest extends TestCase
         ]);
 
         // The stored tax of each line is summed as it is
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         InvoiceProduct::create(
             [
                 'invoice_id' => $invoice->id,
-                'product_id' => Product::factory()->create()->id,
+                'product_id' => $product->id,
                 'name' => 'P1',
                 'quantity' => 1,
                 'price' => 100.00,
@@ -325,10 +328,11 @@ class InvoiceFeatureTest extends TestCase
                 'total_price' => '121.00',
             ],
         );
+        $product = $productFactory->create();
         InvoiceProduct::create(
             [
                 'invoice_id' => $invoice->id,
-                'product_id' => Product::factory()->create()->id,
+                'product_id' => $product->id,
                 'name' => 'P2',
                 'quantity' => 2,
                 'price' => 50.00,

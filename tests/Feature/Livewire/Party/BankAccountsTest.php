@@ -182,9 +182,11 @@ final class BankAccountsTest extends TestCase
             ],
         );
         $model = $context === 'business' ? Business::class : Contact::class;
-        $owner = $model::factory()->create(['user_id' => $this->user->id]);
+        $modelFactory = $model::factory();
+        $owner = $modelFactory->create(['user_id' => $this->user->id]);
         $targetModel = $target === 'business' ? Business::class : Contact::class;
-        $otherOwner = $targetModel::factory()->create(['user_id' => $this->user->id]);
+        $targetModelFactory = $targetModel::factory();
+        $otherOwner = $targetModelFactory->create(['user_id' => $this->user->id]);
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($otherOwner);
         $account = $bankAccountFactory->create([

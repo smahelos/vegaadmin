@@ -102,8 +102,11 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_base_command_attribute_works(): void
     {
-        $simpleCommand = CronTask::factory()->withCommand('cache:clear')->create();
-        $commandWithParams = CronTask::factory()->withCommand('queue:work --queue=high,default')->create();
+        $cronTaskFactory = CronTask::factory();
+        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
+        $simpleCommand = $commandFactory->create();
+        $commandFactory = $cronTaskFactory->withCommand('queue:work --queue=high,default');
+        $commandWithParams = $commandFactory->create();
 
         $this->assertEquals('cache:clear', $simpleCommand->getBaseCommandAttribute());
         $this->assertEquals('queue:work', $commandWithParams->getBaseCommandAttribute());
@@ -115,8 +118,11 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_command_params_attribute_works(): void
     {
-        $simpleCommand = CronTask::factory()->withCommand('cache:clear')->create();
-        $commandWithParams = CronTask::factory()->withCommand('queue:work --queue=high,default --timeout=60')->create();
+        $cronTaskFactory = CronTask::factory();
+        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
+        $simpleCommand = $commandFactory->create();
+        $commandFactory = $cronTaskFactory->withCommand('queue:work --queue=high,default --timeout=60');
+        $commandWithParams = $commandFactory->create();
 
         $this->assertEmpty($simpleCommand->getCommandParamsAttribute());
         $this->assertNotEmpty($commandWithParams->getCommandParamsAttribute());
@@ -129,12 +135,19 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $activeTask = CronTask::factory()->active()->create();
-        $inactiveTask = CronTask::factory()->inactive()->create();
-        $dailyTask = CronTask::factory()->daily()->create();
-        $weeklyTask = CronTask::factory()->weekly()->create();
-        $monthlyTask = CronTask::factory()->monthly()->create();
-        $customTask = CronTask::factory()->custom()->create();
+        $cronTaskFactory = CronTask::factory();
+        $activeFactory = $cronTaskFactory->active();
+        $activeTask = $activeFactory->create();
+        $inactiveFactory = $cronTaskFactory->inactive();
+        $inactiveTask = $inactiveFactory->create();
+        $dailyFactory = $cronTaskFactory->daily();
+        $dailyTask = $dailyFactory->create();
+        $weeklyFactory = $cronTaskFactory->weekly();
+        $weeklyTask = $weeklyFactory->create();
+        $monthlyFactory = $cronTaskFactory->monthly();
+        $monthlyTask = $monthlyFactory->create();
+        $customFactory = $cronTaskFactory->custom();
+        $customTask = $customFactory->create();
 
         $this->assertTrue($activeTask->is_active);
         $this->assertFalse($inactiveTask->is_active);
@@ -159,7 +172,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function factory_recently_run_state_works(): void
     {
-        $recentTask = CronTask::factory()->recentlyRun()->create();
+        $cronTaskFactory = CronTask::factory();
+        $recentlyRunFactory = $cronTaskFactory->recentlyRun();
+        $recentTask = $recentlyRunFactory->create();
 
         $this->assertNotNull($recentTask->last_run);
         $now = CarbonImmutable::now();
@@ -173,7 +188,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function factory_with_error_state_works(): void
     {
-        $errorTask = CronTask::factory()->withError()->create();
+        $cronTaskFactory = CronTask::factory();
+        $failingFactory = $cronTaskFactory->withError();
+        $errorTask = $failingFactory->create();
 
         $this->assertNotNull($errorTask->last_run);
         $this->assertNotNull($errorTask->last_output);
@@ -183,7 +200,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_cron_expression_works_for_daily_task(): void
     {
-        $dailyTask = CronTask::factory()->daily()->create(['run_at' => '08:30:00']);
+        $cronTaskFactory = CronTask::factory();
+        $dailyFactory = $cronTaskFactory->daily();
+        $dailyTask = $dailyFactory->create(['run_at' => '08:30:00']);
 
         $cronExpression = $dailyTask->getCronExpression();
 
@@ -194,7 +213,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_cron_expression_works_for_weekly_task(): void
     {
-        $weeklyTask = CronTask::factory()->weekly()->create([
+        $cronTaskFactory = CronTask::factory();
+        $weeklyFactory = $cronTaskFactory->weekly();
+        $weeklyTask = $weeklyFactory->create([
             'run_at' => '09:00:00',
             'day_of_week' => 1, // Monday
         ]);
@@ -208,7 +229,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_cron_expression_works_for_monthly_task(): void
     {
-        $monthlyTask = CronTask::factory()->monthly()->create([
+        $cronTaskFactory = CronTask::factory();
+        $monthlyFactory = $cronTaskFactory->monthly();
+        $monthlyTask = $monthlyFactory->create([
             'run_at' => '10:15:00',
             'day_of_month' => 15,
         ]);
@@ -222,7 +245,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_cron_expression_works_for_custom_task(): void
     {
-        $customTask = CronTask::factory()->custom()->create([
+        $cronTaskFactory = CronTask::factory();
+        $customFactory = $cronTaskFactory->custom();
+        $customTask = $customFactory->create([
             'custom_expression' => '0 */6 * * *', // Every 6 hours
         ]);
 
@@ -234,8 +259,11 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function get_next_run_date_returns_carbon_instance_or_null(): void
     {
-        $dailyTask = CronTask::factory()->daily()->create();
-        $customTask = CronTask::factory()->custom()->create();
+        $cronTaskFactory = CronTask::factory();
+        $dailyFactory = $cronTaskFactory->daily();
+        $dailyTask = $dailyFactory->create();
+        $customFactory = $cronTaskFactory->custom();
+        $customTask = $customFactory->create();
 
         $nextRunDate1 = $dailyTask->getNextRunDate();
         $nextRunDate2 = $customTask->getNextRunDate();
@@ -247,7 +275,9 @@ class CronTaskFeatureTest extends TestCase
     #[Test]
     public function simulate_run_returns_appropriate_result(): void
     {
-        $task = CronTask::factory()->withCommand('cache:clear')->create();
+        $cronTaskFactory = CronTask::factory();
+        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
+        $task = $commandFactory->create();
 
         $result = $task->simulateRun();
 

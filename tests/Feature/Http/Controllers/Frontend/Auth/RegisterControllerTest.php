@@ -30,7 +30,8 @@ final class RegisterControllerTest extends TestCase
     #[Test]
     public function a_signed_in_user_is_sent_away_from_the_registration(): void
     {
-        $httpClient = $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $httpClient = $this->actingAs($userFactory->create());
         $httpResponse = $httpClient->get(
             route('frontend.register'),
         );

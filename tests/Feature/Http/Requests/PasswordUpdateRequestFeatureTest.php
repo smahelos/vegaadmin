@@ -38,7 +38,8 @@ class PasswordUpdateRequestFeatureTest extends TestCase
 
         if (!$this->user) {
             // Create test user with known password
-            $this->user = User::factory()->create(
+            $userFactory = User::factory();
+            $this->user = $userFactory->create(
                 [
                     'password' => Hash::make($this->currentPassword),
                 ],

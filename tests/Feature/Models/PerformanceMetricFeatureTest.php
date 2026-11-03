@@ -55,7 +55,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_query_time_state_creates_query_time_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->queryTime()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $queryTimeFactory = $performanceMetricFactory->queryTime();
+        $metric = $queryTimeFactory->create();
 
         $this->assertEquals('query_time', $metric->metric_type);
         $this->assertEquals('ms', $metric->metric_unit);
@@ -66,7 +68,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_table_size_state_creates_table_size_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->tableSize()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $tableSizeFactory = $performanceMetricFactory->tableSize();
+        $metric = $tableSizeFactory->create();
 
         $this->assertEquals('table_size', $metric->metric_type);
         $this->assertEquals('MB', $metric->metric_unit);
@@ -77,7 +81,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_index_usage_state_creates_index_usage_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->indexUsage()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $indexUsageFactory = $performanceMetricFactory->indexUsage();
+        $metric = $indexUsageFactory->create();
 
         $this->assertEquals('index_usage', $metric->metric_type);
         $this->assertEquals('%', $metric->metric_unit);
@@ -89,7 +95,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_slow_queries_state_creates_slow_queries_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->slowQueries()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $slowQueriesFactory = $performanceMetricFactory->slowQueries();
+        $metric = $slowQueriesFactory->create();
 
         $this->assertEquals('slow_queries', $metric->metric_type);
         $this->assertEquals('count', $metric->metric_unit);
@@ -100,7 +108,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_connection_count_state_creates_connection_count_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->connectionCount()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $connectionCountFactory = $performanceMetricFactory->connectionCount();
+        $metric = $connectionCountFactory->create();
 
         $this->assertEquals('connection_count', $metric->metric_type);
         $this->assertEquals('count', $metric->metric_unit);
@@ -112,7 +122,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_for_table_state_sets_table_name(): void
     {
 
-        $metric = PerformanceMetric::factory()->forTable('invoices')->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $tableFactory = $performanceMetricFactory->forTable('invoices');
+        $metric = $tableFactory->create();
 
         $this->assertEquals('invoices', $metric->table_name);
     }
@@ -121,7 +133,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_for_query_type_state_sets_query_type(): void
     {
 
-        $metric = PerformanceMetric::factory()->forQueryType('UPDATE')->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $queryTypeFactory = $performanceMetricFactory->forQueryType('UPDATE');
+        $metric = $queryTypeFactory->create();
 
         $this->assertEquals('UPDATE', $metric->query_type);
     }
@@ -130,7 +144,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_recent_state_creates_recent_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->recent()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $recentFactory = $performanceMetricFactory->recent();
+        $metric = $recentFactory->create();
 
         $now = CarbonImmutable::now();
         $this->assertGreaterThanOrEqual(
@@ -144,7 +160,9 @@ class PerformanceMetricFeatureTest extends TestCase
     public function factory_old_state_creates_old_metric(): void
     {
 
-        $metric = PerformanceMetric::factory()->old()->create();
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $oldFactory = $performanceMetricFactory->old();
+        $metric = $oldFactory->create();
 
         $now = CarbonImmutable::now();
         $this->assertLessThanOrEqual(
@@ -203,9 +221,11 @@ class PerformanceMetricFeatureTest extends TestCase
     public function can_query_metrics_by_query_type(): void
     {
 
-        PerformanceMetric::factory()->forQueryType('SELECT')->createMany(2);
-        PerformanceMetric::factory()->forQueryType('INSERT')->create();
         $performanceMetricFactory = PerformanceMetric::factory();
+        $queryTypeFactory = $performanceMetricFactory->forQueryType('SELECT');
+        $queryTypeFactory->createMany(2);
+        $queryTypeFactory = $performanceMetricFactory->forQueryType('INSERT');
+        $queryTypeFactory->create();
         $performanceMetricFactory->create(['query_type' => null]);
 
         $performanceMetricQuery = PerformanceMetric::where('query_type', 'SELECT');

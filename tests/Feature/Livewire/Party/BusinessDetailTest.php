@@ -62,7 +62,9 @@ final class BusinessDetailTest extends TestCase
     #[Test]
     public function a_business_restored_while_none_is_active_becomes_the_default(): void
     {
-        $archived = Business::factory()->archived()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $archived = $archivedFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(BusinessDetail::class, ['businessId' => $archived->id]);
         $component->call('restore');
@@ -80,7 +82,9 @@ final class BusinessDetailTest extends TestCase
     {
         $this->limitActive('business', 1);
         $this->business();
-        $archived = Business::factory()->archived()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $archived = $archivedFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(BusinessDetail::class, ['businessId' => $archived->id]);
         $component->call('restore');

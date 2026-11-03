@@ -51,7 +51,8 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->user->givePermissionTo($permission);
 
         // Create entity limit with permission-based structure
-        $this->monthlyInvoiceLimit = EntityLimit::factory()->create(
+        $entityLimitFactory = EntityLimit::factory();
+        $this->monthlyInvoiceLimit = $entityLimitFactory->create(
             [
                 'permission_name' => 'frontend.can_create_edit_invoice',
                 'entity_type' => 'invoice',

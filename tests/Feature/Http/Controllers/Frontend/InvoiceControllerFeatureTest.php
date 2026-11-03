@@ -40,7 +40,8 @@ class InvoiceControllerFeatureTest extends TestCase
         }
 
         // Create test invoice
-        $this->invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $this->invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'template' => 'default',

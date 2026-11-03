@@ -49,9 +49,12 @@ class ProductRequestFeatureTest extends TestCase
         $permission = $permissionQuery->first();
         $this->regularUser->givePermissionTo($permission);
 
-        $this->productUser = User::factory()->create();
-        $this->tax = Tax::factory()->create();
-        $this->category = ProductCategory::factory()->create();
+        $userFactory = User::factory();
+        $this->productUser = $userFactory->create();
+        $taxFactory = Tax::factory();
+        $this->tax = $taxFactory->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $this->category = $productCategoryFactory->create();
 
         // Initialize limit service
         $this->limitService = app(UniversalLimitService::class);

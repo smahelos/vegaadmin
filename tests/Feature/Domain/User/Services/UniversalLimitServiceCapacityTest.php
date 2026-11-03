@@ -22,7 +22,8 @@ final class UniversalLimitServiceCapacityTest extends TestCase
         $contactFactory = Contact::factory();
         $batchFactory = $contactFactory->count(2);
         $batchFactory->create(['user_id' => $user->id]);
-        Contact::factory()->archived()->create(['user_id' => $user->id]);
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(['user_id' => $user->id]);
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $user->id]);
         $contactFactory->create();

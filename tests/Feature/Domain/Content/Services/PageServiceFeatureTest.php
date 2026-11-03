@@ -30,7 +30,9 @@ class PageServiceFeatureTest extends TestCase
         $this->assertNull($this->pageService->getHomepage());
 
         // Create a published page
-        $page = Page::factory()->published()->create([
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $page = $publishedFactory->create([
             'slug' => ['cs' => 'stranka', 'en' => 'page'],
         ]);
 
@@ -40,7 +42,7 @@ class PageServiceFeatureTest extends TestCase
         $this->assertEquals($page->id, $homepage->id);
 
         // Create a home page
-        $homePage = Page::factory()->published()->create([
+        $homePage = $publishedFactory->create([
             'slug' => ['cs' => 'uvod', 'en' => 'home'],
         ]);
 
@@ -58,7 +60,9 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_page_by_slug(): void
     {
-        $page = Page::factory()->published()->create(
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $page = $publishedFactory->create(
             [
                 'slug' => ['cs' => 'testovaci-stranka', 'en' => 'test-page'],
             ],
@@ -84,7 +88,9 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_page_by_cross_language_slug(): void
     {
-        $page = Page::factory()->published()->create(
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $page = $publishedFactory->create(
             [
                 'slug' => [
                     'cs' => 'sablony',
@@ -110,11 +116,17 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_pages_for_navigation(): void
     {
-        $rootPage1 = Page::factory()->published()->root()->create();
-        $rootPage2 = Page::factory()->published()->root()->create();
-        Page::factory()->published()->withParent($rootPage1)->create();
-        Page::factory()->published()->withParent($rootPage1)->create();
-        Page::factory()->draft()->root()->create();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $rootFactory = $publishedFactory->root();
+        $rootPage1 = $rootFactory->create();
+        $rootPage2 = $rootFactory->create();
+        $childFactory = $publishedFactory->withParent($rootPage1);
+        $childFactory->create();
+        $childFactory->create();
+        $draftFactory = $pageFactory->draft();
+        $draftFactory = $draftFactory->root();
+        $draftFactory->create();
 
         $navigationPages = $this->pageService->getPagesForNavigation();
 
@@ -135,10 +147,14 @@ class PageServiceFeatureTest extends TestCase
     {
         $pageCategoryFactory = PageCategory::factory();
         $category = $pageCategoryFactory->create();
-        $page1 = Page::factory()->published()->inCategory($category)->create();
-        $page2 = Page::factory()->published()->inCategory($category)->create();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $categorizedFactory = $publishedFactory->inCategory($category);
+        $page1 = $categorizedFactory->create();
+        $page2 = $categorizedFactory->create();
         $otherCategory = $pageCategoryFactory->create();
-        Page::factory()->published()->inCategory($otherCategory)->create();
+        $categorizedFactory = $publishedFactory->inCategory($otherCategory);
+        $categorizedFactory->create();
 
         $categoryPages = $this->pageService->getPagesByCategory($category->id);
 
@@ -155,13 +171,15 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_search_pages(): void
     {
-        $page1 = Page::factory()->published()->create(
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $page1 = $publishedFactory->create(
             [
                 'name' => ['cs' => 'Testovací stránka', 'en' => 'Test page'],
                 'content' => ['cs' => 'Toto je obsah testovací stránky', 'en' => 'This is test page content'],
             ],
         );
-        $page2 = Page::factory()->published()->create(
+        $page2 = $publishedFactory->create(
             [
                 'name' => ['cs' => 'Jiná stránka', 'en' => 'Another page'],
                 'content' => ['cs' => 'Toto je jiný obsah', 'en' => 'This is different content'],
@@ -190,19 +208,24 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_can_get_breadcrumbs(): void
     {
-        $rootPage = Page::factory()->published()->root()->create(
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $rootFactory = $publishedFactory->root();
+        $rootPage = $rootFactory->create(
             [
                 'name' => ['cs' => 'Kořenová stránka', 'en' => 'Root page'],
                 'slug' => ['cs' => 'korenova', 'en' => 'root'],
             ],
         );
-        $middlePage = Page::factory()->published()->withParent($rootPage)->create(
+        $childFactory = $publishedFactory->withParent($rootPage);
+        $middlePage = $childFactory->create(
             [
                 'name' => ['cs' => 'Střední stránka', 'en' => 'Middle page'],
                 'slug' => ['cs' => 'stredni', 'en' => 'middle'],
             ],
         );
-        $leafPage = Page::factory()->published()->withParent($middlePage)->create(
+        $childFactory = $publishedFactory->withParent($middlePage);
+        $leafPage = $childFactory->create(
             [
                 'name' => ['cs' => 'Koncová stránka', 'en' => 'Leaf page'],
                 'slug' => ['cs' => 'koncova', 'en' => 'leaf'],
@@ -225,12 +248,16 @@ class PageServiceFeatureTest extends TestCase
     {
         $pageCategoryFactory = PageCategory::factory();
         $category = $pageCategoryFactory->create();
-        $mainPage = Page::factory()->published()->inCategory($category)->create();
-        $relatedPage1 = Page::factory()->published()->inCategory($category)->create();
-        $relatedPage2 = Page::factory()->published()->inCategory($category)->create();
-        $relatedPage3 = Page::factory()->published()->inCategory($category)->create();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $categorizedFactory = $publishedFactory->inCategory($category);
+        $mainPage = $categorizedFactory->create();
+        $relatedPage1 = $categorizedFactory->create();
+        $relatedPage2 = $categorizedFactory->create();
+        $relatedPage3 = $categorizedFactory->create();
         $otherCategory = $pageCategoryFactory->create();
-        Page::factory()->published()->inCategory($otherCategory)->create();
+        $categorizedFactory = $publishedFactory->inCategory($otherCategory);
+        $categorizedFactory->create();
         $relatedPages = $this->pageService->getRelatedPages(
             $this->pageService->getPageBySlug((string) $mainPage->id),
         );
@@ -249,7 +276,9 @@ class PageServiceFeatureTest extends TestCase
     #[Test]
     public function it_returns_empty_collection_for_page_without_category(): void
     {
-        $page = Page::factory()->published()->create(['category_id' => null]);
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $page = $publishedFactory->create(['category_id' => null]);
         $relatedPages = $this->pageService->getRelatedPages(
             $this->pageService->getPageBySlug((string) $page->id),
         );

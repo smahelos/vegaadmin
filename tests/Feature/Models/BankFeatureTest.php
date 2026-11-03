@@ -169,9 +169,13 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_factory_states_work_correctly(): void
     {
-        $activeBank = Bank::factory()->active()->create();
-        $inactiveBank = Bank::factory()->inactive()->create();
-        $czechBank = Bank::factory()->czech()->create();
+        $bankFactory = Bank::factory();
+        $activeFactory = $bankFactory->active();
+        $activeBank = $activeFactory->create();
+        $inactiveFactory = $bankFactory->inactive();
+        $inactiveBank = $inactiveFactory->create();
+        $czechFactory = $bankFactory->czech();
+        $czechBank = $czechFactory->create();
 
         $this->assertTrue($activeBank->active);
         $this->assertFalse($inactiveBank->active);

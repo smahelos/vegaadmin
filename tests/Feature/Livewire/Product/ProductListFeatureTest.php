@@ -18,7 +18,8 @@ class ProductListFeatureTest extends TestCase
         parent::setUp();
 
         $this->setupTestRoutes();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     /**

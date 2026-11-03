@@ -173,7 +173,9 @@ final class DocumentPartyPickerTest extends TestCase
     #[Test]
     public function an_archived_contact_cannot_be_selected(): void
     {
-        $contact = Contact::factory()->archived()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $archivedFactory = $contactFactory->archived();
+        $contact = $archivedFactory->create(['user_id' => $this->user->id]);
 
         Livewire::actingAs($this->user);
         $component = Livewire::test(DocumentPartyPicker::class);

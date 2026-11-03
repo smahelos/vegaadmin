@@ -26,7 +26,8 @@ class PageCrudControllerTest extends TestCase
         parent::setUp();
         $this->setUpAdminTestEnvironment();
         $pageCategoryQuery = PageCategory::where('name', 'Podpora');
-        $this->category = $pageCategoryQuery->first() ?? PageCategory::factory()->create(['name' => 'Podpora']);
+        $pageCategoryFactory = PageCategory::factory();
+        $this->category = $pageCategoryQuery->first() ?? $pageCategoryFactory->create(['name' => 'Podpora']);
     }
 
     #[Test]

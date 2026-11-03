@@ -69,21 +69,22 @@ class UserControllerFeatureTest extends TestCase
     private function createTestUsers(): void
     {
         // Create test users for testing endpoints
-        $this->testUser1 = User::factory()->create(
+        $userFactory = User::factory();
+        $this->testUser1 = $userFactory->create(
             [
                 'name' => 'Test User One',
                 'email' => 'testuser1@example.com',
             ],
         );
 
-        $this->testUser2 = User::factory()->create(
+        $this->testUser2 = $userFactory->create(
             [
                 'name' => 'Test User Two',
                 'email' => 'testuser2@example.com',
             ],
         );
 
-        $this->testUser3 = User::factory()->create(
+        $this->testUser3 = $userFactory->create(
             [
                 'name' => 'Another Name',
                 'email' => 'testuser3@example.com',

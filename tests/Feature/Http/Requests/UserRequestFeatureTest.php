@@ -16,7 +16,8 @@ class UserRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     private function validate(array $data): \Illuminate\Validation\Validator

@@ -49,7 +49,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
             ],
         );
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $document = $model::factory()->create(
+        $modelFactory = $model::factory();
+        $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
@@ -103,7 +104,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
             ],
         );
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $document = $model::factory()->create(
+        $modelFactory = $model::factory();
+        $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
@@ -160,7 +162,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $contact->update(['archived_at' => now()]);
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
         $businessRole = $role === 'customer' ? 'supplier' : 'customer';
-        $document = $model::factory()->create(
+        $modelFactory = $model::factory();
+        $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
@@ -202,7 +205,8 @@ final class AdminDocumentSnapshotsTest extends TestCase
             ],
         );
         $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $document = $model::factory()->create(
+        $modelFactory = $model::factory();
+        $document = $modelFactory->create(
             ['user_id' => $this->adminUser->id, 'contact_id' => $contact->id],
         );
 

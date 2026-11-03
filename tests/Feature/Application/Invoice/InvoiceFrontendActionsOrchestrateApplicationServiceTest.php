@@ -25,7 +25,8 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
         Permission::firstOrCreate(
             ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
         );
@@ -108,12 +109,15 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
 
     private function pendingInvoiceId(): int
     {
-        return Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
             ],
-        )->id;
+        );
+
+        return $invoice->id;
     }
 
     #[Test]

@@ -34,7 +34,8 @@ class StatusRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        $this->statusCategory = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $this->statusCategory = $statusCategoryFactory->create();
 
         // Define test routes
         $route = Route::post(

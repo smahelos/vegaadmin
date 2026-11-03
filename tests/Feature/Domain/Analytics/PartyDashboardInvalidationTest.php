@@ -32,8 +32,9 @@ final class PartyDashboardInvalidationTest extends TestCase
         $dashboard->getUserStatistics(
             $this->idOf($other),
         );
+        $invoiceFactory = Invoice::factory();
         Invoice::withoutEvents(
-            fn () => Invoice::factory()->create(['user_id' => $other->id]),
+            fn () => $invoiceFactory->create(['user_id' => $other->id]),
         );
         $contacts = app(ContactApplicationService::class);
         $businesses = app(BusinessApplicationService::class);
@@ -112,8 +113,9 @@ final class PartyDashboardInvalidationTest extends TestCase
         $uid = $this->idOf($user);
         $dashboard = app(DashboardService::class);
         $dashboard->getUserStatistics($uid);
+        $invoiceFactory = Invoice::factory();
         Invoice::withoutEvents(
-            fn () => Invoice::factory()->create(['user_id' => $user->id]),
+            fn () => $invoiceFactory->create(['user_id' => $user->id]),
         );
         try {
             DB::transaction(

@@ -41,51 +41,95 @@ final class RestrictedDeleteOperationTest extends TestCase
             'artisan command category' => [
                 'artisan-command-category',
                 'artisan_command_categories',
-                static fn (): int => ArtisanCommand::factory()->create()->category_id,
+                static function (): int {
+                    $artisanCommandFactory = ArtisanCommand::factory();
+                    $artisanCommand = $artisanCommandFactory->create();
+
+                    return $artisanCommand->category_id;
+                },
             ],
             'expense category' => [
                 'expense-category',
                 'expense_categories',
-                static fn (): int => Expense::factory()->create()->category_id,
+                static function (): int {
+                    $expenseFactory = Expense::factory();
+                    $expense = $expenseFactory->create();
+
+                    return $expense->category_id;
+                },
             ],
             'payment method' => [
                 'payment-method',
                 'payment_methods',
-                static fn (): int => Invoice::factory()->create()->payment_method_id,
+                static function (): int {
+                    $invoiceFactory = Invoice::factory();
+                    $invoice = $invoiceFactory->create();
+
+                    return $invoice->payment_method_id;
+                },
             ],
             'product category' => [
                 'product-category',
                 'product_categories',
-                static fn (): int => Product::factory()->create()->category_id,
+                static function (): int {
+                    $productFactory = Product::factory();
+                    $product = $productFactory->create();
+
+                    return $product->category_id;
+                },
             ],
             'product' => [
                 'product',
                 'products',
-                static fn (): int => InvoiceProduct::factory()->create()->product_id,
+                static function (): int {
+                    $invoiceProductFactory = InvoiceProduct::factory();
+                    $invoiceProduct = $invoiceProductFactory->create();
+
+                    return $invoiceProduct->product_id;
+                },
             ],
             'status' => [
                 'status',
                 'statuses',
                 static function (): int {
-                    $status = Status::factory()->create();
+                    $statusFactory = Status::factory();
+                    $status = $statusFactory->create();
 
-                    return Invoice::factory()->create(['payment_status_id' => $status->id])->payment_status_id;
+                    $invoiceFactory = Invoice::factory();
+                    $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
+
+                    return $invoice->payment_status_id;
                 },
             ],
             'subscription' => [
                 'subscription',
                 'subscriptions',
-                static fn (): int => Payment::factory()->create()->subscription_id,
+                static function (): int {
+                    $paymentFactory = Payment::factory();
+                    $payment = $paymentFactory->create();
+
+                    return $payment->subscription_id;
+                },
             ],
             'subscription plan' => [
                 'subscription-plan',
                 'subscription_plans',
-                static fn (): int => Subscription::factory()->create()->subscription_plan_id,
+                static function (): int {
+                    $subscriptionFactory = Subscription::factory();
+                    $subscription = $subscriptionFactory->create();
+
+                    return $subscription->subscription_plan_id;
+                },
             ],
             'tax' => [
                 'tax',
                 'taxes',
-                static fn (): int => Product::factory()->create()->tax_id,
+                static function (): int {
+                    $productFactory = Product::factory();
+                    $product = $productFactory->create();
+
+                    return $product->tax_id;
+                },
             ],
         ];
     }

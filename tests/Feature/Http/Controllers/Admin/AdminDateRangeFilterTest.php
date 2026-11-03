@@ -83,9 +83,12 @@ class AdminDateRangeFilterTest extends TestCase
         string $filter,
         string $date,
     ): Model {
+        $invoiceFactory = Invoice::factory();
+        $expenseFactory = Expense::factory();
+
         return match ($route) {
-            'invoice' => Invoice::factory()->create([$filter => $date]),
-            'expense' => Expense::factory()->create([$filter => $date]),
+            'invoice' => $invoiceFactory->create([$filter => $date]),
+            'expense' => $expenseFactory->create([$filter => $date]),
             'entity-usage' => EntityLimitUsage::create(
                 [
                     'user_id' => $this->adminUser->id,

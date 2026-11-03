@@ -34,9 +34,11 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
 
         // The pending invoice below is due on this day
         $this->repository = $this->repositoryOn('2026-02-03');
-        $this->user = User::factory()->create();
-        $this->client = Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
-        $this->otherClient = Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Beta']);
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
+        $contactFactory = Contact::factory();
+        $this->client = $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
+        $this->otherClient = $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Beta']);
 
         $this->invoice(
             $this->client,
@@ -64,7 +66,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
             'paid',
         );
         $this->invoice(
-            Contact::factory()->create(),
+            $contactFactory->create(),
             '2026-01-15',
             9000,
             'paid',

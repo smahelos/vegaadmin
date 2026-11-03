@@ -50,8 +50,9 @@ final class InvoiceItemsFeatureTest extends TestCase
                 'is_active' => true,
             ],
         );
+        $taxFactory = Tax::factory();
         foreach (['12.00', '21.00'] as $rate) {
-            Tax::factory()->create(
+            $taxFactory->create(
                 [
                     'name' => 'DPH ' . $rate . ' ' . uniqid(),
                     'slug' => 'dph',

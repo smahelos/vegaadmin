@@ -19,7 +19,8 @@ class ProductRepositoryTest extends TestCase
         parent::setUp();
 
         $this->productRepository = $this->app->make(ProductRepositoryInterface::class);
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]

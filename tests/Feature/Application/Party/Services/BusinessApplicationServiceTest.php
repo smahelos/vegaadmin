@@ -136,7 +136,9 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->data('Second'),
             null,
         );
-        $archived = Business::factory()->archived()->create(['user_id' => $user->id]);
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $archived = $archivedFactory->create(['user_id' => $user->id]);
 
         $this->expectException(BusinessArchivedException::class);
 
@@ -242,7 +244,9 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->data('Kept'),
             null,
         );
-        $other = Business::factory()->archived()->create(['user_id' => $user->id]);
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $other = $archivedFactory->create(['user_id' => $user->id]);
 
         try {
             $this->businesses->restore(
@@ -271,7 +275,9 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->data('Active'),
             null,
         );
-        $archived = Business::factory()->archived()->create(['user_id' => $user->id]);
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $archived = $archivedFactory->create(['user_id' => $user->id]);
 
         $this->expectException(BusinessArchivedException::class);
 
@@ -376,7 +382,8 @@ final class BusinessApplicationServiceTest extends TestCase
     public function another_users_business_is_not_found(): void
     {
         $owner = $this->frontendUser();
-        $stranger = User::factory()->create();
+        $userFactory = User::factory();
+        $stranger = $userFactory->create();
         $business = $this->businesses->create(
             $this->idOf($owner),
             $this->data('Secret'),

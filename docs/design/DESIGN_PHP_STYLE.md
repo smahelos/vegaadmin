@@ -73,7 +73,7 @@ A receiver with the same origin is initialised once per function scope and reuse
 | Receiver | Merged when | Reason |
 |---|---|---|
 | `Model::factory()` | same root, no `sequence()` state | `create($attributes)` and state methods return a new factory and leave the receiver unchanged; a retained `sequence()` advances |
-| Factory with the same state | the state's arguments cannot have changed | `$publishedFactory = $pageFactory->published();` serves several `create()` calls |
+| Factory with the same state | the state's arguments cannot have changed, the state draws nothing when requested, and `createMany()` does not share a counted factory | `$publishedFactory = $pageFactory->published();` serves several `create()` calls; `createMany()` clears the count of its receiver |
 | `Storage::disk('x')` | no `Storage::fake()` in between, also through a helper of the class | the fake replaces the disk |
 | `collect($x)` | `$x` unchanged, only reading calls | a mutator would reach the later reads |
 | `session()`, `config()`, `cache()`, `auth()`, `auth('web')` | no container change or `Auth::forgetGuards()` in between | the same manager, repository or named guard is returned |
@@ -84,13 +84,15 @@ A receiver with the same origin is initialised once per function scope and reuse
 | `$component->viewData('x')`, `$component->instance()` | no `set()` or `call()` in between | each of them renders again and replaces the view data and the component; an assertion does not |
 | `now()` | no `travel`, `setTestNow` or `freezeTime` in between | see below |
 
+A factory and its state calls only build a value: they run no query and dispatch nothing. So `$userFactory = User::factory();` moves out of a branch, match arm, `??`, arrow function or loop to the statement of its first use, and the terminal call stays where it runs: `fn () => $userFactory->create()` still creates the row only when called. A further state goes into the same variable when the previous one is no longer read (`$draftFactory = $draftFactory->root();`), and the same state on two models adds the model (`$archivedBusinessFactory`). Four limits apply. A read of the terminal's result (`->id`) moves the terminal, so it follows the argument rule above. A class held in a variable moves only while it has one value, and not out of a branch where another class may have no factory. A data provider runs before the application boots and the factory's constructor needs the container, so a factory there stays inside the closure the provider returns. `DatabaseMaintenanceLogFactory::completed()` and `failed()` draw a date when the state is requested, so these states are never shared.
+
 `$now…` variables hold `CarbonImmutable::now()`, which reads the same clock and timezone as `now()` and follows `setTestNow`. Sharing a mutable `now()` would be a bug: a mutable Carbon call returns its receiver, so in `$a = $now->startOfDay(); $b = $a->subDays(10);` both variables are one object and a later read of `$a` sees `$b`'s value. `now()` stays in place where a variable is read after a later step changed that object. This is the one conversion with a small behaviour change: one clock read and a different type. A held value does not follow the clock, which is why travel is a barrier.
 
 Different queries never share a builder, since setup calls mutate it. Calls that act or read current state stay separate: `Livewire::test()`, `Validator::make()`, `Artisan::call()`, `DB::getQueryLog()`, `Request::create()`, `Role::findByName()` and each HTTP request. A root with one use stays on two lines (`$userFactory = User::factory(); $user = $userFactory->create();`). A chain step keeps its own name or reuses the receiver's (`$money = $money->multiplyBy('2');`), and calls verified to return `$this`, such as those of `ResponseSequence`, use the same variable.
 
 A needed second initialisation goes into the same variable when the previous value is no longer read. If both values stay live, the second name comes from context (`$productQuery`), never from a number. Numbered names written by hand before the rollout are outside this conversion. `DisallowCallChainingSniff` keeps reporting chains; repeated roots have no sniff, so the rule is applied by the conversion and by review.
 
-Do not lift calls out of branches, short-circuit expressions, nullsafe paths, closures or loop iterations. Preserve argument evaluation order and reference semantics. Converting a ternary must evaluate only its selected branch and evaluate its condition once. The shorthand ternary must retain its evaluated truthy value.
+Apart from the factory values above, do not lift calls out of branches, short-circuit expressions, nullsafe paths, closures or loop iterations. Preserve argument evaluation order and reference semantics. Converting a ternary must evaluate only its selected branch and evaluate its condition once. The shorthand ternary must retain its evaluated truthy value.
 
 Money, immutable dates, invoice numbering and locks, payment callbacks, permissions and entity limits, and rendered PDFs require explicit behaviour review. Existing PDF snapshots remain the expected output.
 

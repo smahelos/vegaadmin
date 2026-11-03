@@ -165,7 +165,9 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function a_czech_company_number_of_another_business_blocks_the_save_and_points_to_it(): void
     {
-        $existing = Business::factory()->archived()->create(
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $existing = $archivedFactory->create(
             [
                 'user_id' => $this->user->id,
                 'company_number' => self::VALID_COMPANY_NUMBER,
@@ -352,7 +354,8 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function creating_needs_the_permission(): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
 
         $component = Livewire::test(BusinessForm::class);
         $component->assertForbidden();

@@ -21,11 +21,13 @@ final class PartyCapacityTest extends TestCase
         $contactFactory = Contact::factory();
         $batchFactory = $contactFactory->count(3);
         $batchFactory->create(['user_id' => $owner->id]);
-        Contact::factory()->archived()->create(['user_id' => $owner->id]);
+        $archivedContactFactory = $contactFactory->archived();
+        $archivedContactFactory->create(['user_id' => $owner->id]);
         $contactFactory->create();
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $owner->id]);
-        Business::factory()->archived()->create(['user_id' => $owner->id]);
+        $archivedBusinessFactory = $businessFactory->archived();
+        $archivedBusinessFactory->create(['user_id' => $owner->id]);
         $businessFactory->create();
 
         $this->actingAs($owner, 'web');

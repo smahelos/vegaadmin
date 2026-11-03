@@ -42,14 +42,15 @@ final class EntityLimitSystemBasicTest extends TestCase
         $permission3 = $permissionQuery->first();
 
         // Create admin user with admin role (has all permissions)
-        $this->backendUser = User::factory()->create();
+        $userFactory = User::factory();
+        $this->backendUser = $userFactory->create();
         $this->backendUser->assignRole($backendUserRole);
         $this->backendUser->givePermissionTo($permission);
         $this->backendUser->givePermissionTo($permission2);
         $this->backendUser->givePermissionTo($permission3);
 
         // Create regular user with limited role
-        $this->user = User::factory()->create();
+        $this->user = $userFactory->create();
         $this->user->assignRole($frontendUserRole);
     }
 
@@ -187,11 +188,13 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->assertNotNull($limit->entity_type);
 
         // Test specific factory states
-        $countLimit = EntityLimit::factory()->countLimit(15)->make();
+        $limitFactory = $entityLimitFactory->countLimit(15);
+        $countLimit = $limitFactory->make();
         $this->assertEquals('count', $countLimit->metric_type);
         $this->assertEquals(15, $countLimit->limit_value);
 
-        $invoiceLimit = EntityLimit::factory()->forEntity('invoice')->make();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $invoiceLimit = $limitFactory->make();
         $this->assertEquals('invoice', $invoiceLimit->entity_type);
     }
 }

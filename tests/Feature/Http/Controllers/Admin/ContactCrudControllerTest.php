@@ -22,7 +22,8 @@ final class ContactCrudControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create();
+        $userFactory = User::factory();
+        $this->admin = $userFactory->create();
         $this->admin->assignRole(
             Role::findByName('admin', 'backpack'),
         );

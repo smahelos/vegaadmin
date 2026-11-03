@@ -31,7 +31,10 @@ trait BuildsInvoiceInput
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
 
-        return [$business, BankAccount::factory()->ownedBy($business)->create()];
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+
+        return [$business, $ownedFactory->create()];
     }
 
     /**

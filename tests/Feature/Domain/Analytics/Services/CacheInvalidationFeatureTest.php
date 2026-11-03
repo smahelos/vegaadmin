@@ -71,7 +71,8 @@ final class CacheInvalidationFeatureTest extends TestCase
 
         Invoice::withoutEvents(
             function () use ($user, $contact): void {
-                Invoice::factory()->create(
+                $invoiceFactory = Invoice::factory();
+                $invoiceFactory->create(
                     [
                         'user_id' => $user->id,
                         'contact_id' => $contact->id,
@@ -119,12 +120,14 @@ final class CacheInvalidationFeatureTest extends TestCase
 
         Contact::withoutEvents(
             function () use ($user, &$contactB): void {
-                $contactB = Contact::factory()->create(['user_id' => $user->id]);
+                $contactFactory = Contact::factory();
+                $contactB = $contactFactory->create(['user_id' => $user->id]);
             },
         );
         Invoice::withoutEvents(
             function () use ($user, &$contactB): void {
-                Invoice::factory()->create(
+                $invoiceFactory = Invoice::factory();
+                $invoiceFactory->create(
                     [
                         'user_id' => $user->id,
                         'contact_id' => $contactB->id,
@@ -171,7 +174,8 @@ final class CacheInvalidationFeatureTest extends TestCase
 
         Invoice::withoutEvents(
             function () use ($user, $contact): void {
-                Invoice::factory()->create(
+                $invoiceFactory = Invoice::factory();
+                $invoiceFactory->create(
                     [
                         'user_id' => $user->id,
                         'contact_id' => $contact->id,

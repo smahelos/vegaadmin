@@ -210,8 +210,11 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $defaultProduct = Product::factory()->default()->create();
-        $customPriceProduct = Product::factory()->price(50.00)->create();
+        $productFactory = Product::factory();
+        $defaultFactory = $productFactory->default();
+        $defaultProduct = $defaultFactory->create();
+        $priceFactory = $productFactory->price(50.00);
+        $customPriceProduct = $priceFactory->create();
 
         $this->assertTrue($defaultProduct->is_default);
         $this->assertEquals(50.00, $customPriceProduct->price);
@@ -222,7 +225,9 @@ class ProductFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $product = Product::factory()->forUser($user)->create();
+        $productFactory = Product::factory();
+        $ownedFactory = $productFactory->forUser($user);
+        $product = $ownedFactory->create();
 
         $this->assertEquals($user->id, $product->user_id);
         $this->assertEquals($user->id, $product->user->id);

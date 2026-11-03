@@ -231,7 +231,7 @@ final class ExpenseCrudControllerTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy(
-            Contact::factory()->create(['user_id' => $this->adminUser->id]),
+            $contactFactory->create(['user_id' => $this->adminUser->id]),
         );
         $account = $bankAccountFactory->create();
         $httpResponse = $this->post(

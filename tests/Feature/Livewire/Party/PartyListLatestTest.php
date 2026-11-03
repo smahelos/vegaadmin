@@ -32,10 +32,12 @@ final class PartyListLatestTest extends TestCase
     {
         URL::defaults(['locale' => 'cs']);
         $user = $this->frontendUser();
-        $model::factory()->create(['name' => 'Foreign party']);
-        $model::factory()->archived()->create(['user_id' => $user->id, 'name' => 'Archived party']);
+        $modelFactory = $model::factory();
+        $modelFactory->create(['name' => 'Foreign party']);
+        $archivedFactory = $modelFactory->archived();
+        $archivedFactory->create(['user_id' => $user->id, 'name' => 'Archived party']);
         for ($index = 1; $index <= 6; $index++) {
-            $model::factory()->create(
+            $modelFactory->create(
                 [
                     'user_id' => $user->id,
                     'name' => 'Party ' . $index,
@@ -88,7 +90,9 @@ final class PartyListLatestTest extends TestCase
     {
         URL::defaults(['locale' => 'cs']);
         $user = $this->frontendUser();
-        $model::factory()->archived()->create(['user_id' => $user->id, 'name' => 'Archived only']);
+        $modelFactory = $model::factory();
+        $archivedFactory = $modelFactory->archived();
+        $archivedFactory->create(['user_id' => $user->id, 'name' => 'Archived only']);
 
         Livewire::actingAs($user);
         $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
@@ -109,14 +113,15 @@ final class PartyListLatestTest extends TestCase
         $user = $this->frontendUser();
         $now = CarbonImmutable::now();
         $created = $now->subDay();
-        $model::factory()->create(
+        $modelFactory = $model::factory();
+        $modelFactory->create(
             [
                 'user_id' => $user->id,
                 'name' => 'Alpha older',
                 'created_at' => $created,
             ],
         );
-        $model::factory()->create(
+        $modelFactory->create(
             [
                 'user_id' => $user->id,
                 'name' => 'Zulu newer',
@@ -135,7 +140,8 @@ final class PartyListLatestTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $model::factory()->create(['user_id' => $user->id]);
+        $modelFactory = $model::factory();
+        $modelFactory->create(['user_id' => $user->id]);
 
         $component = Livewire::test(PartyListLatest::class, ['partyType' => $kind]);
         $component->assertForbidden();

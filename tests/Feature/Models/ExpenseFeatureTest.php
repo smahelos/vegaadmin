@@ -46,13 +46,15 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function stores_the_document_snapshot_with_the_expense(): void
     {
-        $expense = Expense::factory()->create(
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
             [
                 'supplier_name' => 'Document supplier',
                 'customer_name' => 'Document customer',
                 'attachments' => ['receipts/receipt.pdf'],
             ],
-        )->fresh();
+        );
+        $expense = $expense->fresh();
 
         $this->assertSame('Document supplier', $expense->supplier_name);
         $this->assertSame('Document customer', $expense->customer_name);
@@ -160,9 +162,13 @@ final class ExpenseFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $amountExpense = Expense::factory()->amount(250.00)->create();
-        $taxIncludedExpense = Expense::factory()->taxIncluded()->create();
-        $noTaxExpense = Expense::factory()->noTax()->create();
+        $expenseFactory = Expense::factory();
+        $amountFactory = $expenseFactory->amount(250.00);
+        $amountExpense = $amountFactory->create();
+        $taxIncludedFactory = $expenseFactory->taxIncluded();
+        $taxIncludedExpense = $taxIncludedFactory->create();
+        $noTaxFactory = $expenseFactory->noTax();
+        $noTaxExpense = $noTaxFactory->create();
 
         $this->assertEquals('250.00', $amountExpense->amount);
         $this->assertTrue($taxIncludedExpense->tax_included);
@@ -175,7 +181,9 @@ final class ExpenseFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $expense = Expense::factory()->forUser($user)->create();
+        $expenseFactory = Expense::factory();
+        $ownedFactory = $expenseFactory->forUser($user);
+        $expense = $ownedFactory->create();
 
         $this->assertEquals($user->id, $expense->user_id);
         $this->assertEquals($user->id, $expense->user->id);
@@ -185,7 +193,9 @@ final class ExpenseFeatureTest extends TestCase
     public function factory_from_date_state_works(): void
     {
         $date = new \DateTime('2025-01-15');
-        $expense = Expense::factory()->fromDate($date)->create();
+        $expenseFactory = Expense::factory();
+        $datedFactory = $expenseFactory->fromDate($date);
+        $expense = $datedFactory->create();
 
         $this->assertEquals(
             '2025-01-15',

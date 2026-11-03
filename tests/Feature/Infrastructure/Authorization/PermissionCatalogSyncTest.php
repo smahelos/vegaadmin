@@ -55,14 +55,15 @@ class PermissionCatalogSyncTest extends TestCase
         $user = $userFactory->create();
         $user->assignRole('frontend_user');
 
+        $subscriptionFactory = Subscription::factory();
         $this->assertTrue(
             $user->can(
                 'update',
-                Subscription::factory()->create(['user_id' => $user->id]),
+                $subscriptionFactory->create(['user_id' => $user->id]),
             ),
         );
         $this->assertFalse(
-            $user->can('update', Subscription::factory()->create()),
+            $user->can('update', $subscriptionFactory->create()),
         );
     }
 

@@ -32,7 +32,8 @@ class InvoicePdfApplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
         Permission::firstOrCreate(
             ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
         );

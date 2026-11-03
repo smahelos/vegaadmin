@@ -111,8 +111,11 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $activeCategory = ArtisanCommandCategory::factory()->active()->create();
-        $inactiveCategory = ArtisanCommandCategory::factory()->inactive()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $activeFactory = $artisanCommandCategoryFactory->active();
+        $activeCategory = $activeFactory->create();
+        $inactiveFactory = $artisanCommandCategoryFactory->inactive();
+        $inactiveCategory = $inactiveFactory->create();
 
         $this->assertTrue($activeCategory->is_active);
         $this->assertFalse($inactiveCategory->is_active);
@@ -196,9 +199,9 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     public function factory_with_name_state_works(): void
     {
         $categoryName = 'Custom Category Name';
-        $category = ArtisanCommandCategory::factory()
-            ->withName($categoryName)
-            ->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $namedFactory = $artisanCommandCategoryFactory->withName($categoryName);
+        $category = $namedFactory->create();
 
         $this->assertEquals($categoryName, $category->name);
         $this->assertEquals('custom-category-name', $category->slug);
@@ -212,8 +215,10 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
         $categories = $artisanCommandCategoryFactory->create();
 
         // Create commands for each category
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $batchFactory = $artisanCommandFactory->count(2);
         foreach ($categories as $category) {
-            ArtisanCommand::factory()->count(2)->create(['category_id' => $category->id]);
+            $batchFactory->create(['category_id' => $category->id]);
         }
 
         $artisanCommandCategoryQuery = ArtisanCommandCategory::with('commands');

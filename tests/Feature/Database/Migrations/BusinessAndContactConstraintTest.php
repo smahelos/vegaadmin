@@ -42,10 +42,13 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function a_czech_company_number_is_refused_twice_in_one_account_archived_records_included(string $model): void
     {
-        $archived = $this->factoryOf($model)->archived()->create();
+        $partyFactory = $this->factoryOf($model);
+        $archivedFactory = $partyFactory->archived();
+        $archived = $archivedFactory->create();
 
+        $modelFactory = $model::factory();
         $this->assertRefused(
-            fn () => $model::factory()->create(
+            fn () => $modelFactory->create(
                 [
                     'user_id' => $archived->user_id,
                     'company_number' => $archived->company_number,
@@ -62,9 +65,10 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function the_same_czech_company_number_is_stored_in_another_account(string $model): void
     {
-        $party = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $party = $modelFactory->create();
 
-        $copy = $model::factory()->create(['company_number' => $party->company_number]);
+        $copy = $modelFactory->create(['company_number' => $party->company_number]);
 
         $this->assertDatabaseHas(
             $party->getTable(),
@@ -82,13 +86,15 @@ final class BusinessAndContactConstraintTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
 
+        $modelFactory = $model::factory();
+        $batchFactory = $modelFactory->count(2);
         foreach (
             [
                 ['registration_country' => 'AT', 'company_number' => 'FN 123456a'],
                 ['registration_country' => null, 'company_number' => null],
             ] as $identity
         ) {
-            $model::factory()->count(2)->create(['user_id' => $user->id, ...$identity]);
+            $batchFactory->create(['user_id' => $user->id, ...$identity]);
         }
 
         $this->assertSame(
@@ -118,12 +124,13 @@ final class BusinessAndContactConstraintTest extends TestCase
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $business->user_id]);
 
+        $modelFactory = $model::factory();
         $this->assertRefused(
-            fn () => $model::factory()->create(['business_id' => null, 'contact_id' => null]),
+            fn () => $modelFactory->create(['business_id' => null, 'contact_id' => null]),
             3819,
         );
         $this->assertRefused(
-            fn () => $model::factory()->create(
+            fn () => $modelFactory->create(
                 ['business_id' => $business->id, 'contact_id' => $contact->id],
             ),
             3819,

@@ -54,7 +54,9 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function factory_pending_state_creates_pending_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->pending()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $pendingFactory = $databaseMaintenanceLogFactory->pending();
+        $log = $pendingFactory->create();
 
         $this->assertEquals('pending', $log->status);
         $this->assertNull($log->started_at);
@@ -65,7 +67,9 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function factory_running_state_creates_running_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->running()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $runningFactory = $databaseMaintenanceLogFactory->running();
+        $log = $runningFactory->create();
 
         $this->assertEquals('running', $log->status);
         $this->assertNotNull($log->started_at);
@@ -76,7 +80,9 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function factory_completed_state_creates_completed_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->completed()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $completedFactory = $databaseMaintenanceLogFactory->completed();
+        $log = $completedFactory->create();
 
         $this->assertEquals('completed', $log->status);
         $this->assertNotNull($log->started_at);
@@ -88,7 +94,9 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function factory_failed_state_creates_failed_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->failed()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $failedFactory = $databaseMaintenanceLogFactory->failed();
+        $log = $failedFactory->create();
 
         $this->assertEquals('failed', $log->status);
         $this->assertNotNull($log->started_at);
@@ -179,9 +187,13 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_query_logs_by_status(): void
     {
 
-        DatabaseMaintenanceLog::factory()->pending()->create();
-        DatabaseMaintenanceLog::factory()->running()->create();
-        DatabaseMaintenanceLog::factory()->completed()->createMany(2);
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $pendingFactory = $databaseMaintenanceLogFactory->pending();
+        $pendingFactory->create();
+        $runningFactory = $databaseMaintenanceLogFactory->running();
+        $runningFactory->create();
+        $completedFactory = $databaseMaintenanceLogFactory->completed();
+        $completedFactory->createMany(2);
 
         $databaseMaintenanceLogQuery = DatabaseMaintenanceLog::where('status', 'pending');
         $pendingLogs = $databaseMaintenanceLogQuery->get();
@@ -235,7 +247,9 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_update_database_maintenance_log(): void
     {
 
-        $log = DatabaseMaintenanceLog::factory()->pending()->create();
+        $databaseMaintenanceLogFactory = DatabaseMaintenanceLog::factory();
+        $pendingFactory = $databaseMaintenanceLogFactory->pending();
+        $log = $pendingFactory->create();
 
         $log->update([
             'status' => 'running',

@@ -28,7 +28,8 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $this->invoice = $invoiceFactory->create(
             [
                 'issue_date' => now()->subDays(35)->format('Y-m-d'), // 35 days ago
                 'due_in' => 14, // Due date = 35 - 14 = 21 days ago (overdue)
@@ -36,7 +37,8 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
             ],
         );
 
-        $this->user = User::factory()->create([
+        $userFactory = User::factory();
+        $this->user = $userFactory->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);

@@ -30,7 +30,9 @@ final class InvoiceListApplicationServiceTest extends TestCase
     #[DataProvider('reads')]
     public function every_list_read_requires_invoice_view_permission(string $read): void
     {
-        $user = UserId::fromInt(User::factory()->create()->id);
+        $userFactory = User::factory();
+        $storedUser = $userFactory->create();
+        $user = UserId::fromInt($storedUser->id);
         $service = app(InvoiceListApplicationService::class);
         $this->expectException(InvoiceAccessDeniedException::class);
         match ($read) {

@@ -204,7 +204,8 @@ final class BankAccountApplicationServiceTest extends TestCase
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $account = $bankAccountFactory->create();
-        $stranger = $this->idOf(User::factory()->create());
+        $userFactory = User::factory();
+        $stranger = $this->idOf($userFactory->create());
 
         try {
             $this->accounts->add(

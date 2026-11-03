@@ -134,9 +134,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_states_work_correctly(): void
     {
 
-        $goodMetric = DatabaseHealthMetric::factory()->good()->create();
-        $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
-        $criticalMetric = DatabaseHealthMetric::factory()->critical()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $goodFactory = $databaseHealthMetricFactory->good();
+        $goodMetric = $goodFactory->create();
+        $warningFactory = $databaseHealthMetricFactory->warning();
+        $warningMetric = $warningFactory->create();
+        $criticalFactory = $databaseHealthMetricFactory->critical();
+        $criticalMetric = $criticalFactory->create();
 
         $this->assertEquals('good', $goodMetric->status);
         $this->assertNull($goodMetric->recommendation);
@@ -153,9 +157,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_metric_specific_states_work(): void
     {
 
-        $databaseSizeMetric = DatabaseHealthMetric::factory()->databaseSize()->create();
-        $queryPerformanceMetric = DatabaseHealthMetric::factory()->queryPerformance()->create();
-        $connectionCountMetric = DatabaseHealthMetric::factory()->connectionCount()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $databaseSizeFactory = $databaseHealthMetricFactory->databaseSize();
+        $databaseSizeMetric = $databaseSizeFactory->create();
+        $queryPerformanceFactory = $databaseHealthMetricFactory->queryPerformance();
+        $queryPerformanceMetric = $queryPerformanceFactory->create();
+        $connectionCountFactory = $databaseHealthMetricFactory->connectionCount();
+        $connectionCountMetric = $connectionCountFactory->create();
 
         $this->assertEquals('database_size', $databaseSizeMetric->metric_name);
         $this->assertEquals('GB', $databaseSizeMetric->metric_unit);
@@ -171,7 +179,9 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_recent_state_works(): void
     {
 
-        $recentMetric = DatabaseHealthMetric::factory()->recent()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $recentFactory = $databaseHealthMetricFactory->recent();
+        $recentMetric = $recentFactory->create();
 
         $now = CarbonImmutable::now();
         $this->assertTrue(
@@ -186,7 +196,9 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_with_value_state_works(): void
     {
 
-        $specificValueMetric = DatabaseHealthMetric::factory()->withValue(99.99)->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $valuedFactory = $databaseHealthMetricFactory->withValue(99.99);
+        $specificValueMetric = $valuedFactory->create();
 
         $this->assertEquals('99.9900', $specificValueMetric->metric_value);
     }

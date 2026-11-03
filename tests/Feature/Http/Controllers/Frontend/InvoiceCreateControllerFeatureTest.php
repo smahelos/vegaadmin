@@ -42,7 +42,8 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
     #[Test]
     public function create_form_preselects_the_bank_transfer(): void
     {
-        Auth::login(User::factory()->create());
+        $userFactory = User::factory();
+        Auth::login($userFactory->create());
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $bankTransferId = $paymentMethodQuery->firstOrFail()->id;
 

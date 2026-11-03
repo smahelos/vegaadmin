@@ -28,7 +28,8 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $this->invoice = $invoiceFactory->create(
             [
                 'issue_date' => now()->subDays(25)->format('Y-m-d'), // 25 days ago
                 'due_in' => 30, // Due date = 25 days ago + 30 days = 5 days from now
@@ -36,7 +37,8 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
             ],
         );
 
-        $this->user = User::factory()->create([
+        $userFactory = User::factory();
+        $this->user = $userFactory->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);

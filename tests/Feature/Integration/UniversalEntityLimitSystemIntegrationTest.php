@@ -44,12 +44,12 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // New creation should fail
         $newRequest = new InvoiceRequest;
@@ -72,12 +72,12 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // But update should succeed even with 0 limit
         $updateRequest = new InvoiceRequest;
@@ -104,12 +104,12 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // Should succeed despite limit due to unlimited access
         $request = new InvoiceRequest;

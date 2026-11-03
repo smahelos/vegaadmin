@@ -203,7 +203,7 @@ final class ReferentialIntegrityTest extends TestCase
         $productFactory->create(['user_id' => $otherUser->id, 'slug' => $product->slug]);
 
         $this->assertRefused(
-            fn () => Product::factory()->create(['user_id' => $product->user_id, 'slug' => $product->slug]),
+            fn () => $productFactory->create(['user_id' => $product->user_id, 'slug' => $product->slug]),
             1062,
         );
     }

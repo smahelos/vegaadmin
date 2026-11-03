@@ -68,10 +68,15 @@ class ArchivePolicyFeatureTest extends TestCase
     public function factory_states_work_correctly(): void
     {
 
-        $enabledPolicy = ArchivePolicy::factory()->enabled()->create();
-        $disabledPolicy = ArchivePolicy::factory()->disabled()->create();
-        $neverRunPolicy = ArchivePolicy::factory()->neverRun()->create();
-        $recentlyRunPolicy = ArchivePolicy::factory()->recentlyRun()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $enabledFactory = $archivePolicyFactory->enabled();
+        $enabledPolicy = $enabledFactory->create();
+        $disabledFactory = $archivePolicyFactory->disabled();
+        $disabledPolicy = $disabledFactory->create();
+        $neverRunFactory = $archivePolicyFactory->neverRun();
+        $neverRunPolicy = $neverRunFactory->create();
+        $recentlyRunFactory = $archivePolicyFactory->recentlyRun();
+        $recentlyRunPolicy = $recentlyRunFactory->create();
 
         $this->assertTrue($enabledPolicy->enabled);
         $this->assertFalse($disabledPolicy->enabled);

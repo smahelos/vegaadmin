@@ -181,8 +181,15 @@ class AdminCrudSmokeTest extends TestCase
             PaymentMethod::class => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail(),
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
-            default => $model::factory()->create(),
+            default => $this->createFromFactory($model),
         };
+    }
+
+    private function createFromFactory(string $model): Model
+    {
+        $factory = $model::factory();
+
+        return $factory->create();
     }
 
     private function hasRoute(string $uri): bool

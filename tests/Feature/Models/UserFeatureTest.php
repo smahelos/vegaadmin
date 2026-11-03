@@ -69,7 +69,8 @@ final class UserFeatureTest extends TestCase
      */
     private function createTestUser(): void
     {
-        $this->user = User::factory()->create(
+        $userFactory = User::factory();
+        $this->user = $userFactory->create(
             [
                 'name' => $this->faker->name,
                 'email' => $this->faker->unique()->safeEmail,

@@ -39,9 +39,10 @@ final class EntityLimitUsageRepositoryTest extends TestCase
                 PermissionCatalog::WEB,
             ),
         );
+        $otherUser = $userFactory->create();
         $this->assertFalse(
             $repository->hasEntityPermission(
-                User::factory()->create()->id,
+                $otherUser->id,
                 'invoice',
                 PermissionCatalog::WEB,
             ),

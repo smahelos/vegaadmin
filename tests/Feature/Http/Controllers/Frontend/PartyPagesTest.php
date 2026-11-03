@@ -84,7 +84,8 @@ final class PartyPagesTest extends TestCase
     #[DataProvider('listPages')]
     public function a_user_without_the_permissions_is_forbidden(string $index, string $create): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
 
         $httpResponse = $this->get(
             route($index),
@@ -124,7 +125,8 @@ final class PartyPagesTest extends TestCase
         string $component,
     ): void {
         $user = $this->frontendUser();
-        $record = $model::factory()->create(['user_id' => $user->id]);
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create(['user_id' => $user->id]);
 
         $this->actingAs($user);
         $response = $this->get(
@@ -144,7 +146,8 @@ final class PartyPagesTest extends TestCase
         string $route,
         string $parameter,
     ): void {
-        $foreign = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $foreign = $modelFactory->create();
 
         $httpClient = $this->actingAs($this->frontendUser());
         $httpResponse = $httpClient->get(
@@ -163,7 +166,8 @@ final class PartyPagesTest extends TestCase
         string $route,
         string $parameter,
     ): void {
-        $record = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create();
 
         $httpResponse = $this->get(
             route($route, [$parameter => $record->id]),

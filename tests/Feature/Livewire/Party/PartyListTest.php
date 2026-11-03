@@ -38,7 +38,8 @@ final class PartyListTest extends TestCase
     {
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
-        Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
         $contactFactory->create(['name' => 'Someone Else']);
 
         $component = Livewire::test(ContactList::class);
@@ -52,7 +53,8 @@ final class PartyListTest extends TestCase
     {
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
-        Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
 
         $component = Livewire::test(ContactList::class);
         $component->call('showArchived', true);
@@ -116,7 +118,8 @@ final class PartyListTest extends TestCase
     #[Test]
     public function a_list_needs_the_view_permission(): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
 
         $component = Livewire::test(ContactList::class);
         $component->assertForbidden();
@@ -127,8 +130,9 @@ final class PartyListTest extends TestCase
     #[Test]
     public function pagination_uses_the_shared_controls_and_resets_after_filtering(): void
     {
+        $contactFactory = Contact::factory();
         for ($index = 1; $index <= 11; $index++) {
-            Contact::factory()->create(
+            $contactFactory->create(
                 [
                     'user_id' => $this->user->id,
                     'name' => sprintf('Contact %02d', $index),

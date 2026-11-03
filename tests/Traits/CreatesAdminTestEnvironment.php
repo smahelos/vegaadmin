@@ -39,14 +39,15 @@ trait CreatesAdminTestEnvironment
         $adminRole->syncPermissions($permissions);
 
         // Create admin user with admin role (if not already set)
+        $userFactory = User::factory();
         if (!isset($this->adminUser)) {
-            $this->adminUser = User::factory()->create();
+            $this->adminUser = $userFactory->create();
         }
         $this->adminUser->assignRole($adminRole);
 
         // Create regular user with limited role (if not already set)
         if (!isset($this->regularUser)) {
-            $this->regularUser = User::factory()->create();
+            $this->regularUser = $userFactory->create();
         }
         $this->regularUser->assignRole($backendUserRole);
 

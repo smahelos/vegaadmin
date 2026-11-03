@@ -23,7 +23,8 @@ final class BusinessCrudControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create();
+        $userFactory = User::factory();
+        $this->admin = $userFactory->create();
         $this->admin->assignRole(
             Role::findByName('admin', 'backpack'),
         );
@@ -117,7 +118,9 @@ final class BusinessCrudControllerTest extends TestCase
     public function a_czech_company_number_of_another_business_of_the_owner_is_refused(): void
     {
         $owner = $this->frontendUser();
-        Business::factory()->archived()->create(
+        $businessFactory = Business::factory();
+        $archivedFactory = $businessFactory->archived();
+        $archivedFactory->create(
             [
                 'user_id' => $owner->id,
                 'company_number' => '27082440',
@@ -222,7 +225,8 @@ final class BusinessCrudControllerTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $owner->id]);
         $owner->forceFill(['default_business_id' => $business->id])->save();
-        $archived = Business::factory()->archived()->create(['user_id' => $owner->id]);
+        $archivedFactory = $businessFactory->archived();
+        $archived = $archivedFactory->create(['user_id' => $owner->id]);
         $foreign = $businessFactory->create();
         $this->actingAs($this->admin, 'backpack');
         foreach (

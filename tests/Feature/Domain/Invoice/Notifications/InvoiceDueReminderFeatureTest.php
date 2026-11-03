@@ -28,12 +28,14 @@ final class InvoiceDueReminderFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create([
+        $userFactory = User::factory();
+        $this->user = $userFactory->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
 
-        $this->invoice = Invoice::factory()->create(
+        $invoiceFactory = Invoice::factory();
+        $this->invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'invoice_vs' => '2025001',

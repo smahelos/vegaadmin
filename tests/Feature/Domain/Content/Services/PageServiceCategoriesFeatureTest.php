@@ -28,11 +28,16 @@ class PageServiceCategoriesFeatureTest extends TestCase
         $catWithDraftOnly = $pageCategoryFactory->create();
 
         // Published pages
-        Page::factory()->published()->inCategory($catWithPages)->create();
-        Page::factory()->published()->inCategory($catWithPages)->create();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $categorizedFactory = $publishedFactory->inCategory($catWithPages);
+        $categorizedFactory->create();
+        $categorizedFactory->create();
 
         // Draft page (should not count)
-        Page::factory()->draft()->inCategory($catWithDraftOnly)->create();
+        $draftFactory = $pageFactory->draft();
+        $draftFactory = $draftFactory->inCategory($catWithDraftOnly);
+        $draftFactory->create();
 
         $categories = $this->service->getCategoriesWithPages();
 

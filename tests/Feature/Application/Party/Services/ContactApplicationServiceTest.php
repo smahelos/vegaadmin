@@ -99,7 +99,9 @@ final class ContactApplicationServiceTest extends TestCase
     public function a_czech_company_number_of_an_archived_contact_blocks_a_copy_and_names_the_contact(): void
     {
         $user = $this->frontendUser();
-        $archived = Contact::factory()->archived()->create(
+        $contactFactory = Contact::factory();
+        $archivedFactory = $contactFactory->archived();
+        $archived = $archivedFactory->create(
             [
                 'user_id' => $user->id,
                 'registration_country' => 'CZ',

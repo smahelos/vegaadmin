@@ -49,7 +49,9 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function status_factory_can_create_active_status(): void
     {
-        $status = Status::factory()->active()->create();
+        $statusFactory = Status::factory();
+        $activeFactory = $statusFactory->active();
+        $status = $activeFactory->create();
 
         $this->assertTrue($status->is_active);
         $this->assertDatabaseHas('statuses', [
@@ -61,7 +63,9 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function status_factory_can_create_inactive_status(): void
     {
-        $status = Status::factory()->inactive()->create();
+        $statusFactory = Status::factory();
+        $inactiveFactory = $statusFactory->inactive();
+        $status = $inactiveFactory->create();
 
         $this->assertFalse($status->is_active);
         $this->assertDatabaseHas('statuses', [
@@ -272,8 +276,13 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_filter_by_active_status(): void
     {
-        Status::factory()->count(3)->active()->create();
-        Status::factory()->count(2)->inactive()->create();
+        $statusFactory = Status::factory();
+        $batchFactory = $statusFactory->count(3);
+        $batchFactory = $batchFactory->active();
+        $batchFactory->create();
+        $batchFactory = $statusFactory->count(2);
+        $batchFactory = $batchFactory->inactive();
+        $batchFactory->create();
 
         $statusQuery = Status::where('is_active', true);
         $activeCount = $statusQuery->count();
