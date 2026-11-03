@@ -19,6 +19,8 @@ final class ContactFactory extends Factory
 
     public function definition(): array
     {
+        $unique = $this->faker->unique();
+
         return [
             'user_id' => User::factory(),
             'name' => $this->faker->company(),
@@ -28,7 +30,7 @@ final class ContactFactory extends Factory
                 random_int(0, 9_999_999),
             ),
             'vat_number' => null,
-            'email' => $this->faker->unique()->safeEmail(),
+            'email' => $unique->safeEmail(),
             'phone' => null,
             'contact_person' => null,
             'note' => null,

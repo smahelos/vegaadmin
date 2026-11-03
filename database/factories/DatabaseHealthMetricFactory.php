@@ -53,6 +53,7 @@ class DatabaseHealthMetricFactory extends Factory
             'warning',
             'critical',
         ];
+        $optional = $this->faker->optional();
 
         return [
             'metric_name' => $this->faker->randomElement($metricNames),
@@ -63,7 +64,7 @@ class DatabaseHealthMetricFactory extends Factory
             ),
             'metric_unit' => $this->faker->randomElement($units),
             'status' => $this->faker->randomElement($statuses),
-            'recommendation' => $this->faker->optional()->sentence(),
+            'recommendation' => $optional->sentence(),
             'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
         ];
     }

@@ -39,7 +39,8 @@ class DatabaseMaintenanceLogFactory extends Factory
         ];
 
         $startedAt = $this->faker->dateTimeBetween('-1 month', 'now');
-        $completedAt = $this->faker->optional(0.8)->dateTimeBetween($startedAt, 'now');
+        $optional = $this->faker->optional(0.8);
+        $completedAt = $optional->dateTimeBetween($startedAt, 'now');
 
         return [
             'task_type' => $this->faker->randomElement($taskTypes),

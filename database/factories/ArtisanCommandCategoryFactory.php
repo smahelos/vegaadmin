@@ -27,10 +27,11 @@ class ArtisanCommandCategoryFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->words(2, true);
+        $unique = $this->faker->unique();
 
         return [
             'name' => $name,
-            'slug' => $this->faker->unique()->slug(),
+            'slug' => $unique->slug(),
             'description' => $this->faker->sentence(),
             'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];

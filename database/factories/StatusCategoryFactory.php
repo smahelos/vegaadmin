@@ -25,12 +25,14 @@ class StatusCategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->unique()->words(2, true);
+        $faker = fake();
+        $unique = $faker->unique();
+        $name = $unique->words(2, true);
 
         return [
             'name' => $name,
             'slug' => Str::slug($name),
-            'description' => fake()->sentence(),
+            'description' => $faker->sentence(),
         ];
     }
 }

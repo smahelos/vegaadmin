@@ -32,6 +32,8 @@ class ExpenseFactory extends Factory
      */
     public function definition(): array
     {
+        $optional = $this->faker->optional();
+
         return [
             'user_id' => User::factory(),
             'business_id' => $this->businessOfUser(),
@@ -43,8 +45,12 @@ class ExpenseFactory extends Factory
                 10000,
             ),
             'currency' => $this->faker->currencyCode(),
-            'payment_method_id' => fn (): int => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->value('id'),
-            'reference_number' => $this->faker->optional()->numerify('REF-########'),
+            'payment_method_id' => function (): int {
+                $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+
+                return $paymentMethodQuery->value('id');
+            },
+            'reference_number' => $optional->numerify('REF-########'),
             'description' => $this->faker->sentence(),
             'tax_amount' => $this->faker->randomFloat(
                 2,

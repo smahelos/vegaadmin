@@ -24,11 +24,13 @@ class ProductFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->unique()->words(3, true);
+        $unique = $this->faker->unique();
+        $name = $unique->words(3, true);
+        $optional = $this->faker->optional();
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
+            'slug' => Str::slug($name) . '-' . $unique->numberBetween(1000, 9999),
             'user_id' => User::factory(),
             'price' => $this->faker->randomFloat(
                 2,
@@ -45,7 +47,7 @@ class ProductFactory extends Factory
             'category_id' => ProductCategory::factory(),
             'description' => $this->faker->paragraph(),
             'is_default' => $this->faker->boolean(10), // 10% chance of being default
-            'image' => $this->faker->optional()->imageUrl(
+            'image' => $optional->imageUrl(
                 640,
                 480,
                 'products',

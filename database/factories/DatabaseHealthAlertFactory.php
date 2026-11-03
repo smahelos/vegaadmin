@@ -24,6 +24,8 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function definition(): array
     {
+        $optional = $this->faker->optional(0.7);
+
         return [
             'alert_type' => $this->faker->randomElement(
                 [
@@ -59,7 +61,7 @@ class DatabaseHealthAlertFactory extends Factory
                 ]),
             ],
             'resolved' => $this->faker->boolean(),
-            'resolved_at' => $this->faker->optional(0.7)->dateTimeBetween('-30 days'),
+            'resolved_at' => $optional->dateTimeBetween('-30 days'),
         ];
     }
 

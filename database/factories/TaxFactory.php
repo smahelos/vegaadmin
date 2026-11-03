@@ -20,11 +20,12 @@ class TaxFactory extends Factory
      */
     public function definition(): array
     {
-        $name = fake()->words(2, true);
+        $faker = fake();
+        $name = $faker->words(2, true);
 
         return [
             'name' => $name,
-            'rate' => fake()->randomFloat(
+            'rate' => $faker->randomFloat(
                 2,
                 0,
                 30,

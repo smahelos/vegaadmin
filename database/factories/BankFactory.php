@@ -19,10 +19,13 @@ class BankFactory extends Factory
      */
     public function definition(): array
     {
+        $unique = $this->faker->unique();
+        $optional = $this->faker->optional();
+
         return [
             'name' => $this->faker->company() . ' Bank',
-            'code' => $this->faker->unique()->regexify('[0-9]{4}'),
-            'swift' => $this->faker->optional()->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
+            'code' => $unique->regexify('[0-9]{4}'),
+            'swift' => $optional->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
             'country' => $this->faker->randomElement([
                 'CZ',
                 'SK',
@@ -30,7 +33,7 @@ class BankFactory extends Factory
                 'AT',
             ]),
             'active' => $this->faker->boolean(85), // 85% chance of being active
-            'description' => $this->faker->optional()->sentence(),
+            'description' => $optional->sentence(),
         ];
     }
 

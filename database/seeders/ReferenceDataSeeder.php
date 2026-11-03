@@ -293,7 +293,9 @@ final class ReferenceDataSeeder extends Seeder
                 ['slug' => $categorySlug],
                 ['name' => $category['name']],
             );
-            $categoryId = DB::table('status_categories')->where('slug', $categorySlug)->value('id');
+            $categoryQuery = DB::table('status_categories');
+            $categoryQuery->where('slug', $categorySlug);
+            $categoryId = $categoryQuery->value('id');
 
             foreach ($category['statuses'] as [$slug, $name, $color]) {
                 $this->upsert(
@@ -406,13 +408,17 @@ final class ReferenceDataSeeder extends Seeder
             ['name' => 'Cron available commands', 'is_active' => true],
         );
 
+        $categoryQuery = DB::table('artisan_command_categories');
+        $categoryQuery->where('slug', 'cron');
+        $categoryId = $categoryQuery->value('id');
+
         $this->upsert(
             'artisan_commands',
             ['command' => self::CRON_COMMAND],
             [
                 'name' => self::CRON_COMMAND,
                 'description' => 'Check invoice payment status and send reminders based on due dates',
-                'category_id' => DB::table('artisan_command_categories')->where('slug', 'cron')->value('id'),
+                'category_id' => $categoryId,
                 'is_active' => true,
             ],
         );
@@ -456,10 +462,12 @@ final class ReferenceDataSeeder extends Seeder
         }
 
         foreach (self::ROLE_LIMITS as $role => $permissions) {
-            Role::findByName($role, 'web')->givePermissionTo($permissions);
+            $webRole = Role::findByName($role, 'web');
+            $webRole->givePermissionTo($permissions);
         }
 
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->forgetCachedPermissions();
     }
 
     /**
@@ -472,15 +480,20 @@ final class ReferenceDataSeeder extends Seeder
         array $values,
     ): void {
         $now = now();
-        $exists = DB::table($table)->where($key)->exists();
+        $query = DB::table($table);
+        $query->where($key);
+        $exists = $query->exists();
 
         if ($exists) {
-            DB::table($table)->where($key)->update($values + ['updated_at' => $now]);
+            $query = DB::table($table);
+            $query->where($key);
+            $query->update($values + ['updated_at' => $now]);
 
             return;
         }
 
-        DB::table($table)->insert(
+        $query = DB::table($table);
+        $query->insert(
             $key + $values + ['created_at' => $now, 'updated_at' => $now],
         );
     }

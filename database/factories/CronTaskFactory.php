@@ -42,21 +42,22 @@ class CronTaskFactory extends Factory
             'monthly',
             'custom',
         ];
+        $optional = $this->faker->optional();
 
         return [
             'name' => $this->faker->words(3, true) . ' Task',
             'command' => $this->faker->randomElement($commands),
             'frequency' => $this->faker->randomElement($frequencies),
-            'custom_expression' => $this->faker->optional()->regexify(
+            'custom_expression' => $optional->regexify(
                 '[0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2}',
             ),
-            'run_at' => $this->faker->optional()->time(),
-            'day_of_week' => $this->faker->optional()->numberBetween(0, 6),
-            'day_of_month' => $this->faker->optional()->numberBetween(1, 31),
+            'run_at' => $optional->time(),
+            'day_of_week' => $optional->numberBetween(0, 6),
+            'day_of_month' => $optional->numberBetween(1, 31),
             'is_active' => $this->faker->boolean(80), // 80% chance of being active
-            'description' => $this->faker->optional()->sentence(),
-            'last_run' => $this->faker->optional()->dateTimeBetween('-1 month', 'now'),
-            'last_output' => $this->faker->optional()->paragraph(),
+            'description' => $optional->sentence(),
+            'last_run' => $optional->dateTimeBetween('-1 month', 'now'),
+            'last_output' => $optional->paragraph(),
         ];
     }
 

@@ -104,9 +104,17 @@ class PageContentSeeder extends Seeder
         }
     }
 
+    private function categoryId(string $slug): int
+    {
+        $categoryQuery = PageCategory::where('slug->cs', $slug);
+        $category = $categoryQuery->first();
+
+        return $category->id;
+    }
+
     private function createFeaturesPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
+        $categoryId = $this->categoryId('hlavni-stranky');
 
         $content = [
             'cs' => $this->getFeaturesContent('cs'),
@@ -147,7 +155,7 @@ class PageContentSeeder extends Seeder
 
     private function createPricingPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
+        $categoryId = $this->categoryId('hlavni-stranky');
 
         $content = [
             'cs' => $this->getPricingContent('cs'),
@@ -188,7 +196,7 @@ class PageContentSeeder extends Seeder
 
     private function createTemplatesPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
+        $categoryId = $this->categoryId('hlavni-stranky');
 
         $content = [
             'cs' => $this->getTemplatesContent('cs'),
@@ -229,7 +237,7 @@ class PageContentSeeder extends Seeder
 
     private function createApiPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
+        $categoryId = $this->categoryId('hlavni-stranky');
 
         $content = [
             'cs' => $this->getApiContent('cs'),
@@ -270,7 +278,7 @@ class PageContentSeeder extends Seeder
 
     private function createHelpPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'podpora')->first()->id;
+        $categoryId = $this->categoryId('podpora');
 
         $content = [
             'cs' => $this->getHelpContent('cs'),
@@ -311,7 +319,7 @@ class PageContentSeeder extends Seeder
 
     private function createContactPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'hlavni-stranky')->first()->id;
+        $categoryId = $this->categoryId('hlavni-stranky');
 
         $content = [
             'cs' => $this->getContactContent('cs'),
@@ -352,7 +360,7 @@ class PageContentSeeder extends Seeder
 
     private function createDocumentationPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'podpora')->first()->id;
+        $categoryId = $this->categoryId('podpora');
 
         $content = [
             'cs' => $this->getDocumentationContent('cs'),
@@ -393,7 +401,7 @@ class PageContentSeeder extends Seeder
 
     private function createServiceStatusPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'podpora')->first()->id;
+        $categoryId = $this->categoryId('podpora');
 
         $content = [
             'cs' => $this->getServiceStatusContent('cs'),
@@ -434,7 +442,7 @@ class PageContentSeeder extends Seeder
 
     private function createPrivacyPolicyPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'pravni')->first()->id;
+        $categoryId = $this->categoryId('pravni');
 
         $content = [
             'cs' => $this->getPrivacyPolicyContent('cs'),
@@ -475,7 +483,7 @@ class PageContentSeeder extends Seeder
 
     private function createTermsPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'pravni')->first()->id;
+        $categoryId = $this->categoryId('pravni');
 
         $content = [
             'cs' => $this->getTermsContent('cs'),
@@ -516,7 +524,7 @@ class PageContentSeeder extends Seeder
 
     private function createCookiesPage(): void
     {
-        $categoryId = PageCategory::where('slug->cs', 'pravni')->first()->id;
+        $categoryId = $this->categoryId('pravni');
 
         $content = [
             'cs' => $this->getCookiesContent('cs'),

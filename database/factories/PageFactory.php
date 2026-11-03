@@ -26,17 +26,21 @@ class PageFactory extends Factory
      */
     public function definition(): array
     {
+        $unique = $this->faker->unique();
+        $optionalStart = $this->faker->optional(0.7);
+        $optionalEnd = $this->faker->optional(0.3);
+
         return [
             'name' => $this->faker->sentence(4),
-            'slug' => $this->faker->unique()->slug(),
+            'slug' => $unique->slug(),
             'content' => $this->faker->paragraphs(3, true),
             'description' => $this->faker->sentence(),
             'category_id' => PageCategory::factory(),
             'parent_id' => null,
             'published' => $this->faker->boolean(70), // 70% chance of being published
             'published_by' => User::factory(),
-            'publishing_start' => $this->faker->optional(0.7)->dateTimeBetween('-1 year', 'now'),
-            'publishing_end' => $this->faker->optional(0.3)->dateTimeBetween('now', '+1 year'),
+            'publishing_start' => $optionalStart->dateTimeBetween('-1 year', 'now'),
+            'publishing_end' => $optionalEnd->dateTimeBetween('now', '+1 year'),
             'sort_order' => $this->faker->numberBetween(0, 100),
             'main_image' => null,
             'images' => null,
@@ -76,9 +80,16 @@ class PageFactory extends Factory
     public function withParent(?Page $parent = null): static
     {
         return $this->state(
-            fn (array $attributes) => [
-                'parent_id' => $parent?->id ?? Page::factory()->create()->id,
-            ],
+            function () use ($parent): array {
+                $parentId = $parent?->id;
+                if ($parentId === null) {
+                    $pageFactory = Page::factory();
+                    $page = $pageFactory->create();
+                    $parentId = $page->id;
+                }
+
+                return ['parent_id' => $parentId];
+            },
         );
     }
 

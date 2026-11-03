@@ -84,6 +84,9 @@ A receiver with the same origin is initialised once per function scope and reuse
 | `$component->viewData('x')`, `$component->instance()` | no `set()` or `call()` in between | each of them renders again and replaces the view data and the component; an assertion does not |
 | `now()` | no `travel`, `setTestNow` or `freezeTime` in between | see below |
 | Relation (`$plan->features()`) | same parent, only `attach`, `detach`, `count` and `pluck` | the where clause is fixed when the relation is made and these calls leave its builder unchanged; `first()` adds a limit, so it is never shared |
+| `fake()` | always | the container's singleton; `Generator` reseeds in its destructor, which a local variable cannot trigger while the container holds it |
+| `$faker->unique()` | no `unique(true)` in between | the provider keeps one `UniqueGenerator` and creating it draws nothing |
+| `$faker->optional($weight)` | same weight and default | `ChanceGenerator` draws in every call, so fields stay independent and no draw moves |
 | `$model->fresh()` | judged per method: only assertions on the read between the uses | each call reads the row again; after a request or a write the new read goes into the same variable |
 | Value of a `final readonly` object (`$line->total()`, `$dueDate->date()`) | the object not reassigned | the method computes the same value from immutable state |
 

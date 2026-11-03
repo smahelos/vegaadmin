@@ -19,7 +19,8 @@ final class DatabaseSeeder extends Seeder
         $this->call(PageContentSeeder::class);
         $this->call(SubscriptionPlanSeeder::class);
 
-        if (app()->environment('local')) {
+        $application = app();
+        if ($application->environment('local')) {
             $this->call(DevelopmentDataSeeder::class);
         }
     }
