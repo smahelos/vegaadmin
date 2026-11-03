@@ -241,7 +241,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertStringContainsString('Guest service', $html);
         $dom = new DOMDocument;
         @$dom->loadHTML($html);
-        $lastCell = (new DOMXPath($dom))->query("//tr[td[1][normalize-space()='Guest service']]/td[last()]")->item(0);
+        $xpath = new DOMXPath($dom);
+        $lastCells = $xpath->query("//tr[td[1][normalize-space()='Guest service']]/td[last()]");
+        $lastCell = $lastCells->item(0);
         $this->assertNotNull($lastCell);
         $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertSame(

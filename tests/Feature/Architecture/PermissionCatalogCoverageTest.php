@@ -34,11 +34,13 @@ class PermissionCatalogCoverageTest extends TestCase
         ];
 
         $missing = [];
-        foreach (
-            (new Finder)->files()->in(
-                [app_path(), base_path('routes')],
-            )->name('*.php') as $file
-        ) {
+        $finder = new Finder;
+        $finder->files();
+        $finder->in(
+            [app_path(), base_path('routes')],
+        );
+        $finder->name('*.php');
+        foreach ($finder as $file) {
             $code = $file->getContents();
             foreach ($patterns as $pattern) {
                 preg_match_all(
@@ -75,11 +77,13 @@ class PermissionCatalogCoverageTest extends TestCase
     public function admin_limit_bypass_permissions_are_in_the_catalog(): void
     {
         $missing = [];
-        foreach (
-            (new Finder)->files()->in(
-                app_path('Http/Requests/Admin'),
-            )->name('*.php') as $file
-        ) {
+        $finder = new Finder;
+        $finder->files();
+        $finder->in(
+            app_path('Http/Requests/Admin'),
+        );
+        $finder->name('*.php');
+        foreach ($finder as $file) {
             $class = 'App\\Http\\Requests\\Admin\\' . $file->getBasename('.php');
             $reflection = new \ReflectionClass($class);
             if ($reflection->isAbstract() || !$reflection->isSubclassOf(AdminBaseEntityRequest::class)) {
