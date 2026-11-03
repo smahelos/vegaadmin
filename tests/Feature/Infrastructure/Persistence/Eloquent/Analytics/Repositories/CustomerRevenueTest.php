@@ -107,17 +107,18 @@ final class CustomerRevenueTest extends TestCase
         $this->assertSame('30.03', $filtered[0]['total']);
 
         $dashboard = app(DashboardService::class);
+        $statistics = $dashboard->getUserStatistics($uid);
         $this->assertSame(
             '37.95',
-            $dashboard->getUserStatistics($uid)->totalAmount->getAmount(),
+            $statistics->totalAmount->getAmount(),
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->businessCount,
+            $statistics->businessCount,
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->contactCount,
+            $statistics->contactCount,
         );
         $this->assertCount(
             6,

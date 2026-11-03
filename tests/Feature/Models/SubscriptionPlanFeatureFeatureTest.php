@@ -56,9 +56,10 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         $plan1 = $subscriptionPlanFactory->create();
         $plan2 = $subscriptionPlanFactory->create();
 
-        $feature->subscriptionPlans()->attach([$plan1->id, $plan2->id]);
+        $featurePlans = $feature->subscriptionPlans();
+        $featurePlans->attach([$plan1->id, $plan2->id]);
 
-        $this->assertEquals(2, $feature->subscriptionPlans()->count());
+        $this->assertEquals(2, $featurePlans->count());
         $this->assertTrue(
             $feature->subscriptionPlans->contains($plan1),
         );

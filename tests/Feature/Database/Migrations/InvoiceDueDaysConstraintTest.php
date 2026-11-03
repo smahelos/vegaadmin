@@ -45,6 +45,7 @@ final class InvoiceDueDaysConstraintTest extends TestCase
 
         $this->expectException(QueryException::class);
 
-        $invoice->forceFill(['due_in' => $dueDays])->save();
+        $invoice->forceFill(['due_in' => $dueDays]);
+        $invoice->save();
     }
 }

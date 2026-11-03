@@ -104,7 +104,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $collection = collect($result);
         $requiredFields = $collection->where('required', true);
 
-        $requiredFieldNames = $requiredFields->pluck('name')->toArray();
+        $requiredFieldNames = $requiredFields->pluck('name');
+        $requiredFieldNames = $requiredFieldNames->toArray();
 
         // These fields should be required
         $this->assertContains('invoice_vs', $requiredFieldNames);

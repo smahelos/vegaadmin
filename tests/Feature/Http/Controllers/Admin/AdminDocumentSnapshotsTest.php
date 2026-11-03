@@ -73,20 +73,22 @@ final class AdminDocumentSnapshotsTest extends TestCase
 
         $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
         $httpResponse->assertSessionHasErrors($role . '_company_number');
+        $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 123',
-            $document->fresh()->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute($role . '_company_number'),
         );
-        $this->assertSame($contact->id, $document->fresh()->contact_id);
+        $this->assertSame($contact->id, $freshDocument->contact_id);
 
         $data['contact_id'] = null;
         $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
         $httpResponse->assertSessionHasNoErrors();
+        $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 999',
-            $document->fresh()->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute($role . '_company_number'),
         );
-        $this->assertNull($document->fresh()->contact_id);
+        $this->assertNull($freshDocument->contact_id);
     }
 
     #[Test]
@@ -130,15 +132,16 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
         $httpResponse->assertSessionHasNoErrors();
 
+        $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 123',
-            $document->fresh()->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute($role . '_company_number'),
         );
         $this->assertSame(
             'Document-only correction',
-            $document->fresh()->getAttribute($role . '_name'),
+            $freshDocument->getAttribute($role . '_name'),
         );
-        $this->assertSame($contact->id, $document->fresh()->contact_id);
+        $this->assertSame($contact->id, $freshDocument->contact_id);
         $this->assertSame('HRB 999', $contact->fresh()->company_number);
     }
 
@@ -185,9 +188,10 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $httpResponse = $httpResponse->assertSee('Saved business snapshot');
         $httpResponse = $httpResponse->assertSee('value="2001234561"', false);
         $httpResponse->assertSee('data-stored-reference-id="' . $contact->id . '"', false);
+        $freshDocument = $document->fresh();
         $this->assertSame(
             'Saved counterparty correction',
-            $document->fresh()->getAttribute($role . '_name'),
+            $freshDocument->getAttribute($role . '_name'),
         );
         $this->assertSame('Changed contact source', $contact->fresh()->name);
     }

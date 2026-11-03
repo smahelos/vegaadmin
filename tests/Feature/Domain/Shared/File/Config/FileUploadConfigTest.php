@@ -38,9 +38,11 @@ final class FileUploadConfigTest extends TestCase
     {
         $config = app(FileUploadConfig::class);
 
+        $defaultContext = $config->forContext();
+        $unknownContext = $config->forContext('non_existing_x');
         $this->assertSame(
-            $config->forContext()->getMaxKb(),
-            $config->forContext('non_existing_x')->getMaxKb(),
+            $defaultContext->getMaxKb(),
+            $unknownContext->getMaxKb(),
         );
     }
 
@@ -49,9 +51,11 @@ final class FileUploadConfigTest extends TestCase
     {
         $config = app(FileUploadConfig::class);
 
+        $invoiceLogoContext = $config->forContext('invoice_logo');
         $this->assertTrue(
-            $config->forContext('invoice_logo')->isHashDeduplicationEnabled(),
+            $invoiceLogoContext->isHashDeduplicationEnabled(),
         );
-        $this->assertFalse($config->forContext()->isHashDeduplicationEnabled());
+        $defaultContext = $config->forContext();
+        $this->assertFalse($defaultContext->isHashDeduplicationEnabled());
     }
 }

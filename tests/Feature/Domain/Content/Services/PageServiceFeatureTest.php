@@ -132,11 +132,12 @@ class PageServiceFeatureTest extends TestCase
 
         $this->assertInstanceOf(Collection::class, $navigationPages);
         $this->assertCount(2, $navigationPages);
+        $navigationPageIds = $navigationPages->pluck('id');
         $this->assertTrue(
-            $navigationPages->pluck('id')->contains($rootPage1->id),
+            $navigationPageIds->contains($rootPage1->id),
         );
         $this->assertTrue(
-            $navigationPages->pluck('id')->contains($rootPage2->id),
+            $navigationPageIds->contains($rootPage2->id),
         );
         $firstPage = $navigationPages->firstWhere('id', $rootPage1->id);
         $this->assertCount(2, $firstPage->children);
@@ -160,11 +161,12 @@ class PageServiceFeatureTest extends TestCase
 
         $this->assertInstanceOf(Collection::class, $categoryPages);
         $this->assertCount(2, $categoryPages);
+        $categoryPageIds = $categoryPages->pluck('id');
         $this->assertTrue(
-            $categoryPages->pluck('id')->contains($page1->id),
+            $categoryPageIds->contains($page1->id),
         );
         $this->assertTrue(
-            $categoryPages->pluck('id')->contains($page2->id),
+            $categoryPageIds->contains($page2->id),
         );
     }
 
@@ -188,17 +190,19 @@ class PageServiceFeatureTest extends TestCase
 
         $searchResults = $this->pageService->searchPages('testovací', 'cs');
         $this->assertCount(1, $searchResults);
+        $searchResultIds = $searchResults->pluck('id');
         $this->assertTrue(
-            $searchResults->pluck('id')->contains($page1->id),
+            $searchResultIds->contains($page1->id),
         );
         $this->assertFalse(
-            $searchResults->pluck('id')->contains($page2->id),
+            $searchResultIds->contains($page2->id),
         );
 
         $searchResults = $this->pageService->searchPages('test', 'en');
         $this->assertCount(1, $searchResults);
+        $searchResultIds = $searchResults->pluck('id');
         $this->assertTrue(
-            $searchResults->pluck('id')->contains($page1->id),
+            $searchResultIds->contains($page1->id),
         );
 
         $searchResults = $this->pageService->searchPages('obsah', 'cs');
@@ -263,8 +267,9 @@ class PageServiceFeatureTest extends TestCase
         );
         $this->assertInstanceOf(Collection::class, $relatedPages);
         $this->assertCount(3, $relatedPages);
+        $relatedPageIds = $relatedPages->pluck('id');
         $this->assertFalse(
-            $relatedPages->pluck('id')->contains($mainPage->id),
+            $relatedPageIds->contains($mainPage->id),
         );
         $limitedRelatedPages = $this->pageService->getRelatedPages(
             $this->pageService->getPageBySlug((string) $mainPage->id),

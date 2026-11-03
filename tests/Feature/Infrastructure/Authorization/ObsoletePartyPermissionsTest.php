@@ -34,7 +34,8 @@ final class ObsoletePartyPermissionsTest extends TestCase
 
         $this->assertDatabaseMissing('permissions', ['name' => 'can_view_client', 'guard_name' => 'backpack']);
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-        $this->assertSame([], $owner->fresh()->permissions->all());
+        $freshOwner = $owner->fresh();
+        $this->assertSame([], $freshOwner->permissions->all());
         $role = Role::findByName('backend_user', 'backpack');
         $this->assertTrue(
             $role->hasPermissionTo($custom),

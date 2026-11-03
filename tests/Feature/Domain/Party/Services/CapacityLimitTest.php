@@ -109,9 +109,10 @@ final class CapacityLimitTest extends TestCase
 
         // The competing request commits after this transaction established its consistent-read snapshot.
         $other->beginTransaction();
-        $other->query(
+        $lockStatement = $other->query(
             'SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE',
-        )->fetchAll();
+        );
+        $lockStatement->fetchAll();
         $other->exec(
             'UPDATE ' . $table . ' SET archived_at = NULL WHERE id = ' . $archived[1],
         );
@@ -185,9 +186,10 @@ final class CapacityLimitTest extends TestCase
         );
 
         $other->beginTransaction();
-        $other->query(
+        $lockStatement = $other->query(
             'SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE',
-        )->fetchAll();
+        );
+        $lockStatement->fetchAll();
         $insert->execute([
             $ownerId,
             'Concurrent first business',
@@ -245,11 +247,10 @@ final class CapacityLimitTest extends TestCase
      */
     private function committedUser(PDO $connection): int
     {
-        $connection
-            ->prepare(
-                "INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Capacity owner', ?, '', NOW(), NOW())",
-            )
-            ->execute(['capacity-' . uniqid() . '@billex.test']);
+        $statement = $connection->prepare(
+            "INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Capacity owner', ?, '', NOW(), NOW())",
+        );
+        $statement->execute(['capacity-' . uniqid() . '@billex.test']);
         $id = (int) $connection->lastInsertId();
 
         $this->beforeApplicationDestroyed(

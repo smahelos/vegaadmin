@@ -101,7 +101,8 @@ final class BankAccountsTest extends TestCase
                 'iban' => 'CZ9501000000001234567899',
             ],
         );
-        $business->forceFill(['default_bank_account_id' => $default->id])->save();
+        $business->forceFill(['default_bank_account_id' => $default->id]);
+        $business->save();
 
         $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
         $accounts->call('archive', $default->id);

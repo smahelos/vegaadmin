@@ -99,7 +99,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
         $artisanCommandCategoryFactory = $artisanCommandCategoryFactory->count(5);
         $categories = $artisanCommandCategoryFactory->create();
 
-        $slugs = $categories->pluck('slug')->toArray();
+        $slugs = $categories->pluck('slug');
+        $slugs = $slugs->toArray();
         $uniqueSlugs = array_unique($slugs);
 
         $this->assertEquals(

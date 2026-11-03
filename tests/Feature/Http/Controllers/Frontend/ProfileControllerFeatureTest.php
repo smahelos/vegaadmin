@@ -70,14 +70,6 @@ class ProfileControllerFeatureTest extends TestCase
             $payload,
         );
 
-        // Debug: check for errors
-        if ($response->getSession()->has('errors')) {
-            dump(
-                'Session errors:',
-                $response->getSession()->get('errors')->all(),
-            );
-        }
-
         $response->assertRedirect(
             route('frontend.profile.edit', ['locale' => 'cs']),
         );
@@ -180,7 +172,9 @@ class ProfileControllerFeatureTest extends TestCase
             ],
         );
 
-        $errors = $response->getSession()->get('errors')->all();
+        $session = $response->getSession();
+        $errorBag = $session->get('errors');
+        $errors = $errorBag->all();
         $this->assertSame(
             [__('users.messages.profile_update_failed')],
             $errors,

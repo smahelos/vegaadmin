@@ -339,9 +339,11 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             $request->attributes(),
         );
 
+        $fieldLabel = __('admin/database.archive_policies.fields.retention_months');
+        $errors = $validator->errors();
         $this->assertStringContainsString(
-            __('admin/database.archive_policies.fields.retention_months'),
-            $validator->errors()->first('retention_months'),
+            $fieldLabel,
+            $errors->first('retention_months'),
         );
     }
 }

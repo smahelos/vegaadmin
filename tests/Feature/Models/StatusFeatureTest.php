@@ -262,14 +262,15 @@ class StatusFeatureTest extends TestCase
         $searchResults = $statusQuery->get();
 
         $this->assertCount(2, $searchResults);
+        $searchResultNames = $searchResults->pluck('name');
         $this->assertTrue(
-            $searchResults->pluck('name')->contains('Payment Due'),
+            $searchResultNames->contains('Payment Due'),
         );
         $this->assertTrue(
-            $searchResults->pluck('name')->contains('Pending Payment'),
+            $searchResultNames->contains('Pending Payment'),
         );
         $this->assertFalse(
-            $searchResults->pluck('name')->contains('Cancelled Status'),
+            $searchResultNames->contains('Cancelled Status'),
         );
     }
 

@@ -21,9 +21,10 @@ final class InvoiceDueDateTest extends TestCase
             30,
         );
 
+        $date = $dueDate->date();
         $this->assertSame(
             '2024-01-31',
-            $dueDate->date()->format('Y-m-d'),
+            $date->format('Y-m-d'),
         );
     }
 
@@ -35,9 +36,10 @@ final class InvoiceDueDateTest extends TestCase
             0,
         );
 
+        $date = $dueDate->date();
         $this->assertSame(
             '2024-01-01',
-            $dueDate->date()->format('Y-m-d'),
+            $date->format('Y-m-d'),
         );
     }
 
@@ -49,9 +51,10 @@ final class InvoiceDueDateTest extends TestCase
             InvoiceDueDate::MAX_DAYS,
         );
 
+        $date = $dueDate->date();
         $this->assertSame(
             '2024-12-31',
-            $dueDate->date()->format('Y-m-d'),
+            $date->format('Y-m-d'),
         );
     }
 
@@ -63,9 +66,10 @@ final class InvoiceDueDateTest extends TestCase
             1,
         );
 
+        $date = $dueDate->date();
         $this->assertSame(
             '2024-01-02 00:00',
-            $dueDate->date()->format('Y-m-d H:i'),
+            $date->format('Y-m-d H:i'),
         );
     }
 
@@ -130,9 +134,10 @@ final class InvoiceDueDateTest extends TestCase
             14,
         );
 
+        $date = $dueDate->date();
         $this->assertSame(
             '2024-04-08',
-            $dueDate->date()->format('Y-m-d'),
+            $date->format('Y-m-d'),
         );
         $this->assertSame(
             14,

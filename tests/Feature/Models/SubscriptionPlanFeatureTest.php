@@ -62,9 +62,10 @@ class SubscriptionPlanFeatureTest extends TestCase
         $feature2 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 2']);
 
         // Attach features to plan
-        $plan->features()->attach([$feature1->id, $feature2->id]);
+        $planFeatures = $plan->features();
+        $planFeatures->attach([$feature1->id, $feature2->id]);
 
-        $this->assertEquals(2, $plan->features()->count());
+        $this->assertEquals(2, $planFeatures->count());
         $this->assertTrue(
             $plan->features->contains($feature1),
         );
@@ -73,10 +74,10 @@ class SubscriptionPlanFeatureTest extends TestCase
         );
 
         // Detach one feature
-        $plan->features()->detach($feature1->id);
+        $planFeatures->detach($feature1->id);
 
         $plan->refresh();
-        $this->assertEquals(1, $plan->features()->count());
+        $this->assertEquals(1, $planFeatures->count());
         $this->assertFalse(
             $plan->features->contains($feature1),
         );

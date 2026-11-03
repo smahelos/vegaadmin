@@ -128,13 +128,14 @@ class PageCategoryFeatureTest extends TestCase
 
         $category->update($updateData);
 
+        $freshCategory = $category->fresh();
         $this->assertEquals(
             'Aktualizovaný název',
-            $category->fresh()->getName('cs'),
+            $freshCategory->getName('cs'),
         );
         $this->assertEquals(
             'Updated Name',
-            $category->fresh()->getName('en'),
+            $freshCategory->getName('en'),
         );
     }
 
@@ -165,13 +166,14 @@ class PageCategoryFeatureTest extends TestCase
 
         $category->update($updateData);
 
+        $freshCategory = $category->fresh();
         $this->assertEquals(
             'Aktualizovaná kategorie',
-            $category->fresh()->getName('cs'),
+            $freshCategory->getName('cs'),
         );
         $this->assertEquals(
             'Updated Category',
-            $category->fresh()->getName('en'),
+            $freshCategory->getName('en'),
         );
     }
 

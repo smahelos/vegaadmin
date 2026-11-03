@@ -30,7 +30,8 @@ class ProductObserverTest extends TestCase
         Event::assertDispatched(FormDataChanged::class);
 
         // Non watched field update (e.g. description) - no dispatch
-        $countAfterCreate = $events->dispatched(FormDataChanged::class)->count();
+        $dispatchedEvents = $events->dispatched(FormDataChanged::class);
+        $countAfterCreate = $dispatchedEvents->count();
         $product->update(['description' => 'Some desc']);
         // No new dispatch for non-watched field
         Event::assertDispatchedTimes(FormDataChanged::class, $countAfterCreate);

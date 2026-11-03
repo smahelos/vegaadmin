@@ -172,7 +172,8 @@ final class BusinessCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $owner->id]);
-        $owner->forceFill(['default_business_id' => $business->id])->save();
+        $owner->forceFill(['default_business_id' => $business->id]);
+        $owner->save();
 
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->post(
@@ -197,7 +198,8 @@ final class BusinessCrudControllerTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $owner->id]);
         $replacement = $businessFactory->create(['user_id' => $owner->id]);
-        $owner->forceFill(['default_business_id' => $business->id])->save();
+        $owner->forceFill(['default_business_id' => $business->id]);
+        $owner->save();
         $this->actingAs(
             $this->backendUser('can_archive_business', 'can_view_business'),
             'backpack',
@@ -224,7 +226,8 @@ final class BusinessCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $owner->id]);
-        $owner->forceFill(['default_business_id' => $business->id])->save();
+        $owner->forceFill(['default_business_id' => $business->id]);
+        $owner->save();
         $archivedFactory = $businessFactory->archived();
         $archived = $archivedFactory->create(['user_id' => $owner->id]);
         $foreign = $businessFactory->create();

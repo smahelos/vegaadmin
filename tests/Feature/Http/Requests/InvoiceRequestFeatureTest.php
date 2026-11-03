@@ -348,7 +348,8 @@ final class InvoiceRequestFeatureTest extends TestCase
             ),
             guest: true,
         );
-        $this->assertSame([], $guestValidator->errors()->toArray());
+        $guestErrors = $guestValidator->errors();
+        $this->assertSame([], $guestErrors->toArray());
         $this->assertSame(
             [],
             array_filter(

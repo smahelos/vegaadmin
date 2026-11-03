@@ -114,7 +114,8 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
             ],
         );
         // Existing active subscription
-        $user->subscriptions()->create(
+        $userSubscriptions = $user->subscriptions();
+        $userSubscriptions->create(
             [
                 'subscription_plan_id' => $plan->id,
                 'status' => 'active',
@@ -187,7 +188,8 @@ class SubscriptionSubscribeFlowFeatureTest extends TestCase
             ['gateway' => 'gopay'],
         );
 
-        $subscription = $user->subscriptions()->first();
+        $userSubscriptions = $user->subscriptions();
+        $subscription = $userSubscriptions->first();
         $this->assertNotNull($subscription);
         $this->assertEquals('pending', $subscription->status);
 

@@ -27,9 +27,10 @@ class PermissionCatalogSyncTest extends TestCase
         }
 
         $admin = Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK);
+        $permissionValues = $admin->permissions->pluck('name');
         $this->assertEqualsCanonicalizing(
             PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK],
-            $admin->permissions->pluck('name')->all(),
+            $permissionValues->all(),
         );
 
         // Plan roles also hold limit_* permissions, which are plan configuration, not catalog entries
@@ -80,9 +81,11 @@ class PermissionCatalogSyncTest extends TestCase
         $permissionCatalogSync = app(PermissionCatalogSync::class);
         $permissionCatalogSync->sync();
 
+        $freshRole = $backendUser->fresh();
+        $permissionValues = $freshRole->permissions->pluck('name');
         $this->assertEqualsCanonicalizing(
             [$custom->name, 'can_view_user'],
-            $backendUser->fresh()->permissions->pluck('name')->all(),
+            $permissionValues->all(),
         );
         $this->assertSame($permissionCount, Permission::count());
     }

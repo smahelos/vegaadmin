@@ -97,9 +97,10 @@ final class BusinessAndContactConstraintTest extends TestCase
             $batchFactory->create(['user_id' => $user->id, ...$identity]);
         }
 
+        $modelQuery = $model::where('user_id', $user->id);
         $this->assertSame(
             4,
-            $model::where('user_id', $user->id)->count(),
+            $modelQuery->count(),
         );
     }
 
@@ -151,8 +152,10 @@ final class BusinessAndContactConstraintTest extends TestCase
         $ownedFactory = $bankAccountFactory->ownedBy($contact);
         $contactAccount = $ownedFactory->create();
 
-        $business->forceFill(['default_bank_account_id' => $ownAccount->id])->save();
-        $contact->forceFill(['default_bank_account_id' => $contactAccount->id])->save();
+        $business->forceFill(['default_bank_account_id' => $ownAccount->id]);
+        $business->save();
+        $contact->forceFill(['default_bank_account_id' => $contactAccount->id]);
+        $contact->save();
 
         $this->assertDefaultRefused($otherBusiness, $ownAccount->id);
         $this->assertDefaultRefused($business, $contactAccount->id);
@@ -175,10 +178,14 @@ final class BusinessAndContactConstraintTest extends TestCase
         $user = User::findOrFail($business->user_id);
         $otherUsersBusiness = $businessFactory->create();
 
-        $user->forceFill(['default_business_id' => $business->id])->save();
+        $user->forceFill(['default_business_id' => $business->id]);
+        $user->save();
 
         $this->assertRefused(
-            fn () => $user->forceFill(['default_business_id' => $otherUsersBusiness->id])->save(),
+            function () use ($user, $otherUsersBusiness): void {
+                $user->forceFill(['default_business_id' => $otherUsersBusiness->id]);
+                $user->save();
+            },
             1452,
         );
         $this->assertDatabaseHas('users', ['id' => $user->id, 'default_business_id' => $business->id]);
@@ -195,7 +202,10 @@ final class BusinessAndContactConstraintTest extends TestCase
     private function assertDefaultRefused(Model $owner, int $accountId): void
     {
         $this->assertRefused(
-            fn () => $owner->forceFill(['default_bank_account_id' => $accountId])->save(),
+            function () use ($owner, $accountId): void {
+                $owner->forceFill(['default_bank_account_id' => $accountId]);
+                $owner->save();
+            },
             1452,
         );
         $owner->refresh();

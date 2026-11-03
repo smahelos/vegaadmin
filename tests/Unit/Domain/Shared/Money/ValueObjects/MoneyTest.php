@@ -416,9 +416,10 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('0', 'EUR');
         $exchange = $this->exchangeAt(0.000000001);
+        $converted = $m->convertTo('USD', $exchange);
         $this->assertSame(
             '0',
-            $m->convertTo('USD', $exchange)->getAmount(),
+            $converted->getAmount(),
         );
     }
 

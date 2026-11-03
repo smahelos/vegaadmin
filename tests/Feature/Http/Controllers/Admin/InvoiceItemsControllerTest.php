@@ -130,7 +130,8 @@ final class InvoiceItemsControllerTest extends TestCase
             '0.1',
             $response->json('data.subtotal'),
         );
-        $this->assertSame(2, $invoice->invoiceProducts()->count());
+        $invoiceProducts = $invoice->invoiceProducts();
+        $this->assertSame(2, $invoiceProducts->count());
     }
 
     #[Test]
@@ -199,13 +200,14 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
         $this->assertSame('137.01', $invoice->fresh()->payment_amount);
-        $this->assertSame(1, $invoice->invoiceProducts()->count());
+        $invoiceProducts = $invoice->invoiceProducts();
+        $this->assertSame(1, $invoiceProducts->count());
         $data['invoice-products'] = [];
         $data['payment_amount'] = '88.88';
         $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
-        $this->assertSame(0, $invoice->invoiceProducts()->count());
+        $this->assertSame(0, $invoiceProducts->count());
         $this->assertSame('88.88', $invoice->fresh()->payment_amount);
     }
 
@@ -302,9 +304,11 @@ final class InvoiceItemsControllerTest extends TestCase
                 'invoice-products.0.tax_rate',
             ],
         );
+        $invoiceProducts = $invoice->invoiceProducts();
+        $lineIds = $invoiceProducts->pluck('id');
         $this->assertSame(
             [$existing->id],
-            $invoice->invoiceProducts()->pluck('id')->all(),
+            $lineIds->all(),
         );
     }
 

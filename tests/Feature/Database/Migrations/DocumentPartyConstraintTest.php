@@ -44,7 +44,8 @@ final class DocumentPartyConstraintTest extends TestCase
         $contactFactory = Contact::factory();
         $ownContact = $contactFactory->create(['user_id' => $document->user_id]);
 
-        $document->forceFill(['contact_id' => $ownContact->id])->save();
+        $document->forceFill(['contact_id' => $ownContact->id]);
+        $document->save();
 
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
@@ -74,7 +75,8 @@ final class DocumentPartyConstraintTest extends TestCase
         $businessFactory = Business::factory();
         $otherBusiness = $businessFactory->create(['user_id' => $invoice->user_id]);
 
-        $invoice->forceFill(['bank_account_id' => $ownAccount->id])->save();
+        $invoice->forceFill(['bank_account_id' => $ownAccount->id]);
+        $invoice->save();
 
         $ownedFactory = $bankAccountFactory->ownedBy($otherBusiness);
         $otherAccount = $ownedFactory->create();
@@ -109,7 +111,8 @@ final class DocumentPartyConstraintTest extends TestCase
 
         $expense->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $ownAccount->id],
-        )->save();
+        );
+        $expense->save();
 
         $ownedFactory = $bankAccountFactory->ownedBy($otherContact);
         $otherAccount = $ownedFactory->create();
@@ -160,7 +163,10 @@ final class DocumentPartyConstraintTest extends TestCase
         int $mysqlErrorCode,
     ): void {
         $this->assertRefused(
-            fn () => $document->forceFill($attributes)->save(),
+            function () use ($document, $attributes): void {
+                $document->forceFill($attributes);
+                $document->save();
+            },
             $mysqlErrorCode,
         );
         $document->refresh();

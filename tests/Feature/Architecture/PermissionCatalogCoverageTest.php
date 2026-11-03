@@ -87,7 +87,8 @@ class PermissionCatalogCoverageTest extends TestCase
             }
 
             // Admin\BaseEntityRequest::hasUnlimitedAccess() checks can_create_{entity}_unlimited
-            $entityType = $reflection->getMethod('getEntityType')->invoke($reflection->newInstance());
+            $entityTypeMethod = $reflection->getMethod('getEntityType');
+            $entityType = $entityTypeMethod->invoke($reflection->newInstance());
             $permission = "can_create_{$entityType}_unlimited";
             if (!PermissionCatalog::has($permission, PermissionCatalog::BACKPACK)) {
                 $missing[] = $permission . ' (' . $file->getFilename() . ')';

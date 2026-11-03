@@ -51,7 +51,8 @@ final class ContactDetailTest extends TestCase
         );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $replacement->forceFill(['archived_at' => now()])->save();
+        $replacement->forceFill(['archived_at' => now()]);
+        $replacement->save();
         $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
         $component->call('restore');
         $this->assertNull($contact->fresh()?->archived_at);

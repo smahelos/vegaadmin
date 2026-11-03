@@ -45,7 +45,8 @@ final class ReferentialIntegrityTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
         $invoice->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $account->id],
-        )->save();
+        );
+        $invoice->save();
 
         $this->assertDeleteRefused($business);
         $this->assertDeleteRefused($contact);
@@ -139,7 +140,8 @@ final class ReferentialIntegrityTest extends TestCase
         $account = $bankAccountFactory->create();
         $expense->forceFill(
             ['contact_id' => $contact->id, 'bank_account_id' => $account->id],
-        )->save();
+        );
+        $expense->save();
 
         $this->assertDeleteRefused(
             Business::findOrFail($expense->business_id),

@@ -223,14 +223,15 @@ class TaxFeatureTest extends TestCase
         $searchResults = $taxQuery->get();
 
         $this->assertCount(2, $searchResults);
+        $searchResultNames = $searchResults->pluck('name');
         $this->assertTrue(
-            $searchResults->pluck('name')->contains('Standard VAT'),
+            $searchResultNames->contains('Standard VAT'),
         );
         $this->assertTrue(
-            $searchResults->pluck('name')->contains('Reduced VAT'),
+            $searchResultNames->contains('Reduced VAT'),
         );
         $this->assertFalse(
-            $searchResults->pluck('name')->contains('Zero Rate'),
+            $searchResultNames->contains('Zero Rate'),
         );
     }
 

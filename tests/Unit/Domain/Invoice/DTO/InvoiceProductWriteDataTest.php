@@ -22,10 +22,13 @@ final class InvoiceProductWriteDataTest extends TestCase
             taxRate: '21',
         );
 
-        $this->assertSame('224.01', $line->base()->getAmount());
-        $this->assertSame('47.04', $line->taxAmount()->getAmount());
-        $this->assertSame('271.05', $line->total()->getAmount());
-        $this->assertSame('CZK', $line->total()->getCurrency());
+        $base = $line->base();
+        $this->assertSame('224.01', $base->getAmount());
+        $taxAmount = $line->taxAmount();
+        $this->assertSame('47.04', $taxAmount->getAmount());
+        $total = $line->total();
+        $this->assertSame('271.05', $total->getAmount());
+        $this->assertSame('CZK', $total->getCurrency());
     }
 
     #[Test]
@@ -37,9 +40,12 @@ final class InvoiceProductWriteDataTest extends TestCase
             taxRate: '12',
         );
 
-        $this->assertSame('373.95', $line->base()->getAmount());
-        $this->assertSame('44.87', $line->taxAmount()->getAmount());
-        $this->assertSame('418.82', $line->total()->getAmount());
+        $base = $line->base();
+        $this->assertSame('373.95', $base->getAmount());
+        $taxAmount = $line->taxAmount();
+        $this->assertSame('44.87', $taxAmount->getAmount());
+        $total = $line->total();
+        $this->assertSame('418.82', $total->getAmount());
     }
 
     #[Test]
@@ -52,8 +58,10 @@ final class InvoiceProductWriteDataTest extends TestCase
             taxRate: '21',
         );
 
-        $this->assertSame('0.33', $line->base()->getAmount());
-        $this->assertSame('0.07', $line->taxAmount()->getAmount());
+        $base = $line->base();
+        $this->assertSame('0.33', $base->getAmount());
+        $taxAmount = $line->taxAmount();
+        $this->assertSame('0.07', $taxAmount->getAmount());
     }
 
     #[Test]
@@ -65,8 +73,10 @@ final class InvoiceProductWriteDataTest extends TestCase
             taxRate: '0',
         );
 
-        $this->assertSame('0', $line->taxAmount()->getAmount());
-        $this->assertSame('200', $line->total()->getAmount());
+        $taxAmount = $line->taxAmount();
+        $this->assertSame('0', $taxAmount->getAmount());
+        $total = $line->total();
+        $this->assertSame('200', $total->getAmount());
     }
 
     #[Test]

@@ -427,19 +427,21 @@ class TaxRequestFeatureTest extends TestCase
             $request->attributes(),
         );
 
+        $nameMessage = __(
+            'validation.required',
+            ['attribute' => __('taxes.fields.name')],
+        );
+        $errors = $validator->errors();
         $this->assertSame(
-            __(
-                'validation.required',
-                ['attribute' => __('taxes.fields.name')],
-            ),
-            $validator->errors()->first('name'),
+            $nameMessage,
+            $errors->first('name'),
         );
         $this->assertSame(
             __(
                 'validation.required',
                 ['attribute' => __('taxes.fields.rate')],
             ),
-            $validator->errors()->first('rate'),
+            $errors->first('rate'),
         );
     }
 }

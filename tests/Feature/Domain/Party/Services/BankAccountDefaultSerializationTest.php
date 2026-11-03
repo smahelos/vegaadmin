@@ -22,10 +22,10 @@ final class BankAccountDefaultSerializationTest extends TestCase
     public function a_concurrent_archive_waits_until_the_default_selection_commits(): void
     {
         $connection = $this->secondConnection();
-        $connection->prepare(
+        $statement = $connection->prepare(
             "INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Default owner', ?, '', NOW(), NOW())",
-        )
-            ->execute(['default-' . uniqid() . '@billex.test']);
+        );
+        $statement->execute(['default-' . uniqid() . '@billex.test']);
         $userId = (int) $connection->lastInsertId();
         $this->beforeApplicationDestroyed(
             function () use ($connection, $userId): void {

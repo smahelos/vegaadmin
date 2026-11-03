@@ -303,7 +303,8 @@ class BankRequestFeatureTest extends TestCase
             $request->rules(),
         );
         $this->assertFalse($invalid->passes());
-        $this->assertArrayHasKey('description', $invalid->errors()->toArray());
+        $errors = $invalid->errors();
+        $this->assertArrayHasKey('description', $errors->toArray());
     }
 
     #[Test]

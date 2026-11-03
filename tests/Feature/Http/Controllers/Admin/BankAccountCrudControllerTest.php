@@ -76,7 +76,8 @@ final class BankAccountCrudControllerTest extends TestCase
                 ] as $filter
             ) {
                 $response = $this->postJson('/admin/bank-account/search' . $filter, ['start' => 0, 'length' => 100]);
-                $response->assertOk()->assertDontSee($hidden->iban);
+                $response->assertOk();
+                $response->assertDontSee($hidden->iban);
                 if ($filter === '') {
                     $response->assertSee($visible->iban);
                 }
@@ -143,7 +144,8 @@ final class BankAccountCrudControllerTest extends TestCase
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($business);
         $account = $bankAccountFactory->create();
-        $business->forceFill(['default_bank_account_id' => $account->id])->save();
+        $business->forceFill(['default_bank_account_id' => $account->id]);
+        $business->save();
 
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->post(

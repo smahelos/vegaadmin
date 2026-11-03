@@ -35,11 +35,22 @@ final class InvoiceContactApplicationServiceTest extends TestCase
         $owner = $userFactory->create();
         $this->beforeApplicationDestroyed(
             function () use ($connection, $owner): void {
-                $connection->table('invoices')->where('user_id', $owner->id)->delete();
-                $connection->table('contacts')->where('user_id', $owner->id)->delete();
-                $connection->table('businesses')->where('user_id', $owner->id)->delete();
-                $connection->table('model_has_roles')->where('model_type', User::class)->where('model_id', $owner->id)->delete();
-                $connection->table('users')->where('id', $owner->id)->delete();
+                $query = $connection->table('invoices');
+                $query->where('user_id', $owner->id);
+                $query->delete();
+                $query = $connection->table('contacts');
+                $query->where('user_id', $owner->id);
+                $query->delete();
+                $query = $connection->table('businesses');
+                $query->where('user_id', $owner->id);
+                $query->delete();
+                $query = $connection->table('model_has_roles');
+                $query->where('model_type', User::class);
+                $query->where('model_id', $owner->id);
+                $query->delete();
+                $query = $connection->table('users');
+                $query->where('id', $owner->id);
+                $query->delete();
             },
         );
         $owner->assignRole(

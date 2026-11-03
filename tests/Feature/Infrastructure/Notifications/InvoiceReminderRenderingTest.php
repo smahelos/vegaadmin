@@ -83,7 +83,8 @@ final class InvoiceReminderRenderingTest extends TestCase
                 ),
                 html_entity_decode($html),
             );
-            $dueDate = $invoice->issue_date->toDateTimeImmutable()->modify('+' . $invoice->due_in . ' days');
+            $issueDate = $invoice->issue_date->toDateTimeImmutable();
+            $dueDate = $issueDate->modify('+' . $invoice->due_in . ' days');
             $dateFormatter = app(DateFormatterInterface::class);
             $this->assertStringContainsString(
                 $dateFormatter->formatDate($dueDate, $locale),

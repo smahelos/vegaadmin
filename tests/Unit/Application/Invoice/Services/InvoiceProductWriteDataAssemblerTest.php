@@ -57,6 +57,7 @@ final class InvoiceProductWriteDataAssemblerTest extends TestCase
             ]],
         )[0];
 
-        $this->assertSame('242', $line->total()->getAmount());
+        $total = $line->total();
+        $this->assertSame('242', $total->getAmount());
     }
 }

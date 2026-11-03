@@ -344,7 +344,8 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
         $this->assertSame('2345.67', $invoice->fresh()->payment_amount);
-        $this->assertSame(0, $invoice->invoiceProducts()->count());
+        $invoiceProducts = $invoice->invoiceProducts();
+        $this->assertSame(0, $invoiceProducts->count());
     }
 
     #[Test]
@@ -385,9 +386,11 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
         $this->assertSame('242.00', $invoice->fresh()->payment_amount);
+        $invoiceProducts = $invoice->invoiceProducts();
+        $lineIds = $invoiceProducts->pluck('id');
         $this->assertSame(
             [$line->id],
-            $invoice->invoiceProducts()->pluck('id')->all(),
+            $lineIds->all(),
         );
     }
 

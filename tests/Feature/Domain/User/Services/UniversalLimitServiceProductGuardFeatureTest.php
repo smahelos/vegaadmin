@@ -190,38 +190,49 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
         {
             public function getRange(string $periodType, \DateTimeImmutable $reference): array
             {
+                if ($periodType === 'monthly') {
+                    $firstDay = $reference->modify('first day of this month');
+                    $lastDay = $reference->modify('last day of this month');
+
+                    return [$firstDay->setTime(
+                        0,
+                        0,
+                        0,
+                    ), $lastDay->setTime(
+                        23,
+                        59,
+                        59,
+                    )];
+                }
+                if ($periodType === 'yearly') {
+                    $firstDay = $reference->setDate(
+                        (int) $reference->format('Y'),
+                        1,
+                        1,
+                    );
+                    $lastDay = $reference->setDate(
+                        (int) $reference->format('Y'),
+                        12,
+                        31,
+                    );
+
+                    return [$firstDay->setTime(
+                        0,
+                        0,
+                        0,
+                    ), $lastDay->setTime(
+                        23,
+                        59,
+                        59,
+                    )];
+                }
+
                 return match ($periodType) {
                     'daily' => [$reference->setTime(
                         0,
                         0,
                         0,
                     ), $reference->setTime(
-                        23,
-                        59,
-                        59,
-                    )],
-                    'monthly' => [$reference->modify('first day of this month')->setTime(
-                        0,
-                        0,
-                        0,
-                    ), $reference->modify('last day of this month')->setTime(
-                        23,
-                        59,
-                        59,
-                    )],
-                    'yearly' => [$reference->setDate(
-                        (int) $reference->format('Y'),
-                        1,
-                        1,
-                    )->setTime(
-                        0,
-                        0,
-                        0,
-                    ), $reference->setDate(
-                        (int) $reference->format('Y'),
-                        12,
-                        31,
-                    )->setTime(
                         23,
                         59,
                         59,

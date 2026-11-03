@@ -26,10 +26,11 @@ class InvoiceEditFieldParityTest extends TestCase
             $statuses,
         );
         $factory = new InvoiceCreateFieldSetFactory;
-        $built = $factory->build(
+        $fieldSet = $factory->build(
             $paymentMethods,
             $statuses,
-        )->toArray();
+        );
+        $built = $fieldSet->toArray();
 
         $this->assertCount(
             count($legacy),
