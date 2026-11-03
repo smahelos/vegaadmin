@@ -33,7 +33,9 @@ if (!function_exists('backpack_user')) {
      */
     function backpack_user(): ?User
     {
-        return backpack_auth()->user();
+        $auth = backpack_auth();
+
+        return $auth->user();
     }
 }
 

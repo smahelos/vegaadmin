@@ -23,7 +23,6 @@ use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -47,21 +46,6 @@ class ExceptionHandling
             fn (InvoiceAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
         );
 
-        // Invoice model not found
-        $exceptions->render(
-            function (ModelNotFoundException $e, $request) {
-                if (self::isInvoiceRoute($request)) {
-                    return redirect()->route('frontend.invoices', ['locale' => app()->getLocale()])
-                        ->with(
-                            'error',
-                            __('invoices.messages.not_found'),
-                        );
-                }
-
-                return null;
-            },
-        );
-
         $exceptions->render(
             fn (IncompleteDocumentPartyException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
                 $request,
@@ -81,8 +65,9 @@ class ExceptionHandling
                 // JSON first: standardized payload with translated message
                 if ($request->expectsJson()) {
                     $translated = __($e->getMessageKey(), $e->getContext());
+                    $responseFactory = response();
 
-                    return response()->json(
+                    return $responseFactory->json(
                         [
                             'message' => $translated,
                             'message_key' => $e->getMessageKey(),
@@ -94,7 +79,10 @@ class ExceptionHandling
                 }
                 // Route-specific UX: keep existing shortcuts for common flows
                 if (self::isInvoiceRoute($request)) {
-                    return back()->withInput()->with(
+                    $redirect = back();
+                    $redirect->withInput();
+
+                    return $redirect->with(
                         'error',
                         __('invoices.messages.limit_exceeded'),
                     );
@@ -193,10 +181,14 @@ class ExceptionHandling
             function (ProductInUseException $e, $request) {
                 $message = __('products.messages.error_delete_invoices');
                 if ($request->expectsJson()) {
-                    return response()->json(['message' => $message], 409);
+                    $responseFactory = response();
+
+                    return $responseFactory->json(['message' => $message], 409);
                 }
 
-                return back()->with('error', $message);
+                $redirect = back();
+
+                return $redirect->with('error', $message);
             },
         );
 
@@ -206,7 +198,9 @@ class ExceptionHandling
             function (AuthenticationException $e, $request) {
                 if (self::isInvoiceRoute($request)) {
                     if ($request->expectsJson()) {
-                        return response()->json(
+                        $responseFactory = response();
+
+                        return $responseFactory->json(
                             [
                                 'error' => __('users.auth.unauthenticated'),
                                 'code' => 401,
@@ -216,8 +210,11 @@ class ExceptionHandling
                     }
 
                     // Let guests be redirected to the correct localized login page
-                    return redirect()->guest(
-                        route('frontend.login', ['locale' => app()->getLocale()]),
+                    $redirector = redirect();
+                    $application = app();
+
+                    return $redirector->guest(
+                        route('frontend.login', ['locale' => $application->getLocale()]),
                     );
                 }
 
@@ -229,7 +226,7 @@ class ExceptionHandling
         $exceptions->render(
             function (Throwable $e, $request) {
                 if (self::isInvoiceRoute($request)) {
-                    if ($e instanceof ModelNotFoundException || $e instanceof EntityLimitExceededException) {
+                    if ($e instanceof EntityLimitExceededException) {
                         return null; // handled above
                     }
                     // A denied permission and another user's invoice keep their 403 and 404
@@ -248,7 +245,10 @@ class ExceptionHandling
                         return null; // controller JSON handling
                     }
 
-                    return redirect()->back()->with(
+                    $redirector = redirect();
+                    $redirect = $redirector->back();
+
+                    return $redirect->with(
                         'error',
                         __('invoices.messages.update_error'),
                     );
@@ -261,7 +261,8 @@ class ExceptionHandling
 
     private static function isInvoiceRoute(Request $request): bool
     {
-        $routeName = $request->route()?->getName();
+        $route = $request->route();
+        $routeName = $route?->getName();
         if (!$routeName) {
             return false;
         }
@@ -278,7 +279,9 @@ class ExceptionHandling
         string $message,
     ): JsonResponse|RedirectResponse {
         if ($request->expectsJson()) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'message' => $message,
                     'errors' => [$field => [$message]],
@@ -287,7 +290,10 @@ class ExceptionHandling
             );
         }
 
-        return back()->withInput()->withErrors([$field => $message]);
+        $redirect = back();
+        $redirect->withInput();
+
+        return $redirect->withErrors([$field => $message]);
     }
 
     /**
@@ -296,7 +302,9 @@ class ExceptionHandling
     private static function back(Request $request, string $message): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {
-            return response()->json(['message' => $message], 409);
+            $responseFactory = response();
+
+            return $responseFactory->json(['message' => $message], 409);
         }
 
         if (
@@ -304,11 +312,16 @@ class ExceptionHandling
                 config('backpack.base.route_prefix', 'admin') . '/*',
             )
         ) {
-            Alert::error($message)->flash();
+            $alert = Alert::error($message);
+            $alert->flash();
+            $redirect = back();
 
-            return back()->withInput();
+            return $redirect->withInput();
         }
 
-        return back()->withInput()->with('error', $message);
+        $redirect = back();
+        $redirect->withInput();
+
+        return $redirect->with('error', $message);
     }
 }

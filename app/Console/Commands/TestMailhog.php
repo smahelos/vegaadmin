@@ -57,8 +57,8 @@ class TestMailhog extends Command
             Mail::raw(
                 'Test email from VegaAdmin application at: ' . now(),
                 function ($message) use ($recipients, $subject): void {
-                    $message->to($recipients)
-                        ->subject($subject);
+                    $message->to($recipients);
+                    $message->subject($subject);
                 },
             );
             $this->info(

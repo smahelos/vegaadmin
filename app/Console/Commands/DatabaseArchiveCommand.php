@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use stdClass;
@@ -37,10 +37,10 @@ final class DatabaseArchiveCommand extends Command
         $this->info("Starting database archiving for table: {$tableName}");
 
         // Get archive policy for the table
-        $policy = DB::table('archive_policies')
-            ->where('table_name', $tableName)
-            ->where('enabled', true)
-            ->first();
+        $query = DB::table('archive_policies');
+        $query->where('table_name', $tableName);
+        $query->where('enabled', true);
+        $policy = $query->first();
 
         if (!$policy) {
             $this->error("No archive policy found for table: {$tableName}");
@@ -48,19 +48,20 @@ final class DatabaseArchiveCommand extends Command
             return Command::FAILURE;
         }
 
-        $cutoffDate = Carbon::now()->subMonths($policy->retention_months);
+        $cutoffDate = CarbonImmutable::now();
+        $cutoffDate = $cutoffDate->subMonths($policy->retention_months);
         $this->info(
             "Archiving records older than: {$cutoffDate->format('Y-m-d')}",
         );
 
         // Check if we have records to archive
-        $recordsToArchive = DB::table($tableName)
-            ->where(
-                $policy->date_column,
-                '<',
-                $cutoffDate,
-            )
-            ->count();
+        $query = DB::table($tableName);
+        $query->where(
+            $policy->date_column,
+            '<',
+            $cutoffDate,
+        );
+        $recordsToArchive = $query->count();
 
         if ($recordsToArchive === 0) {
             $this->info('No records found for archiving.');
@@ -89,7 +90,8 @@ final class DatabaseArchiveCommand extends Command
         }
 
         // Log maintenance task
-        $maintenanceId = DB::table('database_maintenance_logs')->insertGetId(
+        $query = DB::table('database_maintenance_logs');
+        $maintenanceId = $query->insertGetId(
             [
                 'task_type' => 'archive',
                 'table_name' => $tableName,
@@ -113,27 +115,27 @@ final class DatabaseArchiveCommand extends Command
             }
 
             // Update maintenance log
-            DB::table('database_maintenance_logs')
-                ->where('id', $maintenanceId)
-                ->update(
-                    [
-                        'status' => 'completed',
-                        'completed_at' => now(),
-                        'results' => json_encode(['records_archived' => $recordsToArchive]),
-                        'updated_at' => now(),
-                    ],
-                );
+            $query = DB::table('database_maintenance_logs');
+            $query->where('id', $maintenanceId);
+            $query->update(
+                [
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                    'results' => json_encode(['records_archived' => $recordsToArchive]),
+                    'updated_at' => now(),
+                ],
+            );
 
             // Update archive policy
-            DB::table('archive_policies')
-                ->where('table_name', $tableName)
-                ->update(
-                    [
-                        'last_archived_at' => now(),
-                        'records_archived' => DB::raw('records_archived + ' . $recordsToArchive),
-                        'updated_at' => now(),
-                    ],
-                );
+            $query = DB::table('archive_policies');
+            $query->where('table_name', $tableName);
+            $query->update(
+                [
+                    'last_archived_at' => now(),
+                    'records_archived' => DB::raw('records_archived + ' . $recordsToArchive),
+                    'updated_at' => now(),
+                ],
+            );
 
             $this->info("Successfully archived {$recordsToArchive} records.");
 
@@ -141,16 +143,16 @@ final class DatabaseArchiveCommand extends Command
 
         } catch (\Exception $e) {
             // Update maintenance log with error
-            DB::table('database_maintenance_logs')
-                ->where('id', $maintenanceId)
-                ->update(
-                    [
-                        'status' => 'failed',
-                        'completed_at' => now(),
-                        'results' => json_encode(['error' => $e->getMessage()]),
-                        'updated_at' => now(),
-                    ],
-                );
+            $query = DB::table('database_maintenance_logs');
+            $query->where('id', $maintenanceId);
+            $query->update(
+                [
+                    'status' => 'failed',
+                    'completed_at' => now(),
+                    'results' => json_encode(['error' => $e->getMessage()]),
+                    'updated_at' => now(),
+                ],
+            );
 
             $this->error('Archiving failed: ' . $e->getMessage());
 
@@ -161,29 +163,30 @@ final class DatabaseArchiveCommand extends Command
     /**
      * Archive invoices with related products
      */
-    private function archiveInvoices(Carbon $cutoffDate, stdClass $policy): void
+    private function archiveInvoices(CarbonImmutable $cutoffDate, stdClass $policy): void
     {
         $this->info('Archiving invoices with related products...');
 
         // Get invoices to archive
-        $invoicesToArchive = DB::table('invoices')
-            ->where(
-                $policy->date_column,
-                '<',
-                $cutoffDate,
-            )
-            ->get();
+        $query = DB::table('invoices');
+        $query->where(
+            $policy->date_column,
+            '<',
+            $cutoffDate,
+        );
+        $invoicesToArchive = $query->get();
 
         DB::beginTransaction();
 
         foreach ($invoicesToArchive as $invoice) {
             // Get related products
-            $products = DB::table('invoice_products')
-                ->where('invoice_id', $invoice->id)
-                ->get();
+            $query = DB::table('invoice_products');
+            $query->where('invoice_id', $invoice->id);
+            $products = $query->get();
 
             // Archive invoice
-            $archiveInvoiceId = DB::table('invoices_archive')->insertGetId(
+            $query = DB::table('invoices_archive');
+            $archiveInvoiceId = $query->insertGetId(
                 [
                     'original_id' => $invoice->id,
                     'user_id' => $invoice->user_id,
@@ -207,7 +210,8 @@ final class DatabaseArchiveCommand extends Command
 
             // Archive products if any
             if ($products->count() > 0) {
-                DB::table('invoice_products_archive')->insert(
+                $query = DB::table('invoice_products_archive');
+                $query->insert(
                     [
                         'original_invoice_id' => $invoice->id,
                         'archive_invoice_id' => $archiveInvoiceId,
@@ -219,11 +223,15 @@ final class DatabaseArchiveCommand extends Command
                 );
 
                 // Delete original products
-                DB::table('invoice_products')->where('invoice_id', $invoice->id)->delete();
+                $query = DB::table('invoice_products');
+                $query->where('invoice_id', $invoice->id);
+                $query->delete();
             }
 
             // Delete original invoice
-            DB::table('invoices')->where('id', $invoice->id)->delete();
+            $query = DB::table('invoices');
+            $query->where('id', $invoice->id);
+            $query->delete();
         }
 
         DB::commit();
@@ -234,18 +242,18 @@ final class DatabaseArchiveCommand extends Command
      */
     private function genericArchive(
         string $tableName,
-        Carbon $cutoffDate,
+        CarbonImmutable $cutoffDate,
         stdClass $policy,
     ): void {
         $this->info("Performing generic archiving for table: {$tableName}");
 
         // Simple deletion for non-critical tables
-        DB::table($tableName)
-            ->where(
-                $policy->date_column,
-                '<',
-                $cutoffDate,
-            )
-            ->delete();
+        $query = DB::table($tableName);
+        $query->where(
+            $policy->date_column,
+            '<',
+            $cutoffDate,
+        );
+        $query->delete();
     }
 }

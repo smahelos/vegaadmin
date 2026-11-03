@@ -21,7 +21,8 @@ class SyncArtisanCommands extends Command
     public function handle(): int
     {
         $availableCommands = $this->commandsService->getAllCommandsWithDetails();
-        $databaseCommands = ArtisanCommand::pluck('command')->toArray();
+        $databaseCommands = ArtisanCommand::pluck('command');
+        $databaseCommands = $databaseCommands->toArray();
 
         // Set category for uncategorized commands
         $uncategorizedCategory = ArtisanCommandCategory::firstOrCreate(
@@ -62,7 +63,8 @@ class SyncArtisanCommands extends Command
             array_keys($availableCommands),
         );
         if (count($missingCommands) > 0) {
-            ArtisanCommand::whereIn('command', $missingCommands)->update(['is_active' => false]);
+            $query = ArtisanCommand::whereIn('command', $missingCommands);
+            $query->update(['is_active' => false]);
         }
 
         // Clear the commands cache

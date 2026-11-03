@@ -401,7 +401,8 @@ final class DatabaseMonitorCommand extends Command
         string $unit,
         array $metadata = [],
     ): void {
-        DB::table('performance_metrics')->insert(
+        $query = DB::table('performance_metrics');
+        $query->insert(
             [
                 'metric_type' => $metricType,
                 'table_name' => $tableName,

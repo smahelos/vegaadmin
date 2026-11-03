@@ -22,16 +22,16 @@ class RouteServiceProvider extends ServiceProvider
 
         $this->routes(
             function (): void {
-                Route::middleware('api')
-                    ->prefix('api')
-                    ->group(
-                        base_path('routes/api.php'),
-                    );
+                $registrar = Route::middleware('api');
+                $registrar->prefix('api');
+                $registrar->group(
+                    base_path('routes/api.php'),
+                );
 
-                Route::middleware('web')
-                    ->group(
-                        base_path('routes/web.php'),
-                    );
+                $registrar = Route::middleware('web');
+                $registrar->group(
+                    base_path('routes/web.php'),
+                );
 
                 // Load user override routes after other backpack routes
                 if (
@@ -55,7 +55,9 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for(
             'api',
             function (Request $request) {
-                return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
+                $limit = Limit::perMinute(60);
+
+                return $limit->by($request->user()?->id ?: $request->ip());
             },
         );
     }

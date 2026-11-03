@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
@@ -41,8 +42,9 @@ class DddLegacyReportCommand extends Command
         $residuals = $this->scanResiduals();
         $neutralized = $this->scanNeutralizedTests($commentRatio);
 
+        $now = CarbonImmutable::now();
         $payload = [
-            'timestamp' => now()->toIso8601String(),
+            'timestamp' => $now->toIso8601String(),
             'residuals' => $residuals,
             'neutralized_tests' => $neutralized,
             'counts' => [
@@ -183,10 +185,10 @@ class DddLegacyReportCommand extends Command
 
         $phpFiles = collect(
             $this->files->allFiles($testRoot),
-        )
-            ->filter(
-                fn ($f) => str_ends_with($f->getFilename(), 'Test.php'),
-            );
+        );
+        $phpFiles = $phpFiles->filter(
+            fn ($f) => str_ends_with($f->getFilename(), 'Test.php'),
+        );
 
         foreach ($phpFiles as $file) {
             $contents = $file->getContents();

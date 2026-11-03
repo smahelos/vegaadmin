@@ -58,7 +58,8 @@ class ManageUserPermissions extends Command
      */
     private function listRoles(): int
     {
-        $roles = Role::with('permissions')->get();
+        $query = Role::with('permissions');
+        $roles = $query->get();
 
         $this->info('Available Roles and their Permissions:');
         $this->line('');
@@ -118,7 +119,8 @@ class ManageUserPermissions extends Command
             return 1;
         }
 
-        $role = Role::where('name', $roleName)->first();
+        $query = Role::where('name', $roleName);
+        $role = $query->first();
         if (!$role) {
             $this->error("Role '{$roleName}' not found");
 
@@ -225,7 +227,8 @@ class ManageUserPermissions extends Command
         if (is_numeric($input)) {
             $user = User::find($input);
         } else {
-            $user = User::where('email', $input)->first();
+            $query = User::where('email', $input);
+            $user = $query->first();
         }
 
         if (!$user) {

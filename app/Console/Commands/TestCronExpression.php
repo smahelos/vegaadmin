@@ -54,9 +54,10 @@ class TestCronExpression extends Command
             $this->info('Next runs (5):');
 
             for ($i = 0; $i < 5; $i++) {
+                $nextRunDate = $cron->getNextRunDate($now);
                 $nextRun = Carbon::createFromFormat(
                     'Y-m-d H:i:s',
-                    $cron->getNextRunDate($now)->format('Y-m-d H:i:s'),
+                    $nextRunDate->format('Y-m-d H:i:s'),
                 );
                 $this->info(
                     ' - ' . $nextRun->format('Y-m-d H:i:s') . ' (' . $nextRun->diffForHumans() . ')',

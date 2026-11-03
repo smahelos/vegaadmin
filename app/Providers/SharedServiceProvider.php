@@ -168,11 +168,11 @@ class SharedServiceProvider extends ServiceProvider
         );
 
         // The connections report their transactions to the 'db.transactions' singleton, which is not bound by class name
-        $this->app->when(LaravelEventPublisher::class)
-            ->needs(DatabaseTransactionsManager::class)
-            ->give(
-                fn (): DatabaseTransactionsManager => $this->app->make('db.transactions'),
-            );
+        $binding = $this->app->when(LaravelEventPublisher::class);
+        $binding->needs(DatabaseTransactionsManager::class);
+        $binding->give(
+            fn (): DatabaseTransactionsManager => $this->app->make('db.transactions'),
+        );
 
         // File services
         $this->app->bind(

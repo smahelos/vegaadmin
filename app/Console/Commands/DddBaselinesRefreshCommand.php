@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 
 /**
@@ -337,11 +338,12 @@ class DddBaselinesRefreshCommand extends Command
         array $errors,
         bool $dryRun,
     ): void {
+        $now = CarbonImmutable::now();
         $payload = [
             'status' => empty($errors) ? 'ok' : 'failed',
             'dry_run' => $dryRun,
             'diff' => $diff,
-            'timestamp' => now()->toIso8601String(),
+            'timestamp' => $now->toIso8601String(),
         ];
         $this->line(
             json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),

@@ -123,10 +123,10 @@ class DddGuardCommand extends Command
                     if (!is_dir($scanPath)) {
                         continue;
                     }
-                    $finder = (new Finder)
-                        ->files()
-                        ->in($scanPath)
-                        ->name('*.php');
+                    $finder = new Finder;
+                    $finder->files();
+                    $finder->in($scanPath);
+                    $finder->name('*.php');
                     foreach ($config['exclude_paths'] as $exclude) {
                         try {
                             $finder->exclude($exclude);
@@ -295,7 +295,10 @@ class DddGuardCommand extends Command
             if (!is_dir($scanPath)) {
                 continue;
             }
-            $phpFiles = (new Finder)->files()->in($scanPath)->name('*.php');
+            $phpFiles = new Finder;
+            $phpFiles->files();
+            $phpFiles->in($scanPath);
+            $phpFiles->name('*.php');
             foreach ($phpFiles as $file) {
                 $contents = $file->getContents();
                 // Use import detection

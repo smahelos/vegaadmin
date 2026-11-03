@@ -138,13 +138,13 @@ class ProvidersSnapshotCommand extends Command
 
         // Contract files (expected baseline)
         $contracts = [];
-        $contractFiles = (new Finder)
-            ->files()
-            ->in(
-                [app_path('Domain'), app_path('Application')],
-            )
-            ->name('*Interface.php')
-            ->sortByName();
+        $contractFiles = new Finder;
+        $contractFiles->files();
+        $contractFiles->in(
+            [app_path('Domain'), app_path('Application')],
+        );
+        $contractFiles->name('*Interface.php');
+        $contractFiles->sortByName();
         foreach ($contractFiles as $cf) {
             $cfPath = $cf->getRealPath();
             $rel = str_replace(

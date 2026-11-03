@@ -105,7 +105,8 @@ class DatabaseOptimizeCommand extends Command
         $this->info("\n🔧 Optimizing table: {$tableName}");
 
         // Log maintenance task
-        $maintenanceId = DB::table('database_maintenance_logs')->insertGetId(
+        $query = DB::table('database_maintenance_logs');
+        $maintenanceId = $query->insertGetId(
             [
                 'task_type' => 'optimize',
                 'table_name' => $tableName,
@@ -149,21 +150,22 @@ class DatabaseOptimizeCommand extends Command
             }
 
             // Update maintenance log with success
-            DB::table('database_maintenance_logs')
-                ->where('id', $maintenanceId)
-                ->update(
-                    [
-                        'status' => 'completed',
-                        'completed_at' => now(),
-                        'results' => json_encode($results),
-                        'updated_at' => now(),
-                    ],
-                );
+            $query = DB::table('database_maintenance_logs');
+            $query->where('id', $maintenanceId);
+            $query->update(
+                [
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                    'results' => json_encode($results),
+                    'updated_at' => now(),
+                ],
+            );
 
             $this->line('  ✅ Optimization completed successfully');
 
             // Store performance metric
-            DB::table('performance_metrics')->insert(
+            $query = DB::table('performance_metrics');
+            $query->insert(
                 [
                     'metric_type' => 'optimization_improvement',
                     'table_name' => $tableName,
@@ -183,16 +185,16 @@ class DatabaseOptimizeCommand extends Command
 
         } catch (\Exception $e) {
             // Update maintenance log with error
-            DB::table('database_maintenance_logs')
-                ->where('id', $maintenanceId)
-                ->update(
-                    [
-                        'status' => 'failed',
-                        'completed_at' => now(),
-                        'results' => json_encode(['error' => $e->getMessage()]),
-                        'updated_at' => now(),
-                    ],
-                );
+            $query = DB::table('database_maintenance_logs');
+            $query->where('id', $maintenanceId);
+            $query->update(
+                [
+                    'status' => 'failed',
+                    'completed_at' => now(),
+                    'results' => json_encode(['error' => $e->getMessage()]),
+                    'updated_at' => now(),
+                ],
+            );
 
             $this->error('  ❌ Optimization failed: ' . $e->getMessage());
         }

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -48,6 +49,7 @@ class ControllerThinnessBaselineCommand extends Command
         }
 
         // Aggregate summary
+        $now = CarbonImmutable::now();
         $summary = [
             'total_controllers' => count($metrics),
             'avg_loc' => $this->average(
@@ -59,7 +61,7 @@ class ControllerThinnessBaselineCommand extends Command
             'controllers_with_direct_db_calls' => count(
                 array_filter($metrics, fn ($m) => $m['db_facade_calls'] > 0),
             ),
-            'timestamp' => now()->toIso8601String(),
+            'timestamp' => $now->toIso8601String(),
         ];
 
         $output = [
@@ -85,6 +87,23 @@ class ControllerThinnessBaselineCommand extends Command
             );
         }
 
+        $rows = collect($metrics);
+        $rows = $rows->map(
+            function ($m, $k) {
+                return [
+                    $k,
+                    $m['loc'],
+                    $m['eloquent_static_calls'],
+                    $m['new_model_insts'],
+                    $m['db_facade_calls'],
+                    $m['constructor_domain_injections'],
+                    $m['public_method_count'],
+                ];
+            },
+        );
+        $rows = $rows->sortByDesc(fn ($row) => $row[2]);
+        $rows = $rows->values();
+
         $this->table(
             [
                 'Controller',
@@ -95,19 +114,7 @@ class ControllerThinnessBaselineCommand extends Command
                 'ConstructorDI',
                 'PublicMethods',
             ],
-            collect($metrics)->map(
-                function ($m, $k) {
-                    return [
-                        $k,
-                        $m['loc'],
-                        $m['eloquent_static_calls'],
-                        $m['new_model_insts'],
-                        $m['db_facade_calls'],
-                        $m['constructor_domain_injections'],
-                        $m['public_method_count'],
-                    ];
-                },
-            )->sortByDesc(fn ($row) => $row[2])->values()->toArray(),
+            $rows->toArray(),
         );
 
         $this->line(

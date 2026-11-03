@@ -36,10 +36,10 @@ class DetectControllerServiceInstantiation extends Command
             return 1;
         }
 
-        $finder = (new Finder)
-            ->files()
-            ->in($controllersDir)
-            ->name('*.php');
+        $finder = new Finder;
+        $finder->files();
+        $finder->in($controllersDir);
+        $finder->name('*.php');
 
         $serviceUseRegex = '/^use\s+(App\\\\Domain\\\\[A-Z][A-Za-z0-9_]+\\\\Services\\\\([A-Z][A-Za-z0-9_]+Service))\s*;/m';
         $newRegex = '/new\s+App\\Domain\\[A-Z][A-Za-z0-9_]+\\Services\\[A-Z][A-Za-z0-9_]+Service\s*\(/';

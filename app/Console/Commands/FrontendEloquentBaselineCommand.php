@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -51,6 +52,7 @@ class FrontendEloquentBaselineCommand extends Command
             $files,
         );
 
+        $now = CarbonImmutable::now();
         $baseline = [
             'rule' => [
                 'description' => 'Each frontend controller must have at most 1 direct Eloquent static call.',
@@ -58,7 +60,7 @@ class FrontendEloquentBaselineCommand extends Command
                 'justification' => 'Thin controller guideline Phase 1',
             ],
             'controllers' => $rel,
-            'generated_at' => now()->toIso8601String(),
+            'generated_at' => $now->toIso8601String(),
         ];
 
         if ($this->option('save')) {
@@ -81,15 +83,18 @@ class FrontendEloquentBaselineCommand extends Command
             $this->info('Baseline saved to ' . $file);
         }
 
+        $rows = collect($files);
+        $rows = $rows->map(
+            function ($f) {
+                $content = file_get_contents($f);
+
+                return [Str::after($f, app_path() . '/'), $this->countEloquentStaticCalls($content)];
+            },
+        );
+
         $this->table(
             ['Controller', 'DirectEloquentStaticCalls'],
-            collect($files)->map(
-                function ($f) {
-                    $content = file_get_contents($f);
-
-                    return [Str::after($f, app_path() . '/'), $this->countEloquentStaticCalls($content)];
-                },
-            )->toArray(),
+            $rows->toArray(),
         );
 
         return self::SUCCESS;
