@@ -141,7 +141,8 @@ final class CacheInvalidationFeatureTest extends TestCase
         );
         $this->assertCount(1, $customersCached);
 
-        app(Dispatcher::class)->dispatch(
+        $dispatcher = app(Dispatcher::class);
+        $dispatcher->dispatch(
             new UserDataChanged($user->id, 'contact'),
         );
         $customersAfter = $this->dashboardService->getCustomersWithInvoiceTotals(

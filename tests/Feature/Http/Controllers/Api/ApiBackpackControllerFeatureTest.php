@@ -26,15 +26,18 @@ class ApiBackpackControllerFeatureTest extends TestCase
                 // Determine guard used
                 $guardUsed = 'none';
                 if ($user) {
-                    $auth = auth('backpack');
-                    if ($auth->check() && auth('backpack')->id() === $user->id) {
-                        $guardUsed = 'backpack';
-                    } elseif (auth('web')->check() && auth('web')->id() === $user->id) {
-                        $guardUsed = 'web';
-                    } elseif (auth('sanctum')->check() && auth('sanctum')->id() === $user->id) {
-                        $guardUsed = 'sanctum';
-                    } else {
-                        $guardUsed = 'unknown';
+                    $guardUsed = 'unknown';
+                    $guards = [
+                        'backpack',
+                        'web',
+                        'sanctum',
+                    ];
+                    foreach ($guards as $guard) {
+                        $auth = auth($guard);
+                        if ($auth->check() && $auth->id() === $user->id) {
+                            $guardUsed = $guard;
+                            break;
+                        }
                     }
                 }
 

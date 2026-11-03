@@ -347,8 +347,12 @@ final class InvoiceListFeatureTest extends TestCase
         $component->set('search', 'LINKED-001');
         $component->assertSee('Stored Customer');
         $component->assertDontSee('OTHER-002');
+        $application = app();
         $component->assertSeeHtml(
-            'href="' . route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $contact->id]) . '"',
+            'href="' . route(
+                'frontend.contacts.show',
+                ['locale' => $application->getLocale(), 'contact' => $contact->id],
+            ) . '"',
         );
     }
 
