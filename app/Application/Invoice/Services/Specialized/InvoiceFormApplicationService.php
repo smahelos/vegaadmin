@@ -48,7 +48,9 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     {
         // Guests have no numbering history: first number of the year
         if ($userId <= 0) {
-            return InvoiceNumber::generateNext()->getNumber();
+            $number = InvoiceNumber::generateNext();
+
+            return $number->getNumber();
         }
 
         return $this->invoiceService->generateInvoiceNumber(
@@ -80,7 +82,8 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // Limits data
         $limitsData = $this->getInvoicesLimit($userId);
 
-        $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build(
+        $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
+        $fieldSet = $fieldSetFactory->build(
             $paymentMethods,
             $statuses,
         );
@@ -132,7 +135,8 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
         $limitsData = $this->getInvoicesLimit($userId);
 
-        $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build(
+        $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
+        $fieldSet = $fieldSetFactory->build(
             $paymentMethods,
             $statuses,
         );

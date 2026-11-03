@@ -115,16 +115,18 @@ final class BusinessForm extends Component
             $logos->delete($this->currentLogo);
         }
 
-        session()->flash(
+        $session = session();
+        $session->flash(
             'success',
             __(
                 $creating ? 'businesses.messages.created' : 'businesses.messages.updated',
             ),
         );
+        $application = app();
         $this->redirectRoute(
             'frontend.businesses.show',
             [
-                'locale' => app()->getLocale(),
+                'locale' => $application->getLocale(),
                 'business' => $business->id->value,
             ],
         );
@@ -166,7 +168,9 @@ final class BusinessForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        return app(BusinessApplicationService::class)->findDuplicates(
+        $businesses = app(BusinessApplicationService::class);
+
+        return $businesses->findDuplicates(
             $this->userId(),
             $profile,
             $this->businessId === null ? null : BusinessId::fromInt($this->businessId),
@@ -175,10 +179,12 @@ final class BusinessForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
+        $application = app();
+
         return route(
             'frontend.businesses.show',
             [
-                'locale' => app()->getLocale(),
+                'locale' => $application->getLocale(),
                 'business' => $id->value,
             ],
         );

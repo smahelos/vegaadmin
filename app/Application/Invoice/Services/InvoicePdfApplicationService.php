@@ -48,9 +48,10 @@ class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterf
             );
             $filename = 'faktura-' . ($printData->number ?? (string) $invoiceId) . '.pdf';
             $response = $preview ? $pdf->stream($filename) : $pdf->download($filename);
+            $application = app();
             $response = $response->cookie(
                 'locale',
-                $locale ?? app()->getLocale(),
+                $locale ?? $application->getLocale(),
                 60 * 24 * 30,
             );
 
@@ -71,7 +72,8 @@ class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterf
     ): InvoiceActionResult {
         try {
             if (!$token) {
-                $token = session()->get('last_guest_invoice_token');
+                $session = session();
+                $token = $session->get('last_guest_invoice_token');
                 if (!$token) {
                     return InvoiceActionResult::failure('invoices.messages.not_found');
                 }

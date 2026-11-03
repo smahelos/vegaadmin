@@ -96,7 +96,8 @@ final class BusinessApplicationService
         $this->transactions->transaction(
             function () use ($userId, $id, $newDefault): void {
                 $this->users->lockForUpdate($userId);
-                if ($this->get($userId, $id)->isArchived()) {
+                $business = $this->get($userId, $id);
+                if ($business->isArchived()) {
                     return;
                 }
 
@@ -129,7 +130,8 @@ final class BusinessApplicationService
     {
         $this->transactions->transaction(
             function () use ($userId, $id): void {
-                if (!$this->get($userId, $id)->isArchived()) {
+                $business = $this->get($userId, $id);
+                if (!$business->isArchived()) {
                     return;
                 }
 
@@ -159,7 +161,8 @@ final class BusinessApplicationService
         $this->transactions->transaction(
             function () use ($userId, $id): void {
                 $this->users->lockForUpdate($userId);
-                if ($this->get($userId, $id)->isArchived()) {
+                $business = $this->get($userId, $id);
+                if ($business->isArchived()) {
                     throw new BusinessArchivedException($id);
                 }
 
@@ -242,7 +245,8 @@ final class BusinessApplicationService
             return null;
         }
 
-        if ($this->get($userId, $newDefault)->isArchived()) {
+        $business = $this->get($userId, $newDefault);
+        if ($business->isArchived()) {
             throw new BusinessArchivedException($newDefault);
         }
 

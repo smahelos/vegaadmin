@@ -111,16 +111,18 @@ final class ContactForm extends Component
             $logos->delete($this->currentLogo);
         }
 
-        session()->flash(
+        $session = session();
+        $session->flash(
             'success',
             __(
                 $creating ? 'contacts.messages.created' : 'contacts.messages.updated',
             ),
         );
+        $application = app();
         $this->redirectRoute(
             'frontend.contacts.show',
             [
-                'locale' => app()->getLocale(),
+                'locale' => $application->getLocale(),
                 'contact' => $contact->id->value,
             ],
         );
@@ -163,7 +165,9 @@ final class ContactForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        return app(ContactApplicationService::class)->findDuplicates(
+        $contacts = app(ContactApplicationService::class);
+
+        return $contacts->findDuplicates(
             $this->userId(),
             $profile,
             $this->contactId === null ? null : ContactId::fromInt($this->contactId),
@@ -172,10 +176,12 @@ final class ContactForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
+        $application = app();
+
         return route(
             'frontend.contacts.show',
             [
-                'locale' => app()->getLocale(),
+                'locale' => $application->getLocale(),
                 'contact' => $id->value,
             ],
         );

@@ -73,7 +73,10 @@ class PageCategory extends Model
      */
     public function getName(?string $locale = null): ?string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
 
         if (!is_array($this->name)) {
             return (string) $this->name;
@@ -105,7 +108,10 @@ class PageCategory extends Model
      */
     public function getSlug(?string $locale = null): ?string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
 
         if (!is_array($this->slug)) {
             return (string) $this->slug;
@@ -137,7 +143,10 @@ class PageCategory extends Model
      */
     public function getDescription(?string $locale = null): ?string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
 
         if (!is_array($this->description)) {
             return $this->description ? (string) $this->description : null;
@@ -207,7 +216,9 @@ class PageCategory extends Model
      */
     public function getPagesCountAttribute(): int
     {
-        return $this->pages()->count();
+        $pages = $this->pages();
+
+        return $pages->count();
     }
 
     /**
@@ -215,6 +226,9 @@ class PageCategory extends Model
      */
     public function getPublishedPagesCountAttribute(): int
     {
-        return $this->pages()->where('published', true)->count();
+        $pages = $this->pages();
+        $pages->where('published', true);
+
+        return $pages->count();
     }
 }

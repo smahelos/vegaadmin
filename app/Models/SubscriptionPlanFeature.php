@@ -67,17 +67,23 @@ class SubscriptionPlanFeature extends Model
         $counter = 1;
         $slug = $baseSlug;
 
-        while (
-            static::where('slug', $slug)->where(
-                'id',
-                '!=',
-                $this->id ?? 0,
-            )->exists()
-        ) {
+        while ($this->slugTaken($slug)) {
             $slug = $baseSlug . '-' . $counter;
             $counter++;
         }
 
         return $slug;
+    }
+
+    private function slugTaken(string $slug): bool
+    {
+        $query = static::where('slug', $slug);
+        $query->where(
+            'id',
+            '!=',
+            $this->id ?? 0,
+        );
+
+        return $query->exists();
     }
 }

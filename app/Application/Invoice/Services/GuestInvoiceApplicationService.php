@@ -17,6 +17,7 @@ use App\Domain\User\Contracts\Locale;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\Tax;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
@@ -53,19 +54,20 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             $validatedData['due_in'] = (int) $validatedData['due_in'];
         }
 
-        $validatedData['payment_amount'] = InvoiceTotals::fromProducts(
+        $totals = InvoiceTotals::fromProducts(
             Currency::from((string) $validatedData['payment_currency']),
             $this->products->fromValidated($validatedData['invoice-products']),
-        )->total()->getAmount();
+        );
+        $total = $totals->total();
+        $validatedData['payment_amount'] = $total->getAmount();
 
         $token = $this->temporaryInvoiceStore->store($validatedData);
 
         Session::put('last_guest_invoice_token', $token);
         Session::put('last_guest_invoice_number', $validatedData['invoice_vs'] ?? null);
-        Session::put(
-            'last_guest_invoice_expires',
-            now()->addMinutes(10)->timestamp,
-        );
+        $now = CarbonImmutable::now();
+        $expiration = $now->addMinutes(10);
+        Session::put('last_guest_invoice_expires', $expiration->timestamp);
 
         $qrCodeBase64 = null;
         try {
@@ -98,9 +100,13 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
 
     public function prepareGuestCreateData(): array
     {
-        $paymentMethods = PaymentMethod::pluck('slug', 'id')->toArray();
-        $statuses = Status::pluck('name', 'id')->toArray();
-        $taxRates = Tax::where('slug', 'dph')->pluck('rate', 'id')->toArray();
+        $paymentMethods = PaymentMethod::pluck('slug', 'id');
+        $paymentMethods = $paymentMethods->toArray();
+        $statuses = Status::pluck('name', 'id');
+        $statuses = $statuses->toArray();
+        $taxQuery = Tax::where('slug', 'dph');
+        $taxRates = $taxQuery->pluck('rate', 'id');
+        $taxRates = $taxRates->toArray();
         // Guest context: no authenticated user ID => use 0 sentinel to start sequence at YYYY0001
         $suggestedNumber = $this->invoiceFormService->getNextInvoiceNumber(0);
         $limitsData = [
@@ -109,7 +115,8 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'allowed' => false,
         ];
         $invoiceProducts = [];
-        $fieldSet = app(InvoiceCreateFieldSetFactory::class)->build(
+        $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
+        $fieldSet = $fieldSetFactory->build(
             $paymentMethods,
             $statuses,
         );

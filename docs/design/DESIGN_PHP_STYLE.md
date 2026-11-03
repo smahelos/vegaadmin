@@ -100,7 +100,7 @@ A needed second initialisation goes into the same variable when the previous val
 
 An arrow function with several calls becomes a closure with statements (`function () use ($user): void { $user->forceFill($attributes); $user->save(); }`), so the calls stay inside what runs later. A `match` arm that needs statements becomes an `if` block in front of the `match`. A `PDOStatement` may stay in a variable: after `fetchAll()` it holds no result, and a `FOR UPDATE` lock belongs to the transaction, not to the statement.
 
-Apart from the factory values above, do not lift calls out of branches, short-circuit expressions, nullsafe paths, closures or loop iterations. Preserve argument evaluation order and reference semantics. Converting a ternary must evaluate only its selected branch and evaluate its condition once. The shorthand ternary must retain its evaluated truthy value.
+Apart from the factory values above and `app()` or `session()` without arguments, which only return the existing container or manager, do not lift calls out of branches, short-circuit expressions, nullsafe paths, closures or loop iterations. The call made on such a receiver stays where it ran. Preserve argument evaluation order and reference semantics. Converting a ternary must evaluate only its selected branch and evaluate its condition once. The shorthand ternary must retain its evaluated truthy value.
 
 Money, immutable dates, invoice numbering and locks, payment callbacks, permissions and entity limits, and rendered PDFs require explicit behaviour review. Existing PDF snapshots remain the expected output.
 

@@ -129,9 +129,11 @@ class CronTask extends Model
             }
             $cron = new CronExpression($expression);
 
+            $nextRun = $cron->getNextRunDate();
+
             return Carbon::createFromFormat(
                 'Y-m-d H:i:s',
-                $cron->getNextRunDate()->format('Y-m-d H:i:s'),
+                $nextRun->format('Y-m-d H:i:s'),
             );
         } catch (\Exception $e) {
             \Log::error('Neplatný CRON výraz: ' . $e->getMessage());
@@ -152,7 +154,8 @@ class CronTask extends Model
             if (strpos($this->command, '::') !== false) {
                 // PHP funkce
                 [$class, $method] = explode('::', $this->command);
-                $result = app($class)->$method();
+                $instance = app($class);
+                $result = $instance->$method();
             } else {
                 // Artisan příkaz
                 $result = \Artisan::call($this->command);

@@ -125,7 +125,9 @@ final class InvoiceService implements InvoiceServiceInterface
             (int) date('Y'),
         );
 
-        return InvoiceNumber::generateNext($lastInvoiceNumber)->getNumber();
+        $number = InvoiceNumber::generateNext($lastInvoiceNumber);
+
+        return $number->getNumber();
     }
 
     /**
@@ -140,10 +142,12 @@ final class InvoiceService implements InvoiceServiceInterface
             return Money::fromString((string) ($data['payment_amount'] ?? '0'), (string) $data['payment_currency']);
         }
 
-        return InvoiceTotals::fromProducts(
+        $totals = InvoiceTotals::fromProducts(
             Currency::from((string) $data['payment_currency']),
             $products,
-        )->total();
+        );
+
+        return $totals->total();
     }
 
     /** @param array<string, mixed> $data */

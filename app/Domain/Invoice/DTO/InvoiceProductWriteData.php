@@ -42,7 +42,10 @@ final readonly class InvoiceProductWriteData
     /** VAT of the line, computed from the rounded base and rounded half up to cents. */
     public function taxAmount(): Money
     {
-        return $this->base()->multiplyBy($this->taxRate, 8)->divideRounding(
+        $base = $this->base();
+        $tax = $base->multiplyBy($this->taxRate, 8);
+
+        return $tax->divideRounding(
             100,
             2,
             Money::ROUND_HALF_UP,
@@ -51,6 +54,8 @@ final readonly class InvoiceProductWriteData
 
     public function total(): Money
     {
-        return $this->base()->add($this->taxAmount());
+        $base = $this->base();
+
+        return $base->add($this->taxAmount());
     }
 }

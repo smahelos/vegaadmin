@@ -91,18 +91,20 @@ final class RegistrationForm extends Component
         }
 
         $account = Auth::loginUsingId($user->id);
+        $session = session();
         if ($account !== false) {
             event(
                 new Registered($account),
             );
-            session()->regenerate();
+            $session->regenerate();
         }
 
-        session()->flash(
+        $session->flash(
             'success',
             __('users.auth.registration_success'),
         );
-        $this->redirectRoute('home', ['locale' => app()->getLocale()]);
+        $application = app();
+        $this->redirectRoute('home', ['locale' => $application->getLocale()]);
     }
 
     public function render(): View

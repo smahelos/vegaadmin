@@ -31,6 +31,8 @@ trait ActsForUser
 
     protected function userCan(string $permission): bool
     {
-        return Auth::user()?->can($permission) === true;
+        $user = Auth::user();
+
+        return $user?->can($permission) === true;
     }
 }

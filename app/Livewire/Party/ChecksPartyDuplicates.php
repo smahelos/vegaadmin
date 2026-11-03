@@ -46,7 +46,8 @@ trait ChecksPartyDuplicates
     public function confirmDuplicates(): void
     {
         $this->duplicatesConfirmed = true;
-        app()->call([$this, 'save']);
+        $application = app();
+        $application->call([$this, 'save']);
     }
 
     /**

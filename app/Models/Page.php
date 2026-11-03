@@ -63,15 +63,18 @@ class Page extends Model
             function ($page): void {
                 // Auto-assign sort_order if not provided
                 if (is_null($page->sort_order)) {
-                    $maxOrder = static::where('parent_id', $page->parent_id)
-                        ->where('category_id', $page->category_id)
-                        ->max('sort_order') ?? 0;
+                    $query = static::where('parent_id', $page->parent_id);
+                    $query->where('category_id', $page->category_id);
+                    $maxOrder = $query->max('sort_order') ?? 0;
                     $page->sort_order = $maxOrder + 1;
                 }
 
                 // Auto-assign published_by if published and not already set
-                if ($page->published && !$page->published_by && auth()->check()) {
-                    $page->published_by = auth()->id();
+                if ($page->published && !$page->published_by) {
+                    $auth = auth();
+                    if ($auth->check()) {
+                        $page->published_by = $auth->id();
+                    }
                 }
             },
         );
@@ -79,8 +82,11 @@ class Page extends Model
         static::updating(
             function ($page): void {
                 // Auto-assign published_by if published and not already set
-                if ($page->published && !$page->published_by && auth()->check()) {
-                    $page->published_by = auth()->id();
+                if ($page->published && !$page->published_by) {
+                    $auth = auth();
+                    if ($auth->check()) {
+                        $page->published_by = $auth->id();
+                    }
                 }
             },
         );
@@ -99,7 +105,10 @@ class Page extends Model
      */
     public function getName(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $names = $this->name ?? [];
 
         // Ensure we have an array
@@ -129,7 +138,10 @@ class Page extends Model
      */
     public function getSlug(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $slugs = $this->slug ?? [];
 
         // Ensure we have an array
@@ -159,7 +171,10 @@ class Page extends Model
      */
     public function getDescription(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $descriptions = $this->description ?? [];
 
         // Ensure we have an array
@@ -189,7 +204,10 @@ class Page extends Model
      */
     public function getContent(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $contents = $this->content ?? [];
 
         // Ensure we have an array
@@ -219,7 +237,10 @@ class Page extends Model
      */
     public function getMetaTitle(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaTitles = $this->meta_title ?? [];
 
         // Ensure we have an array
@@ -249,7 +270,10 @@ class Page extends Model
      */
     public function getMetaDescription(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaDescriptions = $this->meta_description ?? [];
 
         // Try requested locale first
@@ -274,7 +298,10 @@ class Page extends Model
      */
     public function getMetaKeywords(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaKeywords = $this->meta_keywords ?? [];
 
         // Ensure we have an array
@@ -312,7 +339,10 @@ class Page extends Model
      */
     public function children(): HasMany
     {
-        return $this->hasMany(Page::class, 'parent_id')->orderBy('sort_order');
+        $relation = $this->hasMany(Page::class, 'parent_id');
+        $relation->orderBy('sort_order');
+
+        return $relation;
     }
 
     /**
@@ -424,27 +454,29 @@ class Page extends Model
      */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('published', true)
-            ->where(
-                function ($q): void {
-                    $q->where(
-                        'publishing_start',
-                        '<=',
-                        now(),
-                    )
-                        ->orWhereNull('publishing_start');
-                },
-            )
-            ->where(
-                function ($q): void {
-                    $q->where(
-                        'publishing_end',
-                        '>=',
-                        now(),
-                    )
-                        ->orWhereNull('publishing_end');
-                },
-            );
+        $query->where('published', true);
+        $query->where(
+            function ($q): void {
+                $q->where(
+                    'publishing_start',
+                    '<=',
+                    now(),
+                );
+                $q->orWhereNull('publishing_start');
+            },
+        );
+        $query->where(
+            function ($q): void {
+                $q->where(
+                    'publishing_end',
+                    '>=',
+                    now(),
+                );
+                $q->orWhereNull('publishing_end');
+            },
+        );
+
+        return $query;
     }
 
     /**

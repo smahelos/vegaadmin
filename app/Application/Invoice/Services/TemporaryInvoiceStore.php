@@ -3,6 +3,7 @@
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
@@ -11,10 +12,11 @@ class TemporaryInvoiceStore implements TemporaryInvoiceStoreInterface
     public function store(array $data, int $minutes = 10): string
     {
         $token = Str::random(64);
+        $now = CarbonImmutable::now();
         Cache::put(
             $this->key($token),
             $data,
-            now()->addMinutes($minutes),
+            $now->addMinutes($minutes),
         );
 
         return $token;

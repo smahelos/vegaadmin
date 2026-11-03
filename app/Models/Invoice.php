@@ -58,23 +58,25 @@ class Invoice extends Model
      */
     public function products(): BelongsToMany
     {
-        return $this->belongsToMany(Product::class, 'invoice_products')
-            ->withPivot(
-                [
-                    'name',
-                    'quantity',
-                    'price',
-                    'currency',
-                    'unit',
-                    'category',
-                    'description',
-                    'is_custom_product',
-                    'tax_rate',
-                    'tax_amount',
-                    'total_price',
-                ],
-            )
-            ->withTimestamps();
+        $relation = $this->belongsToMany(Product::class, 'invoice_products');
+        $relation->withPivot(
+            [
+                'name',
+                'quantity',
+                'price',
+                'currency',
+                'unit',
+                'category',
+                'description',
+                'is_custom_product',
+                'tax_rate',
+                'tax_amount',
+                'total_price',
+            ],
+        );
+        $relation->withTimestamps();
+
+        return $relation;
     }
 
     /**
@@ -156,7 +158,9 @@ class Invoice extends Model
                 }
                 $dueDate = InvoiceDueDate::fromIssueDateAndDays($this->issue_date->toDateTimeImmutable(), $this->due_in);
 
-                return $dueDate->daysUntil(CarbonImmutable::today()->toDateTimeImmutable()) < 0;
+                $today = CarbonImmutable::today();
+
+                return $dueDate->daysUntil($today->toDateTimeImmutable()) < 0;
             },
         );
     }
@@ -186,8 +190,12 @@ class Invoice extends Model
         $products = [];
 
         // Ensure the relation is loaded
-        $invoiceProducts = $this->relationLoaded('invoiceProducts') ?
-            $this->invoiceProducts : $this->invoiceProducts()->get();
+        if ($this->relationLoaded('invoiceProducts')) {
+            $invoiceProducts = $this->invoiceProducts;
+        } else {
+            $relation = $this->invoiceProducts();
+            $invoiceProducts = $relation->get();
+        }
 
         Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
 

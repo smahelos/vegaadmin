@@ -353,7 +353,8 @@ final class DocumentPartyPicker extends Component
             return;
         }
 
-        foreach ($errors->getBag('default')->messages() as $key => $messages) {
+        $bag = $errors->getBag('default');
+        foreach ($bag->messages() as $key => $messages) {
             $property = $this->propertyOf($key);
             if ($property !== null) {
                 $this->addError($property, $messages[0]);
@@ -503,7 +504,7 @@ final class DocumentPartyPicker extends Component
             return [];
         }
 
-        return $contacts->search(
+        $results = $contacts->search(
             $this->userId(),
             new PartySearch(
                 $term,
@@ -512,7 +513,9 @@ final class DocumentPartyPicker extends Component
                 true,
             ),
             new PageRequest(1, self::CONTACT_RESULTS),
-        )->items();
+        );
+
+        return $results->items();
     }
 
     /**
@@ -536,10 +539,11 @@ final class DocumentPartyPicker extends Component
         }
 
         try {
-            $profile = DocumentPartyInput::party(
+            $party = DocumentPartyInput::party(
                 $this->prefixed('customer_', $this->customer->input()),
                 'customer',
-            )->toProfile();
+            );
+            $profile = $party->toProfile();
         } catch (InvalidRegistrationNumberException|InvalidAddressException) {
             return null;
         }

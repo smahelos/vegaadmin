@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -48,10 +49,12 @@ class DatabaseHealthMetric extends Model
      */
     public function scopeRecent(Builder $query): Builder
     {
+        $now = CarbonImmutable::now();
+
         return $query->where(
             'measured_at',
             '>=',
-            now()->subDay(),
+            $now->subDay(),
         );
     }
 }

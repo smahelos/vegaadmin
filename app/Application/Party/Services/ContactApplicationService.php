@@ -79,7 +79,8 @@ final class ContactApplicationService
     {
         $this->transactions->transaction(
             function () use ($userId, $id): void {
-                if ($this->get($userId, $id)->isArchived()) {
+                $contact = $this->get($userId, $id);
+                if ($contact->isArchived()) {
                     return;
                 }
 
@@ -98,7 +99,8 @@ final class ContactApplicationService
     {
         $this->transactions->transaction(
             function () use ($userId, $id): void {
-                if (!$this->get($userId, $id)->isArchived()) {
+                $contact = $this->get($userId, $id);
+                if (!$contact->isArchived()) {
                     return;
                 }
 

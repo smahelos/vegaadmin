@@ -129,7 +129,8 @@ final class ExpenseApplicationService
                                 $userId,
                                 $data,
                                 $stored?->parties,
-                            )->withSupplierLogo($logo);
+                            );
+                            $parties = $parties->withSupplierLogo($logo);
                             $attachments = $stored?->attachments ?? [];
                             $removed = array_values(
                                 array_intersect($attachments, $data->removedAttachments),

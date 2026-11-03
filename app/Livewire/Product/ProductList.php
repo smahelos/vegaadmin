@@ -102,9 +102,9 @@ class ProductList extends Component
     public function render(): View
     {
         try {
-            $query = Product::query()
-                ->where('user_id', Auth::id())
-                ->withCount('invoices');
+            $query = Product::query();
+            $query->where('user_id', Auth::id());
+            $query->withCount('invoices');
 
             if (!empty($this->search)) {
                 $query->where(
@@ -113,12 +113,12 @@ class ProductList extends Component
                             'name',
                             'like',
                             "%{$this->search}%",
-                        )
-                            ->orWhere(
-                                'description',
-                                'like',
-                                "%{$this->search}%",
-                            );
+                        );
+                        $q->orWhere(
+                            'description',
+                            'like',
+                            "%{$this->search}%",
+                        );
                     },
                 );
             }
@@ -146,10 +146,12 @@ class ProductList extends Component
             Log::error('Loading products failed', ['exception' => $e]);
             $this->errorMessage = __('products.messages.error_loading');
 
+            $query = Product::where('id', 0);
+
             return view(
                 'livewire.product.product-list',
                 [
-                    'products' => Product::where('id', 0)->paginate(10), // Empty paginator
+                    'products' => $query->paginate(10), // Empty paginator
                     'hasData' => false,
                     'errorMessage' => $this->errorMessage,
                 ],

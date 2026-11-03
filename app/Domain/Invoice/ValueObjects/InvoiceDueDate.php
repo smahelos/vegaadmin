@@ -47,6 +47,9 @@ final readonly class InvoiceDueDate
      */
     public function daysUntil(DateTimeImmutable $day): int
     {
-        return (int) $day->setTime(0, 0)->diff($this->date())->format('%r%a');
+        $start = $day->setTime(0, 0);
+        $interval = $start->diff($this->date());
+
+        return (int) $interval->format('%r%a');
     }
 }
