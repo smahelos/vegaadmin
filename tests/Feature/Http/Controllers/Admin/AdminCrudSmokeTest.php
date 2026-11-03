@@ -31,6 +31,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use App\Models\Tax;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
@@ -172,18 +173,23 @@ class AdminCrudSmokeTest extends TestCase
             return $paymentMethodQuery->firstOrFail();
         }
 
-        return match ($model) {
-            EntityLimitUsage::class => EntityLimitUsage::create(
+        if ($model === EntityLimitUsage::class) {
+            $now = CarbonImmutable::now();
+
+            return EntityLimitUsage::create(
                 [
                     'user_id' => $this->adminUser->id,
                     'entity_type' => 'invoice',
                     'metric_type' => 'count',
                     'period_type' => 'monthly',
-                    'period_start' => now()->startOfMonth(),
-                    'period_end' => now()->endOfMonth(),
+                    'period_start' => $now->startOfMonth(),
+                    'period_end' => $now->endOfMonth(),
                     'current_value' => 1,
                 ],
-            ),
+            );
+        }
+
+        return match ($model) {
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             default => $this->createFromFactory($model),

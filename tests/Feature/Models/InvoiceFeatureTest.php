@@ -10,6 +10,7 @@ use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -355,11 +356,13 @@ class InvoiceFeatureTest extends TestCase
         $invoiceFactory = Invoice::factory();
 
         $statusQuery = Status::where('slug', $status->value);
+        $now = CarbonImmutable::now();
+        $issueDate = $now->subDays(14 + $days);
 
         return $invoiceFactory->create(
             [
                 'payment_status_id' => $statusQuery->firstOrFail()->id,
-                'issue_date' => now()->subDays(14 + $days)->toDateString(),
+                'issue_date' => $issueDate->toDateString(),
                 'due_in' => 14,
             ],
         );

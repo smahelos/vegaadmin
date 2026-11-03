@@ -331,7 +331,7 @@ class PageFeatureTest extends TestCase
                 'published' => true,
                 'category_id' => $category->id,
                 'publishing_start' => $now->subWeek(),
-                'publishing_end' => now()->subDay(),
+                'publishing_end' => $now->subDay(),
             ],
         );
 
@@ -430,7 +430,7 @@ class PageFeatureTest extends TestCase
             [
                 'published' => true,
                 'publishing_start' => $now->subWeek(),
-                'publishing_end' => now()->subDay(),
+                'publishing_end' => $now->subDay(),
             ],
         );
 

@@ -37,11 +37,12 @@ final class PartyListLatestTest extends TestCase
         $archivedFactory = $modelFactory->archived();
         $archivedFactory->create(['user_id' => $user->id, 'name' => 'Archived party']);
         for ($index = 1; $index <= 6; $index++) {
+            $now = CarbonImmutable::now();
             $modelFactory->create(
                 [
                     'user_id' => $user->id,
                     'name' => 'Party ' . $index,
-                    'created_at' => now()->subDays(7 - $index),
+                    'created_at' => $now->subDays(7 - $index),
                 ],
             );
         }

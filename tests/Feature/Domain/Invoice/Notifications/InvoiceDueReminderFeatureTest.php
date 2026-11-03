@@ -35,12 +35,14 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         ]);
 
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $issueDate = $now->subDays(30);
         $this->invoice = $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'invoice_vs' => '2025001',
                 'due_in' => 30,
-                'issue_date' => now()->subDays(30)->format('Y-m-d'), // Due today (30 days ago + 30 days)
+                'issue_date' => $issueDate->format('Y-m-d'), // Due today (30 days ago + 30 days)
             ],
         );
     }

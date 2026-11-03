@@ -16,6 +16,7 @@ use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\AssertsInvoiceActionResult;
@@ -125,13 +126,14 @@ class InvoicePdfApplicationServiceTest extends TestCase
     {
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $now = CarbonImmutable::now();
 
         return [
             'invoice_vs' => 'INV-' . uniqid(),
             'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             'payment_currency' => 'EUR',
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
+            'issue_date' => $now->format('Y-m-d'),
+            'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => $statusQuery->firstOrFail()->id,
             'invoice_text' => 'Test invoice',

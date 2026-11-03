@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
@@ -72,6 +73,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             ],
         );
 
+        $now = CarbonImmutable::now();
         $subscription = Subscription::create(
             [
                 'user_id' => $user->id,
@@ -79,8 +81,8 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
                 'status' => 'active',
                 'amount' => 29.99,
                 'currency' => 'EUR',
-                'starts_at' => now(),
-                'ends_at' => now()->addMonth(),
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
             ],
         );
 
@@ -118,6 +120,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             ],
         );
 
+        $now = CarbonImmutable::now();
         $subscription = Subscription::create(
             [
                 'user_id' => $user->id,
@@ -125,8 +128,8 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
                 'status' => 'active',
                 'amount' => 29.99,
                 'currency' => 'EUR',
-                'starts_at' => now(),
-                'ends_at' => now()->addMonth(),
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
             ],
         );
 
@@ -159,6 +162,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             ],
         );
 
+        $now = CarbonImmutable::now();
         $subscription = Subscription::create(
             [
                 'user_id' => $user->id,
@@ -166,8 +170,8 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
                 'status' => 'active',
                 'amount' => 29.99,
                 'currency' => 'EUR',
-                'starts_at' => now(),
-                'ends_at' => now()->addMonth(),
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
             ],
         );
 
@@ -223,6 +227,7 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
             ],
         );
 
+        $now = CarbonImmutable::now();
         $subscription = Subscription::create(
             [
                 'user_id' => $user->id,
@@ -230,8 +235,8 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
                 'status' => 'active',
                 'amount' => 29.99,
                 'currency' => 'EUR',
-                'starts_at' => now(),
-                'ends_at' => now()->addMonth(),
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
             ],
         );
 

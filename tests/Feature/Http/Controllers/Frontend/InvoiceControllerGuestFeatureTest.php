@@ -13,6 +13,7 @@ use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -75,6 +76,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
         $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $statusId = $statusQuery->firstOrFail()->id;
+        $now = CarbonImmutable::now();
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -90,8 +92,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                     'tax_rate' => '0',
                 ]],
             ),
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
+            'issue_date' => $now->format('Y-m-d'),
+            'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 14,
             'payment_status_id' => $statusId,
             'supplier_name' => 'Supplier Test',
@@ -144,6 +146,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
         $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $statusId = $statusQuery->firstOrFail()->id;
+        $now = CarbonImmutable::now();
         $invoiceData = [
             'invoice_vs' => 'GUEST-' . uniqid(),
             'payment_method_id' => $paymentMethodId,
@@ -159,8 +162,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                     'tax_rate' => '0',
                 ]],
             ),
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
+            'issue_date' => $now->format('Y-m-d'),
+            'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 7,
             'payment_status_id' => $statusId,
             'supplier_name' => 'Supp X',

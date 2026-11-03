@@ -29,9 +29,11 @@ final class InvoiceOverdueReminderFeatureTest extends TestCase
         parent::setUp();
 
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $issueDate = $now->subDays(35);
         $this->invoice = $invoiceFactory->create(
             [
-                'issue_date' => now()->subDays(35)->format('Y-m-d'), // 35 days ago
+                'issue_date' => $issueDate->format('Y-m-d'), // 35 days ago
                 'due_in' => 14, // Due date = 35 - 14 = 21 days ago (overdue)
                 'invoice_vs' => '2024-001',
             ],

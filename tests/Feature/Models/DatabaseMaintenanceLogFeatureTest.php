@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\DatabaseMaintenanceLog;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -13,14 +14,15 @@ class DatabaseMaintenanceLogFeatureTest extends TestCase
     public function can_create_database_maintenance_log(): void
     {
 
+        $now = CarbonImmutable::now();
         $data = [
             'task_type' => 'optimize',
             'table_name' => 'users',
             'status' => 'pending',
             'description' => 'Optimizing users table',
             'results' => ['rows_processed' => 1000],
-            'started_at' => now(),
-            'completed_at' => now()->addMinutes(5),
+            'started_at' => $now,
+            'completed_at' => $now->addMinutes(5),
         ];
 
         $log = DatabaseMaintenanceLog::create($data);

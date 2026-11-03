@@ -29,9 +29,11 @@ final class InvoiceUpcomingDueReminderFeatureTest extends TestCase
         parent::setUp();
 
         $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $issueDate = $now->subDays(25);
         $this->invoice = $invoiceFactory->create(
             [
-                'issue_date' => now()->subDays(25)->format('Y-m-d'), // 25 days ago
+                'issue_date' => $issueDate->format('Y-m-d'), // 25 days ago
                 'due_in' => 30, // Due date = 25 days ago + 30 days = 5 days from now
                 'invoice_vs' => '2024-002',
             ],
