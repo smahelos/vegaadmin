@@ -416,8 +416,8 @@ class HasFileUploadsFeatureTest extends TestCase
         $fileFactory = UploadedFile::fake();
         $files = [
             $fileFactory->image('image1.jpg'),
-            UploadedFile::fake()->create('document.pdf', 100),
-            UploadedFile::fake()->image('image2.png'),
+            $fileFactory->create('document.pdf', 100),
+            $fileFactory->image('image2.png'),
         ];
 
         $model = new TestModelWithFileUploads;

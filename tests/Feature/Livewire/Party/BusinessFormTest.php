@@ -291,9 +291,10 @@ final class BusinessFormTest extends TestCase
 
         $component = Livewire::test(BusinessForm::class);
         $component->set('party.name', 'S logem');
+        $fileFactory = UploadedFile::fake();
         $component->set(
             'logo',
-            UploadedFile::fake()->image(
+            $fileFactory->image(
                 'logo.png',
                 200,
                 100,
@@ -312,7 +313,7 @@ final class BusinessFormTest extends TestCase
         $component = Livewire::test(BusinessForm::class, ['businessId' => $business->id]);
         $component->set(
             'logo',
-            UploadedFile::fake()->image(
+            $fileFactory->image(
                 'new.png',
                 300,
                 120,
@@ -332,9 +333,10 @@ final class BusinessFormTest extends TestCase
 
         $component = Livewire::test(BusinessForm::class);
         $component->set('party.name', 'Bez loga');
+        $fileFactory = UploadedFile::fake();
         $component->set(
             'logo',
-            UploadedFile::fake()->create(
+            $fileFactory->create(
                 'logo.pdf',
                 10,
                 'application/pdf',

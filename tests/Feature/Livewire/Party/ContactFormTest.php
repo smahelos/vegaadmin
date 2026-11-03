@@ -202,9 +202,10 @@ final class ContactFormTest extends TestCase
         Livewire::actingAs($this->user);
         $component = Livewire::test(ContactForm::class);
         $component->set('party.name', 'Contact with a logo');
+        $fileFactory = UploadedFile::fake();
         $component->set(
             'logo',
-            UploadedFile::fake()->image('logo.png'),
+            $fileFactory->image('logo.png'),
         );
         $component->call('save');
         $component->assertHasNoErrors();
@@ -219,7 +220,7 @@ final class ContactFormTest extends TestCase
         $component = Livewire::test(ContactForm::class, ['contactId' => $contact->id]);
         $component->set(
             'logo',
-            UploadedFile::fake()->image(
+            $fileFactory->image(
                 'different.png',
                 400,
                 150,

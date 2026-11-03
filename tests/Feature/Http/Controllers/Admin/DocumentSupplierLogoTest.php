@@ -151,7 +151,7 @@ final class DocumentSupplierLogoTest extends TestCase
         $disk = Storage::disk('public');
         $this->assertNotSame(
             $disk->get($business->logo),
-            Storage::disk('public')->get($copy),
+            $disk->get($copy),
         );
         $disk->delete($contact->logo);
         $contact->update(['logo' => null]);
@@ -162,8 +162,9 @@ final class DocumentSupplierLogoTest extends TestCase
         $data['supplier_registration_country'] = $expense->supplier_registration_country;
         $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
         $httpResponse->assertSessionHasNoErrors();
-        $this->assertSame($copy, $expense->fresh()->supplier_logo);
-        $this->assertSame($contact->company_number, $expense->fresh()->supplier_company_number);
+        $freshExpense = $expense->fresh();
+        $this->assertSame($copy, $freshExpense->supplier_logo);
+        $this->assertSame($contact->company_number, $freshExpense->supplier_company_number);
         $disk->assertExists($copy);
     }
 
@@ -409,7 +410,7 @@ final class DocumentSupplierLogoTest extends TestCase
             $business,
             [
                 'supplier_logo' => $fileFactory->image('supplier.png'),
-                'attachments' => [UploadedFile::fake()->create(
+                'attachments' => [$fileFactory->create(
                     'receipt.pdf',
                     12,
                     'application/pdf',
@@ -455,7 +456,7 @@ final class DocumentSupplierLogoTest extends TestCase
         $disk = Storage::disk('public');
         $this->assertSame(
             $disk->get($source),
-            Storage::disk('public')->get($copy),
+            $disk->get($copy),
         );
     }
 }

@@ -396,7 +396,7 @@ final class ExpenseCrudControllerTest extends TestCase
                         'reference_number' => 'FAILED',
                         'attachments' => [
                             $fileFactory->createWithContent('receipt.pdf', $receipt),
-                            UploadedFile::fake()->createWithContent('new.pdf', '%PDF-1.4 new receipt'),
+                            $fileFactory->createWithContent('new.pdf', '%PDF-1.4 new receipt'),
                         ],
                     ],
                 ),

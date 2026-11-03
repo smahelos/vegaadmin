@@ -405,13 +405,15 @@ class PageCrudControllerTest extends TestCase
     {
         Storage::fake('public');
         $this->actingAs($this->adminUser, 'backpack');
+        $slug = 'stranka-s-obrazkem-' . uniqid();
 
+        $fileFactory = UploadedFile::fake();
         $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s obrázkem',
-                'slug_cs' => 'stranka-s-obrazkem-' . uniqid(),
-                'main_image' => UploadedFile::fake()->image(
+                'slug_cs' => $slug,
+                'main_image' => $fileFactory->image(
                     'hero.jpg',
                     800,
                     600,
@@ -457,13 +459,16 @@ class PageCrudControllerTest extends TestCase
     {
         Storage::fake('public');
         $this->actingAs($this->adminUser, 'backpack');
+        $slug = 'velky-obrazek-' . uniqid();
 
+        $fileFactory = UploadedFile::fake();
+        $image = $fileFactory->image('hero.jpg');
         $httpResponse = $this->post(
             '/admin/page',
             [
                 'name_cs' => 'Stránka s velkým obrázkem',
-                'slug_cs' => 'velky-obrazek-' . uniqid(),
-                'main_image' => UploadedFile::fake()->image('hero.jpg')->size(10241),
+                'slug_cs' => $slug,
+                'main_image' => $image->size(10241),
             ],
         );
         $httpResponse->assertSessionHasErrors(['main_image']);

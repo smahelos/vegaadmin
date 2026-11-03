@@ -61,12 +61,14 @@ final class InvoiceLogoUploadTest extends TestCase
         $disk = Storage::disk('public');
         $disk->put('parties/logo.png', 'business logo contents');
         $this->business->update(['logo' => 'parties/logo.png']);
+        $url = route('frontend.invoice.store', ['locale' => 'cs']);
+        $fileFactory = UploadedFile::fake();
         $response = $this->post(
-            route('frontend.invoice.store', ['locale' => 'cs']),
+            $url,
             $this->invoiceData(
                 'TEST001',
                 [
-                    'invoice_logo' => UploadedFile::fake()->image('unrelated.png'),
+                    'invoice_logo' => $fileFactory->image('unrelated.png'),
                 ],
             ),
         );
