@@ -89,9 +89,9 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
         $config->set('exchange.fail_threshold', 1);
         $config->set('exchange.open_timeout_seconds', 1);
 
-        Http::fakeSequence()
-            ->pushStatus(500) // initial -> open
-            ->pushStatus(500); // half-open probe fails
+        $sequence = Http::fakeSequence();
+        $sequence->pushStatus(500); // initial -> open
+        $sequence->pushStatus(500); // half-open probe fails
         $this->service->getExchangeRates('USD'); // open (fallback)
         $this->assertEquals(
             'open',

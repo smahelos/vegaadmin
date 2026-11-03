@@ -36,13 +36,14 @@ class PermissionCatalogSyncTest extends TestCase
         // Plan roles also hold limit_* permissions, which are plan configuration, not catalog entries
         foreach (PermissionCatalog::ROLES as $guard => $roles) {
             foreach ($roles as $role => $names) {
+                $catalogRole = Role::findByName($role, $guard);
+                $permissionValues = $catalogRole->permissions->pluck('name');
+                $catalogPermissions = $permissionValues->reject(
+                    fn (string $name) => str_starts_with($name, 'limit_'),
+                );
                 $this->assertEqualsCanonicalizing(
                     $names,
-                    Role::findByName($role, $guard)->permissions->pluck('name')
-                        ->reject(
-                            fn (string $name) => str_starts_with($name, 'limit_'),
-                        )
-                        ->all(),
+                    $catalogPermissions->all(),
                     $role,
                 );
             }

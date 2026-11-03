@@ -23,7 +23,8 @@ class UELSControllerFeatureTest extends TestCase
         parent::setUp();
 
         // Test-only routes bypassing complex middleware chains to reach controller logic deterministically
-        Route::middleware(['web', 'auth:web'])->group(
+        $routeRegistrar = Route::middleware(['web', 'auth:web']);
+        $routeRegistrar->group(
             function (): void {
                 Route::get('/test/uels/{entity}', [UELSController::class, 'getEntityData']);
                 Route::get('/test/uels-all', [UELSController::class, 'getAllEntitiesData']);
