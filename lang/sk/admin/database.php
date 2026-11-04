@@ -161,6 +161,7 @@ return [
         'hints' => [
             'table_name' => 'Názov tabuľky v databáze',
             'retention_months' => 'Počet mesiacov, počas ktorých sa dáta uchovávajú',
+            'retention_months_suffix' => ' mesiacov',
             'date_column' => 'Názov stĺpca s časovým razítkom',
             'description' => 'Popis archivačného pravidla',
         ],

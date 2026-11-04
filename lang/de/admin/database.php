@@ -161,6 +161,7 @@ return [
         'hints' => [
             'table_name' => 'Datenbanktabellenname',
             'retention_months' => 'Anzahl der Monate zur Datenaufbewahrung',
+            'retention_months_suffix' => ' Monate',
             'date_column' => 'Name der Zeitstempelspalte',
             'description' => 'Beschreibung der Archivierungsrichtlinie',
         ],

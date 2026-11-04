@@ -44,28 +44,33 @@ class ArtisanCommandCrudController extends CrudController
 
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('artisan_commands.fields.name'),
         );
-        CRUD::column('command')->label(
+        $column = CRUD::column('command');
+        $column->label(
             __('artisan_commands.fields.command'),
         );
-        CRUD::column('category_id')
-            ->label(
-                __('artisan_commands.fields.category_id'),
-            )
-            ->type('select')
-            ->entity('category')
-            ->attribute('name')
-            ->model('App\Models\ArtisanCommandCategory');
-        CRUD::column('description')->label(
+        $column = CRUD::column('category_id');
+        $column->label(
+            __('artisan_commands.fields.category_id'),
+        );
+        $column->type('select');
+        $column->entity('category');
+        $column->attribute('name');
+        $column->model('App\Models\ArtisanCommandCategory');
+        $column = CRUD::column('description');
+        $column->label(
             __('artisan_commands.fields.description'),
         );
-        CRUD::column('is_active')->label(
+        $column = CRUD::column('is_active');
+        $column->label(
             __('artisan_commands.fields.is_active'),
-        )
-            ->type('boolean');
-        CRUD::column('sort_order')->label(
+        );
+        $column->type('boolean');
+        $column = CRUD::column('sort_order');
+        $column->label(
             __('artisan_commands.fields.sort_order'),
         );
     }
@@ -80,67 +85,67 @@ class ArtisanCommandCrudController extends CrudController
         // that are not already registered in the database.
         $availableCommands = $this->commandsService->getAllCommands(true);
 
-        CRUD::field('name')
-            ->label(
-                __('artisan_commands.fields.name'),
-            )
-            ->type('text');
+        $field = CRUD::field('name');
+        $field->label(
+            __('artisan_commands.fields.name'),
+        );
+        $field->type('text');
 
-        CRUD::field('command')
-            ->label(
-                __('artisan_commands.fields.command'),
-            )
-            ->type('select_from_array')
-            ->options($availableCommands)
-            ->allows_null(false)
-            ->hint(
-                __('artisan_commands.hints.command'),
-            );
+        $field = CRUD::field('command');
+        $field->label(
+            __('artisan_commands.fields.command'),
+        );
+        $field->type('select_from_array');
+        $field->options($availableCommands);
+        $field->allows_null(false);
+        $field->hint(
+            __('artisan_commands.hints.command'),
+        );
 
         $categoryQuery = ArtisanCommandCategory::where('is_active', true);
         $categoryQuery->orderBy('name');
         $categoryNames = $categoryQuery->pluck('name', 'id');
         $categories = $categoryNames->toArray();
 
-        CRUD::field('category_id')
-            ->label(
-                __('artisan_commands.fields.category_id'),
-            )
-            ->type('select_from_array')
-            ->options($categories)
-            ->allows_null(false);
+        $field = CRUD::field('category_id');
+        $field->label(
+            __('artisan_commands.fields.category_id'),
+        );
+        $field->type('select_from_array');
+        $field->options($categories);
+        $field->allows_null(false);
 
-        CRUD::field('description')
-            ->label(
-                __('artisan_commands.fields.description'),
-            )
-            ->type('textarea');
+        $field = CRUD::field('description');
+        $field->label(
+            __('artisan_commands.fields.description'),
+        );
+        $field->type('textarea');
 
-        CRUD::field('parameters_description')
-            ->label(
-                __('artisan_commands.fields.parameters_description'),
-            )
-            ->type('textarea')
-            ->hint(
-                __('artisan_commands.hints.parameters_description'),
-            );
+        $field = CRUD::field('parameters_description');
+        $field->label(
+            __('artisan_commands.fields.parameters_description'),
+        );
+        $field->type('textarea');
+        $field->hint(
+            __('artisan_commands.hints.parameters_description'),
+        );
 
-        CRUD::field('is_active')
-            ->label(
-                __('artisan_commands.fields.is_active'),
-            )
-            ->type('checkbox')
-            ->default(true);
+        $field = CRUD::field('is_active');
+        $field->label(
+            __('artisan_commands.fields.is_active'),
+        );
+        $field->type('checkbox');
+        $field->default(true);
 
-        CRUD::field('sort_order')
-            ->label(
-                __('artisan_commands.fields.sort_order'),
-            )
-            ->type('number')
-            ->default(0)
-            ->hint(
-                __('artisan_commands.hints.sort_order'),
-            );
+        $field = CRUD::field('sort_order');
+        $field->label(
+            __('artisan_commands.fields.sort_order'),
+        );
+        $field->type('number');
+        $field->default(0);
+        $field->hint(
+            __('artisan_commands.hints.sort_order'),
+        );
     }
 
     protected function setupUpdateOperation(): void

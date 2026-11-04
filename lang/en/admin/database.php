@@ -161,6 +161,7 @@ return [
         'hints' => [
             'table_name' => 'Database table name',
             'retention_months' => 'Number of months to keep data',
+            'retention_months_suffix' => ' months',
             'date_column' => 'Name of the timestamp column',
             'description' => 'Archive policy description',
         ],

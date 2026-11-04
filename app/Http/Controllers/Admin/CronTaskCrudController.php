@@ -40,48 +40,53 @@ class CronTaskCrudController extends CrudController
 
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('cron_tasks.fields.name'),
         );
-        CRUD::column('command')->label(
+        $column = CRUD::column('command');
+        $column->label(
             __('cron_tasks.fields.command'),
         );
-        CRUD::column('frequency')->label(
+        $column = CRUD::column('frequency');
+        $column->label(
             __('cron_tasks.fields.frequency'),
-        )
-            ->type('select_from_array')
-            ->options(
-                [
-                    'daily' => __('cron_tasks.frequencies.daily'),
-                    'weekly' => __('cron_tasks.frequencies.weekly'),
-                    'monthly' => __('cron_tasks.frequencies.monthly'),
-                    'custom' => __('cron_tasks.frequencies.custom'),
-                ],
-            );
-        CRUD::column('next_run')
-            ->label(
-                __('cron_tasks.fields.next_run'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    if ($entry !== null) {
-                        $nextRun = $entry->getNextRunDate();
-                    } else {
-                        $nextRun = null;
-                    }
+        );
+        $column->type('select_from_array');
+        $column->options(
+            [
+                'daily' => __('cron_tasks.frequencies.daily'),
+                'weekly' => __('cron_tasks.frequencies.weekly'),
+                'monthly' => __('cron_tasks.frequencies.monthly'),
+                'custom' => __('cron_tasks.frequencies.custom'),
+            ],
+        );
+        $column = CRUD::column('next_run');
+        $column->label(
+            __('cron_tasks.fields.next_run'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                if ($entry !== null) {
+                    $nextRun = $entry->getNextRunDate();
+                } else {
+                    $nextRun = null;
+                }
 
-                    return $nextRun ? $nextRun->format('Y-m-d H:i:s') . ' - (' . $nextRun->diffForHumans() . ')' : '-';
-                },
-            );
-        CRUD::column('is_active')->label(
+                return $nextRun ? $nextRun->format('Y-m-d H:i:s') . ' - (' . $nextRun->diffForHumans() . ')' : '-';
+            },
+        );
+        $column = CRUD::column('is_active');
+        $column->label(
             __('cron_tasks.fields.is_active'),
-        )
-            ->type('boolean');
-        CRUD::column('last_run')->label(
+        );
+        $column->type('boolean');
+        $column = CRUD::column('last_run');
+        $column->label(
             __('cron_tasks.fields.last_run'),
-        )
-            ->type('datetime');
+        );
+        $column->type('datetime');
 
         CRUD::addButton(
             'line',
@@ -107,175 +112,179 @@ class CronTaskCrudController extends CrudController
     {
         CRUD::setValidation(CronTaskRequest::class);
 
-        CRUD::field('name')->label(
+        $field = CRUD::field('name');
+        $field->label(
             __('cron_tasks.fields.name'),
-        )
-            ->type('text')
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        );
+        $field->type('text');
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
         // Prepare commands for select form (cron command category) via injected service
         $commands = $this->commandsService->getCommandsByCategory('cron');
 
         // Base command
-        CRUD::field('base_command')
-            ->label(
-                __('cron_tasks.fields.base_command'),
-            )
-            ->type('select_from_array')
-            ->options($commands)
-            ->allows_null(false)
-            ->wrapper([
-                'class' => 'form-group col-md-6',
-            ])
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        $field = CRUD::field('base_command');
+        $field->label(
+            __('cron_tasks.fields.base_command'),
+        );
+        $field->type('select_from_array');
+        $field->options($commands);
+        $field->allows_null(false);
+        $field->wrapper([
+            'class' => 'form-group col-md-6',
+        ]);
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
         // Command parameters
-        CRUD::field('command_params')
-            ->label(
-                __('cron_tasks.fields.command_params'),
-            )
-            ->type('text')
-            ->hint(
-                __('cron_tasks.hints.command_params'),
-            )
-            ->wrapper([
-                'class' => 'form-group col-md-6',
-            ])
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        $field = CRUD::field('command_params');
+        $field->label(
+            __('cron_tasks.fields.command_params'),
+        );
+        $field->type('text');
+        $field->hint(
+            __('cron_tasks.hints.command_params'),
+        );
+        $field->wrapper([
+            'class' => 'form-group col-md-6',
+        ]);
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
         // Hidden field for complete command
-        CRUD::field('command')
-            ->type('hidden')
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        $field = CRUD::field('command');
+        $field->type('hidden');
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
-        CRUD::field('frequency')->label(
+        $field = CRUD::field('frequency');
+        $field->label(
             __('cron_tasks.fields.frequency'),
-        )
-            ->type('select_from_array')
-            ->options(
-                [
-                    'daily' => __('cron_tasks.frequencies.daily'),
-                    'weekly' => __('cron_tasks.frequencies.weekly'),
-                    'monthly' => __('cron_tasks.frequencies.monthly'),
-                    'custom' => __('cron_tasks.frequencies.custom'),
-                ],
-            )
-            ->tab(
-                __('cron_tasks.tabs.schedule'),
-            );
+        );
+        $field->type('select_from_array');
+        $field->options(
+            [
+                'daily' => __('cron_tasks.frequencies.daily'),
+                'weekly' => __('cron_tasks.frequencies.weekly'),
+                'monthly' => __('cron_tasks.frequencies.monthly'),
+                'custom' => __('cron_tasks.frequencies.custom'),
+            ],
+        );
+        $field->tab(
+            __('cron_tasks.tabs.schedule'),
+        );
 
-        CRUD::field('run_at')
-            ->label(
-                __('cron_tasks.fields.run_at'),
-            )
-            ->type('datepicker')
-            ->datepicker_options(['onlyTimepicker' => true])
-            ->tab(
-                __('cron_tasks.tabs.schedule'),
-            )
-            ->depends('frequency', [
-                'daily',
-                'weekly',
-                'monthly',
-            ]);
+        $field = CRUD::field('run_at');
+        $field->label(
+            __('cron_tasks.fields.run_at'),
+        );
+        $field->type('datepicker');
+        $field->datepicker_options(['onlyTimepicker' => true]);
+        $field->tab(
+            __('cron_tasks.tabs.schedule'),
+        );
+        $field->depends('frequency', [
+            'daily',
+            'weekly',
+            'monthly',
+        ]);
 
-        CRUD::field('day_of_week')
-            ->label(
-                __('cron_tasks.fields.day_of_week'),
-            )
-            ->type('select_from_array')
-            ->options(
-                [
-                    0 => __('cron_tasks.days.sunday'),
-                    1 => __('cron_tasks.days.monday'),
-                    2 => __('cron_tasks.days.tuesday'),
-                    3 => __('cron_tasks.days.wednesday'),
-                    4 => __('cron_tasks.days.thursday'),
-                    5 => __('cron_tasks.days.friday'),
-                    6 => __('cron_tasks.days.saturday'),
-                ],
-            )
-            ->tab(
-                __('cron_tasks.tabs.schedule'),
-            )
-            ->depends('frequency', 'weekly');
+        $field = CRUD::field('day_of_week');
+        $field->label(
+            __('cron_tasks.fields.day_of_week'),
+        );
+        $field->type('select_from_array');
+        $field->options(
+            [
+                0 => __('cron_tasks.days.sunday'),
+                1 => __('cron_tasks.days.monday'),
+                2 => __('cron_tasks.days.tuesday'),
+                3 => __('cron_tasks.days.wednesday'),
+                4 => __('cron_tasks.days.thursday'),
+                5 => __('cron_tasks.days.friday'),
+                6 => __('cron_tasks.days.saturday'),
+            ],
+        );
+        $field->tab(
+            __('cron_tasks.tabs.schedule'),
+        );
+        $field->depends('frequency', 'weekly');
 
-        CRUD::field('day_of_month')
-            ->label(
-                __('cron_tasks.fields.day_of_month'),
-            )
-            ->type('number')
-            ->attributes(['min' => 1, 'max' => 31])
-            ->tab(
-                __('cron_tasks.tabs.schedule'),
-            )
-            ->depends('frequency', 'monthly');
+        $field = CRUD::field('day_of_month');
+        $field->label(
+            __('cron_tasks.fields.day_of_month'),
+        );
+        $field->type('number');
+        $field->attributes(['min' => 1, 'max' => 31]);
+        $field->tab(
+            __('cron_tasks.tabs.schedule'),
+        );
+        $field->depends('frequency', 'monthly');
 
-        CRUD::field('custom_expression')
-            ->label(
-                __('cron_tasks.fields.custom_expression'),
-            )
-            ->type('text')
-            ->hint(
-                __('cron_tasks.hints.custom_expression'),
-            )
-            ->tab(
-                __('cron_tasks.tabs.schedule'),
-            )
-            ->depends('frequency', 'custom');
+        $field = CRUD::field('custom_expression');
+        $field->label(
+            __('cron_tasks.fields.custom_expression'),
+        );
+        $field->type('text');
+        $field->hint(
+            __('cron_tasks.hints.custom_expression'),
+        );
+        $field->tab(
+            __('cron_tasks.tabs.schedule'),
+        );
+        $field->depends('frequency', 'custom');
 
-        CRUD::field('is_active')->label(
+        $field = CRUD::field('is_active');
+        $field->label(
             __('cron_tasks.fields.is_active'),
-        )
-            ->type('checkbox')
-            ->default(true)
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        );
+        $field->type('checkbox');
+        $field->default(true);
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
-        CRUD::field('description')->label(
+        $field = CRUD::field('description');
+        $field->label(
             __('cron_tasks.fields.description'),
-        )
-            ->type('textarea')
-            ->tab(
-                __('cron_tasks.tabs.basic'),
-            );
+        );
+        $field->type('textarea');
+        $field->tab(
+            __('cron_tasks.tabs.basic'),
+        );
 
-        CRUD::field('last_run')
-            ->label(
-                __('cron_tasks.fields.last_run'),
-            )
-            ->type('datepicker')
-            ->datepicker_options(['timepicker' => true])
-            ->attributes(['readonly' => 'readonly'])
-            ->tab(
-                __('cron_tasks.tabs.history'),
-            )
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('last_run');
+        $field->label(
+            __('cron_tasks.fields.last_run'),
+        );
+        $field->type('datepicker');
+        $field->datepicker_options(['timepicker' => true]);
+        $field->attributes(['readonly' => 'readonly']);
+        $field->tab(
+            __('cron_tasks.tabs.history'),
+        );
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
-        CRUD::field('last_output')
-            ->label(
-                __('cron_tasks.fields.last_output'),
-            )
-            ->type('textarea')
-            ->attributes(
-                [
-                    'readonly' => 'readonly',
-                    'class' => 'form-control',
-                    'rows' => 10,
-                ],
-            )
-            ->tab(
-                __('cron_tasks.tabs.history'),
-            );
+        $field = CRUD::field('last_output');
+        $field->label(
+            __('cron_tasks.fields.last_output'),
+        );
+        $field->type('textarea');
+        $field->attributes(
+            [
+                'readonly' => 'readonly',
+                'class' => 'form-control',
+                'rows' => 10,
+            ],
+        );
+        $field->tab(
+            __('cron_tasks.tabs.history'),
+        );
 
         // Add a field for the command script
         $this->crud->addField(
@@ -297,43 +306,43 @@ class CronTaskCrudController extends CrudController
     {
         $this->setupListOperation();
 
-        CRUD::column('custom_expression')
-            ->label(
-                __('cron_tasks.fields.custom_expression'),
-            );
-        CRUD::column('run_at')
-            ->label(
-                __('cron_tasks.fields.run_at'),
-            );
-        CRUD::column('day_of_week')
-            ->label(
-                __('cron_tasks.fields.day_of_week'),
-            )
-            ->type('select_from_array')
-            ->options(
-                [
-                    0 => __('cron_tasks.days.sunday'),
-                    1 => __('cron_tasks.days.monday'),
-                    2 => __('cron_tasks.days.tuesday'),
-                    3 => __('cron_tasks.days.wednesday'),
-                    4 => __('cron_tasks.days.thursday'),
-                    5 => __('cron_tasks.days.friday'),
-                    6 => __('cron_tasks.days.saturday'),
-                ],
-            );
-        CRUD::column('day_of_month')
-            ->label(
-                __('cron_tasks.fields.day_of_month'),
-            );
-        CRUD::column('description')
-            ->label(
-                __('cron_tasks.fields.description'),
-            );
-        CRUD::column('last_output')
-            ->label(
-                __('cron_tasks.fields.last_output'),
-            )
-            ->escaped(false);
+        $column = CRUD::column('custom_expression');
+        $column->label(
+            __('cron_tasks.fields.custom_expression'),
+        );
+        $column = CRUD::column('run_at');
+        $column->label(
+            __('cron_tasks.fields.run_at'),
+        );
+        $column = CRUD::column('day_of_week');
+        $column->label(
+            __('cron_tasks.fields.day_of_week'),
+        );
+        $column->type('select_from_array');
+        $column->options(
+            [
+                0 => __('cron_tasks.days.sunday'),
+                1 => __('cron_tasks.days.monday'),
+                2 => __('cron_tasks.days.tuesday'),
+                3 => __('cron_tasks.days.wednesday'),
+                4 => __('cron_tasks.days.thursday'),
+                5 => __('cron_tasks.days.friday'),
+                6 => __('cron_tasks.days.saturday'),
+            ],
+        );
+        $column = CRUD::column('day_of_month');
+        $column->label(
+            __('cron_tasks.fields.day_of_month'),
+        );
+        $column = CRUD::column('description');
+        $column->label(
+            __('cron_tasks.fields.description'),
+        );
+        $column = CRUD::column('last_output');
+        $column->label(
+            __('cron_tasks.fields.last_output'),
+        );
+        $column->escaped(false);
     }
 
     public function run(RunCronTaskRequest $request, int $id): RedirectResponse

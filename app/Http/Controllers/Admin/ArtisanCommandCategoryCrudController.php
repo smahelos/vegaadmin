@@ -34,61 +34,65 @@ class ArtisanCommandCategoryCrudController extends CrudController
 
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('artisan_commands.categories.fields.name'),
         );
-        CRUD::column('slug')->label(
+        $column = CRUD::column('slug');
+        $column->label(
             __('artisan_commands.categories.fields.slug'),
         );
-        CRUD::column('description')->label(
+        $column = CRUD::column('description');
+        $column->label(
             __('artisan_commands.categories.fields.description'),
         );
-        CRUD::column('commands_count')
-            ->label(
-                __('artisan_commands.categories.fields.commands_count'),
-            )
-            ->type('closure')
-            ->function(function ($entry) {
-                return $entry->commands->count();
-            })
-            ->default('0');
-        CRUD::column('is_active')->label(
+        $column = CRUD::column('commands_count');
+        $column->label(
+            __('artisan_commands.categories.fields.commands_count'),
+        );
+        $column->type('closure');
+        $column->function(function ($entry) {
+            return $entry->commands->count();
+        });
+        $column->default('0');
+        $column = CRUD::column('is_active');
+        $column->label(
             __('artisan_commands.categories.fields.is_active'),
-        )
-            ->type('boolean');
+        );
+        $column->type('boolean');
     }
 
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ArtisanCommandCategoryRequest::class);
 
-        CRUD::field('name')
-            ->label(
-                __('artisan_commands.categories.fields.name'),
-            )
-            ->type('text');
+        $field = CRUD::field('name');
+        $field->label(
+            __('artisan_commands.categories.fields.name'),
+        );
+        $field->type('text');
 
-        CRUD::field('slug')
-            ->label(
-                __('artisan_commands.categories.fields.slug'),
-            )
-            ->type('text')
-            ->hint(
-                __('artisan_commands.categories.hints.slug'),
-            );
+        $field = CRUD::field('slug');
+        $field->label(
+            __('artisan_commands.categories.fields.slug'),
+        );
+        $field->type('text');
+        $field->hint(
+            __('artisan_commands.categories.hints.slug'),
+        );
 
-        CRUD::field('description')
-            ->label(
-                __('artisan_commands.categories.fields.description'),
-            )
-            ->type('textarea');
+        $field = CRUD::field('description');
+        $field->label(
+            __('artisan_commands.categories.fields.description'),
+        );
+        $field->type('textarea');
 
-        CRUD::field('is_active')
-            ->label(
-                __('artisan_commands.categories.fields.is_active'),
-            )
-            ->type('checkbox')
-            ->default(true);
+        $field = CRUD::field('is_active');
+        $field->label(
+            __('artisan_commands.categories.fields.is_active'),
+        );
+        $field->type('checkbox');
+        $field->default(true);
     }
 
     protected function setupUpdateOperation(): void
