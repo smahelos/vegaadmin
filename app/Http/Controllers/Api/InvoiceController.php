@@ -27,7 +27,9 @@ class InvoiceController extends Controller
         $invoiceId = $id ?? $request->query('q');
 
         if (!$invoiceId) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'error' => __('invoices.messages.id_required'),
                 ],
@@ -41,7 +43,9 @@ class InvoiceController extends Controller
             $user = $this->getAuthenticatedUser();
 
             if (!$user) {
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     ['error' => __('users.auth.unauthenticated')],
                     401,
                 );
@@ -58,7 +62,9 @@ class InvoiceController extends Controller
             }
             // Regular users can see only their invoices
             elseif ($invoice->user_id !== $user->id) {
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     ['error' => __('users.auth.unauthorized')],
                     403,
                 );
@@ -67,7 +73,9 @@ class InvoiceController extends Controller
             // Map DTO to primitive JSON structure
             $id = ($invoice->id instanceof InvoiceIdVO) ? $invoice->id->getValue() : (int) $invoice->id;
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'id' => (int) $id,
                     'user_id' => (int) $invoice->user_id,
@@ -81,7 +89,9 @@ class InvoiceController extends Controller
                 ]),
             );
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('invoices.messages.not_found')],
                 404,
             );

@@ -58,8 +58,10 @@ final class ContactController extends Controller
      */
     private function owned(Request $request, int $id): int
     {
+        $user = $request->user();
+
         return $this->contacts->get(
-            UserId::fromInt((int) $request->user()?->getAuthIdentifier()),
+            UserId::fromInt((int) $user?->getAuthIdentifier()),
             ContactId::fromInt($id),
         )->id->value;
     }

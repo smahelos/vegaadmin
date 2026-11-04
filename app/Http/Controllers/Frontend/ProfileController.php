@@ -46,10 +46,13 @@ class ProfileController extends Controller
         } catch (\Exception $e) {
             Log::error('Profile loading failed', ['userId' => Auth::id(), 'exception' => $e]);
 
-            return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])
-                ->withErrors(
-                    ['error' => __('users.messages.profile_load_failed')],
-                );
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
+
+            return $redirect->withErrors(
+                ['error' => __('users.messages.profile_load_failed')],
+            );
         }
     }
 
@@ -68,19 +71,24 @@ class ProfileController extends Controller
             // Update user using service
             $this->userService->updateProfile($user->id, $validatedData);
 
-            return redirect()->route('frontend.profile.edit', ['locale' => app()->getLocale()])
-                ->with(
-                    'success',
-                    __('users.messages.profile_updated'),
-                );
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route('frontend.profile.edit', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'success',
+                __('users.messages.profile_updated'),
+            );
         } catch (\Exception $e) {
             Log::error('Profile update failed', ['userId' => Auth::id(), 'exception' => $e]);
 
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(
-                    ['error' => __('users.messages.profile_update_failed')],
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->withErrors(
+                ['error' => __('users.messages.profile_update_failed')],
+            );
         }
     }
 
@@ -97,22 +105,27 @@ class ProfileController extends Controller
             $newPassword = UserPassword::fromPlainText($request->password);
             $this->userService->updatePassword($user->id, $newPassword);
 
-            return redirect()->route(
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route(
                 'frontend.profile.edit',
-                ['locale' => $request->input('locale', app()->getLocale())],
-            )
-                ->with(
-                    'success',
-                    __('users.messages.password_updated'),
-                );
+                ['locale' => $request->input('locale', $application->getLocale())],
+            );
+
+            return $redirect->with(
+                'success',
+                __('users.messages.password_updated'),
+            );
         } catch (\Exception $e) {
             Log::error('Password change failed', ['userId' => Auth::id(), 'exception' => $e]);
 
-            return redirect()->back()
-                ->withInput()
-                ->withErrors(
-                    ['error' => __('users.messages.password_update_failed')],
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->withErrors(
+                ['error' => __('users.messages.password_update_failed')],
+            );
         }
     }
 }

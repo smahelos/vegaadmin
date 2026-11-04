@@ -24,7 +24,9 @@ class CurrencyController extends Controller
      */
     public function getCommonCurrencies(): JsonResponse
     {
-        return response()->json($this->currencyAppService->getCommonCurrencies());
+        $responseFactory = response();
+
+        return $responseFactory->json($this->currencyAppService->getCommonCurrencies());
     }
 
     /**
@@ -32,7 +34,9 @@ class CurrencyController extends Controller
      */
     public function getAllCurrencies(): JsonResponse
     {
-        return response()->json($this->currencyAppService->getAllCurrencies());
+        $responseFactory = response();
+
+        return $responseFactory->json($this->currencyAppService->getAllCurrencies());
     }
 
     /**
@@ -60,7 +64,9 @@ class CurrencyController extends Controller
             abort(404, 'Currency exchange rate not available');
         }
 
-        return response()->json([
+        $responseFactory = response();
+
+        return $responseFactory->json([
             'from' => $from,
             'to' => $to,
             'rate' => $rate,
@@ -98,7 +104,9 @@ class CurrencyController extends Controller
             abort(404, 'Currency conversion not available');
         }
 
-        return response()->json(
+        $responseFactory = response();
+
+        return $responseFactory->json(
             [
                 'original' => [
                     'amount' => $amount,

@@ -30,7 +30,8 @@ class LoginController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest')->except('logout');
+        $middleware = $this->middleware('guest');
+        $middleware->except('logout');
     }
 
     /**
@@ -38,7 +39,10 @@ class LoginController extends Controller
      */
     protected function authenticated(Request $request, mixed $user): RedirectResponse
     {
-        return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
+        $redirector = redirect();
+        $application = app();
+
+        return $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
     }
 
     /**
@@ -71,7 +75,10 @@ class LoginController extends Controller
                 'ip' => $request->ip(),
             ]);
 
-            return back()->withInput()->with(
+            $redirect = back();
+            $redirect->withInput();
+
+            return $redirect->with(
                 'error',
                 __('users.auth.failed'),
             );
@@ -83,13 +90,17 @@ class LoginController extends Controller
      */
     public function logout(Request $request): RedirectResponse
     {
-        $this->guard()->logout();
+        $guard = $this->guard();
+        $guard->logout();
 
-        $request->session()->invalidate();
+        $session = $request->session();
+        $session->invalidate();
+        $session->regenerateToken();
 
-        $request->session()->regenerateToken();
+        $redirector = redirect();
+        $application = app();
 
-        return redirect()->route('home', ['locale' => app()->getLocale()]);
+        return $redirector->route('home', ['locale' => $application->getLocale()]);
     }
 
     /**
@@ -97,7 +108,9 @@ class LoginController extends Controller
      */
     protected function attemptLogin(Request $request): bool
     {
-        return Auth::guard('web')->attempt(
+        $guard = Auth::guard('web');
+
+        return $guard->attempt(
             $this->credentials($request),
             $request->filled('remember'),
         );

@@ -76,12 +76,14 @@ class ProductController extends Controller
         if ($user) {
             $canCreate = $this->limitService->canUserCreateEntity($user->id, 'product');
             if (!$canCreate) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        trans('products.messages.limit_exceeded'),
-                    );
+                $redirector = redirect();
+                $redirect = $redirector->back();
+                $redirect->withInput();
+
+                return $redirect->with(
+                    'error',
+                    trans('products.messages.limit_exceeded'),
+                );
             }
         }
 
@@ -92,34 +94,41 @@ class ProductController extends Controller
 
         try {
             $product = $this->productService->createProduct($validatedData, $user->id);
-            $locale = $request->route('locale') ?? app()->getLocale();
+            $application = app();
+            $locale = $request->route('locale') ?? $application->getLocale();
 
-            return redirect()->route('frontend.products', ['locale' => $locale])
-                ->with(
-                    'success',
-                    trans('products.messages.created'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->route('frontend.products', ['locale' => $locale]);
+
+            return $redirect->with(
+                'success',
+                trans('products.messages.created'),
+            );
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with(
-                    'error',
-                    trans('products.messages.validation_failed'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withErrors($e->errors());
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                trans('products.messages.validation_failed'),
+            );
         } catch (\Throwable $e) {
             Log::error('Product creation failed', [
                 'userId' => Auth::id(),
                 'exception' => $e,
             ]);
 
-            return redirect()->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    __('products.messages.error_create'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                __('products.messages.error_create'),
+            );
         }
     }
 
@@ -203,11 +212,14 @@ class ProductController extends Controller
                 $user->id,
             );
 
-            return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
-                ->with(
-                    'success',
-                    trans('products.messages.updated'),
-                );
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'success',
+                trans('products.messages.updated'),
+            );
 
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
@@ -221,13 +233,15 @@ class ProductController extends Controller
                 ],
             );
 
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with(
-                    'error',
-                    trans('products.messages.validation_failed'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withErrors($e->errors());
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                trans('products.messages.validation_failed'),
+            );
         } catch (\Throwable $e) {
             Log::error(
                 'Product update failed',
@@ -238,12 +252,14 @@ class ProductController extends Controller
                 ],
             );
 
-            return redirect()->back()
-                ->withInput()
-                ->with(
-                    'error',
-                    __('products.messages.error_update'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                __('products.messages.error_update'),
+            );
         }
     }
 
@@ -260,11 +276,14 @@ class ProductController extends Controller
         // Delete product using service
         $this->productService->deleteProduct($id, Auth::id());
 
-        return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
-            ->with(
-                'success',
-                trans('products.messages.deleted'),
-            );
+        $redirector = redirect();
+        $application = app();
+        $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
+
+        return $redirect->with(
+            'success',
+            trans('products.messages.deleted'),
+        );
     }
 
     /**

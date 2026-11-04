@@ -26,12 +26,15 @@ final class InvoiceContactController extends Controller
         string $locale,
         int $invoice,
     ): RedirectResponse {
+        $user = $request->user();
         $this->invoiceContacts->saveCustomerToContacts(
-            UserId::fromInt((int) $request->user()?->getAuthIdentifier()),
+            UserId::fromInt((int) $user?->getAuthIdentifier()),
             InvoiceId::fromInt($invoice),
         );
 
-        return back()->with(
+        $redirect = back();
+
+        return $redirect->with(
             'success',
             __('invoices.messages.saved_to_contacts'),
         );
@@ -42,13 +45,16 @@ final class InvoiceContactController extends Controller
         string $locale,
         int $invoice,
     ): RedirectResponse {
+        $user = $request->user();
         $this->invoiceContacts->linkContact(
-            UserId::fromInt((int) $request->user()?->getAuthIdentifier()),
+            UserId::fromInt((int) $user?->getAuthIdentifier()),
             InvoiceId::fromInt($invoice),
             $request->contactId(),
         );
 
-        return back()->with(
+        $redirect = back();
+
+        return $redirect->with(
             'success',
             __('invoices.messages.contact_linked'),
         );

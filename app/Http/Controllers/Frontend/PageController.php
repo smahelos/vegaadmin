@@ -19,7 +19,8 @@ class PageController extends Controller
      */
     public function homepage(): View
     {
-        $locale = app()->getLocale();
+        $application = app();
+        $locale = $application->getLocale();
         $page = $this->pageService->getHomepage($locale);
 
         // If no published pages exist, show a default message
@@ -75,7 +76,8 @@ class PageController extends Controller
     public function show(string $locale, string $slug): View|RedirectResponse
     {
         // Set application locale from URL parameter
-        app()->setLocale($locale);
+        $application = app();
+        $application->setLocale($locale);
 
         $page = $this->pageService->getPageBySlug($slug, $locale);
 
@@ -90,7 +92,9 @@ class PageController extends Controller
         // If not, redirect to the correct URL for the current locale
         $localizedSlug = $page->slug[$locale] ?? null;
         if ($localizedSlug !== $slug) {
-            return redirect()->route('frontend.pages.show', [
+            $redirector = redirect();
+
+            return $redirector->route('frontend.pages.show', [
                 'locale' => $locale,
                 'slug' => $localizedSlug,
             ]);
@@ -123,7 +127,8 @@ class PageController extends Controller
     public function categoryBySlug(string $locale, string $slug): View
     {
         // Set application locale from URL parameter
-        app()->setLocale($locale);
+        $application = app();
+        $application->setLocale($locale);
 
         $category = $this->pageService->getCategoryBySlug($slug, $locale);
 
@@ -153,9 +158,10 @@ class PageController extends Controller
      */
     public function category(string $categoryId, ?string $locale = null): View
     {
+        $application = app();
         // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? app()->getLocale();
-        app()->setLocale($locale);
+        $locale = $locale ?? $application->getLocale();
+        $application->setLocale($locale);
 
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);
 
@@ -185,9 +191,10 @@ class PageController extends Controller
      */
     public function search(Request $request, ?string $locale = null): View
     {
-        $locale = $locale ?? app()->getLocale();
+        $application = app();
+        $locale = $locale ?? $application->getLocale();
         // Set application locale
-        app()->setLocale($locale);
+        $application->setLocale($locale);
 
         $keyword = $request->get('q', '');
         $pages = collect();
@@ -214,9 +221,10 @@ class PageController extends Controller
      */
     public function sitemap(?string $locale = null): View
     {
+        $application = app();
         // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? app()->getLocale();
-        app()->setLocale($locale);
+        $locale = $locale ?? $application->getLocale();
+        $application->setLocale($locale);
 
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();

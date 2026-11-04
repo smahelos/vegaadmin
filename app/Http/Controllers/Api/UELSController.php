@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api;
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Domain\User\Enums\EntityType;
 use App\Http\Controllers\Controller;
+use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,7 +39,9 @@ final class UELSController extends Controller
             'invoice',
         ];
         if (!in_array($entity, $validEntities)) {
-            return response()->json(['error' => 'Invalid entity type'], 400);
+            $responseFactory = response();
+
+            return $responseFactory->json(['error' => 'Invalid entity type'], 400);
         }
 
         try {
@@ -47,7 +50,9 @@ final class UELSController extends Controller
             $canCreateEntity = (bool) ($entityInfo['can_create'] ?? ($entityInfo['has_permission'] ?? false));
 
             if (!$canCreateEntity) {
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     [
                         'entity' => $entity,
                         'current_usage' => 0,
@@ -181,7 +186,9 @@ final class UELSController extends Controller
 
             if (!$primaryStats) {
                 // Fallback - user has permissions but no limits configured
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     [
                         'entity' => $entity,
                         'current_usage' => 0,
@@ -218,7 +225,9 @@ final class UELSController extends Controller
             $percentageUsed = $primaryStats['usage_percentage'] ?? 0;
             $primaryCanCreate = $primaryStats['can_create'] ?? ($limit > $currentUsage);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'entity' => $entity,
                     'current_usage' => $currentUsage,
@@ -261,7 +270,9 @@ final class UELSController extends Controller
         } catch (Throwable $e) {
             Log::error('Loading UELS data failed', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['message' => __('entity_limits.modal.error')],
                 500,
             );
@@ -305,12 +316,16 @@ final class UELSController extends Controller
             $data[$entity] = $response->getData(true);
         }
 
-        return response()->json(
+        $now = CarbonImmutable::now();
+
+        $responseFactory = response();
+
+        return $responseFactory->json(
             [
                 'entities' => $data,
                 'user_id' => $user?->id,
                 'user_name' => $user?->name,
-                'timestamp' => now()->toISOString(),
+                'timestamp' => $now->toISOString(),
             ],
         );
     }

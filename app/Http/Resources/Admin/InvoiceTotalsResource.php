@@ -18,10 +18,12 @@ final class InvoiceTotalsResource extends JsonResource
     /** @return array<string, string> */
     public function toArray(Request $request): array
     {
+        $total = $this->totals->total();
+
         return [
             'subtotal' => $this->totals->subtotal->getAmount(),
             'tax' => $this->totals->tax->getAmount(),
-            'total' => $this->totals->total()->getAmount(),
+            'total' => $total->getAmount(),
             'currency' => $this->totals->subtotal->getCurrency(),
         ];
     }

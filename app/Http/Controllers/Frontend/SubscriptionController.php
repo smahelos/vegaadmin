@@ -28,13 +28,15 @@ class SubscriptionController extends Controller
      */
     public function index(): View
     {
-        $plans = SubscriptionPlan::active()->get();
+        $planQuery = SubscriptionPlan::active();
+        $plans = $planQuery->get();
         $userSubscription = null;
 
         if (Auth::check()) {
-            $userSubscription = Auth::user()->subscriptions()
-                ->where('status', 'active')
-                ->first();
+            $user = Auth::user();
+            $subscriptions = $user->subscriptions();
+            $subscriptions->where('status', 'active');
+            $userSubscription = $subscriptions->first();
         }
 
         return view(
@@ -72,16 +74,18 @@ class SubscriptionController extends Controller
         $user = Auth::user();
 
         // Check if user already has active subscription
-        $existingSubscription = $user->subscriptions()
-            ->where('status', 'active')
-            ->first();
+        $subscriptions = $user->subscriptions();
+        $subscriptions->where('status', 'active');
+        $existingSubscription = $subscriptions->first();
 
         if ($existingSubscription) {
-            return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with(
-                    'error',
-                    __('subscriptions.messages.already_subscribed'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
+
+            return $redirect->with(
+                'error',
+                __('subscriptions.messages.already_subscribed'),
+            );
         }
 
         // Create subscription
@@ -104,10 +108,11 @@ class SubscriptionController extends Controller
             ? route('payment.notify')
             : config('services.gopay.test_notify_url', 'https://httpbin.org/post');
 
+        $application = app();
         $paymentData = [
             'return_url' => $returnUrl,
             'notify_url' => $notifyUrl,
-            'lang' => app()->getLocale() === 'cs' ? 'CS' : 'EN',
+            'lang' => $application->getLocale() === 'cs' ? 'CS' : 'EN',
         ];
 
         $result = $this->paymentApp->initiateSubscription(
@@ -122,11 +127,13 @@ class SubscriptionController extends Controller
 
         $subscription->delete();
 
-        return redirect()->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan])
-            ->with(
-                'error',
-                __('subscriptions.messages.payment_failed'),
-            );
+        $redirector = redirect();
+        $redirect = $redirector->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan]);
+
+        return $redirect->with(
+            'error',
+            __('subscriptions.messages.payment_failed'),
+        );
     }
 
     /**
@@ -140,18 +147,22 @@ class SubscriptionController extends Controller
             // Delegation path – cancellation still uses domain service through application layer if exposed later.
             $this->paymentApp->cancelSubscription($subscription);
 
-            return redirect()->route('subscriptions.index', ['locale' => $locale])
-                ->with(
-                    'success',
-                    __('subscriptions.messages.cancelled'),
-                );
+            $redirector = redirect();
+            $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
+
+            return $redirect->with(
+                'success',
+                __('subscriptions.messages.cancelled'),
+            );
         }
 
-        return redirect()->route('subscriptions.index', ['locale' => $locale])
-            ->with(
-                'error',
-                __('subscriptions.messages.cancellation_failed'),
-            );
+        $redirector = redirect();
+        $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
+
+        return $redirect->with(
+            'error',
+            __('subscriptions.messages.cancellation_failed'),
+        );
     }
 
     /**
@@ -159,17 +170,21 @@ class SubscriptionController extends Controller
      */
     public function mySubscription(): View|RedirectResponse
     {
-        $subscription = Auth::user()->subscriptions()
-            ->with(['subscriptionPlan', 'payments'])
-            ->where('status', 'active')
-            ->first();
+        $user = Auth::user();
+        $subscriptions = $user->subscriptions();
+        $subscriptions->with(['subscriptionPlan', 'payments']);
+        $subscriptions->where('status', 'active');
+        $subscription = $subscriptions->first();
 
         if (!$subscription) {
-            return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with(
-                    'info',
-                    __('subscriptions.messages.none_active'),
-                );
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'info',
+                __('subscriptions.messages.none_active'),
+            );
         }
 
         return view(

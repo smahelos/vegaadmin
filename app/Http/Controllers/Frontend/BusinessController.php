@@ -58,8 +58,10 @@ final class BusinessController extends Controller
      */
     private function owned(Request $request, int $id): int
     {
+        $user = $request->user();
+
         return $this->businesses->get(
-            UserId::fromInt((int) $request->user()?->getAuthIdentifier()),
+            UserId::fromInt((int) $user?->getAuthIdentifier()),
             BusinessId::fromInt($id),
         )->id->value;
     }

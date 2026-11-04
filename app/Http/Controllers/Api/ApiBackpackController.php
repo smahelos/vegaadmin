@@ -15,20 +15,24 @@ class ApiBackpackController extends Controller
     {
         // Check all guards and return first authenticated user
         // Try backpack_auth() helper function first, which is most accurate
-        if (function_exists('backpack_auth') && backpack_auth()->check()) {
-            return backpack_auth()->user();
+        $auth = backpack_auth();
+        if ($auth->check()) {
+            return $auth->user();
         }
 
-        if (Auth::guard('backpack')->check()) {
-            return Auth::guard('backpack')->user();
+        $guard = Auth::guard('backpack');
+        if ($guard->check()) {
+            return $guard->user();
         }
 
-        if (Auth::guard('web')->check()) {
-            return Auth::guard('web')->user();
+        $guard = Auth::guard('web');
+        if ($guard->check()) {
+            return $guard->user();
         }
 
-        if (Auth::guard('sanctum')->check()) {
-            return Auth::guard('sanctum')->user();
+        $guard = Auth::guard('sanctum');
+        if ($guard->check()) {
+            return $guard->user();
         }
 
         return null;
@@ -41,16 +45,21 @@ class ApiBackpackController extends Controller
     {
         $user = $this->getAuthenticatedUser();
         $session = session();
+        $request = request();
+        $route = $request->route();
+        $backpackGuard = Auth::guard('backpack');
+        $webGuard = Auth::guard('web');
+        $sanctumGuard = Auth::guard('sanctum');
 
         $context = [
             'user_id' => $user ? $user->id : 'unauthenticated',
-            'route' => request()->route() ? request()->route()->getName() : 'unknown',
-            'path' => request()->path(),
+            'route' => $route ? $route->getName() : 'unknown',
+            'path' => $request->path(),
             'is_admin' => $user && method_exists($user, 'hasRole') && $user->hasRole('admin') ? 'yes' : 'no',
             'guards' => [
-                'backpack' => Auth::guard('backpack')->check() ? 'authenticated' : 'unauthenticated',
-                'web' => Auth::guard('web')->check() ? 'authenticated' : 'unauthenticated',
-                'sanctum' => Auth::guard('sanctum')->check() ? 'authenticated' : 'unauthenticated',
+                'backpack' => $backpackGuard->check() ? 'authenticated' : 'unauthenticated',
+                'web' => $webGuard->check() ? 'authenticated' : 'unauthenticated',
+                'sanctum' => $sanctumGuard->check() ? 'authenticated' : 'unauthenticated',
             ],
             'session_id' => $session->getId(),
             'has_backpack_session' => $session->has('backpack_session_state') ? 'yes' : 'no',

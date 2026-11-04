@@ -31,16 +31,20 @@ class UserController extends Controller
     {
         try {
             // Authenticate via backpack guard
-            $current = function_exists('backpack_auth') ? backpack_auth()->user() : null;
+            $current = backpack_user();
             if (!$current) {
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     ['error' => __('users.auth.unauthenticated')],
                     401,
                 );
             }
             // Permission check via adapter (backpack guard)
             if (!$this->auth->hasBackpackPermission((int) $current->id, 'can_view_user')) {
-                return response()->json(
+                $responseFactory = response();
+
+                return $responseFactory->json(
                     ['error' => __('users.auth.unauthorized')],
                     403,
                 );
@@ -48,9 +52,13 @@ class UserController extends Controller
 
             $user = $this->userService->findUserById((int) $id);
 
-            return response()->json($user);
+            $responseFactory = response();
+
+            return $responseFactory->json($user);
         } catch (ModelNotFoundException $e) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.messages.not_found')],
                 404,
             );
@@ -64,7 +72,9 @@ class UserController extends Controller
                 ],
             );
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.messages.load_failed')],
                 500,
             );
@@ -76,9 +86,11 @@ class UserController extends Controller
      */
     public function getUsersAdmin(): JsonResponse
     {
-        $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
+        $user = backpack_user();
         if (!$user) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.auth.unauthenticated'), 'code' => 401],
                 401,
             );
@@ -86,7 +98,9 @@ class UserController extends Controller
 
         // Check if user has permission to view users
         if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.auth.unauthorized')],
                 403,
             );
@@ -95,7 +109,9 @@ class UserController extends Controller
         // Admins can see all users via service abstraction
         $users = $this->userService->getAllUsers();
 
-        return response()->json($users);
+        $responseFactory = response();
+
+        return $responseFactory->json($users);
     }
 
     /**
@@ -106,16 +122,20 @@ class UserController extends Controller
      */
     public function searchUsersAdmin(Request $request): JsonResponse
     {
-        $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
+        $user = backpack_user();
         if (!$user) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.auth.unauthenticated'), 'code' => 401],
                 401,
             );
         }
 
         if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 ['error' => __('users.auth.unauthorized')],
                 403,
             );
@@ -123,7 +143,9 @@ class UserController extends Controller
 
         $search_term = $request->input('q');
 
-        return response()->json(
+        $responseFactory = response();
+
+        return $responseFactory->json(
             $this->userService->searchUsers(
                 $search_term,
                 10,
