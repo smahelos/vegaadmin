@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Requests\Admin\DatabaseDashboardRequest;
 use App\Models\DatabaseHealthAlert;
 use App\Models\DatabaseHealthMetric;
 use App\Models\DatabaseMaintenanceLog;
@@ -24,7 +25,7 @@ class DatabaseDashboardController extends CrudController
         parent::__construct();
     }
 
-    public function index(): View
+    public function index(DatabaseDashboardRequest $request): View
     {
         // Get database overview statistics
         $databaseStats = $this->getDatabaseStats();
@@ -879,7 +880,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Run database commands via AJAX
      */
-    public function runCommand(Request $request): JsonResponse
+    public function runCommand(DatabaseDashboardRequest $request): JsonResponse
     {
         $command = $request->input('command');
 
@@ -969,7 +970,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Clean performance metrics data
      */
-    public function cleanPerformanceMetrics(Request $request): JsonResponse
+    public function cleanPerformanceMetrics(DatabaseDashboardRequest $request): JsonResponse
     {
         $cleanupType = $request->input('cleanup_type', 'old'); // 'old', 'sample', 'all'
         $days = $request->input('days', 90); // Keep last N days
@@ -1089,7 +1090,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Get performance metrics statistics for cleanup info
      */
-    public function getMetricsStats(Request $request): JsonResponse
+    public function getMetricsStats(DatabaseDashboardRequest $request): JsonResponse
     {
         try {
             $sampleQuery = PerformanceMetric::whereJsonContains('metadata->generated', true);
@@ -1199,7 +1200,7 @@ class DatabaseDashboardController extends CrudController
     /**
      * Resolve database health alert via AJAX
      */
-    public function resolveAlert(Request $request): JsonResponse
+    public function resolveAlert(DatabaseDashboardRequest $request): JsonResponse
     {
         $alertId = $request->input('alert_id');
 
