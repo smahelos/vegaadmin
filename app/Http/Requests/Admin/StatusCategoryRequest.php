@@ -13,7 +13,9 @@ class StatusCategoryRequest extends FormRequest
     public function authorize(): bool
     {
         // Authorize only if authenticated backpack user has permission
-        return backpack_auth()->check() && backpack_auth()->user()->can('can_create_edit_status');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_status') === true;
     }
 
     /**

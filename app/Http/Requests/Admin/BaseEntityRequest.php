@@ -19,11 +19,10 @@ abstract class BaseEntityRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (!backpack_auth()->check()) {
+        $user = backpack_user();
+        if ($user === null) {
             return false;
         }
-
-        $user = backpack_auth()->user();
 
         // Check basic permissions first
         if (!$user->can($this->getRequiredPermission())) {
@@ -154,6 +153,8 @@ abstract class BaseEntityRequest extends FormRequest
         $entityType = $entityType ?? $this->getEntityType();
         $permission = "can_create_{$entityType}_unlimited";
 
-        return backpack_auth()->check() && backpack_auth()->user()->can($permission);
+        $user = backpack_user();
+
+        return $user?->can($permission) === true;
     }
 }

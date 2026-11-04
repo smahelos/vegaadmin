@@ -21,7 +21,8 @@ class RedirectIfAuthenticated
 
         foreach ($guards as $guard) {
             // Check if user is authenticated
-            if (Auth::guard($guard)->check()) {
+            $auth = Auth::guard($guard);
+            if ($auth->check()) {
                 // If request is to admin area and using backpack guard
                 if ($request->is('admin*') || $guard === 'backpack') {
                     return redirect(
@@ -32,7 +33,10 @@ class RedirectIfAuthenticated
                 // For frontend guard or without specified guard
                 if ($guard === 'web' || $guard === null) {
                     // Prioritize redirection to dashboard if exists
-                    return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()]);
+                    $application = app();
+                    $redirector = redirect();
+
+                    return $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
                 }
             }
         }

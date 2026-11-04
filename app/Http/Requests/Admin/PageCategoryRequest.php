@@ -15,7 +15,9 @@ class PageCategoryRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage page categories
-        return backpack_user() && backpack_user()->can('can_create_edit_page');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_page') === true;
     }
 
     /**
@@ -100,11 +102,12 @@ class PageCategoryRequest extends FormRequest
 
         if (!$hasValidLocale) {
             Log::debug('No valid locale found, adding validation errors');
-            $validator->errors()->add(
+            $errors = $validator->errors();
+            $errors->add(
                 'name',
                 __('pages.categories.validation.at_least_one_locale'),
             );
-            $validator->errors()->add(
+            $errors->add(
                 'slug',
                 __('pages.categories.validation.at_least_one_locale'),
             );

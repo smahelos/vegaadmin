@@ -20,12 +20,16 @@ final class UserRequest extends FormRequest
 
     public function rules(): array
     {
+        $user = $this->user();
+        $emailUnique = Rule::unique('users', 'email');
+        $emailUnique->ignore($user?->id);
+
         return [
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
                 'email',
-                Rule::unique('users', 'email')->ignore($this->user()?->id),
+                $emailUnique,
             ],
         ];
     }

@@ -113,15 +113,15 @@ class ProductRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator): void
     {
-        throw new ValidationException(
-            $validator,
-            redirect()->back()
-                ->withErrors($validator->errors())
-                ->withInput()
-                ->with(
-                    'error',
-                    trans('products.messages.validation_failed'),
-                ),
+        $redirector = redirect();
+        $redirect = $redirector->back();
+        $redirect->withErrors($validator->errors());
+        $redirect->withInput();
+        $redirect->with(
+            'error',
+            __('products.messages.validation_failed'),
         );
+
+        throw new ValidationException($validator, $redirect);
     }
 }

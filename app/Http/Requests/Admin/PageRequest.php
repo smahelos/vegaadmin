@@ -13,7 +13,9 @@ class PageRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage pages
-        return backpack_user() && backpack_user()->can('can_create_edit_page');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_page') === true;
     }
 
     /**
@@ -70,7 +72,11 @@ class PageRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->get('id') ?? request()->route('id');
+        $id = $this->get('id');
+        if ($id === null) {
+            $currentRequest = request();
+            $id = $currentRequest->route('id');
+        }
 
         $rules = [
             // Multilingual name validation - at least one locale required
@@ -232,7 +238,8 @@ class PageRequest extends FormRequest
                 }
 
                 if (!$hasName) {
-                    $validator->errors()->add(
+                    $errors = $validator->errors();
+                    $errors->add(
                         'name',
                         __('pages.validation.at_least_one_locale'),
                     );
@@ -256,7 +263,8 @@ class PageRequest extends FormRequest
                 }
 
                 if (!$hasSlug) {
-                    $validator->errors()->add(
+                    $errors = $validator->errors();
+                    $errors->add(
                         'slug',
                         __('pages.validation.at_least_one_locale'),
                     );

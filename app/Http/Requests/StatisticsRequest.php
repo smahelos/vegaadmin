@@ -16,7 +16,9 @@ final class StatisticsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user('web')?->can('frontend.api.statistics') ?? false;
+        $user = $this->user('web');
+
+        return $user?->can('frontend.api.statistics') === true;
     }
 
     /**

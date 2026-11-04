@@ -19,6 +19,18 @@ final class InvoiceItemInput
         bool $guest,
         bool $required,
     ): array {
+        if ($guest) {
+            $productRules = ['prohibited'];
+        } else {
+            $productExists = Rule::exists('products', 'id');
+            $productExists->where('user_id', $userId);
+            $productRules = [
+                'nullable',
+                'integer',
+                $productExists,
+            ];
+        }
+
         return [
             'invoice-products' => [
                 $required ? 'required' : 'sometimes',
@@ -58,13 +70,7 @@ final class InvoiceItemInput
                 'numeric',
                 self::taxRateRule(),
             ],
-            'invoice-products.*.product_id' => $guest
-                ? ['prohibited']
-                : [
-                    'nullable',
-                    'integer',
-                    Rule::exists('products', 'id')->where('user_id', $userId),
-                ],
+            'invoice-products.*.product_id' => $productRules,
             'invoice-products.*.category' => [
                 'nullable',
                 'string',
@@ -134,10 +140,11 @@ final class InvoiceItemInput
      */
     private static function allowedTaxRates(): array
     {
+        $taxes = app(TaxDtoReadRepositoryInterface::class);
         $rates = array_map(
             fn (int|float|string $rate): string => self::normalizedRate((string) $rate),
             ['0', ...array_values(
-                app(TaxDtoReadRepositoryInterface::class)->getDphRatesForDropdown(),
+                $taxes->getDphRatesForDropdown(),
             )],
         );
         $rates = array_values(
@@ -153,13 +160,15 @@ final class InvoiceItemInput
      */
     private static function formattedRates(array $rates): string
     {
+        $application = app();
+
         return implode(
             ', ',
             array_map(
                 fn (string $rate): string => (string) Number::percentage(
                     (float) $rate,
                     maxPrecision: 2,
-                    locale: app()->getLocale(),
+                    locale: $application->getLocale(),
                 ),
                 $rates,
             ),

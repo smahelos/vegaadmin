@@ -20,16 +20,17 @@ class RequireBackpackAccess
     public function handle(Request $request, Closure $next): Response
     {
         // Check if user is authenticated with backpack guard
-        if (!backpack_auth()->check()) {
+        $auth = backpack_auth();
+        if (!$auth->check()) {
             return $this->respondToUnauthorizedRequest($request, false);
         }
 
         $user = backpack_user();
 
         // Check if user has any role with 'backpack' guard
-        $hasBackpackRole = $user->roles()
-            ->where('guard_name', 'backpack')
-            ->exists();
+        $roles = $user->roles();
+        $roles->where('guard_name', 'backpack');
+        $hasBackpackRole = $roles->exists();
 
         if (!$hasBackpackRole) {
             Log::warning(
@@ -71,27 +72,37 @@ class RequireBackpackAccess
                 ? __('users.auth.no_admin_access')
                 : __('users.auth.unauthenticated');
 
-            return response()->json([
-                'error' => $message,
-                'code' => $statusCode,
-            ], $statusCode);
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                [
+                    'error' => $message,
+                    'code' => $statusCode,
+                ],
+                $statusCode,
+            );
         }
 
         if ($isAuthenticated) {
             // User is logged in but doesn't have proper roles
             // Log them out and redirect to login with error message
-            backpack_auth()->logout();
+            $auth = backpack_auth();
+            $auth->logout();
 
-            return redirect()->route('backpack.auth.login')
-                ->withErrors(
-                    [
-                        'email' => trans('admin.auth.no_backpack_role'),
-                    ],
-                );
+            $redirector = redirect();
+            $redirect = $redirector->route('backpack.auth.login');
+
+            return $redirect->withErrors(
+                [
+                    'email' => __('admin.auth.no_backpack_role'),
+                ],
+            );
         }
 
         // User is not logged in - redirect to login
-        return redirect()->guest(
+        $redirector = redirect();
+
+        return $redirector->guest(
             backpack_url('login'),
         );
     }

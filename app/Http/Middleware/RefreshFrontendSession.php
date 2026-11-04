@@ -15,7 +15,8 @@ class RefreshFrontendSession
     public function handle(Request $request, Closure $next): Response
     {
         // Ensure a flag exists to mark that frontend session middleware has run
-        if (!session()->has('frontend_session_state')) {
+        $session = session();
+        if (!$session->has('frontend_session_state')) {
             session(['frontend_session_state' => true]);
         }
 

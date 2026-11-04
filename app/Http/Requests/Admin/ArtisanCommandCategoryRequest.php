@@ -12,7 +12,7 @@ class ArtisanCommandCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return backpack_auth()->check();
+        return backpack_user() !== null;
     }
 
     /**

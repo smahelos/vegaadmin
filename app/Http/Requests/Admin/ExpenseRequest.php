@@ -18,6 +18,7 @@ use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Http\Requests\Party\BankAccountInput;
 use App\Http\Requests\Party\DocumentPartyInput;
 use DateTimeImmutable;
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +26,9 @@ final class ExpenseRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can(
+        $user = backpack_user();
+
+        return $user?->can(
             $this->isMethod('POST') ? 'can_create_expense' : 'can_update_expense',
         ) === true;
     }
@@ -38,31 +41,47 @@ final class ExpenseRequest extends FormRequest
             $accountFields[$field] = $this->input('account_' . $field);
         }
 
+        $businessExists = Rule::exists('businesses', 'id');
+        $businessExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        $contactExists = Rule::exists('contacts', 'id');
+        $contactExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        $bankAccountExists = Rule::exists('bank_accounts', 'id');
+        $bankAccountExists->where(
+            'contact_id',
+            $this->integer('contact_id'),
+        );
+        $statusExists = Rule::exists('statuses', 'id');
+        $statusExists->whereIn(
+            'category_id',
+            function (Builder $query): void {
+                $query->select('id');
+                $query->from('status_categories');
+                $query->where('slug', 'expense-statuses');
+            },
+        );
+
         return [
             'user_id' => 'required|integer|exists:users,id',
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where(
-                    'user_id',
-                    $this->integer('user_id'),
-                ),
+                $businessExists,
             ],
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where(
-                    'user_id',
-                    $this->integer('user_id'),
-                ),
+                $contactExists,
             ],
             'bank_account_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('bank_accounts', 'id')->where(
-                    'contact_id',
-                    $this->integer('contact_id'),
-                ),
+                $bankAccountExists,
             ],
             ...AdminDocumentPartyInput::rules(
                 $this->all(),
@@ -85,10 +104,7 @@ final class ExpenseRequest extends FormRequest
             'status_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('statuses', 'id')->whereIn(
-                    'category_id',
-                    fn ($query) => $query->select('id')->from('status_categories')->where('slug', 'expense-statuses'),
-                ),
+                $statusExists,
             ],
             'attachments' => 'sometimes|nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:10240',
@@ -225,11 +241,14 @@ final class ExpenseRequest extends FormRequest
             return false;
         }
 
-        return app(ExpenseApplicationService::class)->get(
+        $expenses = app(ExpenseApplicationService::class);
+        $expense = $expenses->get(
             UserId::fromInt(
                 $this->integer('user_id'),
             ),
             ExpenseId::fromInt($id),
-        )->parties->contactId?->value === $this->integer('contact_id');
+        );
+
+        return $expense->parties->contactId?->value === $this->integer('contact_id');
     }
 }

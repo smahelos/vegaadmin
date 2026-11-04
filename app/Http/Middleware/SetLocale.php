@@ -32,7 +32,8 @@ class SetLocale
                 Session::put('locale', $lang);
 
                 // Set cookie for 30 days
-                cookie()->queue(
+                $cookies = cookie();
+                $cookies->queue(
                     'locale',
                     $lang,
                     60 * 24 * 30,
@@ -72,8 +73,9 @@ class SetLocale
         }
 
         // 1. From route parameter (second priority)
-        if ($request->route() && $request->route()->parameter('locale')) {
-            $routeLocale = $request->route()->parameter('locale');
+        $route = $request->route();
+        if ($route && $route->parameter('locale')) {
+            $routeLocale = $route->parameter('locale');
             $availableLocales = config('app.available_locales', [
                 'cs',
                 'en',

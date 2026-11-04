@@ -12,7 +12,9 @@ class SubscriptionPlanFeatureRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return backpack_user() && backpack_user()->hasPermissionTo('can_create_edit_subscription_plan_feature', 'backpack');
+        $user = backpack_user();
+
+        return $user?->hasPermissionTo('can_create_edit_subscription_plan_feature', 'backpack') === true;
     }
 
     /**

@@ -13,32 +13,39 @@ final class ArchiveBusinessRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can('can_archive_business') === true;
+        $user = backpack_user();
+
+        return $user?->can('can_archive_business') === true;
     }
 
     /** @return array<string, list<string|object>> */
     public function rules(): array
     {
+        $replacementExists = Rule::exists('businesses', 'id');
+        $replacementExists->whereNull('archived_at');
+        $replacementExists->whereNot(
+            'id',
+            (int) $this->route('id'),
+        );
+        $replacementExists->where(
+            fn (Builder $query): Builder => $query->where(
+                'user_id',
+                function (Builder $owner): void {
+                    $owner->select('user_id');
+                    $owner->from('businesses');
+                    $owner->where(
+                        'id',
+                        (int) $this->route('id'),
+                    );
+                },
+            ),
+        );
+
         return [
             'replacement_business_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('businesses', 'id')
-                    ->whereNull('archived_at')
-                    ->whereNot(
-                        'id',
-                        (int) $this->route('id'),
-                    )
-                    ->where(
-                        fn (Builder $query): Builder => $query->where(
-                            'user_id',
-                            fn (Builder $owner): Builder => $owner->select('user_id')
-                                ->from('businesses')->where(
-                                    'id',
-                                    (int) $this->route('id'),
-                                ),
-                        ),
-                    ),
+                $replacementExists,
             ],
         ];
     }

@@ -13,7 +13,9 @@ final class InvoiceItemsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->canAny(['can_create_invoice', 'can_update_invoice']) === true;
+        $user = backpack_user();
+
+        return $user?->canAny(['can_create_invoice', 'can_update_invoice']) === true;
     }
 
     /** @return array<string, mixed> */

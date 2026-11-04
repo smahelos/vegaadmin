@@ -45,6 +45,10 @@ final class BankAccountInput
             PartyInput::text($input, 'swift'),
         );
 
+        $bankExists = Rule::exists('banks', 'code');
+        $bankExists->where('country', $country->value ?? '');
+        $bankExists->where('active', true);
+
         // The whole account is checked on the IBAN, or on the local number when there is no IBAN
         $rules = [
             'label' => [
@@ -70,9 +74,7 @@ final class BankAccountInput
             'bank_code' => [
                 'nullable',
                 'string',
-                Rule::exists('banks', 'code')
-                    ->where('country', $country->value ?? '')
-                    ->where('active', true),
+                $bankExists,
             ],
             'country' => [
                 'nullable',

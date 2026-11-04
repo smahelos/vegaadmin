@@ -32,7 +32,8 @@ final class RegistrationNumberRule implements ValidationRule
         try {
             RegistrationNumber::fromParts($this->country, $value);
         } catch (InvalidRegistrationNumberException $e) {
-            $fail('parties.validation.' . $e->problem->value)->translate();
+            $message = $fail('parties.validation.' . $e->problem->value);
+            $message->translate();
         }
     }
 }

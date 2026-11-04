@@ -29,7 +29,9 @@ final class InvoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can(
+        $user = backpack_user();
+
+        return $user?->can(
             $this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice',
         ) === true;
     }
@@ -37,32 +39,44 @@ final class InvoiceRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $businessExists = Rule::exists('businesses', 'id');
+        $businessExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        $contactExists = Rule::exists('contacts', 'id');
+        $contactExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        if ($this->paysByBankTransfer()) {
+            $bankAccountExists = Rule::exists('bank_accounts', 'id');
+            $bankAccountExists->where(
+                'business_id',
+                $this->integer('business_id'),
+            );
+            $bankAccountRules = [
+                'required',
+                'integer',
+                $bankAccountExists,
+            ];
+        } else {
+            $bankAccountRules = ['exclude'];
+        }
+
         $rules = [
             'user_id' => 'required|integer|exists:users,id',
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where(
-                    'user_id',
-                    $this->integer('user_id'),
-                ),
+                $businessExists,
             ],
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where(
-                    'user_id',
-                    $this->integer('user_id'),
-                ),
+                $contactExists,
             ],
-            'bank_account_id' => $this->paysByBankTransfer() ? [
-                'required',
-                'integer',
-                Rule::exists('bank_accounts', 'id')->where(
-                    'business_id',
-                    $this->integer('business_id'),
-                ),
-            ] : ['exclude'],
+            'bank_account_id' => $bankAccountRules,
             'invoice_vs' => 'required|string|max:50',
             'invoice_ks' => 'nullable|string|max:20',
             'invoice_ss' => 'nullable|string|max:20',
@@ -112,7 +126,9 @@ final class InvoiceRequest extends FormRequest
             return null;
         }
 
-        return app(InvoiceProductWriteDataAssembler::class)->fromValidated(
+        $assembler = app(InvoiceProductWriteDataAssembler::class);
+
+        return $assembler->fromValidated(
             $this->validated('invoice-products'),
         );
     }
@@ -168,7 +184,8 @@ final class InvoiceRequest extends FormRequest
         if ($this->isMethod('POST') || $id <= 0 || $this->integer('user_id') <= 0) {
             return false;
         }
-        $invoice = app(InvoiceListingApplicationServiceInterface::class)->getById(
+        $invoices = app(InvoiceListingApplicationServiceInterface::class);
+        $invoice = $invoices->getById(
             InvoiceId::fromInt($id),
             UserId::fromInt(
                 $this->integer('user_id'),
@@ -185,8 +202,11 @@ final class InvoiceRequest extends FormRequest
             return false;
         }
 
-        return app(PaymentMethodDtoReadRepositoryInterface::class)->findById(
+        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
+        $paymentMethod = $paymentMethods->findById(
             PaymentMethodId::fromInt($id),
-        )?->code === PaymentMethodCode::BANK_ACCOUNT;
+        );
+
+        return $paymentMethod?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
 }

@@ -19,14 +19,17 @@ class PaymentMethodRequest extends BaseEntityRequest
 
     public function rules(): array
     {
+        $slugUnique = Rule::unique('payment_methods', 'slug');
+        $slugUnique->ignore(
+            $this->route('id') ?: $this->id,
+        );
+
         return [
             'name' => 'required|string|max:255',
             'slug' => [
                 'required',
                 Rule::enum(PaymentMethodCode::class),
-                Rule::unique('payment_methods', 'slug')->ignore(
-                    $this->route('id') ?: $this->id,
-                ),
+                $slugUnique,
             ],
             'description' => 'nullable|string',
             'is_active' => 'boolean',

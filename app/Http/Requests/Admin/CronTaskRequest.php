@@ -9,7 +9,9 @@ class CronTaskRequest extends FormRequest
     public function authorize(): bool
     {
         // Only authenticated backpack users with cron task permission
-        return backpack_auth()->check() && backpack_auth()->user()->can('can_create_edit_cron_task');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_cron_task') === true;
     }
 
     public function rules(): array

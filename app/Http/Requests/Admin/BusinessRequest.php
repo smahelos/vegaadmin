@@ -18,7 +18,9 @@ final class BusinessRequest extends FormRequest
     {
         $permission = $this->isMethod('POST') ? 'can_create_business' : 'can_update_business';
 
-        return backpack_user()?->can($permission) === true;
+        $user = backpack_user();
+
+        return $user?->can($permission) === true;
     }
 
     /**

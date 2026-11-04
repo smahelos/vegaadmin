@@ -19,8 +19,10 @@ final class UniquePerUser
         int|string|null $userId,
         int|string|null $ignoreId = null,
     ): Unique {
-        return Rule::unique($table, $column)
-            ->where('user_id', $userId)
-            ->ignore($ignoreId);
+        $rule = Rule::unique($table, $column);
+        $rule->where('user_id', $userId);
+        $rule->ignore($ignoreId);
+
+        return $rule;
     }
 }
