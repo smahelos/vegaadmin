@@ -51,92 +51,92 @@ class PageCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')
-            ->label(
-                __('pages.fields.name'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
+        $column = CRUD::column('name');
+        $column->label(
+            __('pages.fields.name'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                $application = app();
+                $currentLocale = $application->getLocale();
+
+                return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
+            },
+        );
+
+        $column = CRUD::column('slug');
+        $column->label(
+            __('pages.fields.slug'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                $application = app();
+                $currentLocale = $application->getLocale();
+
+                return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
+            },
+        );
+
+        $column = CRUD::column('category_id');
+        $column->label(
+            __('pages.fields.category_id'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                if ($entry->category) {
                     $application = app();
                     $currentLocale = $application->getLocale();
 
-                    return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
-                },
-            );
+                    return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? __('general.placeholders.not_available');
+                }
 
-        CRUD::column('slug')
-            ->label(
-                __('pages.fields.slug'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
+                return __('general.placeholders.not_available');
+            },
+        );
+
+        $column = CRUD::column('parent_id');
+        $column->label(
+            __('pages.fields.parent_id'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                if ($entry->parent) {
                     $application = app();
                     $currentLocale = $application->getLocale();
 
-                    return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
-                },
-            );
+                    return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? __('general.placeholders.not_available');
+                }
 
-        CRUD::column('category_id')
-            ->label(
-                __('pages.fields.category_id'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    if ($entry->category) {
-                        $application = app();
-                        $currentLocale = $application->getLocale();
+                return '-';
+            },
+        );
 
-                        return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? __('general.placeholders.not_available');
-                    }
+        $column = CRUD::column('sort_order');
+        $column->label(
+            __('pages.fields.sort_order'),
+        );
+        $column->type('number');
 
-                    return __('general.placeholders.not_available');
-                },
-            );
+        $column = CRUD::column('published');
+        $column->label(
+            __('pages.fields.published'),
+        );
+        $column->type('boolean');
 
-        CRUD::column('parent_id')
-            ->label(
-                __('pages.fields.parent_id'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    if ($entry->parent) {
-                        $application = app();
-                        $currentLocale = $application->getLocale();
+        $column = CRUD::column('publishing_start');
+        $column->label(
+            __('pages.fields.publishing_start'),
+        );
+        $column->type('datetime');
 
-                        return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? __('general.placeholders.not_available');
-                    }
-
-                    return '-';
-                },
-            );
-
-        CRUD::column('sort_order')
-            ->label(
-                __('pages.fields.sort_order'),
-            )
-            ->type('number');
-
-        CRUD::column('published')
-            ->label(
-                __('pages.fields.published'),
-            )
-            ->type('boolean');
-
-        CRUD::column('publishing_start')
-            ->label(
-                __('pages.fields.publishing_start'),
-            )
-            ->type('datetime');
-
-        CRUD::column('created_at')
-            ->label(
-                __('pages.fields.created_at'),
-            );
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('pages.fields.created_at'),
+        );
 
         // Add filters
         $this->crud->addFilter(
@@ -228,13 +228,13 @@ class PageCrudController extends CrudController
         );
         $categoryOptions = $categoryNames->toArray();
 
-        CRUD::field('category_id')
-            ->label(
-                __('pages.fields.category_id'),
-            )
-            ->type('select_from_array')
-            ->options($categoryOptions)
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('category_id');
+        $field->label(
+            __('pages.fields.category_id'),
+        );
+        $field->type('select_from_array');
+        $field->options($categoryOptions);
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
         $pageOptions = ['' => __('pages.placeholders.no_parent')];
         $pages = Page::all();
@@ -243,23 +243,23 @@ class PageCrudController extends CrudController
             $pageOptions[$page->id] = $name;
         }
 
-        CRUD::field('parent_id')
-            ->label(
-                __('pages.fields.parent_id'),
-            )
-            ->type('select_from_array')
-            ->options($pageOptions)
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('parent_id');
+        $field->label(
+            __('pages.fields.parent_id'),
+        );
+        $field->type('select_from_array');
+        $field->options($pageOptions);
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
-        CRUD::field('sort_order')
-            ->label(
-                __('pages.fields.sort_order'),
-            )
-            ->type('number')
-            ->hint(
-                __('pages.hints.sort_order'),
-            )
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('sort_order');
+        $field->label(
+            __('pages.fields.sort_order'),
+        );
+        $field->type('number');
+        $field->hint(
+            __('pages.hints.sort_order'),
+        );
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
         // Multilingual content fields
         CRUD::addField(
@@ -312,40 +312,40 @@ class PageCrudController extends CrudController
         );
 
         // Images
-        CRUD::field('main_image')
-            ->type('image_with_preview')
-            ->label(
-                __('pages.fields.main_image'),
-            )
-            ->upload(true)
-            ->hint(
-                __('pages.hints.main_image'),
-            )
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('main_image');
+        $field->type('image_with_preview');
+        $field->label(
+            __('pages.fields.main_image'),
+        );
+        $field->upload(true);
+        $field->hint(
+            __('pages.hints.main_image'),
+        );
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
         // Publishing fields
-        CRUD::field('published')
-            ->label(
-                __('pages.fields.published'),
-            )
-            ->type('checkbox')
-            ->wrapper(['class' => 'form-group col-md-3']);
+        $field = CRUD::field('published');
+        $field->label(
+            __('pages.fields.published'),
+        );
+        $field->type('checkbox');
+        $field->wrapper(['class' => 'form-group col-md-3']);
 
-        CRUD::field('publishing_start')
-            ->label(
-                __('pages.fields.publishing_start'),
-            )
-            ->type('datepicker')
-            ->datepicker_options(['timepicker' => true])
-            ->wrapper(['class' => 'form-group col-md-4']);
+        $field = CRUD::field('publishing_start');
+        $field->label(
+            __('pages.fields.publishing_start'),
+        );
+        $field->type('datepicker');
+        $field->datepicker_options(['timepicker' => true]);
+        $field->wrapper(['class' => 'form-group col-md-4']);
 
-        CRUD::field('publishing_end')
-            ->label(
-                __('pages.fields.publishing_end'),
-            )
-            ->type('datepicker')
-            ->datepicker_options(['timepicker' => true])
-            ->wrapper(['class' => 'form-group col-md-4']);
+        $field = CRUD::field('publishing_end');
+        $field->label(
+            __('pages.fields.publishing_end'),
+        );
+        $field->type('datepicker');
+        $field->datepicker_options(['timepicker' => true]);
+        $field->wrapper(['class' => 'form-group col-md-4']);
     }
 
     /**
@@ -369,63 +369,63 @@ class PageCrudController extends CrudController
         $this->setupListOperation();
 
         // Add more detailed columns for show view
-        CRUD::column('description')
-            ->label(
-                __('pages.fields.description'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    $application = app();
-                    $currentLocale = $application->getLocale();
+        $column = CRUD::column('description');
+        $column->label(
+            __('pages.fields.description'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                $application = app();
+                $currentLocale = $application->getLocale();
 
-                    return $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
-                },
-            );
+                return $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
+            },
+        );
 
-        CRUD::column('content')
-            ->label(
-                __('pages.fields.content'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    $application = app();
-                    $currentLocale = $application->getLocale();
-                    $content = $entry->getContent($currentLocale) ?? $entry->getContent('cs') ?? '';
+        $column = CRUD::column('content');
+        $column->label(
+            __('pages.fields.content'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                $application = app();
+                $currentLocale = $application->getLocale();
+                $content = $entry->getContent($currentLocale) ?? $entry->getContent('cs') ?? '';
 
-                    return \Str::limit(
-                        strip_tags($content),
-                        200,
-                    );
-                },
-            );
+                return \Str::limit(
+                    strip_tags($content),
+                    200,
+                );
+            },
+        );
 
-        CRUD::column('meta_title')
-            ->label(
-                __('pages.fields.meta_title'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    $application = app();
-                    $currentLocale = $application->getLocale();
+        $column = CRUD::column('meta_title');
+        $column->label(
+            __('pages.fields.meta_title'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                $application = app();
+                $currentLocale = $application->getLocale();
 
-                    return $entry->getMetaTitle($currentLocale) ?? $entry->getMetaTitle('cs') ?? '';
-                },
-            );
+                return $entry->getMetaTitle($currentLocale) ?? $entry->getMetaTitle('cs') ?? '';
+            },
+        );
 
-        CRUD::column('created_at')
-            ->label(
-                __('pages.fields.created_at'),
-            )
-            ->type('datetime');
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('pages.fields.created_at'),
+        );
+        $column->type('datetime');
 
-        CRUD::column('updated_at')
-            ->label(
-                __('pages.fields.updated_at'),
-            )
-            ->type('datetime');
+        $column = CRUD::column('updated_at');
+        $column->label(
+            __('pages.fields.updated_at'),
+        );
+        $column->type('datetime');
     }
 
     /**

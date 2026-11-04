@@ -170,10 +170,12 @@ class UserCrudController extends CrudController
      */
     public function setupShowOperation(): void
     {
-        $this->crud->column('name')->label(
+        $column = $this->crud->column('name');
+        $column->label(
             __('users.fields.name'),
         );
-        $this->crud->column('email')->label(
+        $column = $this->crud->column('email');
+        $column->label(
             __('users.fields.email'),
         );
         $this->crud->column(
@@ -202,10 +204,12 @@ class UserCrudController extends CrudController
                 ],
             ],
         );
-        $this->crud->column('created_at')->label(
+        $column = $this->crud->column('created_at');
+        $column->label(
             __('users.fields.created_at'),
         );
-        $this->crud->column('updated_at')->label(
+        $column = $this->crud->column('updated_at');
+        $column->label(
             __('users.fields.updated_at'),
         );
     }
