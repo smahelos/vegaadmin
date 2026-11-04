@@ -35,24 +35,6 @@ class RequireBackpackApiAccess
         }
 
         $user = $auth->user();
-        $permissions = $user->getAllPermissions();
-        $permissionNames = $permissions->pluck('name');
-        $permissionsWithGuard = $permissions->map(
-            function ($p) {
-                return $p->name . ' (' . $p->guard_name . ')';
-            },
-        );
-        Log::debug(
-            'Backpack user authenticated',
-            [
-                'user_id' => $user->id,
-                'email' => $user->email,
-                'path' => $request->path(),
-                'has_admin_role' => $user->hasRole('admin'),
-                'all_permissions' => $permissionNames->toArray(),
-                'permissions_with_guard' => $permissionsWithGuard->toArray(),
-            ],
-        );
 
         // Check if user has backpack API access permission
         if (!$user->hasPermissionTo('backpack.api.access', 'backpack')) {

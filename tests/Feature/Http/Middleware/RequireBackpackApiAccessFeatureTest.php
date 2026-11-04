@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Middleware;
 use App\Http\Middleware\RequireBackpackApiAccess;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -13,6 +15,9 @@ use Tests\TestCase;
 class RequireBackpackApiAccessFeatureTest extends TestCase
 {
     private RequireBackpackApiAccess $middleware;
+
+    /** @var list<array{string, string}> */
+    private array $logs = [];
 
     protected function setUp(): void
     {
@@ -96,5 +101,49 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
             },
         );
         $this->assertTrue($passed);
+    }
+
+    #[Test]
+    public function permitted_request_writes_no_log_entry(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $user->assignRole($roleQuery->first());
+        $this->actingAs($user, 'backpack');
+        $this->collectLogs();
+        $this->middleware->handle(
+            Request::create('/admin/api/resource'),
+            fn () => response('OK'),
+        );
+        $this->assertSame([], $this->logs);
+    }
+
+    #[Test]
+    public function denied_request_writes_only_the_warning(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $this->actingAs($user, 'backpack');
+        $this->collectLogs();
+        $this->middleware->handle(
+            Request::create('/admin/api/resource'),
+            fn () => response('OK'),
+        );
+        $this->assertSame(
+            [['warning', 'Backpack user lacks API access permission']],
+            $this->logs,
+        );
+    }
+
+    private function collectLogs(): void
+    {
+        Event::listen(
+            MessageLogged::class,
+            function (MessageLogged $log): void {
+                $this->logs[] = [$log->level, $log->message];
+            },
+        );
     }
 }
