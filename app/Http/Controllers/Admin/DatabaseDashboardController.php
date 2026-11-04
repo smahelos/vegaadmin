@@ -8,6 +8,7 @@ use App\Models\DatabaseMaintenanceLog;
 use App\Models\PerformanceMetric;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -68,7 +69,8 @@ class DatabaseDashboardController extends CrudController
             );
 
             // Get total database size
-            $totalSize = collect($tableSizes)->sum('size_mb');
+            $sizes = collect($tableSizes);
+            $totalSize = $sizes->sum('size_mb');
 
             // Get total tables count
             $totalTables = count($tableSizes);
@@ -95,11 +97,11 @@ class DatabaseDashboardController extends CrudController
     private function getPerformanceTrends(): array
     {
         // Get the most common metric type as default
-        $defaultMetricType = PerformanceMetric::select('metric_type')
-            ->selectRaw('COUNT(*) as count')
-            ->groupBy('metric_type')
-            ->orderBy('count', 'desc')
-            ->first();
+        $query = PerformanceMetric::select('metric_type');
+        $query->selectRaw('COUNT(*) as count');
+        $query->groupBy('metric_type');
+        $query->orderBy('count', 'desc');
+        $defaultMetricType = $query->first();
 
         $metricType = $defaultMetricType ? $defaultMetricType->metric_type : 'query_time';
 
@@ -112,26 +114,25 @@ class DatabaseDashboardController extends CrudController
     private function getAvailableMetricTypes(): Collection
     {
         try {
-            $metricTypes = PerformanceMetric::select('metric_type')
-                ->selectRaw('COUNT(*) as count')
-                ->selectRaw('MAX(measured_at) as last_measured')
-                ->selectRaw('MIN(measured_at) as first_measured')
-                ->groupBy('metric_type')
-                ->orderBy('count', 'desc')
-                ->get()
-                ->map(
-                    function ($metric) {
-                        return [
-                            'type' => $metric->metric_type,
-                            'count' => $metric->count,
-                            'label' => $this->getMetricTypeLabel($metric->metric_type),
-                            'last_measured' => $metric->last_measured,
-                            'first_measured' => $metric->first_measured,
-                        ];
-                    },
-                );
+            $query = PerformanceMetric::select('metric_type');
+            $query->selectRaw('COUNT(*) as count');
+            $query->selectRaw('MAX(measured_at) as last_measured');
+            $query->selectRaw('MIN(measured_at) as first_measured');
+            $query->groupBy('metric_type');
+            $query->orderBy('count', 'desc');
+            $metrics = $query->get();
 
-            return $metricTypes;
+            return $metrics->map(
+                function ($metric) {
+                    return [
+                        'type' => $metric->metric_type,
+                        'count' => $metric->count,
+                        'label' => $this->getMetricTypeLabel($metric->metric_type),
+                        'last_measured' => $metric->last_measured,
+                        'first_measured' => $metric->first_measured,
+                    ];
+                },
+            );
         } catch (\Exception $e) {
             Log::error('Failed to get available metric types', ['exception' => $e]);
 
@@ -176,14 +177,18 @@ class DatabaseDashboardController extends CrudController
         try {
             $performanceTrends = $this->getPerformanceTrendsForType($metricType, $days);
 
-            return response()->json([
+            $responseFactory = response();
+
+            return $responseFactory->json([
                 'success' => true,
                 'data' => $performanceTrends,
             ]);
         } catch (\Exception $e) {
             Log::error('Failed to get performance trends by type', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.failed_to_load_trends'),
@@ -197,16 +202,18 @@ class DatabaseDashboardController extends CrudController
      */
     private function getPerformanceTrendsForType(string $metricType, int $days = 30): array
     {
+        $now = CarbonImmutable::now();
+
         try {
             // Get metrics for specific type
-            $metrics = PerformanceMetric::where('metric_type', $metricType)
-                ->where(
-                    'measured_at',
-                    '>=',
-                    now()->subDays($days),
-                )
-                ->orderBy('measured_at')
-                ->get();
+            $query = PerformanceMetric::where('metric_type', $metricType);
+            $query->where(
+                'measured_at',
+                '>=',
+                $now->subDays($days),
+            );
+            $query->orderBy('measured_at');
+            $metrics = $query->get();
 
             $labels = [];
             $data = [];
@@ -222,7 +229,8 @@ class DatabaseDashboardController extends CrudController
                 );
 
                 foreach ($groupedMetrics as $date => $dayMetrics) {
-                    $labels[] = Carbon::parse($date)->format('M d');
+                    $day = Carbon::parse($date);
+                    $labels[] = $day->format('M d');
 
                     // Calculate average for the day
                     $dayAverage = $dayMetrics->avg('metric_value');
@@ -245,7 +253,7 @@ class DatabaseDashboardController extends CrudController
                 );
 
                 for ($i = $days - 1; $i >= 0; $i--) {
-                    $date = now()->subDays($i);
+                    $date = $now->subDays($i);
                     $labels[] = $date->format('M d');
 
                     // Generate different sample data based on metric type
@@ -274,7 +282,7 @@ class DatabaseDashboardController extends CrudController
             $data = [];
 
             for ($i = $days - 1; $i >= 0; $i--) {
-                $date = now()->subDays($i);
+                $date = $now->subDays($i);
                 $labels[] = $date->format('M d');
                 $data[] = $this->generateSampleDataForMetricType($metricType);
             }
@@ -351,8 +359,10 @@ class DatabaseDashboardController extends CrudController
     private function getArchiveStats(): array
     {
         try {
-            $archivedInvoices = DB::table('invoices_archive')->count();
-            $archivedProducts = DB::table('invoice_products_archive')->count();
+            $query = DB::table('invoices_archive');
+            $archivedInvoices = $query->count();
+            $query = DB::table('invoice_products_archive');
+            $archivedProducts = $query->count();
 
             return [
                 'archived_records' => $archivedInvoices + $archivedProducts,
@@ -377,26 +387,34 @@ class DatabaseDashboardController extends CrudController
     {
         try {
             // Get recent health metrics (last 24 hours)
-            $recentMetrics = DatabaseHealthMetric::recent()
-                ->get()
-                ->keyBy('metric_name');
+            $query = DatabaseHealthMetric::recent();
+            $metrics = $query->get();
+            $recentMetrics = $metrics->keyBy('metric_name');
 
             // Get unresolved alerts
-            $criticalAlerts = DatabaseHealthAlert::unresolved()->severity('critical')->count();
-            $warningAlerts = DatabaseHealthAlert::unresolved()->severity('warning')->count();
-            $infoAlerts = DatabaseHealthAlert::unresolved()->severity('info')->count();
+            $query = DatabaseHealthAlert::unresolved();
+            $query = $query->severity('critical');
+            $criticalAlerts = $query->count();
+            $query = DatabaseHealthAlert::unresolved();
+            $query = $query->severity('warning');
+            $warningAlerts = $query->count();
+            $query = DatabaseHealthAlert::unresolved();
+            $query = $query->severity('info');
+            $infoAlerts = $query->count();
 
             // Get recent alerts for display
-            $recentAlerts = DatabaseHealthAlert::unresolved()
-                ->orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get();
+            $query = DatabaseHealthAlert::unresolved();
+            $query->orderBy('created_at', 'desc');
+            $query->limit(5);
+            $recentAlerts = $query->get();
 
             // Calculate health score
             $healthScore = $this->calculateHealthScore($recentMetrics);
 
             // Get last check time
-            $lastCheck = DatabaseHealthMetric::orderBy('measured_at', 'desc')->first()?->measured_at;
+            $query = DatabaseHealthMetric::orderBy('measured_at', 'desc');
+            $latestMetric = $query->first();
+            $lastCheck = $latestMetric?->measured_at;
 
             // Get detailed metrics breakdown
             $detailedMetrics = $this->getDetailedHealthMetrics($recentMetrics);
@@ -539,16 +557,17 @@ class DatabaseDashboardController extends CrudController
     {
         try {
             $trend = [];
+            $now = CarbonImmutable::now();
 
             // Get daily average health scores for last 7 days
             for ($i = 6; $i >= 0; $i--) {
-                $date = now()->subDays($i);
-                $dayStart = $date->copy()->startOfDay();
-                $dayEnd = $date->copy()->endOfDay();
+                $date = $now->subDays($i);
+                $dayStart = $date->startOfDay();
+                $dayEnd = $date->endOfDay();
 
-                $dayMetrics = DatabaseHealthMetric::whereBetween('measured_at', [$dayStart, $dayEnd])
-                    ->get()
-                    ->groupBy('metric_name');
+                $query = DatabaseHealthMetric::whereBetween('measured_at', [$dayStart, $dayEnd]);
+                $metrics = $query->get();
+                $dayMetrics = $metrics->groupBy('metric_name');
 
                 $dayScore = $this->calculateHealthScore($dayMetrics);
 
@@ -699,7 +718,9 @@ class DatabaseDashboardController extends CrudController
             Artisan::call('db:health-check', $commandOptions);
             $output = Artisan::output();
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => __('admin/database.dashboard.health_check_completed'),
@@ -709,7 +730,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Database health check failed', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.health_check_failed'),
@@ -729,7 +752,9 @@ class DatabaseDashboardController extends CrudController
             ]);
             $output = \Artisan::output();
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => __('admin/database.dashboard.monitoring_completed'),
@@ -739,7 +764,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Database monitoring failed', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.monitoring_failed'),
@@ -777,7 +804,9 @@ class DatabaseDashboardController extends CrudController
             \Artisan::call($command, $parameters);
             $output = \Artisan::output();
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => __('admin/database.dashboard.optimization_completed'),
@@ -795,7 +824,9 @@ class DatabaseDashboardController extends CrudController
                 ],
             );
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.optimization_failed'),
@@ -822,7 +853,9 @@ class DatabaseDashboardController extends CrudController
             Artisan::call('db:archive', $commandOptions);
             $output = Artisan::output();
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => __('admin/database.dashboard.archive_completed'),
@@ -832,7 +865,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Database archive failed', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.archive_failed'),
@@ -865,7 +900,9 @@ class DatabaseDashboardController extends CrudController
                 case 'metrics-stats':
                     return $this->getMetricsStats($request);
                 default:
-                    return response()->json(
+                    $responseFactory = response();
+
+                    return $responseFactory->json(
                         [
                             'success' => false,
                             'message' => __('admin/database.dashboard.unknown_command'),
@@ -876,7 +913,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Database command failed', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.command_failed'),
@@ -891,36 +930,35 @@ class DatabaseDashboardController extends CrudController
     private function getRecentTasksWithDetails(): Collection
     {
         try {
-            $tasks = DatabaseMaintenanceLog::orderBy('created_at', 'desc')
-                ->limit(5)
-                ->get()
-                ->map(
-                    function ($task) {
-                        // Calculate space savings from results JSON
-                        $spaceSavings = $this->calculateSpaceSavings($task->results);
+            $query = DatabaseMaintenanceLog::orderBy('created_at', 'desc');
+            $query->limit(5);
+            $logs = $query->get();
 
-                        // Calculate duration in seconds
-                        $durationSeconds = 0;
-                        if ($task->started_at && $task->completed_at) {
-                            $durationSeconds = $task->completed_at->diffInSeconds($task->started_at);
-                        }
+            return $logs->map(
+                function ($task) {
+                    // Calculate space savings from results JSON
+                    $spaceSavings = $this->calculateSpaceSavings($task->results);
 
-                        return [
-                            'id' => $task->id,
-                            'task_type' => $task->task_type,
-                            'table_name' => $task->table_name,
-                            'status' => $task->status,
-                            'space_savings' => $spaceSavings,
-                            'duration_seconds' => $durationSeconds,
-                            'started_at' => $task->started_at,
-                            'completed_at' => $task->completed_at,
-                            'description' => $task->description,
-                            'results' => $task->results,
-                        ];
-                    },
-                );
+                    // Calculate duration in seconds
+                    $durationSeconds = 0;
+                    if ($task->started_at && $task->completed_at) {
+                        $durationSeconds = $task->completed_at->diffInSeconds($task->started_at);
+                    }
 
-            return $tasks;
+                    return [
+                        'id' => $task->id,
+                        'task_type' => $task->task_type,
+                        'table_name' => $task->table_name,
+                        'status' => $task->status,
+                        'space_savings' => $spaceSavings,
+                        'duration_seconds' => $durationSeconds,
+                        'started_at' => $task->started_at,
+                        'completed_at' => $task->completed_at,
+                        'description' => $task->description,
+                        'results' => $task->results,
+                    ];
+                },
+            );
         } catch (\Exception $e) {
             Log::error('Failed to get recent tasks', ['exception' => $e]);
 
@@ -943,17 +981,20 @@ class DatabaseDashboardController extends CrudController
             switch ($cleanupType) {
                 case 'old':
                     // Delete metrics older than specified days
-                    $deletedCount = PerformanceMetric::where(
+                    $now = CarbonImmutable::now();
+                    $query = PerformanceMetric::where(
                         'measured_at',
                         '<',
-                        now()->subDays($days),
-                    )->delete();
+                        $now->subDays($days),
+                    );
+                    $deletedCount = $query->delete();
                     $message = __('admin/database.dashboard.cleaned_old_metrics', ['count' => $deletedCount, 'days' => $days]);
                     break;
 
                 case 'sample':
                     // Delete only sample/generated data
-                    $deletedCount = PerformanceMetric::whereJsonContains('metadata->generated', true)->delete();
+                    $query = PerformanceMetric::whereJsonContains('metadata->generated', true);
+                    $deletedCount = $query->delete();
                     $message = __('admin/database.dashboard.cleaned_sample_metrics', ['count' => $deletedCount]);
                     break;
 
@@ -971,7 +1012,9 @@ class DatabaseDashboardController extends CrudController
                     break;
 
                 default:
-                    return response()->json(
+                    $responseFactory = response();
+
+                    return $responseFactory->json(
                         [
                             'success' => false,
                             'message' => __('admin/database.dashboard.invalid_cleanup_type'),
@@ -988,7 +1031,9 @@ class DatabaseDashboardController extends CrudController
                 ],
             );
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => $message,
@@ -999,7 +1044,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Failed to clean performance metrics', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.cleanup_failed'),
@@ -1025,17 +1072,17 @@ class DatabaseDashboardController extends CrudController
 
         foreach ($duplicates as $duplicate) {
             // Keep only the latest metric for each day/type combination
-            $keepIds = PerformanceMetric::where('metric_type', $duplicate->metric_type)
-                ->whereDate('measured_at', $duplicate->date)
-                ->orderBy('measured_at', 'desc')
-                ->limit(1)
-                ->pluck('id');
+            $query = PerformanceMetric::where('metric_type', $duplicate->metric_type);
+            $query->whereDate('measured_at', $duplicate->date);
+            $query->orderBy('measured_at', 'desc');
+            $query->limit(1);
+            $keepIds = $query->pluck('id');
 
             // Delete the rest
-            PerformanceMetric::where('metric_type', $duplicate->metric_type)
-                ->whereDate('measured_at', $duplicate->date)
-                ->whereNotIn('id', $keepIds)
-                ->delete();
+            $query = PerformanceMetric::where('metric_type', $duplicate->metric_type);
+            $query->whereDate('measured_at', $duplicate->date);
+            $query->whereNotIn('id', $keepIds);
+            $query->delete();
         }
     }
 
@@ -1045,28 +1092,31 @@ class DatabaseDashboardController extends CrudController
     public function getMetricsStats(Request $request): JsonResponse
     {
         try {
+            $sampleQuery = PerformanceMetric::whereJsonContains('metadata->generated', true);
+            $typeQuery = PerformanceMetric::select('metric_type');
+            $typeQuery->selectRaw('COUNT(*) as count');
+            $typeQuery->groupBy('metric_type');
+            $dayQuery = PerformanceMetric::select(
+                DB::raw('DATE(measured_at) as date'),
+            );
+            $dayQuery->selectRaw('COUNT(*) as count');
+            $dayQuery->groupBy(
+                DB::raw('DATE(measured_at)'),
+            );
+            $dayQuery->orderBy('date', 'desc');
+            $dayQuery->limit(30);
             $stats = [
                 'total_metrics' => PerformanceMetric::count(),
-                'sample_metrics' => PerformanceMetric::whereJsonContains('metadata->generated', true)->count(),
+                'sample_metrics' => $sampleQuery->count(),
                 'oldest_metric' => PerformanceMetric::min('measured_at'),
                 'newest_metric' => PerformanceMetric::max('measured_at'),
-                'metrics_by_type' => PerformanceMetric::select('metric_type')
-                    ->selectRaw('COUNT(*) as count')
-                    ->groupBy('metric_type')
-                    ->get(),
-                'metrics_by_day' => PerformanceMetric::select(
-                    DB::raw('DATE(measured_at) as date'),
-                )
-                    ->selectRaw('COUNT(*) as count')
-                    ->groupBy(
-                        DB::raw('DATE(measured_at)'),
-                    )
-                    ->orderBy('date', 'desc')
-                    ->limit(30)
-                    ->get(),
+                'metrics_by_type' => $typeQuery->get(),
+                'metrics_by_day' => $dayQuery->get(),
             ];
 
-            return response()->json([
+            $responseFactory = response();
+
+            return $responseFactory->json([
                 'success' => true,
                 'stats' => $stats,
             ]);
@@ -1074,7 +1124,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Failed to get metrics stats', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.stats_failed'),
@@ -1155,7 +1207,9 @@ class DatabaseDashboardController extends CrudController
             $alert = DatabaseHealthAlert::findOrFail($alertId);
             $alert->resolve();
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => true,
                     'message' => __('admin/database.dashboard.alert_resolved_successfully'),
@@ -1164,7 +1218,9 @@ class DatabaseDashboardController extends CrudController
         } catch (\Exception $e) {
             Log::error('Failed to resolve alert', ['exception' => $e]);
 
-            return response()->json(
+            $responseFactory = response();
+
+            return $responseFactory->json(
                 [
                     'success' => false,
                     'message' => __('admin/database.dashboard.alert_resolve_failed'),

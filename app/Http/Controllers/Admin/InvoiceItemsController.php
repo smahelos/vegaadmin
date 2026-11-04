@@ -23,6 +23,8 @@ final class InvoiceItemsController extends Controller
 
     public function catalog(InvoiceItemsRequest $request): AnonymousResourceCollection
     {
+        $search = $request->string('q');
+
         return CatalogProductResource::collection(
             $this->items->catalog(
                 UserId::fromInt((int) backpack_user()->id),
@@ -32,7 +34,7 @@ final class InvoiceItemsController extends Controller
                 Currency::from(
                     $request->validated('payment_currency'),
                 ),
-                $request->string('q')->toString(),
+                $search->toString(),
             ),
         );
     }
