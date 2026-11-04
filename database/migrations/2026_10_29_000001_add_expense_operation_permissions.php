@@ -10,8 +10,11 @@ return new class extends Migration
 {
     public function up(): void
     {
-        app(PermissionCatalogSync::class)->sync();
-        $legacy = Permission::where('name', 'can_create_edit_expense')->where('guard_name', 'backpack')->first();
+        $catalogSync = app(PermissionCatalogSync::class);
+        $catalogSync->sync();
+        $legacyQuery = Permission::where('name', 'can_create_edit_expense');
+        $legacyQuery->where('guard_name', 'backpack');
+        $legacy = $legacyQuery->first();
         if ($legacy === null) {
             return;
         }

@@ -47,4 +47,9 @@
     </rule>
 
     <rule ref="./phpcs/Billex"/>
+
+    <!-- Larastan reads model columns only from a chained Blueprint statement (.claude/rules/php.md, Readability). -->
+    <rule ref="Billex.Functions.DisallowCallChaining">
+        <exclude-pattern>database/migrations/*</exclude-pattern>
+    </rule>
 </ruleset>

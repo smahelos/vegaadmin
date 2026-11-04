@@ -13,19 +13,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        $overdueId = DB::table('statuses')->where('slug', 'overdue')->value('id');
+        $statuses = DB::table('statuses');
+        $statuses->where('slug', 'overdue');
+        $overdueId = $statuses->value('id');
         if ($overdueId === null) {
             return;
         }
-        $pendingId = DB::table('statuses')->where('slug', 'pending')->value('id');
+        $statuses = DB::table('statuses');
+        $statuses->where('slug', 'pending');
+        $pendingId = $statuses->value('id');
         if ($pendingId === null) {
             throw new RuntimeException(
                 'The pending invoice status is missing; overdue invoices would be left without a status.',
             );
         }
 
-        DB::table('invoices')->where('payment_status_id', $overdueId)->update(['payment_status_id' => $pendingId]);
-        DB::table('statuses')->where('id', $overdueId)->delete();
+        $invoices = DB::table('invoices');
+        $invoices->where('payment_status_id', $overdueId);
+        $invoices->update(['payment_status_id' => $pendingId]);
+        $statuses = DB::table('statuses');
+        $statuses->where('id', $overdueId);
+        $statuses->delete();
     }
 
     /**
@@ -33,12 +41,15 @@ return new class extends Migration
      */
     public function down(): void
     {
-        $categoryId = DB::table('status_categories')->where('slug', 'invoice-statuses')->value('id');
+        $categories = DB::table('status_categories');
+        $categories->where('slug', 'invoice-statuses');
+        $categoryId = $categories->value('id');
         if ($categoryId === null) {
             return;
         }
 
-        DB::table('statuses')->insertOrIgnore(
+        $statuses = DB::table('statuses');
+        $statuses->insertOrIgnore(
             [
                 'name' => 'Po splatnosti',
                 'slug' => 'overdue',

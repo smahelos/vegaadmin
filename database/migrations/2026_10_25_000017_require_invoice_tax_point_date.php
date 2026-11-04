@@ -14,7 +14,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('invoices')->whereNull('tax_point_date')->update(
+        $invoices = DB::table('invoices');
+        $invoices->whereNull('tax_point_date');
+        $invoices->update(
             ['tax_point_date' => DB::raw('issue_date')],
         );
 

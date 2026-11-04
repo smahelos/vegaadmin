@@ -16,7 +16,8 @@ return new class extends Migration
     public function up(): void
     {
         foreach (['invoices', 'expenses'] as $documents) {
-            if (DB::table($documents)->exists()) {
+            $rows = DB::table($documents);
+            if ($rows->exists()) {
                 throw new RuntimeException(
                     'Stored ' . $documents . ' have no business to belong to; rebuild the database with migrate:fresh --seed',
                 );
