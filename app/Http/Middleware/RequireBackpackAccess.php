@@ -26,37 +26,6 @@ class RequireBackpackAccess
 
         $user = backpack_user();
 
-        // Debug: Log detailed user info for troubleshooting
-        Log::info(
-            'RequireBackpackAccess middleware - User details',
-            [
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'all_roles' => $user->roles->map(
-                    function ($role) {
-                        return [
-                            'id' => $role->id,
-                            'name' => $role->name,
-                            'guard_name' => $role->guard_name,
-                        ];
-                    },
-                )->toArray(),
-                'backpack_roles' => $user->roles()->where('guard_name', 'backpack')->get()->map(
-                    function ($role) {
-                        return [
-                            'id' => $role->id,
-                            'name' => $role->name,
-                            'permissions' => $role->permissions->pluck('name')->toArray(),
-                        ];
-                    },
-                )->toArray(),
-                'direct_permissions' => $user->permissions->where('guard_name', 'backpack')->pluck('name')->toArray(),
-                'has_backpack_access_via_role' => $user->hasRole(['admin', 'backend_user'], 'backpack'),
-                'has_backpack_access_permission' => $user->hasPermissionTo('backpack.access', 'backpack'),
-                'can_backpack_access' => $user->can('backpack.access'),
-            ],
-        );
-
         // Check if user has any role with 'backpack' guard
         $hasBackpackRole = $user->roles()
             ->where('guard_name', 'backpack')
@@ -67,9 +36,7 @@ class RequireBackpackAccess
                 'User without backpack roles attempted to access admin area',
                 [
                     'user_id' => $user->id,
-                    'user_email' => $user->email,
                     'path' => $request->path(),
-                    'user_roles' => $user->roles->pluck('name', 'guard_name')->toArray(),
                 ],
             );
 
@@ -83,17 +50,7 @@ class RequireBackpackAccess
                 'User with backpack role but without backpack.access permission attempted to access admin area',
                 [
                     'user_id' => $user->id,
-                    'user_email' => $user->email,
                     'path' => $request->path(),
-                    'backpack_roles' => $user->roles()->where('guard_name', 'backpack')->pluck('name')->toArray(),
-                    'role_permissions' => $user->roles()->where('guard_name', 'backpack')->with('permissions')->get()->map(
-                        function ($role) {
-                            return [
-                                'role' => $role->name,
-                                'permissions' => $role->permissions->where('guard_name', 'backpack')->pluck('name')->toArray(),
-                            ];
-                        },
-                    )->toArray(),
                 ],
             );
 

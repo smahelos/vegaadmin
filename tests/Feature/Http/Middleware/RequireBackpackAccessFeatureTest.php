@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Middleware;
 use App\Http\Middleware\RequireBackpackAccess;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Log\Events\MessageLogged;
+use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -13,6 +15,9 @@ use Tests\TestCase;
 class RequireBackpackAccessFeatureTest extends TestCase
 {
     private RequireBackpackAccess $middleware;
+
+    /** @var list<array{string, string, array<string, mixed>}> */
+    private array $logs = [];
 
     protected function setUp(): void
     {
@@ -94,5 +99,109 @@ class RequireBackpackAccessFeatureTest extends TestCase
             },
         );
         $this->assertTrue($passed);
+    }
+
+    #[Test]
+    public function permitted_request_writes_no_log_entry(): void
+    {
+        $user = $this->userWithRole('admin');
+        $this->actingAs($user, 'backpack');
+        $this->collectLogs();
+
+        $this->middleware->handle(
+            Request::create('/admin/dashboard'),
+            fn () => response('OK'),
+        );
+
+        $this->assertSame([], $this->logs);
+    }
+
+    #[Test]
+    public function user_without_backpack_role_is_logged_by_id_only(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $this->actingAs($user, 'backpack');
+        $this->collectLogs();
+
+        $this->middleware->handle(
+            Request::create(
+                '/admin/dashboard',
+                'GET',
+                [],
+                [],
+                [],
+                ['HTTP_ACCEPT' => 'application/json'],
+            ),
+            fn () => response('OK'),
+        );
+
+        $this->assertSame(
+            [
+                [
+                    'warning',
+                    'User without backpack roles attempted to access admin area',
+                    ['user_id' => $user->id, 'path' => 'admin/dashboard'],
+                ],
+            ],
+            $this->logs,
+        );
+    }
+
+    #[Test]
+    public function backpack_role_without_access_permission_is_logged_by_id_only(): void
+    {
+        Role::firstOrCreate(['name' => 'backend_user', 'guard_name' => 'backpack']);
+        $user = $this->userWithRole('backend_user');
+        $this->actingAs($user, 'backpack');
+        $this->collectLogs();
+
+        $this->middleware->handle(
+            Request::create(
+                '/admin/dashboard',
+                'GET',
+                [],
+                [],
+                [],
+                ['HTTP_ACCEPT' => 'application/json'],
+            ),
+            fn () => response('OK'),
+        );
+
+        $this->assertSame(
+            [
+                [
+                    'warning',
+                    'User with backpack role but without backpack.access permission attempted to access admin area',
+                    ['user_id' => $user->id, 'path' => 'admin/dashboard'],
+                ],
+            ],
+            $this->logs,
+        );
+    }
+
+    private function userWithRole(string $role): User
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName($role, 'backpack'),
+        );
+
+        return $user;
+    }
+
+    private function collectLogs(): void
+    {
+        Event::listen(
+            MessageLogged::class,
+            function (MessageLogged $log): void {
+                $this->logs[] = [
+                    $log->level,
+                    $log->message,
+                    $log->context,
+                ];
+            },
+        );
     }
 }
