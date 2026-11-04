@@ -34,7 +34,8 @@ class EntityLimitCrudController extends CrudController
     public function setup(): void
     {
         // Check permissions first
-        if (!backpack_user() || !backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
+        $user = backpack_user();
+        if (!$user || !$user->hasPermissionTo('can_configure_system', 'backpack')) {
             // Deny access to operations
             CRUD::denyAccess([
                 'list',
@@ -153,7 +154,8 @@ class EntityLimitCrudController extends CrudController
         CRUD::setValidation(EntityLimitRequest::class);
 
         // Permission Name field
-        $permissions = Permission::pluck('name', 'name')->toArray();
+        $permissionNames = Permission::pluck('name', 'name');
+        $permissions = $permissionNames->toArray();
         $permissions[EntityLimit::ANONYMOUS_PERMISSION] = __('entity_limits.labels.anonymous_users');
 
         CRUD::field('permission_name')

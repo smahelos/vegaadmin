@@ -63,9 +63,10 @@ final class BusinessCrudController extends CrudController
             ),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             __('backpack::crud.insert_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($business->id->value);
@@ -86,9 +87,10 @@ final class BusinessCrudController extends CrudController
             ),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             __('backpack::crud.update_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -99,11 +101,13 @@ final class BusinessCrudController extends CrudController
         BusinessApplicationService $businesses,
         int $id,
     ): RedirectResponse {
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can('can_archive_business') === true,
+            $user?->can('can_archive_business') === true,
             403,
         );
-        $entry = Business::query()->findOrFail($id);
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
         $businesses->archive(
             $this->ownerOf($entry),
             BusinessId::fromInt($entry->id),
@@ -117,11 +121,13 @@ final class BusinessCrudController extends CrudController
 
     public function restore(BusinessApplicationService $businesses, int $id): RedirectResponse
     {
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can('can_restore_business') === true,
+            $user?->can('can_restore_business') === true,
             403,
         );
-        $entry = Business::query()->findOrFail($id);
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
         $businesses->restore(
             $this->ownerOf($entry),
             BusinessId::fromInt($entry->id),
@@ -134,11 +140,13 @@ final class BusinessCrudController extends CrudController
 
     public function setDefault(BusinessApplicationService $businesses, int $id): RedirectResponse
     {
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can('can_set_default_business') === true,
+            $user?->can('can_set_default_business') === true,
             403,
         );
-        $entry = Business::query()->findOrFail($id);
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
         $businesses->setDefault(
             $this->ownerOf($entry),
             BusinessId::fromInt($entry->id),

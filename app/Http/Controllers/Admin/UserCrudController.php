@@ -55,8 +55,8 @@ class UserCrudController extends CrudController
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(CrudAccessServiceInterface::class)
-            ->configureCrudAccess($this->crud, (int) $userId);
+        $crudAccess = app(CrudAccessServiceInterface::class);
+        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
@@ -89,13 +89,16 @@ class UserCrudController extends CrudController
 
         if (backpack_pro()) {
             // Role Filter
+            $roleClass = config('permission.models.role');
+            $roles = $roleClass::all();
+            $roleNames = $roles->pluck('name', 'id');
             $this->crud->addFilter(
                 [
                     'name' => 'role',
                     'type' => 'select2',
                     'label' => __('users.filters.role'),
                 ],
-                config('permission.models.role')::all()->pluck('name', 'id')->toArray(),
+                $roleNames->toArray(),
                 function ($value): void {
                     $this->crud->addClause(
                         'whereHas',
@@ -112,13 +115,16 @@ class UserCrudController extends CrudController
             );
 
             // Extra Permission Filter
+            $permissionClass = config('permission.models.permission');
+            $permissions = $permissionClass::all();
+            $permissionNames = $permissions->pluck('name', 'id');
             $this->crud->addFilter(
                 [
                     'name' => 'permissions',
                     'type' => 'select2',
                     'label' => __('users.filters.permission'),
                 ],
-                config('permission.models.permission')::all()->pluck('name', 'id')->toArray(),
+                $permissionNames->toArray(),
                 function ($value): void {
                     $this->crud->addClause(
                         function ($query) use ($value): void {
@@ -127,7 +133,8 @@ class UserCrudController extends CrudController
                                 function ($q) use ($value): void {
                                     $q->where('id', $value);
                                 },
-                            )->orWhereHas(
+                            );
+                            $query->orWhereHas(
                                 'roles.permissions',
                                 function ($q) use ($value): void {
                                     $q->where('id', $value);

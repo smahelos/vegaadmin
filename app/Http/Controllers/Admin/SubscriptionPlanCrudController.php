@@ -48,8 +48,8 @@ class SubscriptionPlanCrudController extends CrudController
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(CrudAccessServiceInterface::class)
-            ->configureCrudAccess($this->crud, (int) $userId);
+        $crudAccess = app(CrudAccessServiceInterface::class);
+        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
@@ -314,12 +314,14 @@ class SubscriptionPlanCrudController extends CrudController
 
         // Sync the features
         if (!empty($features)) {
-            $item->features()->sync($features);
+            $planFeatures = $item->features();
+            $planFeatures->sync($features);
         }
 
-        Alert::success(
+        $alerts = Alert::success(
             trans('backpack::crud.insert_success'),
-        )->flash();
+        );
+        $alerts->flash();
 
         // Save the redirect choice for next time
         $this->crud->setSaveAction();
@@ -348,11 +350,13 @@ class SubscriptionPlanCrudController extends CrudController
         );
 
         // Sync the features
-        $item->features()->sync($features);
+        $planFeatures = $item->features();
+        $planFeatures->sync($features);
 
-        Alert::success(
+        $alerts = Alert::success(
             trans('backpack::crud.update_success'),
-        )->flash();
+        );
+        $alerts->flash();
 
         // Save the redirect choice for next time
         $this->crud->setSaveAction();

@@ -61,7 +61,8 @@ final class InvoiceCrudController extends CrudController
                 'delete' => 'delete',
             ] as $operation => $permission
         ) {
-            if (backpack_user()?->can('can_' . $permission . '_invoice') !== true) {
+            $user = backpack_user();
+            if ($user?->can('can_' . $permission . '_invoice') !== true) {
                 CRUD::denyAccess($operation);
             }
         }
@@ -272,9 +273,12 @@ final class InvoiceCrudController extends CrudController
     private function setupForm(bool $create): void
     {
         CRUD::setValidation(InvoiceRequest::class);
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
         CRUD::addFields(
             (new AdminInvoiceFormFields)->fields(
-                app(CountryOptionsPresenter::class)->options(app()->getLocale()),
+                $countries,
                 $create ? null : CRUD::getCurrentEntry(),
             ),
         );
@@ -291,13 +295,18 @@ final class InvoiceCrudController extends CrudController
     private function mutationResponse(InvoiceActionResult $result): RedirectResponse
     {
         if ($result->status !== InvoiceActionStatus::SUCCESS || $result->invoice === null) {
-            return redirect()->back()->withInput()->withErrors(
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->withErrors(
                 ['invoice' => __($result->message ?? 'invoices.messages.update_failed')],
             );
         }
-        Alert::success(
+        $alerts = Alert::success(
             __($result->message),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($result->invoice->id);

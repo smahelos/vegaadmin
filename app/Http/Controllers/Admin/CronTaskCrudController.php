@@ -352,15 +352,19 @@ class CronTaskCrudController extends CrudController
         }
 
         if ($succeeded) {
-            Alert::success(
+            $alerts = Alert::success(
                 __('cron_tasks.messages.task_executed'),
-            )->flash();
+            );
+            $alerts->flash();
         } else {
-            Alert::error(
+            $alerts = Alert::error(
                 __('cron_tasks.messages.execution_failed'),
-            )->flash();
+            );
+            $alerts->flash();
         }
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 }

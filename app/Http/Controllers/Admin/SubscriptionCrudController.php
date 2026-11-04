@@ -45,8 +45,8 @@ class SubscriptionCrudController extends CrudController
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(CrudAccessServiceInterface::class)
-            ->configureCrudAccess($this->crud, (int) $userId);
+        $crudAccess = app(CrudAccessServiceInterface::class);
+        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
@@ -187,7 +187,9 @@ class SubscriptionCrudController extends CrudController
                     'model' => 'App\Models\SubscriptionPlan',
                     'attribute' => 'name',
                     'options' => (function ($query) {
-                        return $query->orderBy('name', 'ASC')->get();
+                        $query->orderBy('name', 'ASC');
+
+                        return $query->get();
                     }),
                 ],
                 [

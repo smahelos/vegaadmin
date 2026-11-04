@@ -65,9 +65,10 @@ final class ContactCrudController extends CrudController
             ),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             __('backpack::crud.insert_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($contact->id->value);
@@ -92,9 +93,10 @@ final class ContactCrudController extends CrudController
             ),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             __('backpack::crud.update_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -102,11 +104,13 @@ final class ContactCrudController extends CrudController
 
     public function archive(ContactApplicationService $contacts, int $id): RedirectResponse
     {
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can('can_archive_contact') === true,
+            $user?->can('can_archive_contact') === true,
             403,
         );
-        $entry = Contact::query()->findOrFail($id);
+        $contactQuery = Contact::query();
+        $entry = $contactQuery->findOrFail($id);
         $contacts->archive(
             $this->ownerOf($entry),
             ContactId::fromInt($entry->id),
@@ -119,11 +123,13 @@ final class ContactCrudController extends CrudController
 
     public function restore(ContactApplicationService $contacts, int $id): RedirectResponse
     {
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can('can_restore_contact') === true,
+            $user?->can('can_restore_contact') === true,
             403,
         );
-        $entry = Contact::query()->findOrFail($id);
+        $contactQuery = Contact::query();
+        $entry = $contactQuery->findOrFail($id);
         $contacts->restore(
             $this->ownerOf($entry),
             ContactId::fromInt($entry->id),

@@ -67,9 +67,9 @@ final class BankAccountCrudController extends CrudController
 
     public function edit(int $id): View
     {
-        $this->authorizeOwner(
-            BankAccount::query()->findOrFail($id),
-        );
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
+        $this->authorizeOwner($entry);
 
         return $this->editAccount($id);
     }
@@ -84,9 +84,10 @@ final class BankAccountCrudController extends CrudController
             $request->writeData(),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             trans('backpack::crud.insert_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($account->id->value);
@@ -104,9 +105,10 @@ final class BankAccountCrudController extends CrudController
             $request->writeData(),
         );
 
-        Alert::success(
+        $alerts = Alert::success(
             trans('backpack::crud.update_success'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -114,7 +116,8 @@ final class BankAccountCrudController extends CrudController
 
     public function archive(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->archive(
             $this->userOf($entry),
@@ -122,55 +125,68 @@ final class BankAccountCrudController extends CrudController
             BankAccountId::fromInt($entry->id),
             null,
         );
-        Alert::success(
+        $alerts = Alert::success(
             __('parties.bank_accounts.messages.archived'),
-        )->flash();
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     public function restore(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->restore(
             $this->userOf($entry),
             $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
         );
-        Alert::success(
+        $alerts = Alert::success(
             __('parties.bank_accounts.messages.restored'),
-        )->flash();
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     public function setDefault(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->setDefault(
             $this->userOf($entry),
             $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
         );
-        Alert::success(
+        $alerts = Alert::success(
             __('parties.bank_accounts.messages.default_changed'),
-        )->flash();
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     protected function setupListOperation(): void
     {
-        if (backpack_user()?->can('can_view_business') !== true) {
+        $user = backpack_user();
+        if ($user?->can('can_view_business') !== true) {
             CRUD::addClause('whereNull', 'business_id');
         }
-        if (backpack_user()?->can('can_view_contact') !== true) {
+        if ($user?->can('can_view_contact') !== true) {
             CRUD::addClause('whereNull', 'contact_id');
         }
-        $businessId = request()->integer('business_id');
-        $contactId = request()->integer('contact_id');
+        $request = request();
+        $businessId = $request->integer('business_id');
+        $contactId = $request->integer('contact_id');
         if ($businessId > 0) {
             CRUD::addClause(
                 'where',
@@ -256,10 +272,12 @@ final class BankAccountCrudController extends CrudController
 
     private function addAccountFields(): void
     {
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
+
         CRUD::addFields(
-            PartyFormFields::bankAccount(
-                app(CountryOptionsPresenter::class)->options(app()->getLocale()),
-            ),
+            PartyFormFields::bankAccount($countries),
         );
     }
 
@@ -270,7 +288,8 @@ final class BankAccountCrudController extends CrudController
     {
         $businessId = $request->integer('business_id');
         if ($businessId > 0) {
-            $business = Business::query()->findOrFail($businessId);
+            $businessQuery = Business::query();
+            $business = $businessQuery->findOrFail($businessId);
 
             return [
                 'user' => UserId::fromInt($business->user_id),
@@ -280,7 +299,8 @@ final class BankAccountCrudController extends CrudController
             ];
         }
 
-        $contact = Contact::query()->findOrFail(
+        $contactQuery = Contact::query();
+        $contact = $contactQuery->findOrFail(
             $request->integer('contact_id'),
         );
 
@@ -295,8 +315,9 @@ final class BankAccountCrudController extends CrudController
     private function authorizeOwner(BankAccount $entry): void
     {
         $permission = $entry->business_id !== null ? 'can_update_business' : 'can_update_contact';
+        $user = backpack_user();
         abort_unless(
-            backpack_user()?->can($permission) === true,
+            $user?->can($permission) === true,
             403,
         );
     }

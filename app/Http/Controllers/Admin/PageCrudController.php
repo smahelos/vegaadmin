@@ -58,7 +58,8 @@ class PageCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
                 },
@@ -71,7 +72,8 @@ class PageCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
                 },
@@ -85,7 +87,8 @@ class PageCrudController extends CrudController
             ->function(
                 function ($entry) {
                     if ($entry->category) {
-                        $currentLocale = app()->getLocale();
+                        $application = app();
+                        $currentLocale = $application->getLocale();
 
                         return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? __('general.placeholders.not_available');
                     }
@@ -102,7 +105,8 @@ class PageCrudController extends CrudController
             ->function(
                 function ($entry) {
                     if ($entry->parent) {
-                        $currentLocale = app()->getLocale();
+                        $application = app();
+                        $currentLocale = $application->getLocale();
 
                         return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? __('general.placeholders.not_available');
                     }
@@ -154,20 +158,24 @@ class PageCrudController extends CrudController
             },
         );
 
+        $pageCategories = PageCategory::all();
+        $categoryNames = $pageCategories->mapWithKeys(
+            function ($category) {
+                $application = app();
+                $currentLocale = $application->getLocale();
+                $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
+
+                return [$category->id => $name];
+            },
+        );
+
         $this->crud->addFilter(
             [
                 'name' => 'category_id',
                 'type' => 'select2',
                 'label' => __('pages.fields.category_id'),
             ],
-            PageCategory::all()->mapWithKeys(
-                function ($category) {
-                    $currentLocale = app()->getLocale();
-                    $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
-
-                    return [$category->id => $name];
-                },
-            )->toArray(),
+            $categoryNames->toArray(),
             function ($value): void {
                 $this->crud->addClause(
                     'where',
@@ -207,15 +215,18 @@ class PageCrudController extends CrudController
         );
 
         // Category and parent
-        $currentLocale = app()->getLocale();
+        $application = app();
+        $currentLocale = $application->getLocale();
 
-        $categoryOptions = PageCategory::all()->mapWithKeys(
+        $pageCategories = PageCategory::all();
+        $categoryNames = $pageCategories->mapWithKeys(
             function ($category) use ($currentLocale) {
                 $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
 
                 return [$category->id => $name];
             },
-        )->toArray();
+        );
+        $categoryOptions = $categoryNames->toArray();
 
         CRUD::field('category_id')
             ->label(
@@ -365,7 +376,8 @@ class PageCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
                 },
@@ -378,7 +390,8 @@ class PageCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
                     $content = $entry->getContent($currentLocale) ?? $entry->getContent('cs') ?? '';
 
                     return \Str::limit(
@@ -395,7 +408,8 @@ class PageCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getMetaTitle($currentLocale) ?? $entry->getMetaTitle('cs') ?? '';
                 },

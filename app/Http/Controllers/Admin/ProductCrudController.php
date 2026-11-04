@@ -171,7 +171,9 @@ class ProductCrudController extends CrudController
             ->attribute('name')
             ->options(
                 function ($query) {
-                    return $query->orderBy('name', 'ASC')->get();
+                    $query->orderBy('name', 'ASC');
+
+                    return $query->get();
                 },
             );
 

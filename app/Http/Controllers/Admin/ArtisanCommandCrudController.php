@@ -97,10 +97,10 @@ class ArtisanCommandCrudController extends CrudController
                 __('artisan_commands.hints.command'),
             );
 
-        $categories = ArtisanCommandCategory::where('is_active', true)
-            ->orderBy('name')
-            ->pluck('name', 'id')
-            ->toArray();
+        $categoryQuery = ArtisanCommandCategory::where('is_active', true);
+        $categoryQuery->orderBy('name');
+        $categoryNames = $categoryQuery->pluck('name', 'id');
+        $categories = $categoryNames->toArray();
 
         CRUD::field('category_id')
             ->label(

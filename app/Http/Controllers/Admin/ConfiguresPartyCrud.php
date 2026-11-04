@@ -107,14 +107,16 @@ trait ConfiguresPartyCrud
             )
             ->type('datetime');
 
+        $userQuery = User::query();
+        $userQuery->orderBy('name');
+        $userNames = $userQuery->pluck('name', 'id');
+
         CRUD::filter('user_id')
             ->type('select2')
             ->label(
                 __('parties.fields.owner'),
             )
-            ->values(
-                fn (): array => User::query()->orderBy('name')->pluck('name', 'id')->all(),
-            )
+            ->values($userNames->all())
             ->whenActive(
                 function (string $value): void {
                     CRUD::addClause(
@@ -180,7 +182,9 @@ trait ConfiguresPartyCrud
      */
     protected function addProfileFields(?Address $address = null): void
     {
-        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
 
         CRUD::addFields(
             PartyFormFields::profile(
@@ -202,8 +206,10 @@ trait ConfiguresPartyCrud
 
     protected function redirectWithSuccess(string $message): RedirectResponse
     {
-        Alert::success($message)->flash();
+        $alerts = Alert::success($message);
+        $alerts->flash();
+        $redirector = redirect();
 
-        return redirect()->back();
+        return $redirector->back();
     }
 }

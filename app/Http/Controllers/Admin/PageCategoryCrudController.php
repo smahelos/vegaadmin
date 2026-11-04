@@ -55,7 +55,8 @@ class PageCategoryCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
                 },
@@ -68,7 +69,8 @@ class PageCategoryCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
 
                     return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
                 },
@@ -81,7 +83,8 @@ class PageCategoryCrudController extends CrudController
             ->type('closure')
             ->function(
                 function ($entry) {
-                    $currentLocale = app()->getLocale();
+                    $application = app();
+                    $currentLocale = $application->getLocale();
                     $description = $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
 
                     return \Str::limit($description, 100);

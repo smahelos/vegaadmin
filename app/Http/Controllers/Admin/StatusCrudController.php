@@ -42,16 +42,17 @@ class StatusCrudController extends CrudController
         );
 
         // Filter by category_id from URL
-        if (request()->has('category_id')) {
+        $request = request();
+        if ($request->has('category_id')) {
             $this->crud->addClause(
                 'where',
                 'category_id',
-                request()->input('category_id'),
+                $request->input('category_id'),
             );
 
             // Get category name for a more descriptive page title
             $category = StatusCategory::find(
-                request()->input('category_id'),
+                $request->input('category_id'),
             );
             if ($category) {
                 CRUD::setEntityNameStrings(
@@ -105,7 +106,9 @@ class StatusCrudController extends CrudController
                 'label' => __('statuses.filters.category'),
             ],
             function () {
-                return StatusCategory::pluck('name', 'id')->toArray();
+                $categoryNames = StatusCategory::pluck('name', 'id');
+
+                return $categoryNames->toArray();
             },
             function ($value): void {
                 CRUD::addClause(

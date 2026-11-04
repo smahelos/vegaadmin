@@ -63,7 +63,8 @@ final class ExpenseCrudController extends CrudController
                 'delete' => 'delete',
             ] as $operation => $permission
         ) {
-            if (backpack_user()?->can('can_' . $permission . '_expense') !== true) {
+            $user = backpack_user();
+            if ($user?->can('can_' . $permission . '_expense') !== true) {
                 CRUD::denyAccess($operation);
             }
         }
@@ -201,7 +202,9 @@ final class ExpenseCrudController extends CrudController
             );
 
         // Get the category ID for 'expense'
-        $categoryId = StatusCategory::where('slug', 'expense-statuses')->first()->id ?? null;
+        $statusCategoryQuery = StatusCategory::where('slug', 'expense-statuses');
+        $statusCategory = $statusCategoryQuery->first();
+        $categoryId = $statusCategory?->id;
 
         CRUD::filter('status_id')
             ->type('select2')
@@ -222,13 +225,18 @@ final class ExpenseCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseRequest::class);
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
         CRUD::addFields(
             ExpenseFormFields::fields(
-                app(CountryOptionsPresenter::class)->options(app()->getLocale()),
+                $countries,
                 CRUD::getCurrentOperation() === 'update' ? CRUD::getCurrentEntry() : null,
             ),
         );
-        Widget::add()->type('script')->content(
+        $widget = Widget::add();
+        $widget->type('script');
+        $widget->content(
             asset('assets/js/admin/forms/expense-tax-calculator.js'),
         );
     }
@@ -244,9 +252,10 @@ final class ExpenseCrudController extends CrudController
             $request->toWriteData(),
             UserId::fromInt((int) backpack_user()->id),
         );
-        Alert::success(
+        $alerts = Alert::success(
             __('expenses.messages.created'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($expense->id->value);
@@ -264,9 +273,10 @@ final class ExpenseCrudController extends CrudController
             $request->toWriteData(),
             UserId::fromInt((int) backpack_user()->id),
         );
-        Alert::success(
+        $alerts = Alert::success(
             __('expenses.messages.updated'),
-        )->flash();
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($expense->id->value);
@@ -302,7 +312,8 @@ final class ExpenseCrudController extends CrudController
         $this->setupListOperation();
 
         // Also ensure description is properly displayed if null
-        if (collect($this->crud->columns())->firstWhere('name', 'description')) {
+        $columns = collect($this->crud->columns());
+        if ($columns->firstWhere('name', 'description')) {
             $this->crud->modifyColumn(
                 'description',
                 [
