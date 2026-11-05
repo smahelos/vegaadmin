@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\ExpenseRequest;
+use App\Models\Contact;
 use App\Models\Expense;
+use Illuminate\Http\UploadedFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsExpenseInput;
@@ -56,6 +59,31 @@ final class ExpenseRequestFeatureTest extends TestCase
             $this->expenseInput($business, [$field => $value]),
         );
         $httpResponse->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
+    }
+
+    #[Test]
+    public function an_expense_with_a_contact_ignores_an_uploaded_supplier_logo(): void
+    {
+        [$business] = $this->issuerOf($this->adminUser);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $fileFactory = UploadedFile::fake();
+        $request = ExpenseRequest::create(
+            '/admin/expense',
+            'POST',
+            $this->expenseInput($business, ['contact_id' => $contact->id]),
+            [],
+            ['supplier_logo' => $fileFactory->image('logo.png')],
+        );
+        $request->setContainer($this->app);
+        $request->setRedirector(
+            app('redirect'),
+        );
+        $request->validateResolved();
+
+        $writeData = $request->toWriteData();
+
+        $this->assertNull($writeData->supplierLogo);
     }
 
     #[Test]
