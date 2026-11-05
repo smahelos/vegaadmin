@@ -435,6 +435,103 @@ class UELSControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function entity_data_falls_back_to_the_first_available_period_without_a_limit(): void
+    {
+        $user = $this->makeUser();
+        $this->actingAs($user, 'web');
+        $this->fakeService->entityInfo = [
+            'has_permission' => true,
+            'user_permissions' => [[
+                'weekly' => true,
+                'monthly' => true,
+            ]],
+            'limits' => [],
+        ];
+        $this->fakeService->usageStats = [
+            'weekly' => [
+                'limit' => 0,
+                'current_usage' => 3,
+                'remaining' => 0,
+                'usage_percentage' => 0,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
+            'monthly' => [
+                'limit' => 0,
+                'current_usage' => 4,
+                'remaining' => 0,
+                'usage_percentage' => 0,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
+        ];
+        $resp = $this->getJson('/test/uels/contact');
+        $resp->assertOk();
+        $this->assertSame(
+            3,
+            $resp->json('current_usage'),
+        );
+    }
+
+    #[Test]
+    public function entity_data_lists_the_permissions_of_an_unlimited_user(): void
+    {
+        $user = $this->makeUser();
+        $this->actingAs($user, 'web');
+        $this->fakeService->entityInfo = [
+            'has_permission' => true,
+            'user_permissions' => collect(['other' => true]),
+            'limits' => [],
+        ];
+        $this->fakeService->usageStats = [];
+        $resp = $this->getJson('/test/uels/contact');
+        $resp->assertOk();
+        $this->assertSame(
+            'unlimited',
+            $resp->json('status'),
+        );
+        $this->assertSame(
+            ['other' => true],
+            $resp->json('permissions'),
+        );
+    }
+
+    #[Test]
+    public function entity_data_lists_the_permissions_of_a_limited_user(): void
+    {
+        $user = $this->makeUser();
+        $this->actingAs($user, 'web');
+        $this->fakeService->entityInfo = [
+            'has_permission' => true,
+            'user_permissions' => ['daily' => true],
+            'limits' => [],
+        ];
+        $this->fakeService->usageStats = [
+            'daily' => [
+                'limit' => 5,
+                'current_usage' => 1,
+                'remaining' => 4,
+                'usage_percentage' => 20,
+                'can_create' => true,
+                'period_start' => 's',
+                'period_end' => 'e',
+            ],
+        ];
+        $resp = $this->getJson('/test/uels/contact');
+        $resp->assertOk();
+        $this->assertSame(
+            5,
+            $resp->json('limit'),
+        );
+        $this->assertSame(
+            ['daily' => true],
+            $resp->json('permissions'),
+        );
+    }
+
+    #[Test]
     public function all_entities_endpoint_aggregates_basic_structure(): void
     {
         $user = $this->makeUser();
