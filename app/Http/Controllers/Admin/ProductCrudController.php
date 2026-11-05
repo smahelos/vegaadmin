@@ -78,67 +78,71 @@ class ProductCrudController extends CrudController
             },
         );
 
-        CRUD::filter('user_id')
-            ->type('select2')
-            ->label(
-                __('products.fields.user_id'),
-            )
-            ->values(
-                User::pluck('name', 'id')->toArray(),
-            )
-            ->whenActive(
-                function ($value): void {
-                    CRUD::addClause(
-                        'where',
-                        'user_id',
-                        $value,
-                    );
-                },
-            );
+        $filter = CRUD::filter('user_id');
+        $filter->type('select2');
+        $filter->label(
+            __('products.fields.user_id'),
+        );
+        $userNames = User::pluck('name', 'id');
+        $filter->values($userNames->toArray());
+        $filter->whenActive(
+            function ($value): void {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
+            },
+        );
 
-        CRUD::column('user_id')
-            ->type('integer')
-            ->label(
-                __('products.fields.user_id'),
-            )
-            ->entity('user')
-            ->attribute('name')
-            ->value(
-                function ($entry) {
-                    return $entry->user_id ? $entry->user->name : 'N/A';
-                },
-            );
+        $column = CRUD::column('user_id');
+        $column->type('integer');
+        $column->label(
+            __('products.fields.user_id'),
+        );
+        $column->entity('user');
+        $column->attribute('name');
+        $column->value(
+            function ($entry) {
+                return $entry->user_id ? $entry->user->name : 'N/A';
+            },
+        );
 
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('products.fields.name'),
         );
-        CRUD::column('price')->label(
+        $column = CRUD::column('price');
+        $column->label(
             __('products.fields.price'),
         );
-        CRUD::column('category_id')
-            ->type('select_from_array')
-            ->label(
-                __('products.fields.category_id'),
-            )
-            ->value(
-                function ($entry) {
-                    return $entry->category ? $entry->category->name : 'N/A';
-                },
-            );
-        CRUD::column('tax_id')
-            ->type('select_from_array')
-            ->label(
-                __('products.fields.tax_id'),
-            )
-            ->value(
-                function ($entry) {
-                    return $entry->tax ? $entry->tax->name : 'N/A';
-                },
-            );
-        CRUD::column('is_default')->type('boolean')->label(
+        $column = CRUD::column('category_id');
+        $column->type('select_from_array');
+        $column->label(
+            __('products.fields.category_id'),
+        );
+        $column->value(
+            function ($entry) {
+                return $entry->category ? $entry->category->name : 'N/A';
+            },
+        );
+        $column = CRUD::column('tax_id');
+        $column->type('select_from_array');
+        $column->label(
+            __('products.fields.tax_id'),
+        );
+        $column->value(
+            function ($entry) {
+                return $entry->tax ? $entry->tax->name : 'N/A';
+            },
+        );
+        $column = CRUD::column('is_default');
+        $column->type('boolean');
+        $column->label(
             __('products.fields.is_default'),
         );
-        CRUD::column('created_at')->label(
+        $column = CRUD::column('created_at');
+        $column->label(
             __('products.fields.created_at'),
         );
         // CRUD::column('updated_at');
@@ -151,101 +155,105 @@ class ProductCrudController extends CrudController
     {
         CRUD::setValidation(ProductRequest::class);
 
-        CRUD::field('name')->label(
+        $field = CRUD::field('name');
+        $field->label(
             __('products.fields.name'),
         );
-        CRUD::field('slug')
-            ->label(
-                __('products.fields.slug'),
-            )
-            ->hint(
-                __('products.hints.slug'),
-            );
+        $field = CRUD::field('slug');
+        $field->label(
+            __('products.fields.slug'),
+        );
+        $field->hint(
+            __('products.hints.slug'),
+        );
 
-        CRUD::field('user_id')
-            ->type('hidden')
-            ->label(
-                __('products.fields.user_id'),
-            )
-            ->entity('user')
-            ->attribute('name')
-            ->options(
-                function ($query) {
-                    $query->orderBy('name', 'ASC');
+        $field = CRUD::field('user_id');
+        $field->type('hidden');
+        $field->label(
+            __('products.fields.user_id'),
+        );
+        $field->entity('user');
+        $field->attribute('name');
+        $field->options(
+            function ($query) {
+                $query->orderBy('name', 'ASC');
 
-                    return $query->get();
-                },
-            );
+                return $query->get();
+            },
+        );
 
-        CRUD::field('price')
-            ->type('number')
-            ->label(
-                __('products.fields.price'),
-            )
-            ->attributes(['step' => '0.01']);
+        $field = CRUD::field('price');
+        $field->type('number');
+        $field->label(
+            __('products.fields.price'),
+        );
+        $field->attributes(['step' => '0.01']);
 
         $currencyCodes = array_column(Currency::cases(), 'value');
-        CRUD::field('currency')
-            ->type('select_from_array')
-            ->label(
-                __('products.fields.currency'),
-            )
-            ->options(
-                array_combine($currencyCodes, $currencyCodes),
-            )
-            ->allows_null(false);
+        $field = CRUD::field('currency');
+        $field->type('select_from_array');
+        $field->label(
+            __('products.fields.currency'),
+        );
+        $field->options(
+            array_combine($currencyCodes, $currencyCodes),
+        );
+        $field->allows_null(false);
 
         // Get taxes from the service
         $taxes = $this->taxesService->getAllTaxesForSelect();
 
-        CRUD::field('tax_id')
-            ->type('select_from_array')
-            ->label(
-                __('products.fields.tax_id'),
-            )
-            ->entity('tax')
-            ->model('App\Models\Tax')
-            ->attribute('name')
-            ->options($taxes);
+        $field = CRUD::field('tax_id');
+        $field->type('select_from_array');
+        $field->label(
+            __('products.fields.tax_id'),
+        );
+        $field->entity('tax');
+        $field->model('App\Models\Tax');
+        $field->attribute('name');
+        $field->options($taxes);
 
         // Get product categories from the service
         $productCategories = $this->productService->getAllCategories();
 
-        CRUD::field('category_id')
-            ->type('select_from_array')
-            ->label(
-                __('products.fields.category_id'),
-            )
-            ->entity('category')
-            ->model('App\Models\ProductCategory')
-            ->pivot(true)
-            ->attribute('name')
-            ->options($productCategories);
-        CRUD::field('description')->type('textarea')->label(
+        $field = CRUD::field('category_id');
+        $field->type('select_from_array');
+        $field->label(
+            __('products.fields.category_id'),
+        );
+        $field->entity('category');
+        $field->model('App\Models\ProductCategory');
+        $field->pivot(true);
+        $field->attribute('name');
+        $field->options($productCategories);
+        $field = CRUD::field('description');
+        $field->type('textarea');
+        $field->label(
             __('products.fields.description'),
         );
-        CRUD::field('is_default')->type('checkbox')->label(
+        $field = CRUD::field('is_default');
+        $field->type('checkbox');
+        $field->label(
             __('products.fields.is_default'),
         );
-        CRUD::field('is_active')->type('checkbox')->label(
+        $field = CRUD::field('is_active');
+        $field->type('checkbox');
+        $field->label(
             __('products.fields.is_active'),
         );
 
-        CRUD::field('image')
-            ->type('image_with_preview')
-            ->label(
-                __('products.fields.image'),
-            )
-            ->upload(true)
-            // ->disk('public')
-            // ->prefix('storage/')
-            // ->uploadRoute('backpack.upload')
-            ->hint(
-                __('products.hints.image'),
-            )
-            ->wrapper([
-                'class' => 'form-group col-md-6',
-            ]);
+        $field = CRUD::field('image');
+        $field->type('image_with_preview');
+        $field->label(
+            __('products.fields.image'),
+        );
+        $field->upload(true);
+        $field->hint(
+            __('products.hints.image'),
+        );
+        $field->wrapper([
+            'class' => 'form-group col-md-6',
+        ]);
 
         // Add JavaScript for better handling of the custom field
         $this->crud->addField(

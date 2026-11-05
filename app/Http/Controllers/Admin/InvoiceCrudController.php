@@ -74,41 +74,39 @@ final class InvoiceCrudController extends CrudController
     protected function setupListOperation(): void
     {
         // Add filters
-        CRUD::filter('user_id')
-            ->type('select2')
-            ->label(
-                __('invoices.fields.user_id'),
-            )
-            ->values(
-                User::pluck('name', 'id')->toArray(),
-            )
-            ->whenActive(
-                function ($value): void {
-                    CRUD::addClause(
-                        'where',
-                        'user_id',
-                        $value,
-                    );
-                },
-            );
+        $filter = CRUD::filter('user_id');
+        $filter->type('select2');
+        $filter->label(
+            __('invoices.fields.user_id'),
+        );
+        $userNames = User::pluck('name', 'id');
+        $filter->values($userNames->toArray());
+        $filter->whenActive(
+            function ($value): void {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    $value,
+                );
+            },
+        );
 
-        CRUD::filter('payment_status_id')
-            ->type('select2')
-            ->label(
-                __('invoices.fields.status'),
-            )
-            ->values(
-                Status::pluck('name', 'id')->toArray(),
-            )
-            ->whenActive(
-                function ($value): void {
-                    CRUD::addClause(
-                        'where',
-                        'payment_status_id',
-                        $value,
-                    );
-                },
-            );
+        $filter = CRUD::filter('payment_status_id');
+        $filter->type('select2');
+        $filter->label(
+            __('invoices.fields.status'),
+        );
+        $statusNames = Status::pluck('name', 'id');
+        $filter->values($statusNames->toArray());
+        $filter->whenActive(
+            function ($value): void {
+                CRUD::addClause(
+                    'where',
+                    'payment_status_id',
+                    $value,
+                );
+            },
+        );
 
         CRUD::addFilter(
             [
@@ -134,98 +132,147 @@ final class InvoiceCrudController extends CrudController
             },
         );
 
-        CRUD::column('invoice_vs')->label(
+        $column = CRUD::column('invoice_vs');
+        $column->label(
             __('invoices.fields.invoice_vs'),
         );
-        CRUD::column('supplier_name')->type('text')->label(
+        $column = CRUD::column('supplier_name');
+        $column->type('text');
+        $column->label(
             __('invoices.fields.supplier'),
         );
-        CRUD::column('customer_name')->type('text')->label(
+        $column = CRUD::column('customer_name');
+        $column->type('text');
+        $column->label(
             __('invoices.fields.customer'),
         );
-        CRUD::column('payment_amount')->type('number')->label(
+        $column = CRUD::column('payment_amount');
+        $column->type('number');
+        $column->label(
             __('invoices.fields.payment_amount'),
         );
-        CRUD::column('issue_date')->type('date')->label(
+        $column = CRUD::column('issue_date');
+        $column->type('date');
+        $column->label(
             __('invoices.fields.issue_date'),
         );
-        CRUD::column('tax_point_date')->type('date')->label(
+        $column = CRUD::column('tax_point_date');
+        $column->type('date');
+        $column->label(
             __('invoices.fields.tax_point_date'),
         );
 
-        CRUD::column('payment_status')
-            ->type('text')
-            ->label(
-                __('invoices.fields.status'),
-            )
-            ->value(
-                function ($entry) {
-                    return $entry->paymentStatus?->name ?? __('general.placeholders.not_available');
-                },
-            );
+        $column = CRUD::column('payment_status');
+        $column->type('text');
+        $column->label(
+            __('invoices.fields.status'),
+        );
+        $column->value(
+            function ($entry) {
+                return $entry->paymentStatus?->name ?? __('general.placeholders.not_available');
+            },
+        );
 
-        CRUD::column('due_in')->label(
+        $column = CRUD::column('due_in');
+        $column->label(
             __('invoices.fields.due_in'),
         );
     }
 
     protected function setupShowOperation(): void
     {
-        CRUD::column('supplier_logo')->type('image')->disk('public')->label(
+        $column = CRUD::column('supplier_logo');
+        $column->type('image');
+        $column->disk('public');
+        $column->label(
             __('parties.fields.supplier_logo'),
         );
-        CRUD::column('invoice_vs')->label(
+        $column = CRUD::column('invoice_vs');
+        $column->label(
             __('invoices.fields.invoice_vs'),
         );
-        CRUD::column('user_id')->type('select')->entity('user')->attribute('name')->model(User::class)
-            ->label(
-                __('invoices.fields.user_id'),
-            );
-        CRUD::column('supplier_name')->type('text')->label(
+        $column = CRUD::column('user_id');
+        $column->type('select');
+        $column->entity('user');
+        $column->attribute('name');
+        $column->model(User::class);
+        $column->label(
+            __('invoices.fields.user_id'),
+        );
+        $column = CRUD::column('supplier_name');
+        $column->type('text');
+        $column->label(
             __('invoices.fields.supplier'),
         );
-        CRUD::column('customer_name')->type('text')->label(
+        $column = CRUD::column('customer_name');
+        $column->type('text');
+        $column->label(
             __('invoices.fields.customer'),
         );
-        CRUD::column('issue_date')->type('date')->label(
+        $column = CRUD::column('issue_date');
+        $column->type('date');
+        $column->label(
             __('invoices.fields.issue_date'),
         );
-        CRUD::column('tax_point_date')->type('date')->label(
+        $column = CRUD::column('tax_point_date');
+        $column->type('date');
+        $column->label(
             __('invoices.fields.tax_point_date'),
         );
-        CRUD::column('due_in')->label(
+        $column = CRUD::column('due_in');
+        $column->label(
             __('invoices.fields.due_in'),
         );
-        CRUD::column('payment_method_id')->type('select')->entity('paymentMethod')->attribute('name')->model(PaymentMethod::class)
-            ->label(
-                __('invoices.fields.payment_method'),
-            );
-        CRUD::column('payment_status_id')->type('select')->entity('paymentStatus')->attribute('name')->model(Status::class)
-            ->label(
-                __('invoices.fields.status'),
-            );
-        CRUD::column('payment_amount')->type('number')->decimals(2)->label(
+        $column = CRUD::column('payment_method_id');
+        $column->type('select');
+        $column->entity('paymentMethod');
+        $column->attribute('name');
+        $column->model(PaymentMethod::class);
+        $column->label(
+            __('invoices.fields.payment_method'),
+        );
+        $column = CRUD::column('payment_status_id');
+        $column->type('select');
+        $column->entity('paymentStatus');
+        $column->attribute('name');
+        $column->model(Status::class);
+        $column->label(
+            __('invoices.fields.status'),
+        );
+        $column = CRUD::column('payment_amount');
+        $column->type('number');
+        $column->decimals(2);
+        $column->label(
             __('invoices.fields.payment_amount'),
         );
-        CRUD::column('payment_currency')->label(
+        $column = CRUD::column('payment_currency');
+        $column->label(
             __('invoices.fields.payment_currency'),
         );
-        CRUD::column('invoice_ks')->label(
+        $column = CRUD::column('invoice_ks');
+        $column->label(
             __('invoices.fields.invoice_ks'),
         );
-        CRUD::column('invoice_ss')->label(
+        $column = CRUD::column('invoice_ss');
+        $column->label(
             __('invoices.fields.invoice_ss'),
         );
-        CRUD::column('invoice_text')->label(
+        $column = CRUD::column('invoice_text');
+        $column->label(
             __('invoices.fields.invoice_text'),
         );
-        CRUD::column('template')->label(
+        $column = CRUD::column('template');
+        $column->label(
             __('invoices.fields.template'),
         );
-        CRUD::column('created_at')->type('datetime')->label(
+        $column = CRUD::column('created_at');
+        $column->type('datetime');
+        $column->label(
             __('general.common.created_at'),
         );
-        CRUD::column('updated_at')->type('datetime')->label(
+        $column = CRUD::column('updated_at');
+        $column->type('datetime');
+        $column->label(
             __('general.common.updated_at'),
         );
     }

@@ -141,23 +141,22 @@ class SubscriptionCrudController extends CrudController
                 },
             );
 
-            CRUD::filter('user_id')
-                ->type('select2')
-                ->label(
-                    __('subscriptions.filters.user_id'),
-                )
-                ->values(
-                    User::pluck('name', 'id')->toArray(),
-                )
-                ->whenActive(
-                    function ($value): void {
-                        CRUD::addClause(
-                            'where',
-                            'user_id',
-                            $value,
-                        );
-                    },
-                );
+            $filter = CRUD::filter('user_id');
+            $filter->type('select2');
+            $filter->label(
+                __('subscriptions.filters.user_id'),
+            );
+            $userNames = User::pluck('name', 'id');
+            $filter->values($userNames->toArray());
+            $filter->whenActive(
+                function ($value): void {
+                    CRUD::addClause(
+                        'where',
+                        'user_id',
+                        $value,
+                    );
+                },
+            );
         }
     }
 

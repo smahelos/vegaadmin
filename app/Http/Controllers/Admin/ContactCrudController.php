@@ -148,24 +148,32 @@ final class ContactCrudController extends CrudController
     protected function setupShowOperation(): void
     {
         $this->setupPartyList('contact');
-        CRUD::column('short_name')->label(
+        $column = CRUD::column('short_name');
+        $column->label(
             __('parties.fields.short_name'),
         );
-        CRUD::column('vat_number')->label(
+        $column = CRUD::column('vat_number');
+        $column->label(
             __('parties.fields.vat_number'),
         );
-        CRUD::column('phone')->label(
+        $column = CRUD::column('phone');
+        $column->label(
             __('parties.fields.phone'),
         );
-        CRUD::column('contact_person')->label(
+        $column = CRUD::column('contact_person');
+        $column->label(
             __('contacts.fields.contact_person'),
         );
-        CRUD::column('note')->label(
+        $column = CRUD::column('note');
+        $column->label(
             __('parties.fields.note'),
         );
-        CRUD::column('logo')->label(
+        $column = CRUD::column('logo');
+        $column->label(
             __('parties.fields.logo'),
-        )->type('image')->disk('public');
+        );
+        $column->type('image');
+        $column->disk('public');
     }
 
     protected function setupCreateOperation(): void
@@ -187,11 +195,11 @@ final class ContactCrudController extends CrudController
 
     private function addContactPersonField(): void
     {
-        CRUD::field('contact_person')
-            ->label(
-                __('contacts.fields.contact_person'),
-            )
-            ->type('text');
+        $field = CRUD::field('contact_person');
+        $field->label(
+            __('contacts.fields.contact_person'),
+        );
+        $field->type('text');
     }
 
     private function validatedRequest(): ContactRequest

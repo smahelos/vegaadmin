@@ -68,10 +68,12 @@ class StatusCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('statuses.fields.name'),
         );
-        CRUD::column('slug')->label(
+        $column = CRUD::column('slug');
+        $column->label(
             __('statuses.fields.slug'),
         );
 
@@ -96,7 +98,8 @@ class StatusCrudController extends CrudController
                     },
                 ],
             ],
-        )->afterColumn('slug');
+        );
+        CRUD::afterColumn('slug');
 
         // Add a filter for category
         CRUD::addFilter(
@@ -119,12 +122,12 @@ class StatusCrudController extends CrudController
             },
         );
 
-        CRUD::column('color_preview')
-            ->type('custom_html')
-            ->label(
-                __('statuses.fields.color'),
-            )
-            ->value(fn ($entry) => $entry->color_preview);
+        $column = CRUD::column('color_preview');
+        $column->type('custom_html');
+        $column->label(
+            __('statuses.fields.color'),
+        );
+        $column->value(fn ($entry) => $entry->color_preview);
 
         CRUD::addColumn(
             [
@@ -142,10 +145,12 @@ class StatusCrudController extends CrudController
     {
         CRUD::setValidation(StatusRequest::class);
 
-        CRUD::field('name')->label(
+        $field = CRUD::field('name');
+        $field->label(
             __('statuses.fields.name'),
         );
-        CRUD::field('slug')->label(
+        $field = CRUD::field('slug');
+        $field->label(
             __('statuses.fields.slug'),
         );
 
@@ -160,7 +165,8 @@ class StatusCrudController extends CrudController
                 'required' => true,
                 'model' => StatusCategory::class,
             ],
-        )->afterField('type');
+        );
+        CRUD::afterField('type');
 
         CRUD::addField(
             [
@@ -181,9 +187,11 @@ class StatusCrudController extends CrudController
                 'default' => 'gray',
             ],
         );
-        CRUD::field('is_active')->label(
+        $field = CRUD::field('is_active');
+        $field->label(
             __('statuses.fields.is_active'),
-        )->type('boolean');
+        );
+        $field->type('boolean');
     }
 
     /**

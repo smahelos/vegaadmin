@@ -48,19 +48,24 @@ class PaymentMethodCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('payment_methods.fields.name'),
         );
-        CRUD::column('slug')->label(
+        $column = CRUD::column('slug');
+        $column->label(
             __('payment_methods.fields.slug'),
         );
-        CRUD::column('country')->label(
+        $column = CRUD::column('country');
+        $column->label(
             __('payment_methods.fields.country'),
         );
-        CRUD::column('currency')->label(
+        $column = CRUD::column('currency');
+        $column->label(
             __('payment_methods.fields.currency'),
         );
-        CRUD::column('icon')->label(
+        $column = CRUD::column('icon');
+        $column->label(
             __('payment_methods.fields.icon'),
         );
     }

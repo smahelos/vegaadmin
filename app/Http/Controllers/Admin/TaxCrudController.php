@@ -42,16 +42,22 @@ class TaxCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('taxes.fields.name'),
         );
-        CRUD::column('rate')->label(
+        $column = CRUD::column('rate');
+        $column->label(
             __('taxes.fields.rate'),
-        )->type('number')->suffix('%');
-        CRUD::column('slug')->label(
+        );
+        $column->type('number');
+        $column->suffix('%');
+        $column = CRUD::column('slug');
+        $column->label(
             __('taxes.fields.slug'),
         );
-        CRUD::column('description')->label(
+        $column = CRUD::column('description');
+        $column->label(
             __('taxes.fields.description'),
         );
     }

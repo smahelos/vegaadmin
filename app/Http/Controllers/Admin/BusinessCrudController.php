@@ -172,24 +172,28 @@ final class BusinessCrudController extends CrudController
     protected function setupShowOperation(): void
     {
         $this->setupPartyList('business');
-        CRUD::column('short_name')->label(
+        $column = CRUD::column('short_name');
+        $column->label(
             __('parties.fields.short_name'),
         );
-        CRUD::column('vat_number')->label(
+        $column = CRUD::column('vat_number');
+        $column->label(
             __('parties.fields.vat_number'),
         );
-        CRUD::column('phone')->label(
+        $column = CRUD::column('phone');
+        $column->label(
             __('parties.fields.phone'),
         );
-        CRUD::column('note')->label(
+        $column = CRUD::column('note');
+        $column->label(
             __('parties.fields.note'),
         );
-        CRUD::column('logo')
-            ->label(
-                __('parties.fields.logo'),
-            )
-            ->type('image')
-            ->disk('public');
+        $column = CRUD::column('logo');
+        $column->label(
+            __('parties.fields.logo'),
+        );
+        $column->type('image');
+        $column->disk('public');
     }
 
     protected function setupCreateOperation(): void

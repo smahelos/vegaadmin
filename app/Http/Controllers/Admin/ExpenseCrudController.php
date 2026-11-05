@@ -77,144 +77,146 @@ final class ExpenseCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('expense_date')
-            ->label(
-                __('expenses.fields.expense_date'),
-            )
-            ->type('date');
+        $column = CRUD::column('expense_date');
+        $column->label(
+            __('expenses.fields.expense_date'),
+        );
+        $column->type('date');
 
-        CRUD::column('reference_number')
-            ->label(
-                __('expenses.fields.reference_number'),
-            );
+        $column = CRUD::column('reference_number');
+        $column->label(
+            __('expenses.fields.reference_number'),
+        );
 
-        CRUD::column('supplier_name')->type('text')->label(
+        $column = CRUD::column('supplier_name');
+        $column->type('text');
+        $column->label(
             __('expenses.fields.supplier'),
         );
-        CRUD::column('customer_name')->type('text')->label(
+        $column = CRUD::column('customer_name');
+        $column->type('text');
+        $column->label(
             __('expenses.fields.customer'),
         );
 
-        CRUD::column('category')
-            ->label(
-                __('expenses.fields.category_id'),
-            )
-            ->type('relationship')
-            ->attribute('name');
+        $column = CRUD::column('category');
+        $column->label(
+            __('expenses.fields.category_id'),
+        );
+        $column->type('relationship');
+        $column->attribute('name');
 
-        CRUD::column('amount')
-            ->label(
-                __('expenses.fields.amount'),
-            )
-            ->type('number')
-            ->prefix('');
+        $column = CRUD::column('amount');
+        $column->label(
+            __('expenses.fields.amount'),
+        );
+        $column->type('number');
+        $column->prefix('');
 
-        CRUD::column('currency')
-            ->label(
-                __('expenses.fields.currency'),
-            );
+        $column = CRUD::column('currency');
+        $column->label(
+            __('expenses.fields.currency'),
+        );
 
-        CRUD::column('status')
-            ->label(
-                __('expenses.fields.status_id'),
-            )
-            ->type('relationship')
-            ->attribute('name');
+        $column = CRUD::column('status');
+        $column->label(
+            __('expenses.fields.status_id'),
+        );
+        $column->type('relationship');
+        $column->attribute('name');
 
-        CRUD::column('description')
-            ->label(
-                __('expenses.fields.description'),
-            )
-            ->type('text')
-            ->limit(80)
-            ->escaped(true);
+        $column = CRUD::column('description');
+        $column->label(
+            __('expenses.fields.description'),
+        );
+        $column->type('text');
+        $column->limit(80);
+        $column->escaped(true);
 
-        CRUD::column('attachments')
-            ->label(
-                __('expenses.fields.attachments'),
-            )
-            ->type('closure')
-            ->function(
-                function ($entry) {
-                    if (!is_array($entry->attachments)) {
-                        return '';
-                    }
-                    $fileNames = array_map(
-                        function ($path) {
-                            return basename($path);
-                        },
-                        $entry->attachments,
-                    );
+        $column = CRUD::column('attachments');
+        $column->label(
+            __('expenses.fields.attachments'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
+                if (!is_array($entry->attachments)) {
+                    return '';
+                }
+                $fileNames = array_map(
+                    function ($path) {
+                        return basename($path);
+                    },
+                    $entry->attachments,
+                );
 
-                    return implode(', ', $fileNames);
-                },
-            )
-            ->limit(50);
+                return implode(', ', $fileNames);
+            },
+        );
+        $column->limit(50);
 
         // Filters
-        CRUD::filter('expense_date')
-            ->type('datepicker_range')
-            ->label(
-                __('expenses.filters.date_range'),
-            )
-            ->whenActive(
-                function ($value): void {
-                    $dates = json_decode($value);
-                    CRUD::addClause(
-                        'where',
-                        'expense_date',
-                        '>=',
-                        $dates->from,
-                    );
-                    CRUD::addClause(
-                        'where',
-                        'expense_date',
-                        '<=',
-                        $dates->to,
-                    );
-                },
-            );
-
-        CRUD::filter('contact_id')
-            ->type('select2')
-            ->label(
-                __('invoices.fields.contact_id'),
-            )
-            ->values(
-                Contact::pluck('name', 'id')->toArray(),
-            )
-            ->whenActive(
-                fn ($value) => CRUD::addClause(
+        $filter = CRUD::filter('expense_date');
+        $filter->type('datepicker_range');
+        $filter->label(
+            __('expenses.filters.date_range'),
+        );
+        $filter->whenActive(
+            function ($value): void {
+                $dates = json_decode($value);
+                CRUD::addClause(
                     'where',
-                    'contact_id',
-                    $value,
-                ),
-            );
+                    'expense_date',
+                    '>=',
+                    $dates->from,
+                );
+                CRUD::addClause(
+                    'where',
+                    'expense_date',
+                    '<=',
+                    $dates->to,
+                );
+            },
+        );
 
-        CRUD::filter('category_id')
-            ->type('select2')
-            ->label(
-                __('expenses.fields.category_id'),
-            )
-            ->values(
-                ExpenseCategory::where('is_active', 1)
-                    ->pluck('name', 'id')->toArray(),
-            );
+        $filter = CRUD::filter('contact_id');
+        $filter->type('select2');
+        $filter->label(
+            __('invoices.fields.contact_id'),
+        );
+        $contactNames = Contact::pluck('name', 'id');
+        $filter->values($contactNames->toArray());
+        $filter->whenActive(
+            fn ($value) => CRUD::addClause(
+                'where',
+                'contact_id',
+                $value,
+            ),
+        );
+
+        $filter = CRUD::filter('category_id');
+        $filter->type('select2');
+        $filter->label(
+            __('expenses.fields.category_id'),
+        );
+        $categoryQuery = ExpenseCategory::where('is_active', 1);
+        $categoryNames = $categoryQuery->pluck('name', 'id');
+        $filter->values($categoryNames->toArray());
 
         // Get the category ID for 'expense'
         $statusCategoryQuery = StatusCategory::where('slug', 'expense-statuses');
         $statusCategory = $statusCategoryQuery->first();
         $categoryId = $statusCategory?->id;
 
-        CRUD::filter('status_id')
-            ->type('select2')
-            ->label(
-                __('expenses.fields.status_id'),
-            )
-            ->values(
-                Status::where('category_id', $categoryId)->where('is_active', 1)
-                    ->pluck('name', 'id')->toArray(),
-            );
+        $filter = CRUD::filter('status_id');
+        $filter->type('select2');
+        $filter->label(
+            __('expenses.fields.status_id'),
+        );
+        $statusQuery = Status::where('category_id', $categoryId);
+        $statusQuery->where('is_active', 1);
+        $statusNames = $statusQuery->pluck('name', 'id');
+        $filter->values($statusNames->toArray());
     }
 
     /**
@@ -305,7 +307,10 @@ final class ExpenseCrudController extends CrudController
      */
     protected function setupShowOperation(): void
     {
-        CRUD::column('supplier_logo')->type('image')->disk('public')->label(
+        $column = CRUD::column('supplier_logo');
+        $column->type('image');
+        $column->disk('public');
+        $column->label(
             __('parties.fields.supplier_logo'),
         );
         // Re-use most of the same columns from list operation

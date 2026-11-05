@@ -50,29 +50,32 @@ class ExpenseCategoryCrudController extends CrudController
     {
         // CRUD::setFromDb(); // set columns from db columns.
 
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('expenses.categories.fields.name'),
         );
-        CRUD::column('slug')->label(
+        $column = CRUD::column('slug');
+        $column->label(
             __('expenses.categories.fields.slug'),
         );
-        CRUD::column('description')->label(
+        $column = CRUD::column('description');
+        $column->label(
             __('expenses.categories.fields.description'),
         );
 
-        CRUD::column('color_preview')
-            ->type('custom_html')
-            ->label(
-                __('expenses.categories.fields.color'),
-            )
-            ->value(
-                function ($entry) {
-                    // Tabler has no plain bg-gray badge color
-                    $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
+        $column = CRUD::column('color_preview');
+        $column->type('custom_html');
+        $column->label(
+            __('expenses.categories.fields.color'),
+        );
+        $column->value(
+            function ($entry) {
+                // Tabler has no plain bg-gray badge color
+                $color = ['gray' => 'secondary'][$entry->color ?? 'gray'] ?? $entry->color;
 
-                    return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
-                },
-            );
+                return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
+            },
+        );
         /**
          * Columns can be defined using the fluent syntax:
          * - CRUD::column('price')->type('number');
@@ -89,22 +92,23 @@ class ExpenseCategoryCrudController extends CrudController
         CRUD::setValidation(ExpenseCategoryRequest::class);
         // CRUD::setFromDb(); // set fields from db columns.
 
-        CRUD::field('name')->label(
+        $field = CRUD::field('name');
+        $field->label(
             __('expenses.categories.fields.name'),
         );
-        CRUD::field('slug')
-            ->label(
-                __('expenses.categories.fields.slug'),
-            )
-            ->hint(
-                __('expenses.categories.hints.slug'),
-            );
+        $field = CRUD::field('slug');
+        $field->label(
+            __('expenses.categories.fields.slug'),
+        );
+        $field->hint(
+            __('expenses.categories.hints.slug'),
+        );
 
-        CRUD::field('description')
-            ->label(
-                __('expenses.categories.fields.description'),
-            )
-            ->type('textarea');
+        $field = CRUD::field('description');
+        $field->label(
+            __('expenses.categories.fields.description'),
+        );
+        $field->type('textarea');
 
         CRUD::addField(
             [

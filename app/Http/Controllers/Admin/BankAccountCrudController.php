@@ -201,43 +201,47 @@ final class BankAccountCrudController extends CrudController
             );
         }
 
-        CRUD::column('owner')
-            ->label(
-                __('parties.bank_accounts.fields.owner'),
-            )
-            ->type('closure')
-            ->function(
-                fn (BankAccount $entry): string => e($entry->business->name ?? $entry->contact->name ?? ''),
-            )
-            ->escaped(false);
-        CRUD::column('label')->label(
+        $column = CRUD::column('owner');
+        $column->label(
+            __('parties.bank_accounts.fields.owner'),
+        );
+        $column->type('closure');
+        $column->function(
+            fn (BankAccount $entry): string => e($entry->business->name ?? $entry->contact->name ?? ''),
+        );
+        $column->escaped(false);
+        $column = CRUD::column('label');
+        $column->label(
             __('parties.bank_accounts.fields.label'),
         );
-        CRUD::column('iban')->label(
+        $column = CRUD::column('iban');
+        $column->label(
             __('parties.bank_accounts.fields.iban'),
         );
-        CRUD::column('number')->label(
+        $column = CRUD::column('number');
+        $column->label(
             __('parties.bank_accounts.fields.number'),
         );
-        CRUD::column('bank_code')->label(
+        $column = CRUD::column('bank_code');
+        $column->label(
             __('parties.bank_accounts.fields.bank_code'),
         );
-        CRUD::column('default')
-            ->label(
-                __('parties.bank_accounts.fields.default'),
-            )
-            ->type('closure')
-            ->function(
-                fn (BankAccount $entry): string => $this->isDefault($entry) ? e(
-                    __('general.yes'),
-                ) : '',
-            )
-            ->escaped(false);
-        CRUD::column('archived_at')
-            ->label(
-                __('parties.statuses.archived'),
-            )
-            ->type('datetime');
+        $column = CRUD::column('default');
+        $column->label(
+            __('parties.bank_accounts.fields.default'),
+        );
+        $column->type('closure');
+        $column->function(
+            fn (BankAccount $entry): string => $this->isDefault($entry) ? e(
+                __('general.yes'),
+            ) : '',
+        );
+        $column->escaped(false);
+        $column = CRUD::column('archived_at');
+        $column->label(
+            __('parties.statuses.archived'),
+        );
+        $column->type('datetime');
 
         CRUD::addButton(
             'line',
@@ -251,16 +255,15 @@ final class BankAccountCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(BankAccountRequest::class);
-        CRUD::field('business_id')
-            ->type('hidden')
-            ->value(
-                request()->integer('business_id') ?: null,
-            );
-        CRUD::field('contact_id')
-            ->type('hidden')
-            ->value(
-                request()->integer('contact_id') ?: null,
-            );
+        $field = CRUD::field('business_id');
+        $field->type('hidden');
+        $request = request();
+        $businessId = $request->integer('business_id');
+        $field->value($businessId ?: null);
+        $field = CRUD::field('contact_id');
+        $field->type('hidden');
+        $contactId = $request->integer('contact_id');
+        $field->value($contactId ?: null);
         $this->addAccountFields();
     }
 

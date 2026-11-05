@@ -40,19 +40,24 @@ class ProductCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(
+        $column = CRUD::column('name');
+        $column->label(
             __('products.categories.fields.name'),
         );
-        CRUD::column('slug')->label(
+        $column = CRUD::column('slug');
+        $column->label(
             __('products.categories.fields.slug'),
         );
-        CRUD::column('description')->label(
+        $column = CRUD::column('description');
+        $column->label(
             __('products.categories.fields.description'),
         );
-        CRUD::column('created_at')->label(
+        $column = CRUD::column('created_at');
+        $column->label(
             __('products.categories.fields.created_at'),
         );
-        CRUD::column('updated_at')->label(
+        $column = CRUD::column('updated_at');
+        $column->label(
             __('products.categories.fields.updated_at'),
         );
     }
@@ -64,21 +69,22 @@ class ProductCategoryCrudController extends CrudController
     {
         CRUD::setValidation(ProductCategoryRequest::class);
 
-        CRUD::field('name')->label(
+        $field = CRUD::field('name');
+        $field->label(
             __('products.categories.fields.name'),
         );
-        CRUD::field('slug')
-            ->label(
-                __('products.categories.fields.slug'),
-            )
-            ->hint(
-                __('products.categories.hints.slug'),
-            );
-        CRUD::field('description')
-            ->type('textarea')
-            ->label(
-                __('products.categories.fields.description'),
-            );
+        $field = CRUD::field('slug');
+        $field->label(
+            __('products.categories.fields.slug'),
+        );
+        $field->hint(
+            __('products.categories.hints.slug'),
+        );
+        $field = CRUD::field('description');
+        $field->type('textarea');
+        $field->label(
+            __('products.categories.fields.description'),
+        );
     }
 
     /**

@@ -77,75 +77,78 @@ trait ConfiguresPartyCrud
 
     protected function setupPartyList(string $entity): void
     {
-        CRUD::column('user')
-            ->label(
-                __('parties.fields.owner'),
-            )
-            ->type('relationship')
-            ->attribute('name');
-        CRUD::column('name')->label(
+        $column = CRUD::column('user');
+        $column->label(
+            __('parties.fields.owner'),
+        );
+        $column->type('relationship');
+        $column->attribute('name');
+        $column = CRUD::column('name');
+        $column->label(
             __('parties.fields.name'),
         );
-        CRUD::column('company_number')->label(
+        $column = CRUD::column('company_number');
+        $column->label(
             __('parties.fields.company_number'),
         );
-        CRUD::column('email')->label(
+        $column = CRUD::column('email');
+        $column->label(
             __('parties.fields.email'),
         );
-        CRUD::column('city')
-            ->label(
-                __('parties.fields.city'),
-            )
-            ->type('closure')
-            ->function(
-                fn (Business|Contact $entry): string => e($entry->address?->city ?? ''),
-            )
-            ->escaped(false);
-        CRUD::column('archived_at')
-            ->label(
-                __('parties.statuses.archived'),
-            )
-            ->type('datetime');
+        $column = CRUD::column('city');
+        $column->label(
+            __('parties.fields.city'),
+        );
+        $column->type('closure');
+        $column->function(
+            fn (Business|Contact $entry): string => e($entry->address?->city ?? ''),
+        );
+        $column->escaped(false);
+        $column = CRUD::column('archived_at');
+        $column->label(
+            __('parties.statuses.archived'),
+        );
+        $column->type('datetime');
 
         $userQuery = User::query();
         $userQuery->orderBy('name');
         $userNames = $userQuery->pluck('name', 'id');
 
-        CRUD::filter('user_id')
-            ->type('select2')
-            ->label(
-                __('parties.fields.owner'),
-            )
-            ->values($userNames->all())
-            ->whenActive(
-                function (string $value): void {
-                    CRUD::addClause(
-                        'where',
-                        'user_id',
-                        (int) $value,
-                    );
-                },
-            );
-        CRUD::filter('status')
-            ->type('select2')
-            ->label(
-                __('parties.filters.status'),
-            )
-            ->values(
-                [
-                    self::STATUS_ACTIVE => __('parties.filters.active'),
-                    self::STATUS_ARCHIVED => __('parties.filters.archived'),
-                ],
-            )
-            ->whenActive(
-                function (string $value): void {
-                    CRUD::addClause(
-                        fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED
-                        ? $query->whereNotNull('archived_at')
-                        : $query->whereNull('archived_at'),
-                    );
-                },
-            );
+        $filter = CRUD::filter('user_id');
+        $filter->type('select2');
+        $filter->label(
+            __('parties.fields.owner'),
+        );
+        $filter->values($userNames->all());
+        $filter->whenActive(
+            function (string $value): void {
+                CRUD::addClause(
+                    'where',
+                    'user_id',
+                    (int) $value,
+                );
+            },
+        );
+        $filter = CRUD::filter('status');
+        $filter->type('select2');
+        $filter->label(
+            __('parties.filters.status'),
+        );
+        $filter->values(
+            [
+                self::STATUS_ACTIVE => __('parties.filters.active'),
+                self::STATUS_ARCHIVED => __('parties.filters.archived'),
+            ],
+        );
+        $filter->whenActive(
+            function (string $value): void {
+                CRUD::addClause(
+                    fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED
+                    ? $query->whereNotNull('archived_at')
+                    : $query->whereNull('archived_at'),
+                );
+            },
+        );
 
         CRUD::addButton(
             'line',
@@ -166,15 +169,16 @@ trait ConfiguresPartyCrud
 
     protected function addOwnerField(): void
     {
-        CRUD::field('user_id')
-            ->label(
-                __('parties.fields.owner'),
-            )
-            ->type('select2_from_array')
-            ->options(
-                User::query()->orderBy('name')->pluck('name', 'id')->all(),
-            )
-            ->allows_null(false);
+        $field = CRUD::field('user_id');
+        $field->label(
+            __('parties.fields.owner'),
+        );
+        $field->type('select2_from_array');
+        $userQuery = User::query();
+        $userQuery->orderBy('name');
+        $userNames = $userQuery->pluck('name', 'id');
+        $field->options($userNames->all());
+        $field->allows_null(false);
     }
 
     /**
