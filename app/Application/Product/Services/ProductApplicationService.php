@@ -104,9 +104,11 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         $productId = ProductId::fromInt($id);
         $userVO = UserId::fromInt($userId);
 
-        $product = $this->authService->canAccessAnyProducts($userId)
-            ? $this->productDomainService->findProductAny($productId)
-            : $this->productDomainService->findProductForUser($productId, $userVO);
+        if ($this->authService->canAccessAnyProducts($userId)) {
+            $product = $this->productDomainService->findProductAny($productId);
+        } else {
+            $product = $this->productDomainService->findProductForUser($productId, $userVO);
+        }
 
         if (!$product) {
             throw new ModelNotFoundException('Product not found');

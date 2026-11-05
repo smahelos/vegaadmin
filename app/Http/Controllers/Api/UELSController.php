@@ -82,9 +82,12 @@ final class UELSController extends Controller
             }
 
             // Normalize permissions to array whether it's a Collection or plain array
-            $activePermissions = is_array($entityInfo['user_permissions'])
-                ? $entityInfo['user_permissions']
-                : ($entityInfo['user_permissions']?->toArray() ?? []);
+            if (is_array($entityInfo['user_permissions'])) {
+                $activePermissions = $entityInfo['user_permissions'];
+            } else {
+                $activePermissions = $entityInfo['user_permissions']?->toArray() ?? [];
+            }
+
             if (!empty($activePermissions)) {
                 $limitPeriod['daily'] = $this->findKey('daily', $activePermissions);
                 $limitPeriod['weekly'] = $this->findKey('weekly', $activePermissions);
@@ -181,7 +184,13 @@ final class UELSController extends Controller
 
             // If no limit > 0 found, use the first available stat as fallback
             if (!$primaryStats) {
-                $primaryStats = $dailyStats ?: $weeklyStats ?: $monthlyStats ?: $yearlyStats ?: $lifetimeStats;
+                foreach ($statsWithPeriods as $availableStats) {
+                    if ($availableStats) {
+                        $primaryStats = $availableStats;
+
+                        break;
+                    }
+                }
             }
 
             if (!$primaryStats) {
@@ -212,9 +221,7 @@ final class UELSController extends Controller
                             'total' => 0,
                         ],
                         'recentActivity' => [],
-                        'permissions' => is_array($entityInfo['user_permissions'])
-                            ? $entityInfo['user_permissions']
-                            : ($entityInfo['user_permissions']?->toArray() ?? []),
+                        'permissions' => $activePermissions,
                     ],
                 );
             }
@@ -260,9 +267,7 @@ final class UELSController extends Controller
                         'total' => $currentUsage,
                     ],
                     'recentActivity' => $this->getRecentActivity($user, $entity),
-                    'permissions' => is_array($entityInfo['user_permissions'])
-                        ? $entityInfo['user_permissions']
-                        : ($entityInfo['user_permissions']?->toArray() ?? []),
+                    'permissions' => $activePermissions,
                     'all_limits' => $entityInfo['limits'],
                 ],
             );
