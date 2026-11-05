@@ -104,7 +104,7 @@ class ProductCrudController extends CrudController
         $column->attribute('name');
         $column->value(
             function ($entry) {
-                return $entry->user_id ? $entry->user->name : 'N/A';
+                return $entry->user_id ? $entry->user->name : __('general.placeholders.not_available');
             },
         );
 
@@ -123,7 +123,7 @@ class ProductCrudController extends CrudController
         );
         $column->value(
             function ($entry) {
-                return $entry->category ? $entry->category->name : 'N/A';
+                return $entry->category ? $entry->category->name : __('general.placeholders.not_available');
             },
         );
         $column = CRUD::column('tax_id');
@@ -133,7 +133,7 @@ class ProductCrudController extends CrudController
         );
         $column->value(
             function ($entry) {
-                return $entry->tax ? $entry->tax->name : 'N/A';
+                return $entry->tax ? $entry->tax->name : __('general.placeholders.not_available');
             },
         );
         $column = CRUD::column('is_default');
@@ -145,7 +145,6 @@ class ProductCrudController extends CrudController
         $column->label(
             __('products.fields.created_at'),
         );
-        // CRUD::column('updated_at');
     }
 
     /**

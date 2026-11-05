@@ -48,8 +48,6 @@ class ExpenseCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        // CRUD::setFromDb(); // set columns from db columns.
-
         $column = CRUD::column('name');
         $column->label(
             __('expenses.categories.fields.name'),
@@ -76,10 +74,6 @@ class ExpenseCategoryCrudController extends CrudController
                 return '<span class="badge bg-' . e($color) . ' text-' . e($color) . '-fg">' . e($entry->name) . '</span>';
             },
         );
-        /**
-         * Columns can be defined using the fluent syntax:
-         * - CRUD::column('price')->type('number');
-         */
     }
 
     /**
@@ -90,7 +84,6 @@ class ExpenseCategoryCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseCategoryRequest::class);
-        // CRUD::setFromDb(); // set fields from db columns.
 
         $field = CRUD::field('name');
         $field->label(
@@ -129,10 +122,6 @@ class ExpenseCategoryCrudController extends CrudController
                 'default' => 'gray',
             ],
         );
-        /**
-         * Fields can be defined using the fluent syntax:
-         * - CRUD::field('price')->type('number');
-         */
     }
 
     /**

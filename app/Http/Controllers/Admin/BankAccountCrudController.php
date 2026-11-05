@@ -85,7 +85,7 @@ final class BankAccountCrudController extends CrudController
         );
 
         $alerts = Alert::success(
-            trans('backpack::crud.insert_success'),
+            __('backpack::crud.insert_success'),
         );
         $alerts->flash();
         $this->crud->setSaveAction();
@@ -106,7 +106,7 @@ final class BankAccountCrudController extends CrudController
         );
 
         $alerts = Alert::success(
-            trans('backpack::crud.update_success'),
+            __('backpack::crud.update_success'),
         );
         $alerts->flash();
         $this->crud->setSaveAction();

@@ -92,13 +92,13 @@ class StatusCategoryCrudController extends CrudController
 
         $column = CRUD::column('created_at');
         $column->label(
-            trans('admin.general.created_at'),
+            __('admin.general.created_at'),
         );
         $column->type('datetime');
 
         $column = CRUD::column('updated_at');
         $column->label(
-            trans('admin.general.updated_at'),
+            __('admin.general.updated_at'),
         );
         $column->type('datetime');
     }

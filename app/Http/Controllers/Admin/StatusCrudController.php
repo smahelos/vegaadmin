@@ -99,7 +99,6 @@ class StatusCrudController extends CrudController
                 ],
             ],
         );
-        CRUD::afterColumn('slug');
 
         // Add a filter for category
         CRUD::addFilter(
@@ -166,7 +165,6 @@ class StatusCrudController extends CrudController
                 'model' => StatusCategory::class,
             ],
         );
-        CRUD::afterField('type');
 
         CRUD::addField(
             [

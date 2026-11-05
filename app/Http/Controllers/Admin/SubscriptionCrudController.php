@@ -58,7 +58,7 @@ class SubscriptionCrudController extends CrudController
             [
                 [
                     'name' => 'id',
-                    'label' => trans('admin.general.id'),
+                    'label' => __('admin.general.id'),
                     'type' => 'number',
                 ],
                 [
