@@ -97,8 +97,8 @@ final class ProductServiceTest extends TestCase
             public function create(ProductWriteData $writeData): ProductDTO
             {
                 $this->capturedCreate = $writeData;
-                $priceMoney = isset($writeData->price)
-                    ? Money::fromString(
+                if (isset($writeData->price)) {
+                    $priceMoney = Money::fromString(
                         number_format(
                             (float) $writeData->price,
                             2,
@@ -106,8 +106,10 @@ final class ProductServiceTest extends TestCase
                             '',
                         ),
                         strtoupper($writeData->currency ?? 'CZK'),
-                    )
-                    : null;
+                    );
+                } else {
+                    $priceMoney = null;
+                }
 
                 return new ProductDTO(
                     id: 1,
@@ -134,8 +136,8 @@ final class ProductServiceTest extends TestCase
             public function update(ProductId $id, ProductWriteData $writeData): ProductDTO
             {
                 $this->capturedUpdate = ['id' => $id, 'data' => $writeData];
-                $priceMoney = isset($writeData->price)
-                    ? Money::fromString(
+                if (isset($writeData->price)) {
+                    $priceMoney = Money::fromString(
                         number_format(
                             (float) $writeData->price,
                             2,
@@ -143,8 +145,10 @@ final class ProductServiceTest extends TestCase
                             '',
                         ),
                         strtoupper($writeData->currency ?? 'CZK'),
-                    )
-                    : null;
+                    );
+                } else {
+                    $priceMoney = null;
+                }
 
                 return new ProductDTO(
                     id: $id->getValue(),

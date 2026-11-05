@@ -17,25 +17,31 @@ class EloquentProductMapper
      */
     public function toDto(Product $model): ProductDTO
     {
-        $tax = ($model->relationLoaded('tax') && $model->tax)
-            ? [
+        if ($model->relationLoaded('tax') && $model->tax) {
+            $tax = [
                 'id' => $model->tax->getAttribute('id'),
                 'name' => $model->tax->getAttribute('name'),
                 'rate' => $model->tax->getAttribute('rate'),
-            ]
-            : null;
-        $category = ($model->relationLoaded('category') && $model->category)
-            ? ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')]
-            : null;
+            ];
+        } else {
+            $tax = null;
+        }
+        if ($model->relationLoaded('category') && $model->category) {
+            $category = ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')];
+        } else {
+            $category = null;
+        }
 
         $currency = $model->getAttribute('currency') ?: 'CZK';
         $priceRaw = $model->getAttribute('price');
-        $priceMoney = $priceRaw !== null
-            ? Money::fromString(
+        if ($priceRaw !== null) {
+            $priceMoney = Money::fromString(
                 (string) $priceRaw,
                 strtoupper($currency),
-            )
-            : null;
+            );
+        } else {
+            $priceMoney = null;
+        }
 
         $invoiceIds = [];
         if ($model->relationLoaded('invoices')) {
