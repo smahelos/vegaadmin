@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Http\Controllers\Frontend\SubscriptionController;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -9,6 +10,7 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
+use Tests\Support\Fakes\Payment\RecordingPaymentApplicationService;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 use Tests\Traits\WithSyntheticPaymentAppService;
@@ -172,6 +174,40 @@ class SubscriptionControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function subscribe_sends_the_payment_routes_to_the_gateway_in_production(): void
+    {
+        config(['services.gopay.production' => true]);
+
+        $initiated = $this->subscribeThroughRecordingPaymentApp();
+
+        $this->assertSame(
+            route('payment.return'),
+            $initiated['return_url'],
+        );
+        $this->assertSame(
+            route('payment.notify'),
+            $initiated['notify_url'],
+        );
+    }
+
+    #[Test]
+    public function subscribe_sends_the_configured_test_urls_outside_production(): void
+    {
+        config(
+            [
+                'services.gopay.production' => false,
+                'services.gopay.test_return_url' => 'https://return.test/a',
+                'services.gopay.test_notify_url' => 'https://notify.test/b',
+            ],
+        );
+
+        $initiated = $this->subscribeThroughRecordingPaymentApp();
+
+        $this->assertSame('https://return.test/a', $initiated['return_url']);
+        $this->assertSame('https://notify.test/b', $initiated['notify_url']);
+    }
+
+    #[Test]
     public function cancel_requires_authentication(): void
     {
         $subscriptionFactory = Subscription::factory();
@@ -259,5 +295,30 @@ class SubscriptionControllerFeatureTest extends TestCase
         // Check if controller uses AuthorizesRequests trait
         $traits = $reflection->getTraitNames();
         $this->assertContains('Illuminate\Foundation\Auth\Access\AuthorizesRequests', $traits);
+    }
+
+    /** @return array<string, mixed> */
+    private function subscribeThroughRecordingPaymentApp(): array
+    {
+        $paymentApp = new RecordingPaymentApplicationService;
+        $this->app->instance(PaymentApplicationServiceInterface::class, $paymentApp);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+            [
+                'gateway' => 'gopay',
+            ],
+        );
+
+        $response->assertRedirect(RecordingPaymentApplicationService::REDIRECT_URL);
+
+        return $paymentApp->initiated[0];
     }
 }

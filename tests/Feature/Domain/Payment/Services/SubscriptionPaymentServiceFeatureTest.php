@@ -4,6 +4,7 @@ namespace Tests\Feature\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
+use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -12,6 +13,7 @@ use Carbon\CarbonImmutable;
 use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Fakes\Shared\RecordingLog;
 use Tests\TestCase;
 
 class SubscriptionPaymentServiceFeatureTest extends TestCase
@@ -190,6 +192,46 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
 
         // Service returns true - only pending/processing payments are cancelled
         $this->assertTrue($result);
+    }
+
+    #[Test]
+    public function cancelling_logs_how_many_pending_payments_it_cancelled(): void
+    {
+        $log = new RecordingLog;
+        $this->app->instance(LogInterface::class, $log);
+        $service = app(SubscriptionPaymentServiceInterface::class);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create(['status' => 'active']);
+        foreach (
+            [
+                'pending',
+                'processing',
+                'completed',
+            ] as $status
+        ) {
+            Payment::create(
+                [
+                    'subscription_id' => $subscription->id,
+                    'status' => $status,
+                    'amount' => '10.00',
+                    'currency' => 'CZK',
+                    'gateway' => 'gopay',
+                ],
+            );
+        }
+
+        $this->assertTrue(
+            $service->cancelSubscriptionPayment($subscription->id),
+        );
+
+        $summaries = array_values(
+            array_filter(
+                $log->entries,
+                fn (array $entry): bool => $entry['message'] === 'All subscription payments cancelled',
+            ),
+        );
+        $this->assertCount(1, $summaries);
+        $this->assertSame(2, $summaries[0]['context']['cancelled_payments']);
     }
 
     #[Test]
