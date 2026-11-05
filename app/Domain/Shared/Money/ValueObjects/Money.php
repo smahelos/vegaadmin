@@ -337,15 +337,11 @@ class Money
             $keptFraction = '';
         }
         // digit after kept part
-        if ($scale >= 0) {
-            $roundingDigit = (int) substr(
-                $fullFraction,
-                $scale,
-                1,
-            );
-        } else {
-            $roundingDigit = 0;
-        }
+        $roundingDigit = (int) substr(
+            $fullFraction,
+            $scale,
+            1,
+        );
         $hasFurther = $remainder > 0 || strlen($fullFraction) > $scale + 1; // indicates more non-zero info beyond rounding digit
 
         if (
@@ -391,8 +387,6 @@ class Money
         }
         if ($scale === 0) {
             $lastDigit = (int) substr($integerPart, -1);
-        } elseif ($keptFraction === '') {
-            $lastDigit = 0;
         } else {
             $lastDigit = (int) substr($keptFraction, -1);
         }
