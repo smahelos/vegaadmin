@@ -59,16 +59,20 @@ final class LivewireUsageProvider extends ReflectionBasedMemberUsageProvider
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
     {
-        return $this->isComponentState($property)
-            ? VirtualUsageData::withNote('Livewire state read by the view and the browser')
-            : null;
+        if ($this->isComponentState($property)) {
+            return VirtualUsageData::withNote('Livewire state read by the view and the browser');
+        }
+
+        return null;
     }
 
     protected function shouldMarkPropertyAsWritten(ReflectionProperty $property): ?VirtualUsageData
     {
-        return $this->isComponentState($property)
-            ? VirtualUsageData::withNote('Livewire state written by mount parameters and the browser')
-            : null;
+        if ($this->isComponentState($property)) {
+            return VirtualUsageData::withNote('Livewire state written by mount parameters and the browser');
+        }
+
+        return null;
     }
 
     private function isComponentState(ReflectionProperty $property): bool

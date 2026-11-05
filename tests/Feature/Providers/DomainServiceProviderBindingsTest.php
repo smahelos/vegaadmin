@@ -32,18 +32,16 @@ class DomainServiceProviderBindingsTest extends TestCase
     {
         $paths = [];
         // Domain interfaces
+        $domainPattern = app_path('Domain/*/Contracts/*Interface.php');
         $paths = array_merge(
             $paths,
-            glob(
-                app_path('Domain/*/Contracts/*Interface.php'),
-            ) ?: [],
+            glob($domainPattern) ?: [],
         );
         // Application layer interfaces (one level Application/<Context>/Contracts)
+        $applicationPattern = app_path('Application/*/Contracts/*Interface.php');
         $paths = array_merge(
             $paths,
-            glob(
-                app_path('Application/*/Contracts/*Interface.php'),
-            ) ?: [],
+            glob($applicationPattern) ?: [],
         );
         // Application layer interfaces with an extra sub-namespace (e.g. Application/Invoice/Contracts already covered, but keep pattern flexible)
         $paths = array_unique($paths);

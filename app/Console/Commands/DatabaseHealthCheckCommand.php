@@ -86,11 +86,18 @@ class DatabaseHealthCheckCommand extends Command
 
             if ($connectionStats && $maxConnections) {
                 $usage = round(($connectionStats->Value / $maxConnections->Value) * 100, 2);
+                if ($usage > 80) {
+                    $status = 'critical';
+                } elseif ($usage > 60) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'connection_usage',
                     'value' => $usage,
                     'unit' => '%',
-                    'status' => $usage > 80 ? 'critical' : ($usage > 60 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $usage > 80 ? 'Consider increasing max_connections or optimizing connection pooling' : null,
                 ];
             }
@@ -119,11 +126,18 @@ class DatabaseHealthCheckCommand extends Command
 
             if ($slowQueries && $uptime && $uptime->Value > 0) {
                 $slowPerMinute = round(($slowQueries->Value / $uptime->Value) * 60, 2);
+                if ($slowPerMinute > 5) {
+                    $status = 'critical';
+                } elseif ($slowPerMinute > 1) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'slow_queries_per_minute',
                     'value' => $slowPerMinute,
                     'unit' => 'queries/min',
-                    'status' => $slowPerMinute > 5 ? 'critical' : ($slowPerMinute > 1 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $slowPerMinute > 1 ? 'Review and optimize slow queries' : null,
                 ];
             }
@@ -159,11 +173,18 @@ class DatabaseHealthCheckCommand extends Command
                     ($tableLocksWaited->Value / ($tableLocksWaited->Value + $tableLocksImmediate->Value)) * 100,
                     2,
                 );
+                if ($waitRate > 10) {
+                    $status = 'critical';
+                } elseif ($waitRate > 5) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'table_locks_wait_rate',
                     'value' => $waitRate,
                     'unit' => '%',
-                    'status' => $waitRate > 10 ? 'critical' : ($waitRate > 5 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $waitRate > 5 ? 'Consider optimizing table structure or using InnoDB instead of MyISAM' : null,
                 ];
             }

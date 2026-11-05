@@ -40,14 +40,6 @@ class FrontendControllersEloquentUsageTest extends TestCase
     {
         $violations = [];
         foreach ($this->baselineControllers as $relPath) {
-            $full = app_path(
-                $relPath ? str_replace(
-                    'Http/Controllers',
-                    '/Http/Controllers',
-                    $relPath,
-                ) : '',
-            );
-            // Safer resolution
             $full = app_path($relPath);
             if (!file_exists($full)) {
                 // New / removed controller -> skip (does not constitute violation)

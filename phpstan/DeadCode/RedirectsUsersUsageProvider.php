@@ -24,12 +24,16 @@ final class RedirectsUsersUsageProvider extends ReflectionBasedMemberUsageProvid
         $declaringClass = $property->getDeclaringClass();
         $traits = class_uses_recursive($declaringClass->getName());
 
-        return in_array(
-            RedirectsUsers::class,
-            $traits,
-            true,
-        )
-            ? VirtualUsageData::withNote('Read by RedirectsUsers::redirectPath()')
-            : null;
+        if (
+            in_array(
+                RedirectsUsers::class,
+                $traits,
+                true,
+            )
+        ) {
+            return VirtualUsageData::withNote('Read by RedirectsUsers::redirectPath()');
+        }
+
+        return null;
     }
 }

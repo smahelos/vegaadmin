@@ -64,10 +64,14 @@ class FrontendEloquentBaselineCommand extends Command
         ];
 
         if ($this->option('save')) {
-            $outDir = $this->option('path') ? rtrim(
-                $this->option('path'),
-                '/',
-            ) : storage_path('app/metrics');
+            if ($this->option('path')) {
+                $outDir = rtrim(
+                    $this->option('path'),
+                    '/',
+                );
+            } else {
+                $outDir = storage_path('app/metrics');
+            }
             if (!is_dir($outDir)) {
                 mkdir(
                     $outDir,

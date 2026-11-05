@@ -96,12 +96,20 @@ class PaymentAdapterGuardCommand extends Command
                     ],
                     array_map(
                         function ($g) {
+                            if ($g['recurring_support'] === null) {
+                                $recurring = 'n/a';
+                            } elseif ($g['recurring_support']) {
+                                $recurring = 'yes';
+                            } else {
+                                $recurring = 'no';
+                            }
+
                             return [
                                 $g['name'],
                                 $g['class'],
                                 implode(',', $g['currencies']),
                                 $g['display_name'],
-                                $g['recurring_support'] === null ? 'n/a' : ($g['recurring_support'] ? 'yes' : 'no'),
+                                $recurring,
                                 $g['status'],
                             ];
                         },

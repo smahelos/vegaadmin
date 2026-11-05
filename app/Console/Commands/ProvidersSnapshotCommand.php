@@ -33,10 +33,8 @@ class ProvidersSnapshotCommand extends Command
         $warnings = [];
 
         if ($diff && is_file($snapshotPath)) {
-            $previous = json_decode(
-                file_get_contents($snapshotPath),
-                true,
-            ) ?: [];
+            $snapshot = file_get_contents($snapshotPath);
+            $previous = json_decode($snapshot, true) ?: [];
             [$errors, $warnings] = $this->diffSnapshots(
                 $previous,
                 $current,

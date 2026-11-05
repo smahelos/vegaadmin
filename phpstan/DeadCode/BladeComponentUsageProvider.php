@@ -24,9 +24,11 @@ final class BladeComponentUsageProvider extends ReflectionBasedMemberUsageProvid
 
         $declaringClass = $method->getDeclaringClass();
 
-        return $declaringClass->isSubclassOf(Component::class)
-            ? VirtualUsageData::withNote('Blade component constructor or template method')
-            : null;
+        if ($declaringClass->isSubclassOf(Component::class)) {
+            return VirtualUsageData::withNote('Blade component constructor or template method');
+        }
+
+        return null;
     }
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
@@ -37,8 +39,6 @@ final class BladeComponentUsageProvider extends ReflectionBasedMemberUsageProvid
 
         $declaringClass = $property->getDeclaringClass();
 
-        return $declaringClass->isSubclassOf(Component::class)
-            ? VirtualUsageData::withNote('Blade component template variable')
-            : null;
+        return $declaringClass->isSubclassOf(Component::class) ? VirtualUsageData::withNote('Blade component template variable') : null;
     }
 }

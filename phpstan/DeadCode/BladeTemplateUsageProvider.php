@@ -35,9 +35,11 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
             $isAppMethod = str_starts_with($declaringClass->getName(), 'App\\');
         }
 
-        return $isAppMethod && isset($this->calledNames()[$method->getName()])
-            ? VirtualUsageData::withNote('Called by a Blade template')
-            : null;
+        if ($isAppMethod && isset($this->calledNames()[$method->getName()])) {
+            return VirtualUsageData::withNote('Called by a Blade template');
+        }
+
+        return null;
     }
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
@@ -68,8 +70,11 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
             }
         }
 
-        return $isAppProperty && isset($this->readNames[$property->getName()])
-            ? VirtualUsageData::withNote('Read by a Blade template') : null;
+        if ($isAppProperty && isset($this->readNames[$property->getName()])) {
+            return VirtualUsageData::withNote('Read by a Blade template');
+        }
+
+        return null;
     }
 
     /**

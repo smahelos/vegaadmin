@@ -266,7 +266,13 @@ final class DatabaseMonitorCommand extends Command
                 $endTime = microtime(true);
                 $executionTime = round(($endTime - $startTime) * 1000, 2);
 
-                $status = $executionTime < 10 ? '✅' : ($executionTime < 50 ? '⚠️' : '❌');
+                if ($executionTime < 10) {
+                    $status = '✅';
+                } elseif ($executionTime < 50) {
+                    $status = '⚠️';
+                } else {
+                    $status = '❌';
+                }
                 $this->line("{$status} {$queryName}: {$executionTime}ms");
 
                 if ($store) {

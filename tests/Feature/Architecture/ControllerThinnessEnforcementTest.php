@@ -154,21 +154,39 @@ class ControllerThinnessEnforcementTest extends TestCase
                 $eloquentStatic += count($mm[0]);
             }
         }
-        $newModel = preg_match_all(
-            '/new\s+' . $model . '\s*\(/',
-            $content,
-            $mm,
-        ) ? count($mm[0]) : 0;
-        $dbFacade = preg_match_all(
-            '/DB::[A-Za-z_]+\s*\(/',
-            $content,
-            $mm,
-        ) ? count($mm[0]) : 0;
-        $publicMethods = preg_match_all(
-            '/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/',
-            $content,
-            $mm,
-        ) ? count($mm[0]) : 0;
+        if (
+            preg_match_all(
+                '/new\s+' . $model . '\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $newModel = count($mm[0]);
+        } else {
+            $newModel = 0;
+        }
+        if (
+            preg_match_all(
+                '/DB::[A-Za-z_]+\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $dbFacade = count($mm[0]);
+        } else {
+            $dbFacade = 0;
+        }
+        if (
+            preg_match_all(
+                '/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $publicMethods = count($mm[0]);
+        } else {
+            $publicMethods = 0;
+        }
 
         return [
             'loc' => $loc,

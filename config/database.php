@@ -1,5 +1,15 @@
 <?php
 
+if (extension_loaded('pdo_mysql')) {
+    $mysqlOptions = array_filter(
+        [
+            PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+        ],
+    );
+} else {
+    $mysqlOptions = [];
+}
+
 return [
 
     /*
@@ -58,11 +68,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter(
-                [
-                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                ],
-            ) : [],
+            'options' => $mysqlOptions,
         ],
 
         'mariadb' => [
@@ -80,11 +86,7 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter(
-                [
-                    PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-                ],
-            ) : [],
+            'options' => $mysqlOptions,
         ],
 
         'pgsql' => [
