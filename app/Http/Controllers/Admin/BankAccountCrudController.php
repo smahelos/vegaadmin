@@ -232,9 +232,15 @@ final class BankAccountCrudController extends CrudController
         );
         $column->type('closure');
         $column->function(
-            fn (BankAccount $entry): string => $this->isDefault($entry) ? e(
-                __('general.yes'),
-            ) : '',
+            function (BankAccount $entry): string {
+                if ($this->isDefault($entry)) {
+                    return e(
+                        __('general.yes'),
+                    );
+                }
+
+                return '';
+            },
         );
         $column->escaped(false);
         $column = CRUD::column('archived_at');
@@ -335,13 +341,15 @@ final class BankAccountCrudController extends CrudController
 
     private function ownerOf(BankAccount $entry): AccountOwner
     {
-        return $entry->business_id !== null
-            ? AccountOwner::business(
+        if ($entry->business_id !== null) {
+            return AccountOwner::business(
                 BusinessId::fromInt($entry->business_id),
-            )
-            : AccountOwner::contact(
-                ContactId::fromInt($entry->contact_id),
             );
+        }
+
+        return AccountOwner::contact(
+            ContactId::fromInt($entry->contact_id),
+        );
     }
 
     private function isDefault(BankAccount $entry): bool

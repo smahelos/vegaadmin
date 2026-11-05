@@ -85,13 +85,15 @@ final class ContactForm extends Component
 
         $saved = false;
         try {
-            $contact = $creating
-                ? $contacts->create($this->userId(), $data)
-                : $contacts->update(
+            if ($creating) {
+                $contact = $contacts->create($this->userId(), $data);
+            } else {
+                $contact = $contacts->update(
                     $this->userId(),
                     ContactId::fromInt($this->contactId),
                     $data,
                 );
+            }
             $saved = true;
         } catch (EntityLimitExceededException) {
             $this->limitMessage = __('contacts.messages.limit_exceeded');

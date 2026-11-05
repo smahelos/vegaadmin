@@ -85,17 +85,19 @@ final class BusinessForm extends Component
 
         $saved = false;
         try {
-            $business = $creating
-                ? $businesses->create(
+            if ($creating) {
+                $business = $businesses->create(
                     $this->userId(),
                     $data,
                     $withAccount ? $this->account->writeData() : null,
-                )
-                : $businesses->update(
+                );
+            } else {
+                $business = $businesses->update(
                     $this->userId(),
                     BusinessId::fromInt($this->businessId),
                     $data,
                 );
+            }
             $saved = true;
         } catch (EntityLimitExceededException $e) {
             $this->limitMessage = __('businesses.messages.limit_exceeded');

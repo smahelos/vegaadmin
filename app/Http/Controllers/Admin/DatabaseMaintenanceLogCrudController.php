@@ -193,7 +193,11 @@ class DatabaseMaintenanceLogCrudController extends CrudController
                     }
                 }
 
-                return $entry->status === 'running' ? __('admin/database.maintenance_logs.labels.running') : __('admin/database.maintenance_logs.labels.not_available');
+                if ($entry->status === 'running') {
+                    return __('admin/database.maintenance_logs.labels.running');
+                }
+
+                return __('admin/database.maintenance_logs.labels.not_available');
             },
         );
 

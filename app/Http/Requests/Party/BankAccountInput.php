@@ -50,27 +50,35 @@ final class BankAccountInput
         $bankExists->where('active', true);
 
         // The whole account is checked on the IBAN, or on the local number when there is no IBAN
+        if ($iban === null) {
+            $ibanRules = ['nullable'];
+            $numberRules = [
+                'required',
+                'string',
+                'max:20',
+                $account,
+            ];
+        } else {
+            $ibanRules = [
+                'string',
+                'max:50',
+                $account,
+            ];
+            $numberRules = [
+                'nullable',
+                'string',
+                'max:20',
+            ];
+        }
+
         $rules = [
             'label' => [
                 'nullable',
                 'string',
                 'max:255',
             ],
-            'iban' => $iban === null ? ['nullable'] : [
-                'string',
-                'max:50',
-                $account,
-            ],
-            'number' => $iban === null ? [
-                'required',
-                'string',
-                'max:20',
-                $account,
-            ] : [
-                'nullable',
-                'string',
-                'max:20',
-            ],
+            'iban' => $ibanRules,
+            'number' => $numberRules,
             'bank_code' => [
                 'nullable',
                 'string',

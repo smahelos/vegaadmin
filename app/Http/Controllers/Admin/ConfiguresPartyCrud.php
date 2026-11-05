@@ -143,9 +143,7 @@ trait ConfiguresPartyCrud
         $filter->whenActive(
             function (string $value): void {
                 CRUD::addClause(
-                    fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED
-                    ? $query->whereNotNull('archived_at')
-                    : $query->whereNull('archived_at'),
+                    fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at'),
                 );
             },
         );

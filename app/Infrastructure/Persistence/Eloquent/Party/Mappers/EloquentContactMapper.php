@@ -23,9 +23,7 @@ final class EloquentContactMapper
             userId: UserId::fromInt($contact->user_id),
             profile: EloquentPartyProfileMapper::toProfile($contact),
             contactPerson: $contact->contact_person,
-            defaultBankAccountId: $contact->default_bank_account_id === null
-                ? null
-                : BankAccountId::fromInt($contact->default_bank_account_id),
+            defaultBankAccountId: $contact->default_bank_account_id === null ? null : BankAccountId::fromInt($contact->default_bank_account_id),
             archived: $contact->archived_at,
             logo: $contact->logo,
         );

@@ -95,21 +95,21 @@ final class DocumentPartyPicker extends Component
         $this->supplier->country = 'CZ';
 
         if (!$guest) {
-            $invoiceId === null
-                ? $this->startNew(
+            if ($invoiceId === null) {
+                $this->startNew(
                     $businesses,
                     $accounts,
                     $contacts,
                     $businessId,
                     $contactId,
-                )
-                : $this->startFromInvoice(
-                    $invoices->getById(
-                        InvoiceId::fromInt($invoiceId),
-                        $this->userId(),
-                    )->parties,
-                    $invoiceId,
                 );
+            } else {
+                $invoice = $invoices->getById(
+                    InvoiceId::fromInt($invoiceId),
+                    $this->userId(),
+                );
+                $this->startFromInvoice($invoice->parties, $invoiceId);
+            }
         }
 
         $this->fillFromOldInput();
@@ -119,14 +119,16 @@ final class DocumentPartyPicker extends Component
     public function updatedBusinessId(BankAccountApplicationService $accounts): void
     {
         $this->reloadBusiness = false;
-        $this->bankAccountId = $this->businessId === null
-            ? null
-            : $accounts->findDefaultId(
+        if ($this->businessId === null) {
+            $this->bankAccountId = null;
+        } else {
+            $this->bankAccountId = $accounts->findDefaultId(
                 $this->userId(),
                 AccountOwner::business(
                     BusinessId::fromInt($this->businessId),
                 ),
             )?->value;
+        }
     }
 
     public function updatedCustomerCompanyNumber(): void
@@ -222,24 +224,42 @@ final class DocumentPartyPicker extends Component
         }
 
         $userId = $this->userId();
-        $stored = $this->invoiceId === null
-            ? null
-            : $invoices->getById(
+        if ($this->invoiceId === null) {
+            $stored = null;
+        } else {
+            $invoice = $invoices->getById(
                 InvoiceId::fromInt($this->invoiceId),
                 $userId,
-            )->parties;
-        $business = $this->businessId === null ? null : $businesses->get(
-            $userId,
-            BusinessId::fromInt($this->businessId),
-        );
-        $contact = $this->contactId === null ? null : $contacts->get(
-            $userId,
-            ContactId::fromInt($this->contactId),
-        );
-        $businessAccounts = $business === null ? [] : $accounts->listForOwner(
-            $userId,
-            AccountOwner::business($business->id),
-        );
+            );
+            $stored = $invoice->parties;
+        }
+
+        if ($this->businessId === null) {
+            $business = null;
+        } else {
+            $business = $businesses->get(
+                $userId,
+                BusinessId::fromInt($this->businessId),
+            );
+        }
+
+        if ($this->contactId === null) {
+            $contact = null;
+        } else {
+            $contact = $contacts->get(
+                $userId,
+                ContactId::fromInt($this->contactId),
+            );
+        }
+
+        if ($business === null) {
+            $businessAccounts = [];
+        } else {
+            $businessAccounts = $accounts->listForOwner(
+                $userId,
+                AccountOwner::business($business->id),
+            );
+        }
 
         return view(
             'livewire.party.document-party-picker',
@@ -458,9 +478,7 @@ final class DocumentPartyPicker extends Component
             }
 
             $label = $account->label ?? $account->account->formattedIban();
-            $options[$account->id->value] = $account->isArchived()
-                ? $label . ' (' . __('parties.statuses.archived') . ')'
-                : $label;
+            $options[$account->id->value] = $account->isArchived() ? $label . ' (' . __('parties.statuses.archived') . ')' : $label;
         }
 
         return $options;

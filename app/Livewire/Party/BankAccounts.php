@@ -143,9 +143,7 @@ final class BankAccounts extends Component
         );
         $this->errorMessage = null;
         $this->successMessage = null;
-        $newDefault = $this->archivingId === $id && $this->newDefault !== ''
-            ? BankAccountId::fromInt((int) $this->newDefault)
-            : null;
+        $newDefault = $this->archivingId === $id && $this->newDefault !== '' ? BankAccountId::fromInt((int) $this->newDefault) : null;
 
         try {
             $accounts->archive(
@@ -232,13 +230,15 @@ final class BankAccounts extends Component
 
     private function owner(): AccountOwner
     {
-        return $this->ownerType === self::OWNER_BUSINESS
-            ? AccountOwner::business(
+        if ($this->ownerType === self::OWNER_BUSINESS) {
+            return AccountOwner::business(
                 BusinessId::fromInt($this->ownerId),
-            )
-            : AccountOwner::contact(
-                ContactId::fromInt($this->ownerId),
             );
+        }
+
+        return AccountOwner::contact(
+            ContactId::fromInt($this->ownerId),
+        );
     }
 
     private function permission(string $action): string

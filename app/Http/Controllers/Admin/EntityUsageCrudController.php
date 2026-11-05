@@ -172,9 +172,13 @@ class EntityUsageCrudController extends CrudController
         $column->function(
             function ($entry) {
                 if ($entry->user_id) {
-                    return e(
-                        $entry->user ? $entry->user->name . ' (' . $entry->user->email . ')' : __('entity_limits.usages.labels.unknown_user', ['id' => $entry->user_id]),
-                    );
+                    if ($entry->user) {
+                        $label = $entry->user->name . ' (' . $entry->user->email . ')';
+                    } else {
+                        $label = __('entity_limits.usages.labels.unknown_user', ['id' => $entry->user_id]);
+                    }
+
+                    return e($label);
                 } else {
                     return '<span class="text-muted">' . e(
                         __('entity_limits.usages.labels.anonymous'),
