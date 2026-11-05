@@ -162,6 +162,17 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                             return null;
                         }
 
+                        if ($m->amount !== null) {
+                            $amount = number_format(
+                                (float) $m->amount,
+                                2,
+                                '.',
+                                '',
+                            );
+                        } else {
+                            $amount = null;
+                        }
+
                         return SubscriptionDTO::fromArray(
                             [
                                 'id' => (int) $m->id,
@@ -173,12 +184,7 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                                 'ends_at' => $m->ends_at?->toDateTimeString(),
                                 'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
                                 'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
-                                'amount' => $m->amount !== null ? number_format(
-                                    (float) $m->amount,
-                                    2,
-                                    '.',
-                                    '',
-                                ) : null,
+                                'amount' => $amount,
                                 'currency' => $m->currency,
                                 'metadata' => null,
                                 'created_at' => $m->created_at?->toDateTimeString(),

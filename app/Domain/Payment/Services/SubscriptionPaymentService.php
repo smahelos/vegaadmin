@@ -399,7 +399,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     'All subscription payments cancelled',
                     [
                         'subscription_id' => $subscriptionId,
-                        'cancelled_payments' => is_array($pendingPayments) ? count($pendingPayments) : (method_exists($pendingPayments, 'count') ? $pendingPayments->count() : 0),
+                        'cancelled_payments' => count($pendingPayments),
                     ],
                 );
             }

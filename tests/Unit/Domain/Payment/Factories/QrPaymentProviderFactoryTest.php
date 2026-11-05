@@ -72,13 +72,17 @@ final class QrPaymentProviderFactoryTest extends TestCase
         string $currency,
         string $providerClass,
     ): void {
-        $account = $iban === null ? null : BankAccount::fromParts(
-            $iban,
-            null,
-            null,
-            null,
-            null,
-        );
+        if ($iban === null) {
+            $account = null;
+        } else {
+            $account = BankAccount::fromParts(
+                $iban,
+                null,
+                null,
+                null,
+                null,
+            );
+        }
         $payment = new QrPaymentDTO(
             '20260001',
             Money::fromString('12.50', $currency),

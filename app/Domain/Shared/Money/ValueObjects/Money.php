@@ -327,16 +327,25 @@ class Money
             );
         }
 
-        $keptFraction = $scale > 0 ? substr(
-            $fullFraction,
-            0,
-            $scale,
-        ) : '';
-        $roundingDigit = $scale >= 0 ? (int) substr(
-            $fullFraction,
-            $scale,
-            1,
-        ) : 0; // digit after kept part
+        if ($scale > 0) {
+            $keptFraction = substr(
+                $fullFraction,
+                0,
+                $scale,
+            );
+        } else {
+            $keptFraction = '';
+        }
+        // digit after kept part
+        if ($scale >= 0) {
+            $roundingDigit = (int) substr(
+                $fullFraction,
+                $scale,
+                1,
+            );
+        } else {
+            $roundingDigit = 0;
+        }
         $hasFurther = $remainder > 0 || strlen($fullFraction) > $scale + 1; // indicates more non-zero info beyond rounding digit
 
         if (
@@ -380,7 +389,13 @@ class Money
         if ($strategy === self::ROUND_HALF_UP) {
             return true;
         }
-        $lastDigit = $scale === 0 ? (int) substr($integerPart, -1) : ($keptFraction === '' ? 0 : (int) substr($keptFraction, -1));
+        if ($scale === 0) {
+            $lastDigit = (int) substr($integerPart, -1);
+        } elseif ($keptFraction === '') {
+            $lastDigit = 0;
+        } else {
+            $lastDigit = (int) substr($keptFraction, -1);
+        }
 
         return $lastDigit % 2 === 1;
     }
@@ -837,11 +852,15 @@ class Money
                 $intPart = $normalizedRaw;
                 $fracPart = '';
             }
-            $roundDigit = $fracPart !== '' ? (int) substr(
-                $fracPart,
-                0,
-                1,
-            ) : 0;
+            if ($fracPart !== '') {
+                $roundDigit = (int) substr(
+                    $fracPart,
+                    0,
+                    1,
+                );
+            } else {
+                $roundDigit = 0;
+            }
             $hasFurther = strlen($fracPart) > 1;
             $keptFraction = '';
             if (

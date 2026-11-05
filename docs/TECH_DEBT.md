@@ -24,7 +24,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 **C. Payments and subscription plans**
 
 10. "Permission naming" — the plans grant permissions.
-11. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Subscription activation ignores the plan's duration", "Build refunds", "Payment adapter guard checks nothing", "UELS dashboard bulk reset fails".
+11. Payments: "Payment notification route", "GoPay is called inside the database transaction", "Typed GoPay request with real customer data", "Subscription activation ignores the plan's duration", "Build refunds", "Payment adapter guard checks nothing", "A refused subscription payment ends with a 500", "UELS dashboard bulk reset fails".
 12. The subscription plans, with "Subscription screens with placeholder content".
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
@@ -100,6 +100,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
 - **Problem:** the transaction wraps `createPayment()` of the gateway. When a later step fails, the rollback deletes the local payment record, but the payment created at GoPay stays and its notification finds no record; the transaction also holds its locks for the whole HTTP call.
 - **Fix:** store the pending payment in one transaction, call the gateway outside it, then store the gateway id and status in a second transaction; a failed gateway call marks the payment failed. Move the use case to Application (`rules/application.md`).
+
+### A refused subscription payment ends with a 500
+- **Where:** `app/Http/Controllers/Frontend/SubscriptionController.php::subscribe()`, `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
+- **Problem:** when the gateway refuses a payment, the service has already stored the `payments` row, and the controller then calls `$subscription->delete()`. The foreign key is `ON DELETE RESTRICT`, so the delete throws, the user gets a 500 instead of the `payment_failed` message and the pending subscription stays.
+- **Fix:** decide what a refused attempt leaves behind (the payment row records it) and do it in the use case, so the controller deletes nothing; a test of the refused path, which has none today.
 
 ### Subscription activation ignores the plan's duration
 - **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php` (activation after a paid notification), `app/Domain/Payment/DTO/SubscriptionPlanDTO.php`, `EloquentSubscriptionWriteRepository::activateById()`

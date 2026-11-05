@@ -20,7 +20,7 @@ class GoPayGateway implements PaymentGatewayInterface
     public function __construct(?Payments $payments = null)
     {
         // Allow injecting a fake/stub Payments instance for behavior tests without real credentials.
-        $this->gopay = $payments ?: Api::payments(
+        $this->gopay = $payments ?? Api::payments(
             [
                 'goid' => config('services.gopay.goid'),
                 'clientId' => config('services.gopay.client_id'),
