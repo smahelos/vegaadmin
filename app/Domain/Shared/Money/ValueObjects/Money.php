@@ -33,28 +33,6 @@ class Money
     }
 
     /**
-     * Create Money from float (temporary helper – lossy, will be removed later).
-     *
-     * @param  float  $amount  Non-negative amount
-     * @param  string  $currency  ISO 4217 currency code
-     *
-     * @throws InvalidArgumentException if currency is invalid or amount is negative
-     */
-    public static function fromFloat(float $amount, string $currency): self
-    {
-        self::assertCurrency($currency);
-        self::assertAmount($amount);
-        $normalized = number_format(
-            $amount,
-            2,
-            '.',
-            '',
-        );
-
-        return new self($normalized, $currency);
-    }
-
-    /**
      * Create Money from string decimal amount (up to 8 fractional digits).
      *
      * @param  string  $amount  Non-negative amount
@@ -685,14 +663,6 @@ class Money
             )
         ) {
             throw new InvalidArgumentException('Invalid ISO currency code: ' . $currency);
-        }
-    }
-
-    /** Validate raw float amount (must be >= 0). */
-    private static function assertAmount(float $amount): void
-    {
-        if ($amount < 0) {
-            throw new InvalidArgumentException('Money amount must be >= 0');
         }
     }
 

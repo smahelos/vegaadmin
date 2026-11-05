@@ -46,16 +46,7 @@ class ProductDTO
             description: $data['description'] ?? null,
             slug: $data['slug'] ?? null,
             image: $data['image'] ?? null,
-            price: isset($data['price'])
-                ? ($data['price'] instanceof Money
-                    ? $data['price']
-                    : (isset($data['currency'])
-                        ? Money::fromFloat(
-                            (float) $data['price'],
-                            strtoupper((string) $data['currency']),
-                        )
-                        : null))
-                : null,
+            price: $data['price'] ?? null,
             unit: ($data['unit'] ?? null) instanceof Unit ? $data['unit'] : Unit::fromInput($data['unit'] ?? null),
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
             category: isset($data['category']) && is_array($data['category']) ? $data['category'] : null,

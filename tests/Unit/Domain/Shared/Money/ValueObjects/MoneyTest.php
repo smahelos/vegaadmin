@@ -13,14 +13,6 @@ use PHPUnit\Framework\TestCase;
 final class MoneyTest extends TestCase
 {
     #[Test]
-    public function can_create_from_float(): void
-    {
-        $m = Money::fromFloat(123.45, 'USD');
-        $this->assertSame('123.45', $m->getAmount());
-        $this->assertSame('USD', $m->getCurrency());
-    }
-
-    #[Test]
     public function can_create_from_string(): void
     {
         $m = Money::fromString('0010.5000', 'EUR');
@@ -39,14 +31,14 @@ final class MoneyTest extends TestCase
     public function invalid_currency_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromFloat(10, 'EURO');
+        Money::fromString('10', 'EURO');
     }
 
     #[Test]
     public function negative_amount_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromFloat(-5, 'USD');
+        Money::fromString('-5', 'USD');
     }
 
     #[Test]

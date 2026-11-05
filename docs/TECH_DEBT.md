@@ -29,7 +29,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field, prices as `Money`); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -220,6 +220,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
 - **Fix:** a unit select from `<x-unit-options />` (frontend) and the same option list in the admin, validated with `Rule::enum(Unit::class)`.
 
+### Product prices are not `Money` on the write path
+- **Where:** `app/Domain/Product/DTO/ProductWriteData.php`, `app/Domain/Product/Validation/ProductCreationValidator.php`, `app/Domain/Product/ValueObjects/ProductPrice.php`, `app/Http/Requests/ProductRequest.php`
+- **Problem:** `ProductDTO::$price` is `Money`, but `ProductWriteData::$price` is `string|float|null`, the validator casts it to `float` and `ProductPrice` holds a `float`. `fromArray` also accepts `price_money` and `amount`, which only its tests send. A price `12.349` passes `required|numeric` and is stored truncated as `12.34`, while the float `12.345` is rounded to `12.35`.
+- **Fix:** `ProductWriteData::$price` as `?Money`, built at the boundary from one input shape; the validator and `ProductPrice` without floats; the requests limit the decimal places. Step 13 of the order of work.
+
 ## Analytics
 
 ### Dashboard statistics sum amounts across currencies
@@ -255,6 +260,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the remaining Livewire invoice widgets)
 - **Problem:** the PDFs format dates through `DateFormatterInterface` in their language, but the frontend, the admin and the reminder emails print the Czech format for every locale.
 - **Fix:** dates through `DateFormatterInterface` in the page locale: a `<x-date>` Blade component for remaining views; delete `DateHelper`. Reminder emails and the common invoice list already use the formatter in their presenter/mail factory.
+
+### `MoneyFormatter` formats through a float
+- **Where:** `app/Domain/Shared/Money/Services/MoneyFormatter.php`, `Money::toFloat()`
+- **Problem:** the formatter passes `$money->toFloat()` to the number formatting and to its sign check, its only production use of `toFloat()`. Amounts leave `Money` as a float just before display (`docs/adr/D-046-money-amounts.md`).
+- **Fix:** format from the decimal string, then delete `toFloat()` with its test.
 
 ### `ddd:guard` snapshot test fails now and then in parallel runs
 - **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
