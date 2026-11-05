@@ -1,4 +1,5 @@
-@if (backpack_user()->can($entry->business_id !== null ? 'can_update_business' : 'can_update_contact'))
+@php($user = backpack_user())
+@if ($user->can($entry->business_id !== null ? 'can_update_business' : 'can_update_contact'))
     @if ($entry->archived_at === null)
         <form method="POST" action="{{ route('admin.bank-accounts.set-default', ['id' => $entry->getKey()]) }}" class="d-inline">
             @csrf

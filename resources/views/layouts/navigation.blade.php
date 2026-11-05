@@ -1,3 +1,4 @@
+@php($user = Auth::user())
 <nav x-data="{ open: false }"
     class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
     <!-- Primary Navigation Menu -->
@@ -15,32 +16,32 @@
                 <div class="hidden lg:flex lg:items-center lg:ml-10 lg:space-x-8">
                     @auth
                     <x-nav-link :href="route('frontend.dashboard', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.dashboard')">
+                        :active="Request::routeIs('frontend.dashboard')">
                         {{ __('general.navigation.dashboard') }}
                     </x-nav-link>
 
                     <x-nav-link :href="route('frontend.invoices', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.invoice*')">
+                        :active="Request::routeIs('frontend.invoice*')">
                         {{ __('general.navigation.invoices') }}
                     </x-nav-link>
 
                     @can('frontend.can_view_business')
                     <x-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.businesses.*')">
+                        :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-nav-link>
                     @endcan
 
                     @can('frontend.can_view_contact')
                     <x-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.contacts.*')">
+                        :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-nav-link>
                     @endcan
 
-                    @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
+                    @if($user->hasPermissionTo('frontend.can_create_edit_product'))
                     <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.product*')">
+                        :active="Request::routeIs('frontend.product*')">
                         {{ __('general.navigation.products') }}
                     </x-nav-link>
                     @endif
@@ -48,14 +49,14 @@
 
                     {{-- <!-- Pages navigation (for all users) -->
                     <x-nav-link :href="route('frontend.pages.index', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.pages*')">
+                        :active="Request::routeIs('frontend.pages*')">
                         {{ __('general.navigation.pages') }}
                     </x-nav-link> --}}
 
-                    @if(!Auth::user())
+                    @if(!$user)
                     <!-- Public pages link -->
                     <x-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.invoice*')">
+                        :active="Request::routeIs('frontend.invoice*')">
                         {{ __('general.navigation.create_invoice') }}
                     </x-nav-link>
                     @endif
@@ -90,10 +91,10 @@
                         <button
                             class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:text-gray-900 dark:focus:text-white transition duration-150 ease-in-out cursor-pointer">
                             <div class="flex items-center">
-                                @if(Auth::user()->hasRole('frontend_user_plus'))
+                                @if($user->hasRole('frontend_user_plus'))
                                 <span class="text-indigo-600 font-semibold text-xs mr-2">PRO</span>
                                 @endif
-                                <span>{{ Auth::user()->name }}</span>
+                                <span>{{ $user->name }}</span>
                             </div>
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -175,49 +176,49 @@
         <div class="pt-1 pb-1 space-y-1">
             @auth
             <x-responsive-nav-link :href="route('frontend.dashboard', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('frontend.dashboard')">
+                :active="Request::routeIs('frontend.dashboard')">
                 {{ __('general.navigation.dashboard') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('frontend.invoices', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.invoices') }}
             </x-responsive-nav-link>
 
             @can('frontend.can_view_business')
                     <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.businesses.*')">
+                        :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
             @can('frontend.can_view_contact')
                     <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
-                        :active="request()->routeIs('frontend.contacts.*')">
+                        :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
-            @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
+            @if($user->hasPermissionTo('frontend.can_create_edit_product'))
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('frontend.product*')">
+                :active="Request::routeIs('frontend.product*')">
                 {{ __('general.navigation.products') }}
             </x-responsive-nav-link>
             @endif
 
             <!-- Subscriptions navigation (mobile) -->
             <x-responsive-nav-link :href="route('subscriptions.index', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('subscriptions*')">
+                :active="Request::routeIs('subscriptions*')">
                 {{ __('subscriptions.entity.plural') }}
             </x-responsive-nav-link>
 
             <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.create_invoice') }}
             </x-responsive-nav-link>
             @else
             <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.create_invoice') }}
             </x-responsive-nav-link>
             @endauth
@@ -228,12 +229,12 @@
         <div class="pt-1 pb-1 border-t border-gray-100 dark:border-gray-700">
             <div class="px-4 border-b-1 border-dashed border-gray-200 dark:border-gray-600 mb-2 pb-2">
                 <div class="font-medium text-base text-gray-800 dark:text-gray-300 flex items-center">
-                    @if(Auth::user()->hasRole('frontend_user_plus'))
+                    @if($user->hasRole('frontend_user_plus'))
                     <span class="text-indigo-600 dark:text-indigo-400 font-semibold text-xs mr-2">PRO</span>
                     @endif
-                    {{ Auth::user()->name }}
+                    {{ $user->name }}
                 </div>
-                <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ $user->email }}</div>
             </div>
 
             <div class="space-y-1">

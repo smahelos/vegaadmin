@@ -7,8 +7,9 @@
         ? ['archive' => 'can_archive_business', 'restore' => 'can_restore_business']
         : ['archive' => 'can_archive_contact', 'restore' => 'can_restore_contact'];
     $action = $entry->archived_at === null ? 'archive' : 'restore';
+    $user = backpack_user();
 @endphp
-@if (backpack_user()->can($permissions[$action]))
+@if ($user->can($permissions[$action]))
     @if ($entity === 'business' && $action === 'archive')
         <x-admin.business-archive :business-id="$entry->getKey()" :user-id="$entry->user_id" :is-default="$entry->user?->default_business_id === $entry->getKey()" />
     @else
