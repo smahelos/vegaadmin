@@ -20,7 +20,7 @@
     </div>
     <!-- Search Form -->
     <div class="pt-3">
-        <form method="GET" action="{{ route('frontend.pages.search', ['locale' => app()->getLocale()]) }}"
+        <form method="GET" action="{{ route('frontend.pages.search', ['locale' => App::getLocale()]) }}"
             class="max-w-lg">
             <div class="flex">
                 <input type="text" name="q" value="{{ $keyword }}" placeholder="{{ __('pages.search_placeholder') }}"
@@ -55,7 +55,7 @@
 
                     <div class="flex-1">
                         <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                                 class="hover:text-purple-600 dark:hover:text-purple-400">
                                 {{ $page->getName() }}
                             </a>
@@ -71,7 +71,7 @@
                             @if($page->category)
                             <span class="flex items-center">
                                 <i class="fas fa-folder mr-1"></i>
-                                <a href="{{ route('frontend.pages.category', ['categoryId' => $page->category->id, 'locale' => app()->getLocale()]) }}"
+                                <a href="{{ route('frontend.pages.category', ['categoryId' => $page->category->id, 'locale' => App::getLocale()]) }}"
                                     class="hover:text-purple-600 dark:hover:text-purple-400">
                                     {{ $page->category->getName() }}
                                 </a>
@@ -84,7 +84,7 @@
                             </span>
                         </div>
 
-                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                             class="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                             {{ __('pages.read_more') }}
                             <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -135,7 +135,7 @@
             <div
                 class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-200">
                 <h3 class="font-semibold text-gray-900 dark:text-white mb-2">
-                    <a href="{{ route('frontend.pages.show', ['slug' => $navPage->getSlug(), 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $navPage->getSlug(), 'locale' => App::getLocale()]) }}"
                         class="hover:text-purple-600 dark:hover:text-purple-400">
                         {{ $navPage->getName() }}
                     </a>
@@ -155,7 +155,7 @@
 
 <!-- Back to Homepage -->
 <div class="flex flex-wrap gap-4 justify-center mb-10 pt-10 border-t border-gray-200 dark:border-gray-700">
-    <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+    <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
         class="inline-flex items-center text-gray-600 dark:text-gray-300 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 hover:dark:bg-gray-700 font-medium rounded-sm transition-colors duration-200">
         <svg class="mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd"

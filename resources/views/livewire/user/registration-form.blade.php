@@ -28,7 +28,7 @@
             </x-form.card>
         </div>
 
-        <x-form.actions :cancel-href="route('frontend.login', ['locale' => app()->getLocale()])"
+        <x-form.actions :cancel-href="route('frontend.login', ['locale' => App::getLocale()])"
             :cancel-label="__('users.messages.login_prompt')"
             :submit-label="__('users.actions.register')"
             submit-icon="fa-user-plus" />

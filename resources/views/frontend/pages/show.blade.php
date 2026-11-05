@@ -27,7 +27,7 @@
 <nav class="mb-8" aria-label="{{ __('pages.breadcrumbs') }}">
     <ol class="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
         <li>
-            <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
                 class="hover:text-purple-600 dark:hover:text-purple-400">
                 {{ __('pages.homepage') }}
             </a>
@@ -39,7 +39,7 @@
                 {{ $breadcrumb['name'] }}
             </span>
             @else
-            <a href="{{ route('frontend.pages.show', ['slug' => $breadcrumb['slug'], 'locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.pages.show', ['slug' => $breadcrumb['slug'], 'locale' => App::getLocale()]) }}"
                 class="hover:text-purple-600 dark:hover:text-purple-400">
                 {{ $breadcrumb['name'] }}
             </a>
@@ -67,7 +67,7 @@
         @if($page->category)
         <span class="flex items-center">
             <i class="fas fa-folder mr-1"></i>
-            <a href="{{ route('frontend.pages.category', ['categoryId' => $page->category->id, 'locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.pages.category', ['categoryId' => $page->category->id, 'locale' => App::getLocale()]) }}"
                 class="hover:text-purple-600 dark:hover:text-purple-400">
                 {{ $page->category->getName() }}
             </a>
@@ -103,7 +103,7 @@
         <!-- Page Content -->
         @if($page->content)
         @php
-        $content = $page->content[app()->getLocale()] ?? '';
+        $content = $page->content[App::getLocale()] ?? '';
         @endphp
         @if($content)
         <div class="content-section prose prose-purple max-w-none dark:prose-invert mb-12">
@@ -141,7 +141,7 @@
                 @if($childPage->is_currently_published)
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-md transition duration-200">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                        <a href="{{ route('frontend.pages.show', ['slug' => $childPage->getSlug(), 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.pages.show', ['slug' => $childPage->getSlug(), 'locale' => App::getLocale()]) }}"
                             class="hover:text-purple-600 dark:hover:text-purple-400">
                             {{ $childPage->getName() }}
                         </a>
@@ -151,7 +151,7 @@
                         {{ Str::limit($childPage->getDescription(), 150) }}
                     </p>
                     @endif
-                    <a href="{{ route('frontend.pages.show', ['slug' => $childPage->getSlug(), 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $childPage->getSlug(), 'locale' => App::getLocale()]) }}"
                         class="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                         {{ __('pages.read_more') }}
                         <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -184,7 +184,7 @@
                     @endif
                     <div class="p-4">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            <a href="{{ route('frontend.pages.show', ['slug' => $relatedPage->getSlug(), 'locale' => app()->getLocale()]) }}"
+                            <a href="{{ route('frontend.pages.show', ['slug' => $relatedPage->getSlug(), 'locale' => App::getLocale()]) }}"
                                 class="hover:text-purple-600 dark:hover:text-purple-400">
                                 {{ $relatedPage->getName() }}
                             </a>
@@ -203,7 +203,7 @@
 
         <!-- Back to Homepage -->
         <div class="text-center">
-            <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
                 class="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                 <svg class="mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"

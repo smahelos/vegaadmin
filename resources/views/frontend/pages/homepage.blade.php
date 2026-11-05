@@ -98,12 +98,12 @@
                 <!-- CTA Button -->
                 <div class="mt-8 mb-4">
                     @auth
-                    <a href="{{ route('frontend.dashboard', ['locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.dashboard', ['locale' => App::getLocale()]) }}"
                         class="bg-[#490BF4] hover:bg-indigo-600 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 inline-block">
                         {{ __('general.navigation.dashboard') }}
                     </a>
                     @else
-                    <a href="{{ route('frontend.invoice.create.guest', ['locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.invoice.create.guest', ['locale' => App::getLocale()]) }}"
                         class="bg-[#490BF4] hover:bg-indigo-600 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 inline-block">
                         Create Invoice
                     </a>
@@ -113,7 +113,7 @@
                 <!-- Sub text -->
                 @guest
                 <p class="text-gray-600 text-sm mb-16">
-                    Or <a href="{{ route('frontend.register', ['locale' => app()->getLocale()]) }}"
+                    Or <a href="{{ route('frontend.register', ['locale' => App::getLocale()]) }}"
                         class="text-[#490BF4] hover:text-indigo-600 underline">create account</a> and manage your
                     invoices for your business
                 </p>
@@ -324,7 +324,7 @@
                         {{ Str::limit($featurePage->description[$locale], 100) }}
                     </p>
                     @endif
-                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->slug[$locale], 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->slug[$locale], 'locale' => App::getLocale()]) }}"
                         class="inline-flex items-center text-white hover:underline font-medium">
                         {{ __('pages.read_more') }}
                         <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

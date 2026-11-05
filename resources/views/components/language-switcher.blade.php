@@ -8,7 +8,7 @@
             $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
             $routeParams = array_merge(request()->route()?->parameters() ?? [], ['locale' => $locale]);
             @endphp
-            <option value="{{ route($currentRoute, $routeParams) }}" {{ app()->getLocale() == $locale ? 'selected' : ''
+            <option value="{{ route($currentRoute, $routeParams) }}" {{ App::getLocale() == $locale ? 'selected' : ''
                 }}>
                 {{ strtoupper($locale) }}
             </option>

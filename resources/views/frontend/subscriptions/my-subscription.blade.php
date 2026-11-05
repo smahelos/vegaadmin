@@ -136,7 +136,7 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">{{ __('subscriptions.titles.actions') }}</h3>
 
                     <div class="space-y-3">
-                        <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('subscriptions.index', ['locale' => App::getLocale()]) }}"
                             class="w-full inline-flex items-center justify-center px-4 py-2 border border-blue-300 dark:border-blue-700 rounded-sm shadow-sm text-sm font-bold text-blue-700 dark:text-blue-200 bg-blue-50 dark:bg-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500 transition-colors">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -146,7 +146,7 @@
                         </a>
 
                         @if($subscription->isActive())
-                        <form action="{{ route('subscriptions.cancel', ['locale' => app()->getLocale(), 'subscription' => $subscription]) }}" method="POST"
+                        <form action="{{ route('subscriptions.cancel', ['locale' => App::getLocale(), 'subscription' => $subscription]) }}" method="POST"
                             onsubmit="return confirm(@js(__('subscriptions.messages.confirm_cancel')))">
                             @csrf
                             @method('DELETE')

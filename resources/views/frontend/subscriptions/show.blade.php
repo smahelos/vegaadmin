@@ -8,7 +8,7 @@
         <!-- Breadcrumb -->
         <nav class="mb-8">
             <div class="flex items-center space-x-2 text-sm text-gray-500">
-                <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}" class="hover:text-blue-600">
+                <a href="{{ route('subscriptions.index', ['locale' => App::getLocale()]) }}" class="hover:text-blue-600">
                     {{ __('subscriptions.plans.entity.plural') }}
                 </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +95,7 @@
                     </div>
                     @endif
 
-                    <form action="{{ route('subscriptions.subscribe', ['locale' => app()->getLocale(), 'plan' => $plan]) }}" method="POST" class="space-y-6">
+                    <form action="{{ route('subscriptions.subscribe', ['locale' => App::getLocale(), 'plan' => $plan]) }}" method="POST" class="space-y-6">
                         @csrf
 
                         <!-- Payment Gateway Selection -->

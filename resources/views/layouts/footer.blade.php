@@ -36,23 +36,23 @@
                 <h4 class="text-lg font-semibold text-white mb-4">{{ __('footer.product') }}</h4>
                 <ul class="space-y-3">
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'funkce']) }}"
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'funkce']) }}"
                             class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.features') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'cenik']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'cenik']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.pricing') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'sablony']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'sablony']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.templates') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'api']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'api']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.api') }}
                         </a>
                     </li>
@@ -64,22 +64,22 @@
                 <h4 class="text-lg font-semibold text-white mb-4">{{ __('footer.support') }}</h4>
                 <ul class="space-y-3">
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'napoveda']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'napoveda']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.help_center') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'kontakt']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'kontakt']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.contact') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'dokumentace']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'dokumentace']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.documentation') }}
                         </a>
                     </li>
                     <li>
-                        <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'stav-sluzby']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
+                        <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'stav-sluzby']) }}" class="text-gray-300 hover:text-white transition-colors duration-200">
                             {{ __('footer.status') }}
                         </a>
                     </li>
@@ -114,13 +114,13 @@
                 <p>&copy; {{ date('Y') }} {{ config('app.name', 'Billex') }}. {{ __('footer.all_rights_reserved') }}</p>
             </div>
             <div class="flex space-x-6 mt-4 md:mt-0">
-                <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'zasady-ochrany-osobnich-udaju']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
+                <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'zasady-ochrany-osobnich-udaju']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
                     {{ __('footer.privacy_policy') }}
                 </a>
-                <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'obchodni-podminky']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
+                <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'obchodni-podminky']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
                     {{ __('footer.terms_of_service') }}
                 </a>
-                <a href="{{ route('frontend.pages.show', ['locale' => app()->getLocale(), 'slug' => 'zasady-pouzivani-cookies']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
+                <a href="{{ route('frontend.pages.show', ['locale' => App::getLocale(), 'slug' => 'zasady-pouzivani-cookies']) }}" class="text-gray-400 hover:text-white text-sm transition-colors duration-200">
                     {{ __('footer.cookies') }}
                 </a>
             </div>

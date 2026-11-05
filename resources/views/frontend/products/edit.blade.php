@@ -8,7 +8,7 @@
 
         <x-back-button />
 
-        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.products', ['locale' => App::getLocale()]) }}"
             title="{{ __('products.actions.back_to_list') }}" aria-label="{{ __('products.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
@@ -25,7 +25,7 @@
 </div>
 @endauth
 
-<form action="{{ route('frontend.product.update', ['locale' => app()->getLocale(), 'id' => $product->id]) }}"
+<form action="{{ route('frontend.product.update', ['locale' => App::getLocale(), 'id' => $product->id]) }}"
     method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -236,7 +236,7 @@
 
         <!-- Form submit button -->
         <div class="flex justify-between mb-20 md:mb-10">
-            <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.products', ['locale' => App::getLocale()]) }}"
                 class="inline-flex justify-center py-6 px-12 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('products.actions.cancel') }}
             </a>
@@ -247,7 +247,7 @@
         </div>
 
         <!-- set Locale -->
-        <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+        <input type="hidden" name="lang" value="{{ App::getLocale() }}">
 </form>
 
 {{-- UELS Modal --}}

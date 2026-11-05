@@ -58,7 +58,7 @@
                         @unless ($supplierPreview->hasCompleteAddress())
                             <p class="text-sm text-red-600">
                                 {{ __('parties.validation.business_address_incomplete') }}
-                                <a href="{{ route('frontend.businesses.edit', ['locale' => app()->getLocale(), 'business' => $business->id->value]) }}"
+                                <a href="{{ route('frontend.businesses.edit', ['locale' => App::getLocale(), 'business' => $business->id->value]) }}"
                                     class="font-semibold underline">{{ __('invoices.actions.edit_business') }}</a>
                             </p>
                         @endunless
@@ -68,7 +68,7 @@
                         @if ($accounts === [])
                             <p class="text-sm text-gray-600 dark:text-gray-300">
                                 {{ __('invoices.messages.no_active_account') }}
-                                <a href="{{ route('frontend.businesses.show', ['locale' => app()->getLocale(), 'business' => $business->id->value]) }}"
+                                <a href="{{ route('frontend.businesses.show', ['locale' => App::getLocale(), 'business' => $business->id->value]) }}"
                                     class="font-semibold underline">{{ __('invoices.actions.add_account') }}</a>
                             </p>
                         @else

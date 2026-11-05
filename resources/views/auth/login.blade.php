@@ -32,7 +32,7 @@
             </div>
         @endif
 
-        <form class="mt-8 space-y-6" action="{{ route('frontend.login', ['locale' => app()->getLocale()]) }}" method="POST">
+        <form class="mt-8 space-y-6" action="{{ route('frontend.login', ['locale' => App::getLocale()]) }}" method="POST">
             @csrf
 
             <div class="rounded-sm -space-y-px">
@@ -60,7 +60,7 @@
 
                 <div class="text-sm">
                     @if (Route::has('frontend.password.request'))
-                    <a href="{{ route('frontend.password.request', ['locale' => app()->getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500  dark:text-indigo-400 dark:hover:text-indigo-300">
+                    <a href="{{ route('frontend.password.request', ['locale' => App::getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500  dark:text-indigo-400 dark:hover:text-indigo-300">
                         {{ __('users.actions.forgot_password') }}
                     </a>
                     @endif
@@ -68,7 +68,7 @@
 
                 <div class="text-sm">
                     <span class="text-gray-500 dark:text-gray-400">{{ __('users.messages.no_account') }}</span>
-                    <a href="{{ route('frontend.register', ['locale' => app()->getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500  dark:text-indigo-400 dark:hover:text-indigo-300">
+                    <a href="{{ route('frontend.register', ['locale' => App::getLocale()]) }}" class="font-medium text-indigo-600 hover:text-indigo-500  dark:text-indigo-400 dark:hover:text-indigo-300">
                         {{ __('users.messages.register_prompt') }}
                     </a>
                 </div>
@@ -86,7 +86,7 @@
             </div>
 
             <!-- set Locale -->
-            <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+            <input type="hidden" name="lang" value="{{ App::getLocale() }}">
         </form>
     </div>
 </div>

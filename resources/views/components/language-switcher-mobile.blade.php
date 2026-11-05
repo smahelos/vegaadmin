@@ -8,7 +8,7 @@
             $routeParams = array_merge(request()->route()?->parameters() ?? [], ['locale' => $locale]);
             @endphp
             <a href="{{ route($currentRoute, $routeParams) }}"
-                class="px-3 py-1 font-semibold text-sm rounded-sm {{ app()->getLocale() == $locale ? 'bg-indigo-100 dark:bg-[#490BF4] hover:bg-indigo-400 text-indigo-700 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
+                class="px-3 py-1 font-semibold text-sm rounded-sm {{ App::getLocale() == $locale ? 'bg-indigo-100 dark:bg-[#490BF4] hover:bg-indigo-400 text-indigo-700 dark:text-white' : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white' }}">
                 {{ strtoupper($locale) }}
             </a>
             @endforeach

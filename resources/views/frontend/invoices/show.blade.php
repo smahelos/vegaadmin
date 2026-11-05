@@ -9,7 +9,7 @@
     <div class="flex-none space-x-2 space-y-2 grid grid-cols-4 md:flex md:grid-cols-none md:space-x-0">
         <x-back-button />
 
-        <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
             title="{{ __('invoices.actions.back_to_list') }}" aria-label="{{ __('invoices.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
@@ -18,7 +18,7 @@
         <!-- Button for marking as paid - show only if not paid -->
         @if(! $invoice->paid)
         <form method="POST" class="col-span-1 md:col-span-none inline-block"
-            action="{{ route('frontend.invoice.mark-as-paid', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}">
+            action="{{ route('frontend.invoice.mark-as-paid', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}">
             @csrf
             @method('PUT')
             <button type="submit" title="{{ __('invoices.actions.mark_as_paid') }}"
@@ -31,7 +31,7 @@
 
         <!-- Template Settings Button -->
         <form id="invoice-form" method="POST" action=""
-            data-action="{{ route('frontend.invoice.set-template', ['locale' => app()->getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}">
+            data-action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}">
             <button type="button"
                 title="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}"
                 aria-label="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}"
@@ -41,7 +41,7 @@
             <input type="hidden" name="current_template" value="{{ $invoice->template ?? 'default' }}">
         </form>
 
-        <a href="{{ route('frontend.invoice.edit', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
+        <a href="{{ route('frontend.invoice.edit', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
             title="{{ __('invoices.actions.edit') }}" aria-label="{{ __('invoices.actions.edit') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-pink-300 dark:bg-pink-500 hover:bg-pink-500 dark:hover:bg-pink-800 rounded-sm text-gray-700 dark:text-gray-200 hover:text-white text-sm font-medium transition-colors">
             <i class="fas fa-pencil-alt"></i>
@@ -51,7 +51,7 @@
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 bg-indigo-500 hover:bg-[#490BF4] rounded-sm text-gray-700 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 text-sm font-medium cursor-pointer transition-colors">
             <i class="fas fa-eye"></i>
         </button>
-        <a href="{{ route('frontend.invoice.download', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
+        <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
             title="{{ __('invoices.actions.download_pdf') }}" aria-label="{{ __('invoices.actions.download_pdf') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-red-200 dark:bg-red-500 hover:bg-red-400 dark:hover:bg-red-600 rounded-sm text-sm text-gray-700 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 font-medium transition-colors">
             <i class="fas fa-download"></i>
@@ -120,14 +120,14 @@
 
                 <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-900 dark:text-white">
                     @if($contact)
-                    <a href="{{ route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $contact->id->value]) }}"
+                    <a href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $contact->id->value]) }}"
                         class="font-semibold underline">{{ __('invoices.actions.open_contact') }}</a>
                     @if($contact->isArchived())
                     <span class="text-gray-500 dark:text-gray-400">({{ __('parties.statuses.archived') }})</span>
                     @endif
                     @elseif($contactToLink)
                     @can('frontend.can_create_edit_invoice')
-                    <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => app()->getLocale(), 'invoice' => $invoice->id]) }}">
+                    <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <input type="hidden" name="contact_id" value="{{ $contactToLink->id->value }}">
                         <button type="submit" class="font-semibold underline cursor-pointer">
@@ -138,7 +138,7 @@
                     @else
                     @can('frontend.can_create_contact')
                     @can('frontend.can_create_edit_invoice')
-                    <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => app()->getLocale(), 'invoice' => $invoice->id]) }}">
+                    <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>
                     </form>
@@ -319,7 +319,7 @@
                     class="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     {{ __('invoices.actions.close') }}
                 </button>
-                <a href="{{ route('frontend.invoice.download', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
+                <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
                     class="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     {{ __('invoices.actions.download_pdf') }}
                 </a>
@@ -444,7 +444,7 @@
                     {{ __('general.actions.cancel') }}
                 </button>
                 <form method="POST"
-                    action="{{ route('frontend.invoice.set-template', ['locale' => app()->getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}"
+                    action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}"
                     id="template-selection-form" class="inline">
                     @csrf
                     @method('PUT')
@@ -479,9 +479,9 @@
         // Opening modal window and loading PDF
         previewBtn.addEventListener('click', function() {
             // Get current language
-            const currentLang = '{{ app()->getLocale() }}';
+            const currentLang = '{{ App::getLocale() }}';
             // Set iframe source with preview=true parameter
-            pdfIframe.src = "{{ route('frontend.invoice.download', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}?preview=true";
+            pdfIframe.src = "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}?preview=true";
 
             // Show loading indicator
             loadingIndicator.classList.remove('hidden');
@@ -495,7 +495,7 @@
 
             // Debug information
             console.log('Modal window opened, loading PDF');
-            console.log('URL:', "{{ route('frontend.invoice.download', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}?preview=true");
+            console.log('URL:', "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}?preview=true");
         });
 
         // Closing modal window
@@ -534,7 +534,7 @@
 
 <script>
     // Provide existing invoice data to the invoice-form.js script
-    window.templateAction = "{{ route('frontend.invoice.set-template', ['locale' => app()->getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}";
+    window.templateAction = "{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}";
     window.csfrToken = "{{ csrf_token() }}";
 </script>
 @vite('resources/js/template-selector-updating.js')

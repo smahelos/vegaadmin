@@ -7,7 +7,7 @@
 
         <x-back-button />
 
-        <a href="{{ route('frontend.dashboard', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.dashboard', ['locale' => App::getLocale()]) }}"
             title="{{ __('users.actions.back_to_dashboard') }}"
             aria-label="{{ __('users.actions.back_to_dashboard') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
@@ -19,7 +19,7 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-<form method="POST" action="{{ route('frontend.profile.update', ['locale' => app()->getLocale()]) }}">
+<form method="POST" action="{{ route('frontend.profile.update', ['locale' => App::getLocale()]) }}">
 @csrf
     @method('PUT')
         <!-- Section 1: Basic informations -->
@@ -66,7 +66,7 @@
 
     <!-- Submit -->
     <div class="flex justify-between">
-        <a href="{{ route('frontend.dashboard', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.dashboard', ['locale' => App::getLocale()]) }}"
             class="inline-flex justify-center py-6 px-12 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
             {{ __('users.actions.cancel') }}
         </a>
@@ -77,10 +77,10 @@
     </div>
 
     <!-- set Locale -->
-    <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+    <input type="hidden" name="lang" value="{{ App::getLocale() }}">
 </form>
 
-<form method="POST" action="{{ route('frontend.profile.update.password', ['locale' => app()->getLocale()]) }}">
+<form method="POST" action="{{ route('frontend.profile.update.password', ['locale' => App::getLocale()]) }}">
     @csrf
     @method('PUT')
     <!-- Section 2: Password change -->
@@ -123,7 +123,7 @@
     </div>
 
     <!-- set Locale -->
-    <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
+    <input type="hidden" name="locale" value="{{ App::getLocale() }}">
 </form>
 </div>
 @endsection

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" class="dark">
+<html lang="{{ App::getLocale() }}" class="dark">
 
 <head>
     <meta charset="utf-8">
@@ -89,13 +89,13 @@
                             </p>
                         </div>
                         <div class="flex space-x-3">
-                            <a href="{{ route('frontend.invoice.download.token', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}"
+                            <a href="{{ route('frontend.invoice.download.token', ['token' => Session::get('last_guest_invoice_token'), 'locale' => App::getLocale()]) }}"
                                 class="inline-flex items-right px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 transition-colors duration-200">
                                 <i class="fas fa-download mr-2 !leading-[1.2]"></i> {{ __('invoices.actions.download')
                                 }}
                             </a>
                             <form method="POST"
-                                action="{{ route('frontend.guest-invoices.destroy', ['token' => Session::get('last_guest_invoice_token'), 'locale' => app()->getLocale()]) }}"
+                                action="{{ route('frontend.guest-invoices.destroy', ['token' => Session::get('last_guest_invoice_token'), 'locale' => App::getLocale()]) }}"
                                 onsubmit="return confirm(@js(__('invoices.messages.confirm_delete')));">
                                 @csrf
                                 @method('DELETE')

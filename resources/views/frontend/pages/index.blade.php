@@ -13,7 +13,7 @@
 
     {{-- Search Form --}}
     <div class="mb-8">
-        <form action="{{ route('frontend.pages.search', ['locale' => app()->getLocale()]) }}" method="GET"
+        <form action="{{ route('frontend.pages.search', ['locale' => App::getLocale()]) }}" method="GET"
             class="max-w-md">
             <div class="flex">
                 <input type="text" name="q" placeholder="{{ __('pages.search_placeholder') }}"
@@ -35,7 +35,7 @@
             @foreach($categoriesWithPages as $category)
             <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                    <a href="{{ route('frontend.pages.category.slug', ['slug' => $category->getSlug(), 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.category.slug', ['slug' => $category->getSlug(), 'locale' => App::getLocale()]) }}"
                         class="hover:text-[#490BF4] dark:hover:text-indigo-300">
                         {{ $category->getName() }}
                     </a>
@@ -46,7 +46,7 @@
                 <div class="flex justify-between items-center text-sm text-gray-500">
                     <span>{{ trans_choice('pages.pages_count', $category->published_pages_count, ['count' =>
                         $category->published_pages_count]) }}</span>
-                    <a href="{{ route('frontend.pages.category.slug', ['slug' => $category->getSlug(), 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.category.slug', ['slug' => $category->getSlug(), 'locale' => App::getLocale()]) }}"
                         class="text-[#490BF4] dark:text-indigo-300 hover:text-blue-800 dark:hover:text-indigo-200">
                         {{ __('pages.view_all') }} →
                     </a>
@@ -77,7 +77,7 @@
                     <div class="flex items-center justify-between mb-2">
                         <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
                             {{-- Link to the page --}}
-                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                                 class="hover:text-[#490BF4] dark:hover:text-indigo-300">
                                 {{ $page->getName() }}
                             </a>
@@ -94,7 +94,7 @@
                     <p class="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">{{ $page->getDescription() }}</p>
                     @endif
 
-                    <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                         class="inline-flex items-center text-[#490BF4] dark:text-indigo-300 hover:text-blue-800 dark:hover:text-indigo-200">
                         {{ __('pages.read_more') }}
                         <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -118,11 +118,11 @@
     {{-- Quick Links --}}
     <div class="mt-10 mb-10 pt-10 border-t border-gray-200 dark:border-gray-700">
         <div class="flex flex-wrap gap-4 justify-center">
-            <a href="{{ route('frontend.pages.sitemap', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.pages.sitemap', ['locale' => App::getLocale()]) }}"
                 class="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 {{ __('pages.sitemap') }}
             </a>
-            <a href="{{ route('frontend.pages.search', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.pages.search', ['locale' => App::getLocale()]) }}"
                 class="px-4 py-2 bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                 {{ __('pages.advanced_search') }}
             </a>
