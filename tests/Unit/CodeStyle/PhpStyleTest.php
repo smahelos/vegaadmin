@@ -113,6 +113,18 @@ final class PhpStyleTest extends TestCase
             '$value = $allowed ? "A long positive value which makes this expression exceed the limit" : "An equally long negative value which is difficult to scan";',
             'Billex.ControlStructures.ShortTernary.ComplexTernary',
         ];
+        yield 'multiline ternary after a concat assignment' => [
+            "\$code .= \$allowed\n    ? 'yes'\n    : 'no';",
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'nested ternary in the first match arm' => [
+            "\$value = match (\$action) {\n    'view' => \$first ? (\$second ? 'a' : 'b') : 'c',\n};",
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'long ternary with an assignment inside its condition' => [
+            '$value = check($name = "A long argument value which makes this condition reach very far beyond the limit of the ternary rule") ? "yes" : "no";',
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
     }
 
     #[Test]
@@ -151,6 +163,13 @@ final class PhpStyleTest extends TestCase
         yield 'short fallback' => ['$value = $label ?: "default";'];
         yield 'call-like string' => ['$value = save("call(argument)");'];
         yield 'sibling ternaries' => ['$values = [$first ? "a" : "b", $second ? "c" : "d"];'];
+        yield 'short ternary after a concat assignment' => ["\$code = '';\n\$code .= \$allowed ? 'a' : 'b';"];
+        yield 'short ternary after an addition assignment' => ["\$total = 0;\n\$total += \$allowed ? 1 : 2;"];
+        yield 'short ternary after a coalesce assignment' => ["\$value = null;\n\$value ??= \$allowed ? 1 : 2;"];
+        yield 'short ternaries in match arms' => [
+            "\$first = 1;\n\$value = match (\$action) {\n    'view' => \$allowed ? 'a' : 'b',\n    'update' => \$allowed ? 'c' : 'd',\n};",
+        ];
+        yield 'short ternary statement' => ["\$first = 1;\n\$allowed ? start() : stop();"];
         yield 'grouped arithmetic argument' => ['$value = save(($first + $second));'];
         yield 'typed callable declaration' => ['function normalize(string $value): string { return $value; }'];
         yield 'short arrow and simple sibling' => ['save(fn (int $x): int => $x, $items);'];
