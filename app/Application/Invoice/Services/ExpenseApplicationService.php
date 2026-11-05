@@ -95,8 +95,12 @@ final class ExpenseApplicationService
         $saved = false;
         try {
             $stored = $id === null ? null : $this->get($userId, $id);
-            $contact = $data->contactId === null ? null : ($this->contacts->findByIdForUser($data->contactId, $userId)
-                ?? throw new ContactNotFoundException($data->contactId));
+            if ($data->contactId === null) {
+                $contact = null;
+            } else {
+                $contact = $this->contacts->findByIdForUser($data->contactId, $userId)
+                    ?? throw new ContactNotFoundException($data->contactId);
+            }
             $sameSupplier = $stored !== null && $stored->parties->contactId?->value === $data->contactId?->value;
             $keepLogo = $sameSupplier && ($data->contactId !== null || ($data->supplierLogo === null && !$data->removeSupplierLogo));
             $expense = $this->logos->saveWithLogo(

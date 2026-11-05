@@ -37,7 +37,11 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         $items = [];
         foreach ($invoice->items as $item) {
             $currency = strtoupper($item['currency'] ?? ($invoice->currency ?? 'CZK'));
-            $price = ($item['price'] ?? null) instanceof Money ? $item['price'] : Money::fromString((string) ($item['price'] ?? '0'), $currency);
+            if (($item['price'] ?? null) instanceof Money) {
+                $price = $item['price'];
+            } else {
+                $price = Money::fromString((string) ($item['price'] ?? '0'), $currency);
+            }
             if (($item['total_price'] ?? null) instanceof Money) {
                 $lineTotal = $item['total_price'];
             } else {
