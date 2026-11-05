@@ -10,6 +10,7 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
@@ -240,5 +241,27 @@ final class ContactFormTest extends TestCase
         $component->assertHasNoErrors();
         $this->assertNull($contact->fresh()->logo);
         $disk->assertMissing($second);
+    }
+
+    #[Test]
+    public function cancel_leads_to_the_list_in_the_current_locale_on_a_new_contact(): void
+    {
+        App::setLocale('de');
+        $listUrl = route('frontend.contacts.index', ['locale' => 'de']);
+
+        $component = Livewire::test(ContactForm::class);
+        $component->assertSeeHtml('href="' . $listUrl . '"');
+    }
+
+    #[Test]
+    public function cancel_leads_to_the_detail_in_the_current_locale_on_an_edited_contact(): void
+    {
+        App::setLocale('de');
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $detailUrl = route('frontend.contacts.show', ['locale' => 'de', 'contact' => $contact->id]);
+
+        $component = Livewire::test(ContactForm::class, ['contactId' => $contact->id]);
+        $component->assertSeeHtml('href="' . $detailUrl . '"');
     }
 }

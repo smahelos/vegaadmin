@@ -10,6 +10,7 @@ use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
@@ -361,5 +362,27 @@ final class BusinessFormTest extends TestCase
 
         $component = Livewire::test(BusinessForm::class);
         $component->assertForbidden();
+    }
+
+    #[Test]
+    public function cancel_leads_to_the_list_in_the_current_locale_on_a_new_business(): void
+    {
+        App::setLocale('de');
+        $listUrl = route('frontend.businesses.index', ['locale' => 'de']);
+
+        $component = Livewire::test(BusinessForm::class);
+        $component->assertSeeHtml('href="' . $listUrl . '"');
+    }
+
+    #[Test]
+    public function cancel_leads_to_the_detail_in_the_current_locale_on_an_edited_business(): void
+    {
+        App::setLocale('de');
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $detailUrl = route('frontend.businesses.show', ['locale' => 'de', 'business' => $business->id]);
+
+        $component = Livewire::test(BusinessForm::class, ['businessId' => $business->id]);
+        $component->assertSeeHtml('href="' . $detailUrl . '"');
     }
 }
