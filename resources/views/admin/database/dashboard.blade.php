@@ -239,7 +239,8 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                 $totalSavings = $recentTasks->sum(function($task) {
                                 return $task['space_savings']['bytes'];
                                 });
-                                $completedTasks = $recentTasks->where('status', 'completed')->count();
+                                $completedTaskList = $recentTasks->where('status', 'completed');
+                                $completedTasks = $completedTaskList->count();
                                 @endphp
                                 @if($totalSavings > 0)
                                 <div class="border-top p-3 bg-light">
@@ -315,8 +316,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                             </div>
                                             <h6>{{ __('admin/database.dashboard.overall_health_score') }}</h6>
                                             <small class="text-muted">
-                                                {{ $healthStatus['last_check'] ? $healthStatus['last_check']->format('M
-                                                d, H:i') : __('admin/database.dashboard.never') }}
+                                                {{ $healthStatus['last_check'] ? $healthStatus['last_check']->format('M d, H:i') : __('admin/database.dashboard.never') }}
                                             </small>
                                         </div>
                                     </div>
@@ -356,7 +356,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                                 style="height: 60px;">
                                                 @foreach($healthStatus['health_trend'] as $day)
                                                 <div class="flex-fill mx-1">
-                                                    <div class="bg-{{ $day['score'] >= 80 ? 'success' : ($day['score'] >= 60 ? 'warning' : 'danger') }}"
+                                                    <div class="@if($day['score'] >= 80) bg-success @elseif($day['score'] >= 60) bg-warning @else bg-danger @endif"
                                                         style="height: {{ $day['score'] }}%; min-height: 5px; border-radius: 2px;"
                                                         title="{{ $day['day'] }}: {{ $day['score'] }}%"></div>
                                                     <small class="text-muted" style="font-size: 10px;">{{
@@ -439,7 +439,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                                                         </td>
                                                         <td>
                                                             <span
-                                                                class="badge bg-{{ $alert->severity === 'critical' ? 'danger' : ($alert->severity === 'warning' ? 'orange' : 'info') }}">
+                                                                class="badge @if($alert->severity === 'critical') bg-danger @elseif($alert->severity === 'warning') bg-orange @else bg-info @endif">
                                                                 {{ ucfirst($alert->severity) }}
                                                             </span>
                                                         </td>

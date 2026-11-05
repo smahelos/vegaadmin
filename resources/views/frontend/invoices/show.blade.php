@@ -76,7 +76,10 @@
                 <div class="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
                     <x-detail.item accent="border-indigo-500" :label="__('invoices.fields.invoice_vs_long')">{{ $invoice['invoice_vs'] }}</x-detail.item>
                     <x-detail.item accent="border-blue-500" :label="__('invoices.fields.issue_date')">
-                        {{ \Carbon\Carbon::parse($invoice->issue_date)->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
+                        @php
+                            $issueDate = \Carbon\Carbon::parse($invoice->issue_date);
+                        @endphp
+                        {{ $issueDate->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
                     </x-detail.item>
                     <x-detail.item accent="border-red-500" :label="__('invoices.fields.due_date')">
                         {{ $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}

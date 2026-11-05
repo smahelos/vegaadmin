@@ -216,8 +216,10 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <span
                                         class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                                {{ $payment->status === 'completed' ? 'bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200' : 
-                                                   ($payment->status === 'failed' ? 'bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200' : 'bg-yellow-100 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200') }}">
+                                                @if($payment->status === 'completed') bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200
+                                                @elseif($payment->status === 'failed') bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-200
+                                                @else bg-yellow-100 dark:bg-yellow-600 text-yellow-800 dark:text-yellow-200
+                                                @endif">
                                         {{ __('payments.statuses.' . $payment->status) }}
                                     </span>
                                 </td>

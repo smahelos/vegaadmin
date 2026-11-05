@@ -140,6 +140,7 @@ final class BusinessForm extends Component
             'livewire.party.business-form',
             [
                 'countries' => $this->countryOptions(),
+                'cancelHref' => $this->cancelHref(),
                 'bankOptions' => $this->bankOptions($this->account->country),
             ],
         );
@@ -190,5 +191,17 @@ final class BusinessForm extends Component
                 'business' => $id->value,
             ],
         );
+    }
+
+    private function cancelHref(): string
+    {
+        $application = app();
+        $locale = $application->getLocale();
+
+        if ($this->businessId === null) {
+            return route('frontend.businesses.index', ['locale' => $locale]);
+        }
+
+        return route('frontend.businesses.show', ['locale' => $locale, 'business' => $this->businessId]);
     }
 }

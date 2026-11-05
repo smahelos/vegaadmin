@@ -27,7 +27,7 @@
         </div>
 
         <x-form.actions
-            :cancel-href="$businessId === null ? route('frontend.businesses.index', ['locale' => App::getLocale()]) : route('frontend.businesses.show', ['locale' => App::getLocale(), 'business' => $businessId])"
+            :cancel-href="$cancelHref"
             :cancel-label="__('general.actions.cancel')"
             :submit-label="__('general.actions.save')" />
     </form>

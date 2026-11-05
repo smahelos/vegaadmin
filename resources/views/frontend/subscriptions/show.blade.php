@@ -108,8 +108,7 @@
                                 <label
                                     class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-500 dark:text-white cursor-pointer">
                                     <input type="radio" name="gateway" value="{{ $gatewayKey }}"
-                                        class="text-blue-600 focus:ring-blue-500 border-gray-300" {{ $loop->first ?
-                                    'checked' : '' }}>
+                                        class="text-blue-600 focus:ring-blue-500 border-gray-300" {{ $loop->first ? 'checked' : '' }}>
                                     <div class="ml-3 flex items-center">
                                         @if($gatewayKey === 'gopay')
                                         <img src="https://www.gopay.com/images/gopay-logo.svg" alt="GoPay"

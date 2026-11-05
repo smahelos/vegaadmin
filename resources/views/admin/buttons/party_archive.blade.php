@@ -1,11 +1,12 @@
 @php
     $entity = $crud->get('party.entity');
-    $routes = $entity === 'business'
-        ? ['archive' => 'admin.businesses.archive', 'restore' => 'admin.businesses.restore']
-        : ['archive' => 'admin.contacts.archive', 'restore' => 'admin.contacts.restore'];
-    $permissions = $entity === 'business'
-        ? ['archive' => 'can_archive_business', 'restore' => 'can_restore_business']
-        : ['archive' => 'can_archive_contact', 'restore' => 'can_restore_contact'];
+    if ($entity === 'business') {
+        $routes = ['archive' => 'admin.businesses.archive', 'restore' => 'admin.businesses.restore'];
+        $permissions = ['archive' => 'can_archive_business', 'restore' => 'can_restore_business'];
+    } else {
+        $routes = ['archive' => 'admin.contacts.archive', 'restore' => 'admin.contacts.restore'];
+        $permissions = ['archive' => 'can_archive_contact', 'restore' => 'can_restore_contact'];
+    }
     $action = $entry->archived_at === null ? 'archive' : 'restore';
     $user = backpack_user();
 @endphp

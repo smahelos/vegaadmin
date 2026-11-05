@@ -132,9 +132,13 @@ final class ContactForm extends Component
 
     public function render(): View
     {
-        return view('livewire.party.contact-form', [
-            'countries' => $this->countryOptions(),
-        ]);
+        return view(
+            'livewire.party.contact-form',
+            [
+                'countries' => $this->countryOptions(),
+                'cancelHref' => $this->cancelHref(),
+            ],
+        );
     }
 
     /**
@@ -187,5 +191,17 @@ final class ContactForm extends Component
                 'contact' => $id->value,
             ],
         );
+    }
+
+    private function cancelHref(): string
+    {
+        $application = app();
+        $locale = $application->getLocale();
+
+        if ($this->contactId === null) {
+            return route('frontend.contacts.index', ['locale' => $locale]);
+        }
+
+        return route('frontend.contacts.show', ['locale' => $locale, 'contact' => $this->contactId]);
     }
 }

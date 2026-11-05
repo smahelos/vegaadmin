@@ -80,8 +80,9 @@
                             <div class="border-l-4 border-yellow-500 pl-3 py-1">
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{
                                     __('products.fields.created_at') }}</div>
+                                @php($createdAt = \Carbon\Carbon::parse($product->created_at))
                                 <div class="font-medium dark:text-white">{{
-                                    \Carbon\Carbon::parse($product->created_at)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
+                                    $createdAt->format(\App\Infrastructure\Shared\Support\DateHelper::format())
                                     }}</div>
                             </div>
                         </div>
@@ -160,7 +161,8 @@
                     @if($product->image)
                     <div class="border-2 border-dashed border-gray-300 dark:border-gray-700 p-3 rounded-sm">
                         <div class="flex justify-center">
-                            <img src="{{ Storage::disk('public')->url($product->image) }}" alt="{{ $product->name }}"
+                            @php($disk = Storage::disk('public'))
+                            <img src="{{ $disk->url($product->image) }}" alt="{{ $product->name }}"
                                 class="max-h-60 object-contain rounded-md">
                         </div>
                     </div>

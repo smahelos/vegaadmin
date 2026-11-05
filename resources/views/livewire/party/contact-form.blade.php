@@ -23,7 +23,7 @@
         </div>
 
         <x-form.actions
-            :cancel-href="$contactId === null ? route('frontend.contacts.index', ['locale' => App::getLocale()]) : route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $contactId])"
+            :cancel-href="$cancelHref"
             :cancel-label="__('general.actions.cancel')"
             :submit-label="__('general.actions.save')" />
     </form>

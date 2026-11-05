@@ -1,6 +1,7 @@
 @extends('layouts.frontend')
 
 @use('App\Domain\Payment\Enums\PaymentMethodCode')
+@use('Carbon\CarbonImmutable')
 {{-- Taken before the payment method options are replaced by their labels below --}}
 @php
 $bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $paymentMethods ?? [], true) ?: null;
@@ -11,58 +12,60 @@ $bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $pa
 * Helper for getting field by name
 */
 if (!function_exists('getCreateFieldByName')) {
-function getCreateFieldByName($fields, $name) {
-foreach ($fields as $field) {
-if ($field['name'] === $name) {
-return $field;
-}
-}
-return null;
-}
+    function getCreateFieldByName($fields, $name) {
+        foreach ($fields as $field) {
+            if ($field['name'] === $name) {
+                return $field;
+            }
+        }
+
+        return null;
+    }
 }
 
 /**
 * Generating common attributes for input fields
 */
 if (!function_exists('renderCreateInputAttributes')) {
-function renderCreateInputAttributes($field, $suggestedNumber = false) {
-$attributes = [];
-// Field type
-$attributes[] = 'type="' . $field['type'] . '"';
+    function renderCreateInputAttributes($field, $suggestedNumber = false) {
+        $attributes = [];
+        // Field type
+        $attributes[] = 'type="' . $field['type'] . '"';
 
-// Name and ID
-$attributes[] = 'name="' . $field['name'] . '"';
-$attributes[] = 'id="' . $field['name'] . '"';
+        // Name and ID
+        $attributes[] = 'name="' . $field['name'] . '"';
+        $attributes[] = 'id="' . $field['name'] . '"';
 
-// The amount is the sum of the items: the script fills it in and the server computes it again
-if($field['name'] === 'payment_amount') {
-$attributes[] = 'step="0.01"';
-$attributes[] = 'readonly';
-}
+        // The amount is the sum of the items: the script fills it in and the server computes it again
+        if($field['name'] === 'payment_amount') {
+            $attributes[] = 'step="0.01"';
+            $attributes[] = 'readonly';
+        }
 
-// Required field
-if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'payment_amount') {
-$attributes[] = 'required';
-}
+        // Required field
+        if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'payment_amount') {
+            $attributes[] = 'required';
+        }
 
-// Placeholder
-if(isset($field['placeholder']) && $field['placeholder'] !== '') {
-$attributes[] = 'placeholder="' . $field['placeholder'] . '"';
-}
+        // Placeholder
+        if(isset($field['placeholder']) && $field['placeholder'] !== '') {
+            $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
+        }
 
-// Value - different sources based on field type
-if($field['name'] === 'issue_date') {
-$attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
-} elseif($field['name'] === 'tax_point_date') {
-$attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
-} elseif($field['name'] === 'invoice_vs') {
-$attributes[] = 'value="' . old($field['name'], $suggestedNumber ?? '') . '"';
-} else {
-$attributes[] = 'value="' . old($field['name']) . '"';
-}
+        // Value - different sources based on field type
+        $today = CarbonImmutable::now();
+        if($field['name'] === 'issue_date') {
+            $attributes[] = 'value="' . old($field['name'], $today->format('Y-m-d')) . '"';
+        } elseif($field['name'] === 'tax_point_date') {
+            $attributes[] = 'value="' . old($field['name'], $today->format('Y-m-d')) . '"';
+        } elseif($field['name'] === 'invoice_vs') {
+            $attributes[] = 'value="' . old($field['name'], $suggestedNumber ?? '') . '"';
+        } else {
+            $attributes[] = 'value="' . old($field['name']) . '"';
+        }
 
-return implode(' ', $attributes);
-}
+        return implode(' ', $attributes);
+    }
 }
 
 $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
@@ -71,8 +74,8 @@ $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 $sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
 $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
-$formAction = $userLoggedIn ? route('frontend.invoice.store', ['locale' => App::getLocale()]) :
-route('frontend.invoice.store.guest', ['locale' => App::getLocale()]);
+$storeRoute = $userLoggedIn ? 'frontend.invoice.store' : 'frontend.invoice.store.guest';
+$formAction = route($storeRoute, ['locale' => App::getLocale()]);
 @endphp
 
 @section('content')
@@ -157,7 +160,7 @@ route('frontend.invoice.store.guest', ['locale' => App::getLocale()]);
                     </div>
                     @endguest
                     <!-- Start 4 col parent grid -->
-                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !auth()->check(), 'md:col-span-6' => auth()->check()])>
+                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !Auth::check(), 'md:col-span-6' => Auth::check()])>
 
                         @elseif($field['name'] === 'invoice_vs')
                         <!-- Invoice number -->
