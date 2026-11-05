@@ -32,14 +32,18 @@ final class ExpensePartiesAssembler
             false,
             false,
         );
-        $supplier = $data->contactId === null ? $data->supplier : $this->counterparties->assemble(
-            $userId,
-            $data->contactId,
-            $data->supplier,
-            $stored?->contactId,
-            $stored?->supplier,
-            true,
-        );
+        if ($data->contactId === null) {
+            $supplier = $data->supplier;
+        } else {
+            $supplier = $this->counterparties->assemble(
+                $userId,
+                $data->contactId,
+                $data->supplier,
+                $stored?->contactId,
+                $stored?->supplier,
+                true,
+            );
+        }
 
         return new DocumentParties(
             $data->businessId,

@@ -66,6 +66,17 @@ final class ExpenseRequest extends FormRequest
             },
         );
 
+        if ($this->filled('contact_id')) {
+            $supplierLogoRules = ['exclude'];
+        } else {
+            $supplierLogoRules = [
+                'nullable',
+                'image',
+                'mimes:png,jpg,jpeg,webp',
+                'max:2048',
+            ];
+        }
+
         return [
             'user_id' => 'required|integer|exists:users,id',
             'business_id' => [
@@ -109,12 +120,7 @@ final class ExpenseRequest extends FormRequest
             'attachments' => 'sometimes|nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:10240',
             'attachments_removed' => 'nullable|json',
-            'supplier_logo' => $this->filled('contact_id') ? ['exclude'] : [
-                'nullable',
-                'image',
-                'mimes:png,jpg,jpeg,webp',
-                'max:2048',
-            ],
+            'supplier_logo' => $supplierLogoRules,
             'remove_supplier_logo' => 'nullable|boolean',
         ];
     }
@@ -135,6 +141,27 @@ final class ExpenseRequest extends FormRequest
         }
         $logo = $this->file('supplier_logo');
         $removed = json_decode($data['attachments_removed'] ?? '[]', true);
+        if (is_array($removed)) {
+            $removedAttachments = array_values(
+                array_filter(
+                    $removed,
+                    is_string(...),
+                ),
+            );
+        } else {
+            $removedAttachments = [];
+        }
+        if ($this->filled('contact_id') || $logo === null) {
+            $supplierLogo = null;
+        } else {
+            $supplierLogo = new IncomingFile(
+                $logo->getClientOriginalName(),
+                $logo->getClientOriginalExtension(),
+                $logo->getMimeType() ?? 'application/octet-stream',
+                (int) $logo->getSize(),
+                $logo->getPathname(),
+            );
+        }
 
         return new ExpenseWriteData(
             BusinessId::fromInt((int) $data['business_id']),
@@ -152,19 +179,8 @@ final class ExpenseRequest extends FormRequest
             (bool) ($data['tax_included'] ?? false),
             isset($data['status_id']) ? (int) $data['status_id'] : null,
             $uploads,
-            is_array($removed) ? array_values(
-                array_filter(
-                    $removed,
-                    is_string(...),
-                ),
-            ) : [],
-            supplierLogo: $this->filled('contact_id') || $logo === null ? null : new IncomingFile(
-                $logo->getClientOriginalName(),
-                $logo->getClientOriginalExtension(),
-                $logo->getMimeType() ?? 'application/octet-stream',
-                (int) $logo->getSize(),
-                $logo->getPathname(),
-            ),
+            $removedAttachments,
+            supplierLogo: $supplierLogo,
             removeSupplierLogo: $this->boolean('remove_supplier_logo'),
         );
     }

@@ -46,9 +46,7 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
             return null;
         }
 
-        $value = $file instanceof UploadedFile
-            ? IncomingFileFactory::fromUploadedFile($file)
-            : $file;
+        $value = $file instanceof UploadedFile ? IncomingFileFactory::fromUploadedFile($file) : $file;
 
         return $this->fileUploadService->handleFileUpload(
             $value,

@@ -154,23 +154,23 @@ final class ExpenseApplicationService
                                 $uploaded[] = $path;
                                 $attachments[] = $path;
                             }
-                            $expense = $id === null
-                                ? $this->writer->create(
-                                    $userId,
-                                    $data,
-                                    $parties,
-                                    $attachments,
-                                )
-                                : $this->writer->update(
-                                    $id,
+                            if ($id === null) {
+                                $expense = $this->writer->create(
                                     $userId,
                                     $data,
                                     $parties,
                                     $attachments,
                                 );
-                            if ($id === null) {
                                 $this->events->publish(
                                     new ExpenseCreated($expense->id, $userId),
+                                );
+                            } else {
+                                $expense = $this->writer->update(
+                                    $id,
+                                    $userId,
+                                    $data,
+                                    $parties,
+                                    $attachments,
                                 );
                             }
 

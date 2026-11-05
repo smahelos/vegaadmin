@@ -181,6 +181,14 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         )?->parties
             ?? throw new ModelNotFoundException('Invoice not accessible for user');
         $contact = $parties->contactId === null ? null : $this->contacts->get($owner, $parties->contactId);
+        if ($contact === null) {
+            $contactToLink = $this->invoiceContacts->findContactToLink(
+                $owner,
+                InvoiceId::fromInt($invoiceId),
+            );
+        } else {
+            $contactToLink = null;
+        }
 
         // For now, return a simplified DTO with empty FieldSetDTO
         $fieldSetDto = new FieldSetDTO([]);
@@ -192,10 +200,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             'totalTax' => $invoice->total_tax_money,
             'parties' => $parties,
             'contact' => $contact,
-            'contactToLink' => $contact === null ? $this->invoiceContacts->findContactToLink(
-                $owner,
-                InvoiceId::fromInt($invoiceId),
-            ) : null,
+            'contactToLink' => $contactToLink,
             'invoiceProducts' => $invoiceProducts,
         ];
 

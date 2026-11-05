@@ -56,9 +56,11 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 $template,
             );
 
-            return $ok
-                ? InvoiceActionResult::success('invoices.messages.template_set')
-                : InvoiceActionResult::failure('invoices.messages.update_error');
+            if ($ok) {
+                return InvoiceActionResult::success('invoices.messages.template_set');
+            }
+
+            return InvoiceActionResult::failure('invoices.messages.update_error');
         } catch (\Throwable $e) {
             Log::error(
                 'InvoiceFrontendActions setTemplate failed',

@@ -21,15 +21,21 @@ final class InvoiceItemsRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        if ($this->isMethod('POST')) {
+            $itemRules = InvoiceItemInput::rules(
+                $this->integer('user_id'),
+                false,
+                false,
+            );
+        } else {
+            $itemRules = [];
+        }
+
         return [
             'user_id' => 'required|integer|min:1',
             'payment_currency' => ['required', Rule::enum(Currency::class)],
             'q' => 'nullable|string|max:255',
-            ...($this->isMethod('POST') ? InvoiceItemInput::rules(
-                $this->integer('user_id'),
-                false,
-                false,
-            ) : []),
+            ...$itemRules,
         ];
     }
 

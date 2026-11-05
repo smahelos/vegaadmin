@@ -96,9 +96,7 @@ final class InvoiceService implements InvoiceServiceInterface
         }
 
         $data['user_id'] = $userId->toInt();
-        $data['total_amount'] = $invoiceProducts === null
-            ? $this->storedTotal($invoiceId, $data)
-            : $this->totalOf($data, $invoiceProducts);
+        $data['total_amount'] = $invoiceProducts === null ? $this->storedTotal($invoiceId, $data) : $this->totalOf($data, $invoiceProducts);
         $invoice = $this->invoiceWriteRepository->update(
             $invoice->id,
             InvoiceWriteData::fromArray($data, $parties),

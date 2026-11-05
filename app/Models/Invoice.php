@@ -275,12 +275,16 @@ class Invoice extends Model
      */
     public function getPaymentAmountMoneyAttribute(): Money
     {
-        $amount = $this->payment_amount !== null ? (string) number_format(
-            (float) $this->payment_amount,
-            2,
-            '.',
-            '',
-        ) : '0';
+        if ($this->payment_amount !== null) {
+            $amount = (string) number_format(
+                (float) $this->payment_amount,
+                2,
+                '.',
+                '',
+            );
+        } else {
+            $amount = '0';
+        }
         $currency = $this->payment_currency ?: 'CZK';
 
         return Money::fromString(

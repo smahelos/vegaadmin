@@ -378,11 +378,15 @@ class InvoiceController extends Controller
             $template = $requestTemplate;
         }
         $user = Auth::user();
-        $result = $user ? $this->invoiceFrontendActions->setTemplate(
-            $user->id,
-            $id,
-            $template,
-        ) : null;
+        if ($user) {
+            $result = $this->invoiceFrontendActions->setTemplate(
+                $user->id,
+                $id,
+                $template,
+            );
+        } else {
+            $result = null;
+        }
         $ok = $result?->status === InvoiceActionStatus::SUCCESS;
 
         $redirector = redirect();

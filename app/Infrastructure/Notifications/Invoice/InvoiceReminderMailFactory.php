@@ -25,13 +25,11 @@ final class InvoiceReminderMailFactory
     ): MailMessage {
         $application = app();
         $locale ??= $payload->locale ?? $application->getLocale();
+        $customer = $payload->recipientType === 'customer';
         $view = match ($type) {
-            InvoiceReminderType::UPCOMING_DUE => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',
-            InvoiceReminderType::DUE_TODAY => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.due_today_customer' : 'emails.invoices.reminders.due_today_supplier',
-            InvoiceReminderType::OVERDUE => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.overdue_customer' : 'emails.invoices.reminders.overdue_supplier',
+            InvoiceReminderType::UPCOMING_DUE => $customer ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',
+            InvoiceReminderType::DUE_TODAY => $customer ? 'emails.invoices.reminders.due_today_customer' : 'emails.invoices.reminders.due_today_supplier',
+            InvoiceReminderType::OVERDUE => $customer ? 'emails.invoices.reminders.overdue_customer' : 'emails.invoices.reminders.overdue_supplier',
         };
 
         $message = new MailMessage;

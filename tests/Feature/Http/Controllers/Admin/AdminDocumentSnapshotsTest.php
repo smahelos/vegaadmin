@@ -59,13 +59,15 @@ final class AdminDocumentSnapshotsTest extends TestCase
                 $role . '_company_number' => 'HRB 123',
             ],
         );
-        $data = $type === 'invoice'
-            ? $this->invoiceInput(
+        if ($type === 'invoice') {
+            $data = $this->invoiceInput(
                 $business,
                 $account,
                 ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
-            )
-            : $this->expenseInput($business);
+            );
+        } else {
+            $data = $this->expenseInput($business);
+        }
         $data['user_id'] = $this->adminUser->id;
         $data['contact_id'] = $contact->id;
         $data[$role . '_registration_country'] = 'DE';
@@ -116,13 +118,15 @@ final class AdminDocumentSnapshotsTest extends TestCase
                 $role . '_company_number' => 'HRB 123',
             ],
         );
-        $data = $type === 'invoice'
-            ? $this->invoiceInput(
+        if ($type === 'invoice') {
+            $data = $this->invoiceInput(
                 $business,
                 $account,
                 ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
-            )
-            : $this->expenseInput($business);
+            );
+        } else {
+            $data = $this->expenseInput($business);
+        }
         $data['user_id'] = $this->adminUser->id;
         $data['contact_id'] = $contact->id;
         $data[$role . '_registration_country'] = 'DE';

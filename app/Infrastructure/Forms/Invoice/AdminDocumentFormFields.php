@@ -64,9 +64,7 @@ final class AdminDocumentFormFields
         $fields[2]['stored_reference_id'] = $document?->contact_id;
         $fields[3]['document_account'] = true;
         $fields[3]['stored_reference_id'] = $document?->bank_account_id;
-        $fields[3]['hint'] = $role === 'customer'
-            ? __('parties.hints.document_business_account')
-            : __('parties.hints.document_contact_account');
+        $fields[3]['hint'] = $role === 'customer' ? __('parties.hints.document_business_account') : __('parties.hints.document_contact_account');
         $fields[2]['hint'] = __('parties.hints.document_contact_copy');
         $fields[3]['display_value'] = EloquentDocumentPartyOptionMapper::label(...);
         $fields[3]['select_default'] = $role === 'customer';

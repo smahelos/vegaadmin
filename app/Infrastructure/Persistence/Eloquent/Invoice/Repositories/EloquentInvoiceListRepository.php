@@ -56,7 +56,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
             $query->where('contact_id', $search->contactId->value);
         }
 
-        $sort = in_array(
+        $sortable = in_array(
             $search->sort,
             [
                 'created_at',
@@ -68,7 +68,12 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
                 'due_date',
             ],
             true,
-        ) ? $search->sort : 'created_at';
+        );
+        if ($sortable) {
+            $sort = $search->sort;
+        } else {
+            $sort = 'created_at';
+        }
         $direction = $search->ascending ? 'asc' : 'desc';
         if ($sort === 'due_date') {
             $query->orderByRaw('DATE_ADD(issue_date, INTERVAL due_in DAY) ' . $direction);
