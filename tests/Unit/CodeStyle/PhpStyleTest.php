@@ -125,6 +125,26 @@ final class PhpStyleTest extends TestCase
             '$value = check($name = "A long argument value which makes this condition reach very far beyond the limit of the ternary rule") ? "yes" : "no";',
             'Billex.ControlStructures.ShortTernary.ComplexTernary',
         ];
+        yield 'multiline ternary with a coalesce in its alternative' => [
+            "\$value = \$allowed ? null : (\$first\n    ?? \$second);",
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'long ternary with a coalesce in its alternative' => [
+            '$value = $allowed ? "A short value" : $first ?? "A long fallback value which makes this expression reach very far beyond the limit of the rule";',
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'long ternary with a comma after closed parentheses in its alternative' => [
+            '$value = $allowed ? "A short value" : save((string) ($first), "A long argument value which makes this expression reach far beyond the limit");',
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'nested ternary behind a coalesce in the alternative' => [
+            '$value = $allowed ? "a" : $first ?? ($second ? "b" : "c");',
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
+        yield 'multiline closure with a return type in the alternative' => [
+            "\$value = \$allowed ? null : function (): int {\n    return 1;\n};",
+            'Billex.ControlStructures.ShortTernary.ComplexTernary',
+        ];
     }
 
     #[Test]
@@ -170,6 +190,11 @@ final class PhpStyleTest extends TestCase
             "\$first = 1;\n\$value = match (\$action) {\n    'view' => \$allowed ? 'a' : 'b',\n    'update' => \$allowed ? 'c' : 'd',\n};",
         ];
         yield 'short ternary statement' => ["\$first = 1;\n\$allowed ? start() : stop();"];
+        yield 'short ternary with a coalesce in its alternative' => ['$value = $allowed ? "a" : $label ?? "b";'];
+        yield 'short ternary with a short arrow in its alternative' => ['$value = $allowed ? null : fn (int $x): int => $x;'];
+        yield 'short ternary in a last match arm without a comma' => [
+            "\$value = match (\$action) {\n    'view' => \$allowed ? 'a' : 'b'\n};",
+        ];
         yield 'grouped arithmetic argument' => ['$value = save(($first + $second));'];
         yield 'typed callable declaration' => ['function normalize(string $value): string { return $value; }'];
         yield 'short arrow and simple sibling' => ['save(fn (int $x): int => $x, $items);'];

@@ -33,6 +33,19 @@ final class ShortTernarySniff implements Sniff
         T_THROW => T_THROW,
     ];
 
+    private const EXPRESSION_ENDS = [
+        T_CLOSE_CURLY_BRACKET => T_CLOSE_CURLY_BRACKET,
+        T_CLOSE_PARENTHESIS => T_CLOSE_PARENTHESIS,
+        T_CLOSE_SHORT_ARRAY => T_CLOSE_SHORT_ARRAY,
+        T_CLOSE_SQUARE_BRACKET => T_CLOSE_SQUARE_BRACKET,
+        T_CLOSE_TAG => T_CLOSE_TAG,
+        T_COLON => T_COLON,
+        T_COMMA => T_COMMA,
+        T_DOUBLE_ARROW => T_DOUBLE_ARROW,
+        T_MATCH_ARROW => T_MATCH_ARROW,
+        T_SEMICOLON => T_SEMICOLON,
+    ];
+
     /** @return list<int|string> */
     public function register(): array
     {
@@ -44,11 +57,7 @@ final class ShortTernarySniff implements Sniff
         $tokens = $phpcsFile->getTokens();
         $start = $this->expressionStart($phpcsFile, $stackPtr);
         $else = TernaryOperatorHelper::getElsePointer($phpcsFile, $stackPtr);
-        $end = TernaryOperatorHelper::getEndPointer(
-            $phpcsFile,
-            $stackPtr,
-            $else,
-        );
+        $end = $this->expressionEnd($phpcsFile, $else);
         $text = $phpcsFile->getTokensAsString($start, $end - $start + 1);
         $nested = $phpcsFile->findNext(
             T_INLINE_THEN,
@@ -93,6 +102,29 @@ final class ShortTernarySniff implements Sniff
         return $phpcsFile->findNext(
             Tokens::EMPTY_TOKENS,
             $pointer + 1,
+            null,
+            true,
+        );
+    }
+
+    /** Slevomat's end pointer stops at a coalesce, at a comma after closed parentheses and at a closure's return type, all inside the alternative, and runs past the brace closing a match. */
+    private function expressionEnd(File $phpcsFile, int $else): int
+    {
+        $tokens = $phpcsFile->getTokens();
+        $pointer = $else + 1;
+        while (isset($tokens[$pointer]) && !isset(self::EXPRESSION_ENDS[$tokens[$pointer]['code']])) {
+            $pointer = match ($tokens[$pointer]['code']) {
+                T_CLOSURE => $tokens[$pointer]['scope_closer'],
+                T_FN => $tokens[$pointer]['scope_opener'],
+                T_OPEN_PARENTHESIS => $tokens[$pointer]['parenthesis_closer'],
+                T_OPEN_CURLY_BRACKET, T_OPEN_SHORT_ARRAY, T_OPEN_SQUARE_BRACKET => $tokens[$pointer]['bracket_closer'],
+                default => $pointer,
+            } + 1;
+        }
+
+        return $phpcsFile->findPrevious(
+            Tokens::EMPTY_TOKENS,
+            $pointer - 1,
             null,
             true,
         );
