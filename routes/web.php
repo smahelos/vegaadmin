@@ -215,8 +215,9 @@ $registrar->group(
     },
 );
 
-// Payment callback routes (outside locale and auth middleware)
+// Payment callback routes (outside locale and auth middleware). GoPay calls both with GET and the payment id; the
+// handler asks the gateway for the state, so a repeated or forged call changes nothing the gateway did not confirm
 $route = Route::get('/payment/return', [PaymentController::class, 'return']);
 $route->name('payment.return');
-$route = Route::post('/payment/notify', [PaymentController::class, 'notify']);
+$route = Route::get('/payment/notify', [PaymentController::class, 'notify']);
 $route->name('payment.notify');

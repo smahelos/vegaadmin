@@ -208,6 +208,29 @@ class SubscriptionControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function subscribe_sends_the_payment_routes_outside_production_without_test_urls(): void
+    {
+        config(
+            [
+                'services.gopay.production' => false,
+                'services.gopay.test_return_url' => null,
+                'services.gopay.test_notify_url' => null,
+            ],
+        );
+
+        $initiated = $this->subscribeThroughRecordingPaymentApp();
+
+        $this->assertSame(
+            route('payment.return'),
+            $initiated['return_url'],
+        );
+        $this->assertSame(
+            route('payment.notify'),
+            $initiated['notify_url'],
+        );
+    }
+
+    #[Test]
     public function cancel_requires_authentication(): void
     {
         $subscriptionFactory = Subscription::factory();

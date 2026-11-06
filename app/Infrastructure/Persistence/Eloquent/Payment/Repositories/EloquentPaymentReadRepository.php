@@ -7,11 +7,6 @@ use App\Models\Payment;
 
 class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
 {
-    public function findById(int $id): ?Payment
-    {
-        return Payment::find($id);
-    }
-
     public function findByGatewayPaymentId(?string $gatewayPaymentId): ?Payment
     {
         if (!$gatewayPaymentId) {

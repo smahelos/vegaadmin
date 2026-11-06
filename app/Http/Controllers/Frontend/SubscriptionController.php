@@ -99,13 +99,12 @@ class SubscriptionController extends Controller
             ],
         );
 
-        // Process payment
-        if (config('services.gopay.production')) {
-            $returnUrl = route('payment.return');
-            $notifyUrl = route('payment.notify');
-        } else {
-            $returnUrl = config('services.gopay.test_return_url', 'https://httpbin.org/get');
-            $notifyUrl = config('services.gopay.test_notify_url', 'https://httpbin.org/post');
+        // Outside production the URLs may point elsewhere (a tunnel to this machine); without an override they are ours
+        $returnUrl = route('payment.return');
+        $notifyUrl = route('payment.notify');
+        if (!config('services.gopay.production')) {
+            $returnUrl = config('services.gopay.test_return_url') ?? $returnUrl;
+            $notifyUrl = config('services.gopay.test_notify_url') ?? $notifyUrl;
         }
 
         $application = app();

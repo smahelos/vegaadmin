@@ -42,8 +42,9 @@ return [
         'client_secret' => env('GOPAY_CLIENT_SECRET'),
         'production' => env('GOPAY_PRODUCTION', false),
         'gateway_url' => env('GOPAY_GATEWAY_URL', 'https://gw.sandbox.gopay.com/'),
-        'test_return_url' => env('GOPAY_TEST_RETURN_URL', 'https://postman-echo.com/get'),
-        'test_notify_url' => env('GOPAY_TEST_NOTIFY_URL', 'https://postman-echo.com/post'),
+        // Outside production only: the gateway sends the payer and the notifications here instead of our routes
+        'test_return_url' => env('GOPAY_TEST_RETURN_URL'),
+        'test_notify_url' => env('GOPAY_TEST_NOTIFY_URL'),
     ],
 
 ];
