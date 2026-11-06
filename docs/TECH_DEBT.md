@@ -4,7 +4,7 @@ Known gaps between the code and the intended architecture (see `AGENTS.md`, `doc
 
 ## Order of work
 
-Decided 2026-11-06, replacing the priority order of 2026-10-23: the steps follow their dependencies, not their importance. A step that others build on goes before them, and work that touches the same files is done in the same step. The done steps 1–7 keep their numbers, which other documents refer to; the open steps are numbered in their order from 8.
+Decided 2026-11-06, replacing the priority order of 2026-10-23: the steps follow their dependencies, not their importance. A step that others build on goes before them, and work that touches the same files is done in the same step. The done steps 1–8 keep their numbers, which other documents refer to; the open steps are numbered in their order from 9.
 
 Each open step has a section below with its items. An item without a **Status** line has not been started; an item that is partly done says what is left. A resolved item is removed, and a step is struck through once its section is empty. An item found later goes into the step that touches its code.
 
@@ -17,12 +17,12 @@ Each open step has a section below with its items. An item without a **Status** 
 5. ~~"Test runs and CI are slower than they need to be" with the `tests/Unit` part of "Tests that pin structure instead of behaviour" — every later branch runs the suite many times.~~ Done 2026-10-25 (branches `ls-test-speed`, `ls-unit-tests`): no more migrating again after tests that left their transaction, no Basset downloads; `tests/Unit` holds only behaviour tests without Laravel and runs as its own CI job without MySQL. `schema:dump` was deferred, see "Test runs and CI are slower than they need to be".
 6. ~~What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".~~ Done 2026-10-25 (branch `ls-invoice-print`): the PDFs print the stored tax point date, invoice text and payment method (`PaymentMethodCode`) in the PDF language, the tax point date is required, due dates go through `InvoiceDueDate`, PDF dates through `DateFormatterInterface`; invoice statuses are the `InvoiceStatus` enum and overdue is derived from the due date, which also made the payment reminders work again. Left over: "VAT rates by the supplier's country", "Status labels are translated in the model"; found on the way: "Dates outside the PDFs are formatted by hand"; the admin form could not save an invoice (its request required a field the form does not send), fixed on the branch.
 7. ~~Businesses and contacts: "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Build `BankAccount` and validate bank accounts through it" and the print/QR/reminder DTO names from "Data class names and properties" (`docs/adr/D-045-businesses-and-contacts.md`, `docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`).~~ Done 2026-10-31 (branch `ls-businesses-contacts`, PR #66), implemented and verified as [the verification map](prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md) records. Left to step 12: locking the issued document, its stored PDF, issue-time numbering, the variable symbol and product archiving; to step 13: the full received-document model and the Business tax profile.
+8. ~~Entity limit design: "The entity limit system needs a decided design".~~ Done 2026-11-06 (branch `ls-entity-limit-design`): `docs/adr/D-047-entity-limits.md` and `docs/prd/PRD_ENTITY_LIMITS.md` accepted, the Entity limits section of `rules/permissions.md` rewritten; step 10 converts the code.
 
 **Open**
 
-8. [Entity limit design](#step-8-entity-limit-design) — written 2026-11-06: `docs/adr/D-047-entity-limits.md` (Proposed), `docs/prd/PRD_ENTITY_LIMITS.md` (draft) and `rules/permissions.md`; struck through once the owner accepts them.
 9. [Permission naming](#step-9-permission-naming) — in progress. The security gaps found in steps 2 and 7 were closed 2026-11-06 (branch `ls-security-gaps`, PR #74: frontend invoice writes, cron tasks, GoPay callbacks, operation permissions of the admin CRUD screens, published Docker ports, a test-only route). Before step 10, which changes the same requests, and step 19, whose plans grant the permissions.
-10. [Entity limit conversion](#step-10-entity-limit-conversion) — not started; needs the accepted design of step 8 (D-047) and the permission names of step 9.
+10. [Entity limit conversion](#step-10-entity-limit-conversion) — not started; needs the design of step 8 (D-047) and the permission names of step 9.
 11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting and value object accessors, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
@@ -37,11 +37,6 @@ Each open step has a section below with its items. An item without a **Status** 
 22. [Frontend, API and routes](#step-22-frontend-api-and-routes) — not started: "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 23. [After the conversion](#step-23-after-the-conversion) — not started: Larastan up to `max`, architecture tests instead of the guards.
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
-
-## Step 8: Entity limit design
-
-### The entity limit system needs a decided design
-- **Status:** written 2026-11-06, awaiting acceptance: `docs/adr/D-047-entity-limits.md`, `docs/prd/PRD_ENTITY_LIMITS.md`, the Entity limits section of `rules/permissions.md`. The analysis of the old system is the context of D-047; its defects are fixed by step 10.
 
 ## Step 9: Permission naming
 

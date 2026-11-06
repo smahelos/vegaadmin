@@ -1,6 +1,6 @@
 # D-047: Entity Limits Are Plan Role Rows Counted From the Entities
 
-Status: Proposed 2026-11-06
+Status: Accepted 2026-11-06
 Product specification: [PRD: Entity limits](../prd/PRD_ENTITY_LIMITS.md).
 Related: [D-045](D-045-businesses-and-contacts.md) (capacity of businesses and contacts, downgrade), `.claude/rules/permissions.md` (Entity limits).
 Decided in an interview with the project owner on 2026-11-06 (TECH_DEBT step 8). The original UELS documents (`docs/UELS_*.md` in commit `a65aaffb` of the Bitbucket history) were not used as a requirement; this ADR replaces their design.

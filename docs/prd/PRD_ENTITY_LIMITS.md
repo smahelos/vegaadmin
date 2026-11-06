@@ -1,6 +1,6 @@
 # PRD: Entity Limits
 
-Date: 2026-11-06. Version: 1.0. Status: draft, awaiting the project owner's approval.
+Date: 2026-11-06. Version: 1.0. Status: approved product specification (project owner, 2026-11-06).
 Decision: [D-047](../adr/D-047-entity-limits.md). Related: [PRD: Businesses and contacts](PRD_BUSINESSES_AND_CONTACTS.md) (capacity, archiving, downgrade).
 
 The product decisions were agreed with the project owner on 2026-11-06. Numeric limit values of the plans are not part of this document; they are decided with the plans (TECH_DEBT step 19).

@@ -9,7 +9,7 @@ Billex is one Laravel application organised by bounded context (Analytics, Conte
 The contexts are tightly coupled today:
 
 - Domain and Application imports (2026-10-24): Invoice depends on User (22), Payment (7), Party (5) and Product (5); Product depends back on Invoice (`InvoiceProductDTO`, `InvoiceProductWriteData`, `InvoiceId`); User depends on Party and Analytics.
-- One transaction covers issuing an invoice: entity limit check (UELS), invoice number and variable symbol, items with products, usage counters. (Editorial note 2026-11-06: [D-047](D-047-entity-limits.md) proposes counting the entities' rows instead of usage counters; the check stays in the same transaction.)
+- One transaction covers issuing an invoice: entity limit check (UELS), invoice number and variable symbol, items with products, usage counters. (Editorial note 2026-11-06: [D-047](D-047-entity-limits.md) replaces the usage counters by counting the entities' rows; the check stays in the same transaction.)
 - Foreign keys cross contexts (`invoices.client_id`, `invoices.payment_method_id`, …), and Analytics joins invoices, clients, statuses, payment methods and expenses in one SQL query.
 - The Backpack admin and spatie/laravel-permission work on the Eloquent models of the one database.
 
