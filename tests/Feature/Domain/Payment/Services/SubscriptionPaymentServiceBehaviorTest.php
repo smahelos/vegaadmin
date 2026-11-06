@@ -363,6 +363,33 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
+    public function callback_the_gateway_does_not_confirm_changes_no_payment(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $this->fakeGateway->shouldFailReturn = true;
+
+        // A forged notification: the gateway does not know the payment and confirms nothing
+        $cb = $this->service->handlePaymentCallback(
+            'fake',
+            [
+                'payment_id' => $process['gateway_payment_id'],
+                'status' => 'completed',
+            ],
+        );
+
+        $this->assertFalse($cb['success']);
+        $payment = Payment::find($process['payment_id']);
+        $this->assertSame('pending', $payment->status);
+        $subscription->refresh();
+        $this->assertNotEquals('active', $subscription->status);
+    }
+
+    #[Test]
     public function callback_failed_updates_payment_and_does_not_activate_subscription(): void
     {
         $subscription = $this->makeSubscription();
