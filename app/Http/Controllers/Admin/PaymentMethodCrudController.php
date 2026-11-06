@@ -24,6 +24,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 final class PaymentMethodCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use PaymentMethodFormFields;
     use RestrictedDeleteOperation;
@@ -42,6 +43,16 @@ final class PaymentMethodCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('payment_methods.entity.singular'),
             __('payment_methods.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_payment_method',
+                'show' => 'can_view_payment_method',
+                'create' => 'can_create_payment_method',
+                'update' => 'can_update_payment_method',
+                'delete' => 'can_delete_payment_method',
+            ],
         );
     }
 

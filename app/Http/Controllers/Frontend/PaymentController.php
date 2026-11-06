@@ -26,12 +26,18 @@ class PaymentController extends Controller
         $application = app();
         $gateway = $request->get('gateway', 'gopay');
 
+        $paymentId = $request->query('id');
+
         Log::info('Payment return received', [
             'gateway' => $gateway,
-            'data' => $request->all(),
+            'paymentId' => $paymentId,
         ]);
 
-        $result = $this->paymentApp->handleCallback($gateway, $request->all());
+        // Only the id: the gateway is asked for everything else
+        $result = $this->paymentApp->handleCallback(
+            $gateway,
+            ['id' => $paymentId],
+        );
 
         if ($result->success) {
             $status = $result->status ?? 'unknown';
@@ -73,18 +79,24 @@ class PaymentController extends Controller
     }
 
     /**
-     * Handle payment notification/webhook from gateway
+     * GoPay calls the notification URL with GET and the payment id in `id`, and repeats the call until it receives
+     * HTTP 200, so the answer is 200 whatever the processing did.
      */
     public function notify(Request $request): JsonResponse
     {
         $gateway = $request->get('gateway', 'gopay');
+        $paymentId = $request->query('id');
 
         Log::info('Payment notification received', [
             'gateway' => $gateway,
-            'data' => $request->all(),
+            'paymentId' => $paymentId,
         ]);
 
-        $result = $this->paymentApp->handleCallback($gateway, $request->all());
+        // Only the id: the gateway is asked for everything else
+        $result = $this->paymentApp->handleCallback(
+            $gateway,
+            ['id' => $paymentId],
+        );
 
         if ($result->success) {
             $responseFactory = response();

@@ -266,8 +266,6 @@ final class ReferenceDataSeeder extends Seeder
         ],
     ];
 
-    private const CRON_COMMAND = 'invoices:check-payment-status';
-
     public function run(): void
     {
         DB::transaction(
@@ -278,7 +276,6 @@ final class ReferenceDataSeeder extends Seeder
                 $this->seedBanks();
                 $this->seedExpenseCategories();
                 $this->seedProductCategories();
-                $this->seedArtisanCommands();
                 $this->seedArchivePolicies();
                 $this->seedEntityLimits();
             },
@@ -385,43 +382,6 @@ final class ReferenceDataSeeder extends Seeder
                 ['name' => $name, 'description' => $description],
             );
         }
-    }
-
-    /**
-     * The categories and the command the predefined cron tasks run; artisan:sync-commands adds
-     * every other command as uncategorized.
-     */
-    private function seedArtisanCommands(): void
-    {
-        $this->upsert(
-            'artisan_command_categories',
-            ['slug' => 'uncategorized'],
-            [
-                'name' => __('artisan_commands.categories.uncategorized.name'),
-                'description' => __('artisan_commands.categories.uncategorized.description'),
-                'is_active' => true,
-            ],
-        );
-        $this->upsert(
-            'artisan_command_categories',
-            ['slug' => 'cron'],
-            ['name' => 'Cron available commands', 'is_active' => true],
-        );
-
-        $categoryQuery = DB::table('artisan_command_categories');
-        $categoryQuery->where('slug', 'cron');
-        $categoryId = $categoryQuery->value('id');
-
-        $this->upsert(
-            'artisan_commands',
-            ['command' => self::CRON_COMMAND],
-            [
-                'name' => self::CRON_COMMAND,
-                'description' => 'Check invoice payment status and send reminders based on due dates',
-                'category_id' => $categoryId,
-                'is_active' => true,
-            ],
-        );
     }
 
     private function seedArchivePolicies(): void

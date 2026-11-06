@@ -2,7 +2,11 @@
 
 namespace Tests\Feature\Console\Commands;
 
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Models\CronTask;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -54,7 +58,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'name' => 'Test Daily Task',
                 'frequency' => 'daily',
                 'run_at' => '12:30:00',
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -77,7 +81,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'frequency' => 'weekly',
                 'run_at' => '09:15:00',
                 'day_of_week' => 1, // Monday
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -100,7 +104,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'frequency' => 'monthly',
                 'run_at' => '08:00:00',
                 'day_of_month' => 15,
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -122,7 +126,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'name' => 'Test Custom Task',
                 'frequency' => 'custom',
                 'custom_expression' => '*/5 * * * *',
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -153,7 +157,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'name' => 'Test Task Without Time',
                 'frequency' => 'daily',
                 'run_at' => null,
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -175,7 +179,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'name' => 'Test Unknown Frequency',
                 'frequency' => 'unknown',
                 'run_at' => '10:30:00',
-                'command' => 'test:command',
+                'command' => ScheduledCommand::MONITOR_DATABASE,
             ],
         );
 
@@ -203,19 +207,24 @@ class TestCronExpressionFeatureTest extends TestCase
     #[Test]
     public function command_can_simulate_task_execution(): void
     {
+        Mail::fake();
+        Notification::fake();
+        Queue::fake();
         $cronTaskFactory = CronTask::factory();
         $task = $cronTaskFactory->create(
             [
                 'name' => 'Test Simulation',
                 'frequency' => 'daily',
                 'run_at' => '12:00:00',
-                'command' => 'list', // Use an existing artisan command
+                'command' => ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
+                'parameters' => '--days-before=5',
             ],
         );
 
         $command = $this->pendingCommand('cron:test', ['id' => $task->id]);
         $command->expectsConfirmation('Do yu want to simulate task run? [y/N]', 'yes');
-        $command->expectsOutput("Task run: {$task->command}");
+        $command->expectsOutput('Task run: invoices:check-payment-status --days-before=5');
+        $command->expectsOutputToContain('Notifications sent');
         $command->assertExitCode(0);
         $command->run();
     }
@@ -229,7 +238,7 @@ class TestCronExpressionFeatureTest extends TestCase
                 'name' => 'Test No Simulation',
                 'frequency' => 'daily',
                 'run_at' => '12:00:00',
-                'command' => 'list',
+                'command' => ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
             ],
         );
 

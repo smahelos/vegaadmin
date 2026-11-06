@@ -323,7 +323,7 @@ final class ExpenseCrudControllerTest extends TestCase
             Role::findByName('frontend_user', 'web'),
         );
         $this->regularUser->givePermissionTo(
-            Permission::findByName('frontend.can_create_edit_invoice', 'web'),
+            Permission::findByName('frontend.can_create_invoice', 'web'),
         );
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
@@ -332,7 +332,7 @@ final class ExpenseCrudControllerTest extends TestCase
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
                 'limit_value' => 1,
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'is_active' => true,
             ],
         );

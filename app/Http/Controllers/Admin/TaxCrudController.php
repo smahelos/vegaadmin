@@ -18,6 +18,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 final class TaxCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
@@ -36,6 +37,16 @@ final class TaxCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('taxes.entity.singular'),
             __('taxes.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_tax',
+                'show' => 'can_view_tax',
+                'create' => 'can_create_tax',
+                'update' => 'can_update_tax',
+                'delete' => 'can_delete_tax',
+            ],
         );
     }
 

@@ -22,7 +22,11 @@ class ProductRequest extends BaseEntityRequest
      */
     protected function getRequiredPermission(): string
     {
-        return 'can_create_edit_product';
+        if ($this->isCreatingEntity()) {
+            return 'can_create_product';
+        }
+
+        return 'can_update_product';
     }
 
     /**

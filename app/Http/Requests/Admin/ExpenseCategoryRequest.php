@@ -12,10 +12,12 @@ class ExpenseCategoryRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow updates if the user has permission to manage expenses
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_expense') === true;
+        }
 
-        return $user?->can('can_create_edit_expense') === true;
+        return $user?->can('can_update_expense') === true;
     }
 
     /**

@@ -4,8 +4,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\ArchivePolicy;
-use App\Models\ArtisanCommand;
-use App\Models\ArtisanCommandCategory;
 use App\Models\Bank;
 use App\Models\BankAccount;
 use App\Models\Business;
@@ -62,8 +60,6 @@ class AdminCrudSmokeTest extends TestCase
     {
         return [
             'archive-policy' => ['archive-policy', ArchivePolicy::class],
-            'artisan-command-category' => ['artisan-command-category', ArtisanCommandCategory::class],
-            'artisan-command' => ['artisan-command', ArtisanCommand::class],
             'bank' => ['bank', Bank::class],
             'bank-account' => ['bank-account', BankAccount::class],
             'business' => ['business', Business::class],

@@ -13,10 +13,12 @@ class StatusRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow updates if the user has permission to manage statuses
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_status') === true;
+        }
 
-        return $user?->can('can_create_edit_status') === true;
+        return $user?->can('can_update_status') === true;
     }
 
     /**

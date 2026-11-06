@@ -327,6 +327,69 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
+    public function callback_changes_only_the_payment_the_gateway_confirmed(): void
+    {
+        $paidSubscription = $this->makeSubscription();
+        $paidProcess = $this->service->processSubscriptionPayment(
+            $paidSubscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $otherSubscription = $this->makeSubscription();
+        $otherProcess = $this->service->processSubscriptionPayment(
+            $otherSubscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+
+        // The caller adds the id of another payment to a callback of a paid one
+        $cb = $this->service->handlePaymentCallback(
+            'fake',
+            [
+                'payment_id' => $paidProcess['gateway_payment_id'],
+                'order_id' => $otherProcess['payment_id'],
+                'status' => 'completed',
+            ],
+        );
+
+        $this->assertTrue($cb['success']);
+        $this->assertSame($paidProcess['payment_id'], $cb['payment_id']);
+        $otherPayment = Payment::find($otherProcess['payment_id']);
+        $this->assertSame('pending', $otherPayment->status);
+        $otherSubscription->refresh();
+        $this->assertNotEquals('active', $otherSubscription->status);
+        $paidSubscription->refresh();
+        $this->assertEquals('active', $paidSubscription->status);
+    }
+
+    #[Test]
+    public function callback_the_gateway_does_not_confirm_changes_no_payment(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $this->fakeGateway->shouldFailReturn = true;
+
+        // A forged notification: the gateway does not know the payment and confirms nothing
+        $cb = $this->service->handlePaymentCallback(
+            'fake',
+            [
+                'payment_id' => $process['gateway_payment_id'],
+                'status' => 'completed',
+            ],
+        );
+
+        $this->assertFalse($cb['success']);
+        $payment = Payment::find($process['payment_id']);
+        $this->assertSame('pending', $payment->status);
+        $subscription->refresh();
+        $this->assertNotEquals('active', $subscription->status);
+    }
+
+    #[Test]
     public function callback_failed_updates_payment_and_does_not_activate_subscription(): void
     {
         $subscription = $this->makeSubscription();

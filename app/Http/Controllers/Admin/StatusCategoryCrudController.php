@@ -24,6 +24,7 @@ final class StatusCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -42,16 +43,15 @@ final class StatusCategoryCrudController extends CrudController
             __('statuses.categories.entity.plural'),
         );
 
-        // Only allow access if user has permission to manage statuses
-        $user = backpack_user();
-        if (!$user->hasPermissionTo('can_create_edit_status', 'backpack')) {
-            CRUD::denyAccess([
-                'list',
-                'create',
-                'update',
-                'delete',
-            ]);
-        }
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_status',
+                'show' => 'can_view_status',
+                'create' => 'can_create_status',
+                'update' => 'can_update_status',
+                'delete' => 'can_delete_status',
+            ],
+        );
     }
 
     /**

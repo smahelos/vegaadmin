@@ -17,6 +17,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 final class ProductCategoryCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
@@ -34,6 +35,16 @@ final class ProductCategoryCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('products.categories.entity.singular'),
             __('products.categories.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_product',
+                'show' => 'can_view_product',
+                'create' => 'can_create_product',
+                'update' => 'can_update_product',
+                'delete' => 'can_delete_product',
+            ],
         );
     }
 

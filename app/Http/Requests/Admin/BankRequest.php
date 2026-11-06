@@ -6,7 +6,7 @@ namespace App\Http\Requests\Admin;
  * Admin Bank Request
  *
  * Extends BaseEntityRequest to enforce permissions and entity limits
- * Permission: can_create_edit_bank
+ * Permissions: can_create_bank, can_update_bank
  * Entity type (limits): bank
  */
 class BankRequest extends BaseEntityRequest
@@ -16,7 +16,11 @@ class BankRequest extends BaseEntityRequest
      */
     protected function getRequiredPermission(): string
     {
-        return 'can_create_edit_bank';
+        if ($this->isCreatingEntity()) {
+            return 'can_create_bank';
+        }
+
+        return 'can_update_bank';
     }
 
     /**

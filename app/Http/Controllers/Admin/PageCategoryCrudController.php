@@ -22,6 +22,7 @@ class PageCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -38,6 +39,16 @@ class PageCategoryCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('pages.categories.entity.singular'),
             __('pages.categories.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_page',
+                'show' => 'can_view_page',
+                'create' => 'can_create_page',
+                'update' => 'can_update_page',
+                'delete' => 'can_delete_page',
+            ],
         );
     }
 

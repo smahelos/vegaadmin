@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Http\Requests\Admin\CronTaskRequest;
 use App\Http\Requests\Admin\RunCronTaskRequest;
 use App\Models\CronTask;
@@ -22,6 +22,7 @@ class CronTaskCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -36,6 +37,16 @@ class CronTaskCrudController extends CrudController
             __('cron_tasks.entity.singular'),
             __('cron_tasks.entity.plural'),
         );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_cron_task',
+                'show' => 'can_view_cron_task',
+                'create' => 'can_create_cron_task',
+                'update' => 'can_update_cron_task',
+                'delete' => 'can_delete_cron_task',
+            ],
+        );
     }
 
     protected function setupListOperation(): void
@@ -47,6 +58,11 @@ class CronTaskCrudController extends CrudController
         $column = CRUD::column('command');
         $column->label(
             __('cron_tasks.fields.command'),
+        );
+        $column->type('enum');
+        $column = CRUD::column('parameters');
+        $column->label(
+            __('cron_tasks.fields.parameters'),
         );
         $column = CRUD::column('frequency');
         $column->label(
@@ -97,17 +113,6 @@ class CronTaskCrudController extends CrudController
         );
     }
 
-    protected ArtisanCommandsServiceInterface $commandsService;
-
-    /**
-     * Inject dependencies instead of instantiating directly to respect DDD & DI rules.
-     */
-    public function __construct(ArtisanCommandsServiceInterface $commandsService)
-    {
-        parent::__construct();
-        $this->commandsService = $commandsService;
-    }
-
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(CronTaskRequest::class);
@@ -121,15 +126,16 @@ class CronTaskCrudController extends CrudController
             __('cron_tasks.tabs.basic'),
         );
 
-        // Prepare commands for select form (cron command category) via injected service
-        $commands = $this->commandsService->getCommandsByCategory('cron');
-
-        // Base command
-        $field = CRUD::field('base_command');
+        // The command name is a fixed identifier, so it is shown as it is
+        $commands = [];
+        foreach (ScheduledCommand::cases() as $command) {
+            $commands[$command->value] = $command->value;
+        }
+        $field = CRUD::field('command');
         $field->label(
-            __('cron_tasks.fields.base_command'),
+            __('cron_tasks.fields.command'),
         );
-        $field->type('select_from_array');
+        $field->type('enum');
         $field->options($commands);
         $field->allows_null(false);
         $field->wrapper([
@@ -139,25 +145,17 @@ class CronTaskCrudController extends CrudController
             __('cron_tasks.tabs.basic'),
         );
 
-        // Command parameters
-        $field = CRUD::field('command_params');
+        $field = CRUD::field('parameters');
         $field->label(
-            __('cron_tasks.fields.command_params'),
+            __('cron_tasks.fields.parameters'),
         );
         $field->type('text');
         $field->hint(
-            __('cron_tasks.hints.command_params'),
+            __('cron_tasks.hints.parameters'),
         );
         $field->wrapper([
             'class' => 'form-group col-md-6',
         ]);
-        $field->tab(
-            __('cron_tasks.tabs.basic'),
-        );
-
-        // Hidden field for complete command
-        $field = CRUD::field('command');
-        $field->type('hidden');
         $field->tab(
             __('cron_tasks.tabs.basic'),
         );
@@ -285,16 +283,6 @@ class CronTaskCrudController extends CrudController
         $field->tab(
             __('cron_tasks.tabs.history'),
         );
-
-        // Add a field for the command script
-        $this->crud->addField(
-            [
-                'name' => 'command_script',
-                'type' => 'view',
-                'view' => 'admin.cron_task.script',
-                'tab' => __('cron_tasks.tabs.basic'),
-            ],
-        );
     }
 
     protected function setupUpdateOperation(): void
@@ -342,7 +330,6 @@ class CronTaskCrudController extends CrudController
         $column->label(
             __('cron_tasks.fields.last_output'),
         );
-        $column->escaped(false);
     }
 
     public function run(RunCronTaskRequest $request, int $id): RedirectResponse
@@ -350,8 +337,8 @@ class CronTaskCrudController extends CrudController
         $task = CronTask::findOrFail($id);
 
         try {
-            // The task stores an exception in last_output and reports it as false; only an Error escapes
-            $succeeded = $task->simulateRun() !== false;
+            // The task stores a failure in last_output and reports it as false; only an Error escapes
+            $succeeded = $task->simulateRun();
         } catch (Throwable $e) {
             Log::error('Cron task run failed', [
                 'cronTaskId' => $id,

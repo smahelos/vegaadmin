@@ -42,7 +42,7 @@ class UniversalLimitServiceFeatureTest extends TestCase
         // Create permission for testing
         $permission = Permission::firstOrCreate(
             [
-                'name' => 'frontend.can_create_edit_invoice',
+                'name' => 'frontend.can_create_invoice',
                 'guard_name' => 'web',
             ],
         );
@@ -54,7 +54,7 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $this->monthlyInvoiceLimit = $entityLimitFactory->create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'monthly',
@@ -161,7 +161,7 @@ class UniversalLimitServiceFeatureTest extends TestCase
         // Create a value-based limit
         EntityLimit::create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'metric_type' => 'value',
                 'period_type' => 'monthly',
@@ -319,7 +319,7 @@ class UniversalLimitServiceFeatureTest extends TestCase
         // Create daily limit
         EntityLimit::create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'metric_type' => 'count',
                 'period_type' => 'daily',

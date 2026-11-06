@@ -11,10 +11,12 @@ use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Invoice\InvoiceBatchActionsRequest;
+use App\Http\Requests\Invoice\MarkInvoicePaidRequest;
+use App\Http\Requests\Invoice\SetInvoiceTemplateRequest;
 use App\Http\Requests\InvoiceRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -23,7 +25,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -344,11 +345,16 @@ class InvoiceController extends Controller
      *
      * @param  int  $id  Invoice ID
      */
-    public function markAsPaid(string $locale, int $id): RedirectResponse
-    {
-        $user = Auth::user();
-        $result = $user ? $this->invoiceFrontendActions->markAsPaid($user->id, $id) : null;
-        $ok = $result?->status === InvoiceActionStatus::SUCCESS;
+    public function markAsPaid(
+        MarkInvoicePaidRequest $request,
+        string $locale,
+        int $id,
+    ): RedirectResponse {
+        $result = $this->invoiceFrontendActions->markAsPaid(
+            (int) Auth::id(),
+            $id,
+        );
+        $ok = $result->status === InvoiceActionStatus::SUCCESS;
 
         $redirect = back();
 
@@ -366,26 +372,17 @@ class InvoiceController extends Controller
      * @param  int  $id  Invoice ID
      */
     public function setTemplate(
+        SetInvoiceTemplateRequest $request,
         string $locale,
         int $id,
-        Request $request,
-        string $template = 'default',
     ): RedirectResponse {
-        $requestTemplate = $request->get('template', $template);
-        if ($requestTemplate !== $template) {
-            $template = $requestTemplate;
-        }
-        $user = Auth::user();
-        if ($user) {
-            $result = $this->invoiceFrontendActions->setTemplate(
-                $user->id,
-                $id,
-                $template,
-            );
-        } else {
-            $result = null;
-        }
-        $ok = $result?->status === InvoiceActionStatus::SUCCESS;
+        $template = $request->template();
+        $result = $this->invoiceFrontendActions->setTemplate(
+            (int) Auth::id(),
+            $id,
+            $template->value,
+        );
+        $ok = $result->status === InvoiceActionStatus::SUCCESS;
 
         $redirector = redirect();
         $redirect = $redirector->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id]);
@@ -425,52 +422,18 @@ class InvoiceController extends Controller
      *  });
      */
     public function batchActions(
+        InvoiceBatchActionsRequest $request,
         string $locale,
         int $id,
-        Request $request,
     ): RedirectResponse {
-        $user = Auth::user();
-        if (!$user) {
-            $redirect = back();
-
-            return $redirect->with(
-                'error',
-                __('users.auth.unauthenticated'),
-            );
-        }
-        // Whitelist and basic validation
-        $payload = $request->only([
-            'template',
-            'status',
-            'mark_paid',
-        ]);
-        $rules = [
-            'template' => [
-                'sometimes',
-                'string',
-                'in:default,modern,minimal',
-            ],
-            'status' => [
-                'sometimes',
-                Rule::enum(InvoiceStatus::class),
-            ],
-            'mark_paid' => ['sometimes', 'boolean'],
-        ];
-        $validator = validator($payload, $rules);
-        if ($validator->fails()) {
-            $redirect = back();
-            $redirect->withErrors($validator);
-
-            return $redirect->withInput();
-        }
-        $validated = $validator->validated();
+        $validated = $request->validated();
         // Normalize boolean
         if (array_key_exists('mark_paid', $validated)) {
             $validated['mark_paid'] = filter_var($validated['mark_paid'], FILTER_VALIDATE_BOOLEAN);
         }
         $command = OrchestratedInvoiceActions::fromArray($validated, includeInvoice: true);
         $result = $this->invoiceFrontendActions->orchestrate(
-            $user->id,
+            (int) Auth::id(),
             $id,
             $command,
         );

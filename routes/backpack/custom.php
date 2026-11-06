@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ArchivePolicyCrudController;
-use App\Http\Controllers\Admin\ArtisanCommandCategoryCrudController;
-use App\Http\Controllers\Admin\ArtisanCommandCrudController;
 use App\Http\Controllers\Admin\BankAccountCrudController;
 use App\Http\Controllers\Admin\BankCrudController;
 use App\Http\Controllers\Admin\BusinessCrudController;
@@ -97,8 +95,6 @@ Route::group(
         $route = Route::post('cron-task/{id}/run', [CronTaskCrudController::class, 'run']);
         $route->whereNumber('id');
         $route->name('admin.cron-tasks.run');
-        Route::crud('artisan-command-category', ArtisanCommandCategoryCrudController::class);
-        Route::crud('artisan-command', ArtisanCommandCrudController::class);
         Route::crud('tax', TaxCrudController::class);
         Route::crud('bank', BankCrudController::class);
         Route::crud('product', ProductCrudController::class);

@@ -9,8 +9,6 @@ use App\Domain\Payment\DTO\PaymentDTO;
  */
 interface PaymentDtoReadRepositoryInterface
 {
-    public function findById(int $id): ?PaymentDTO;
-
     public function findByGatewayPaymentId(?string $gatewayPaymentId): ?PaymentDTO;
 
     /** @return array<int,PaymentDTO> */

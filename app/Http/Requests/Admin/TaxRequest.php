@@ -17,7 +17,11 @@ class TaxRequest extends BaseEntityRequest
      */
     protected function getRequiredPermission(): string
     {
-        return 'can_create_edit_tax';
+        if ($this->isCreatingEntity()) {
+            return 'can_create_tax';
+        }
+
+        return 'can_update_tax';
     }
 
     /**

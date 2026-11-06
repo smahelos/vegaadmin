@@ -2,12 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Http\Controllers\Frontend\PaymentController;
 use App\Models\Payment;
 use App\Models\Subscription;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -76,15 +72,17 @@ class PaymentControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function payment_notify_accepts_post_requests(): void
+    public function payment_notify_accepts_get_requests(): void
     {
-        $response = $this->postJson(
-            route('payment.notify'),
-            [
-                'gateway' => 'gopay',
-                'id' => 'GP123456789',
-                'state' => 'PAID',
-            ],
+        $response = $this->getJson(
+            route(
+                'payment.notify',
+                [
+                    'gateway' => 'gopay',
+                    'id' => 'GP123456789',
+                    'state' => 'PAID',
+                ],
+            ),
         );
 
         // NOTE: Since we don't have valid GoPay credentials,
@@ -97,12 +95,14 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_returns_json_response(): void
     {
-        $response = $this->postJson(
-            route('payment.notify'),
-            [
-                'gateway' => 'gopay',
-                'payment_id' => 'GP123456789',
-            ],
+        $response = $this->getJson(
+            route(
+                'payment.notify',
+                [
+                    'gateway' => 'gopay',
+                    'payment_id' => 'GP123456789',
+                ],
+            ),
         );
 
         $response->assertHeader('content-type', 'application/json');
@@ -144,12 +144,14 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_handles_invalid_gateway(): void
     {
-        $response = $this->postJson(
-            route('payment.notify'),
-            [
-                'gateway' => 'invalid_gateway',
-                'payment_id' => 'GP123456789',
-            ],
+        $response = $this->getJson(
+            route(
+                'payment.notify',
+                [
+                    'gateway' => 'invalid_gateway',
+                    'payment_id' => 'GP123456789',
+                ],
+            ),
         );
 
         $response->assertStatus(200);
@@ -157,49 +159,30 @@ class PaymentControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function controller_has_correct_dependencies(): void
-    {
-        $reflection = new \ReflectionClass(PaymentController::class);
-        $constructor = $reflection->getConstructor();
-        $this->assertNotNull($constructor);
-        $parameters = $constructor->getParameters();
-        $this->assertCount(1, $parameters);
-        $parameter = $parameters[0];
-        $this->assertEquals('paymentApp', $parameter->getName());
-        $type = $parameter->getType();
-        $this->assertNotNull($type);
-        // Compare using string cast for compatibility
-        $this->assertEquals(PaymentApplicationServiceInterface::class, (string) $type);
-    }
-
-    #[Test]
-    public function controller_methods_have_correct_return_types(): void
-    {
-        $reflection = new \ReflectionClass(PaymentController::class);
-
-        $method = $reflection->getMethod('return');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals(RedirectResponse::class, (string) $returnType);
-
-        $method = $reflection->getMethod('notify');
-        $returnType = $method->getReturnType();
-        $this->assertNotNull($returnType);
-        $this->assertEquals(JsonResponse::class, (string) $returnType);
-    }
-
-    #[Test]
     public function payment_notify_defaults_to_gopay_gateway(): void
     {
-        $response = $this->postJson(
-            route('payment.notify'),
-            [
-                'id' => 'GP123456789',
-                'state' => 'PAID',
-            ],
+        $response = $this->getJson(
+            route(
+                'payment.notify',
+                [
+                    'id' => 'GP123456789',
+                    'state' => 'PAID',
+                ],
+            ),
         );
 
         $response->assertStatus(200);
         $response->assertJsonStructure(['status']);
+    }
+
+    #[Test]
+    public function payment_notify_is_not_a_post_route(): void
+    {
+        $response = $this->post(
+            route('payment.notify'),
+            ['id' => 'GP123456789'],
+        );
+
+        $response->assertMethodNotAllowed();
     }
 }

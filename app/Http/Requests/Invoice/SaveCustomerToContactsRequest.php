@@ -15,7 +15,7 @@ final class SaveCustomerToContactsRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('frontend.can_create_contact') && $user->can('frontend.can_create_edit_invoice');
+        return $user !== null && $user->can('frontend.can_create_contact') && $user->can('frontend.can_update_invoice');
     }
 
     /**

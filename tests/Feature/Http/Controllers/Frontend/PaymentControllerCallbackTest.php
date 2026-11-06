@@ -137,8 +137,13 @@ class PaymentControllerCallbackTest extends TestCase
                     return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
                 }
 
+                /** @var list<array<string, mixed>> */
+                public array $payloads = [];
+
                 public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
                 {
+                    $this->payloads[] = $payload;
+
                     return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
                 }
 
@@ -154,9 +159,18 @@ class PaymentControllerCallbackTest extends TestCase
             },
         );
 
-        $response = $this->postJson('/payment/notify', ['gateway' => 'gopay']);
+        $response = $this->getJson(
+            '/payment/notify?gateway=gopay&id=3000006529&order_id=12&state=PAID',
+        );
         $assertionResponse = $response->assertOk();
         $assertionResponse->assertJson(['status' => 'ok']);
+
+        // Only the payment id reaches the application; its state comes from the gateway
+        $paymentApp = $this->app->make(PaymentApplicationServiceInterface::class);
+        $this->assertSame(
+            [['id' => '3000006529']],
+            $paymentApp->payloads,
+        );
     }
 
     #[Test]
@@ -191,7 +205,8 @@ class PaymentControllerCallbackTest extends TestCase
             },
         );
 
-        $response = $this->postJson('/payment/notify', ['gateway' => 'gopay']);
+        // GoPay repeats a notification that does not get HTTP 200, so a failure is answered with 200 too
+        $response = $this->getJson('/payment/notify?gateway=gopay&id=3000006529');
         $assertionResponse = $response->assertOk();
         $assertionResponse->assertJson(['status' => 'error']);
     }

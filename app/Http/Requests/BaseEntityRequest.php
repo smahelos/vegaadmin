@@ -62,7 +62,7 @@ abstract class BaseEntityRequest extends FormRequest
 
     /**
      * Get required permission for this entity - must be implemented by child classes
-     * Should return frontend permission names like 'frontend.can_create_edit_invoice'
+     * Should return frontend permission names like 'frontend.can_create_invoice'
      */
     abstract protected function getRequiredPermission(): string;
 

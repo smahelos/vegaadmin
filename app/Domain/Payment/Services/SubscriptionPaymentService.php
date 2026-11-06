@@ -207,16 +207,14 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 return $result;
             }
 
-            // Find payment by gateway payment ID or order ID
-            $paymentId = $result['order_id'] ?? $callbackData['order_id'] ?? null;
-            $gatewayPaymentId = $result['payment_id'] ?? $callbackData['payment_id'] ?? null;
+            // Only the payment the gateway confirmed: an id from the callback request would let a caller apply the
+            // state of one payment to another
+            $gatewayPaymentId = $result['payment_id'] ?? null;
 
             $payment = null;
 
-            if ($paymentId) {
-                $payment = $this->paymentsRead->findById((int) $paymentId);
-            } elseif ($gatewayPaymentId) {
-                $payment = $this->paymentsRead->findByGatewayPaymentId($gatewayPaymentId);
+            if ($gatewayPaymentId) {
+                $payment = $this->paymentsRead->findByGatewayPaymentId((string) $gatewayPaymentId);
             }
 
             if (!$payment) {
@@ -225,7 +223,6 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                     'Payment not found for callback',
                     [
                         'gateway' => $gateway,
-                        'payment_id' => $paymentId,
                         'gateway_payment_id' => $gatewayPaymentId,
                         'callback_data' => $callbackData,
                     ],

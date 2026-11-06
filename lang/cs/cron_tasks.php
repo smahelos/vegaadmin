@@ -8,8 +8,7 @@ return [
     'fields' => [
         'name' => 'Název',
         'command' => 'Příkaz',
-        'base_command' => 'Základní příkaz',
-        'command_params' => 'Parametry příkazu',
+        'parameters' => 'Parametry příkazu',
         'frequency' => 'Frekvence',
         'custom_expression' => 'Vlastní cron výraz',
         'run_at' => 'Čas spuštění',
@@ -22,7 +21,7 @@ return [
         'next_run' => 'Příští spuštění',
     ],
     'hints' => [
-        'command_params' => 'Zadejte parametry pro příkaz, např. "--days=7 --force", nebo "--days-before=0 --days-after=14"',
+        'parameters' => 'Volby příkazu oddělené mezerou, např. "--days-before=5 --days-after=2" nebo "--analyze". Hodnota smí obsahovat jen písmena, číslice a znaky _ . , : -',
         'custom_expression' => 'Pokud zvolíte vlastní výraz, zadejte platný cron výraz. Příklady: "*/5 * * * *" (každých 5 minut), "0 0 * * *" (každý den o půlnoci), "0 12 * * 1-5" (každý pracovní den v poledne).',
     ],
     'tabs' => [
@@ -51,22 +50,17 @@ return [
     'messages' => [
         'task_executed' => 'Úloha byla úspěšně spuštěna',
         'execution_failed' => 'Spuštění úlohy selhalo',
+        'run_output' => "Výsledek: :output\nDoba trvání: :seconds s",
+        'run_error' => 'Chyba: :error',
     ],
     'validation' => [
         'cron_expression' => 'Neplatný CRON výraz. Použijte formát: minuta hodina den měsíc den_v_týdnu.',
+        'parameters' => 'Parametry příkazu musí být volby ve tvaru --nazev nebo --nazev=hodnota oddělené mezerou; hodnota smí obsahovat jen písmena, číslice a znaky _ . , : -',
     ],
     'predefined' => [
-        'upcoming_invoices' => [
-            'name' => 'Upomínky před splatností faktury',
-            'description' => 'Odesílá upomínky na faktury, které budou brzy splatné (3 dny před splatností)',
-        ],
-        'overdue_invoices' => [
-            'name' => 'Upomínky faktur po splatnosti',
-            'description' => 'Odesílá upomínky na faktury, které jsou po splatnosti (až 7 dní)',
-        ],
-        'long_overdue_invoices' => [
-            'name' => 'Upomínky faktury dlouho po splatnosti',
-            'description' => 'Odesílá upomínky na faktury, které jsou výrazně po splatnosti (14 a více dní)',
+        'payment_reminders' => [
+            'name' => 'Upomínky faktur',
+            'description' => 'Odesílá upomínky na faktury 3 dny před splatností, v den splatnosti a den po splatnosti',
         ],
     ],
 ];

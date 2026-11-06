@@ -24,7 +24,7 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // Give frontend permissions to user (instead of backpack permissions)
         $permissions = [
-            'frontend.can_create_edit_invoice',
+            'frontend.can_create_invoice',
             'frontend.can_create_contact',
             'frontend.can_create_business',
         ];

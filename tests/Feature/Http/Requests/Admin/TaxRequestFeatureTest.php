@@ -39,7 +39,7 @@ class TaxRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_tax',
+                'permission_name' => 'can_create_tax',
                 'entity_type' => 'tax',
                 'limit_value' => 100,
                 'period_type' => 'monthly',

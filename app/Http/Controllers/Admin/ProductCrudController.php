@@ -25,6 +25,7 @@ final class ProductCrudController extends CrudController
     use CreateOperation {
         store as traitStore;
     }
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
@@ -55,6 +56,16 @@ final class ProductCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('products.entity.singular'),
             __('products.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_product',
+                'show' => 'can_view_product',
+                'create' => 'can_create_product',
+                'update' => 'can_update_product',
+                'delete' => 'can_delete_product',
+            ],
         );
     }
 

@@ -2,24 +2,55 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
+use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CronTaskRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // Only authenticated backpack users with cron task permission
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_cron_task') === true;
+        }
 
-        return $user?->can('can_create_edit_cron_task') === true;
+        return $user?->can('can_update_cron_task') === true;
     }
 
     public function rules(): array
     {
         $rules = [
             'name' => 'required|string|min:2|max:255',
-            'base_command' => 'required|string|min:2|max:100', // Base command validation
-            'command_params' => 'nullable|string|max:255', // Parameters validation
+            'command' => [
+                'required',
+                Rule::enum(ScheduledCommand::class),
+            ],
+            'parameters' => [
+                'nullable',
+                'string',
+                'max:255',
+                function (
+                    string $attribute,
+                    mixed $value,
+                    Closure $fail,
+                ): void {
+                    if (!is_string($value)) {
+                        return;
+                    }
+
+                    try {
+                        CommandOptions::fromString($value);
+                    } catch (InvalidCommandOptionsException) {
+                        $fail(
+                            __('cron_tasks.validation.parameters'),
+                        );
+                    }
+                },
+            ],
             'frequency' => 'required|in:daily,weekly,monthly,custom',
             'run_at' => 'nullable|date_format:H:i',
             'day_of_week' => 'nullable|integer|between:0,6',
@@ -57,8 +88,8 @@ class CronTaskRequest extends FormRequest
     {
         return [
             'name' => __('cron_tasks.fields.name'),
-            'base_command' => __('cron_tasks.fields.base_command'),
-            'command_params' => __('cron_tasks.fields.command_params'),
+            'command' => __('cron_tasks.fields.command'),
+            'parameters' => __('cron_tasks.fields.parameters'),
             'frequency' => __('cron_tasks.fields.frequency'),
             'custom_expression' => __('cron_tasks.fields.custom_expression'),
             'run_at' => __('cron_tasks.fields.run_at'),

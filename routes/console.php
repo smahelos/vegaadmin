@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
+use App\Domain\Shared\Console\ValueObjects\CommandOptions;
 use App\Models\CronTask;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -9,21 +11,31 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
 
-// The invoice payment check runs whatever the database holds
-$event = Schedule::command('invoices:check-payment-status');
-$event->dailyAt('09:00');
-$event->appendOutputTo(
-    storage_path('logs/invoice-reminders.log'),
-);
-
-// Tasks managed in the Backpack admin come from the database
+// Every scheduled command, the invoice reminders included, is a cron task managed in the Backpack admin
 try {
     if (Schema::hasTable('cron_tasks')) {
         $query = CronTask::where('is_active', true);
         $cronTasks = $query->get();
 
         foreach ($cronTasks as $task) {
-            $event = Schedule::command($task->command);
+            // A command outside ScheduledCommand (ValueError of the cast) or invalid options skip only this task
+            try {
+                $command = $task->command;
+                $options = CommandOptions::fromString($task->parameters ?? '');
+            } catch (InvalidCommandOptionsException|ValueError $e) {
+                Log::error(
+                    'Cron task cannot be scheduled',
+                    ['cronTaskId' => $task->id, 'exception' => $e],
+                );
+
+                continue;
+            }
+
+            // The options are validated, so passing them unescaped to the shell is safe
+            $event = Schedule::command(
+                $command->value,
+                $options->options,
+            );
 
             if ($task->frequency === 'custom' && $task->custom_expression) {
                 $event->cron($task->custom_expression);
