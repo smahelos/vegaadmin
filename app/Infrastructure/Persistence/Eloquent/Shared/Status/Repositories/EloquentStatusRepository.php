@@ -12,12 +12,4 @@ class EloquentStatusRepository
 
         return $query->value('id');
     }
-
-    public function getAllForDropdown(): array
-    {
-        $query = Status::orderBy('name');
-        $statuses = $query->pluck('name', 'id');
-
-        return $statuses->toArray();
-    }
 }

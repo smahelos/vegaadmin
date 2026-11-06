@@ -8,7 +8,7 @@ use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
-use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -16,12 +16,11 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
+use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Http\Requests\Party\DocumentPartyInput;
-use App\Http\Requests\Rules\InvoiceStatusId;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -77,18 +76,7 @@ final class InvoiceRequest extends FormRequest
                 $contactExists,
             ],
             'bank_account_id' => $bankAccountRules,
-            'invoice_vs' => 'required|string|max:50',
-            'invoice_ks' => 'nullable|string|max:20',
-            'invoice_ss' => 'nullable|string|max:20',
-            'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
-            'payment_method_id' => 'required|exists:payment_methods,id',
-            'payment_amount' => 'required|numeric|decimal:0,2|min:0|max:99999999.99',
-            'payment_status_id' => ['required', InvoiceStatusId::rule()],
-            'payment_currency' => ['required', Rule::enum(Currency::class)],
-            'issue_date' => 'required|date',
-            'tax_point_date' => 'required|date',
-            'invoice_text' => 'nullable|string',
-            'template' => 'nullable|string|in:default,modern,minimal',
+            ...InvoiceWriteDataInput::rules(),
         ];
 
         $customerRules = AdminDocumentPartyInput::rules(
@@ -102,7 +90,7 @@ final class InvoiceRequest extends FormRequest
             ...InvoiceItemInput::rules(
                 $this->integer('user_id'),
                 false,
-                false,
+                true,
             ),
             ...$customerRules,
         ];
@@ -119,13 +107,24 @@ final class InvoiceRequest extends FormRequest
         }
     }
 
-    /** @return list<InvoiceProductWriteData>|null */
-    public function products(): ?array
+    /** The user the invoice belongs to; an admin may create it for anyone. */
+    public function owner(): UserId
     {
-        if (!$this->has('invoice-products')) {
-            return null;
-        }
+        return UserId::fromInt(
+            (int) $this->validated('user_id'),
+        );
+    }
 
+    public function toWriteData(): InvoiceWriteData
+    {
+        return InvoiceWriteDataInput::writeData(
+            $this->validated(),
+        );
+    }
+
+    /** @return list<InvoiceProductWriteData> */
+    public function products(): array
+    {
         $assembler = app(InvoiceProductWriteDataAssembler::class);
 
         return $assembler->fromValidated(
@@ -151,29 +150,21 @@ final class InvoiceRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        $attributes = [...DocumentPartyInput::attributes('customer'), ...InvoiceItemInput::attributes()];
+        $attributes = [
+            ...DocumentPartyInput::attributes('customer'),
+            ...InvoiceItemInput::attributes(),
+            ...InvoiceWriteDataInput::attributes(),
+        ];
         foreach (
             [
                 'user_id',
                 'business_id',
                 'contact_id',
                 'bank_account_id',
-                'invoice_vs',
-                'invoice_ks',
-                'invoice_ss',
-                'due_in',
-                'payment_amount',
-                'payment_currency',
-                'payment_method_id',
-                'issue_date',
-                'tax_point_date',
-                'invoice_text',
-                'template',
             ] as $field
         ) {
             $attributes[$field] = __('invoices.fields.' . $field);
         }
-        $attributes['payment_status_id'] = __('invoices.fields.status');
 
         return $attributes;
     }

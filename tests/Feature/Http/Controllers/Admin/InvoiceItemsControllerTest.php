@@ -205,10 +205,9 @@ final class InvoiceItemsControllerTest extends TestCase
         $data['invoice-products'] = [];
         $data['payment_amount'] = '88.88';
         $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse = $httpResponse->assertSessionHasNoErrors();
-        $httpResponse->assertRedirect();
-        $this->assertSame(0, $invoiceProducts->count());
-        $this->assertSame('88.88', $invoice->fresh()->payment_amount);
+        $httpResponse->assertSessionHasErrors('invoice-products');
+        $this->assertSame(1, $invoiceProducts->count());
+        $this->assertSame('137.01', $invoice->fresh()->payment_amount);
     }
 
     #[Test]
@@ -349,7 +348,7 @@ final class InvoiceItemsControllerTest extends TestCase
         $invoiceCrudApplicationService = app(InvoiceCrudApplicationServiceInterface::class);
         $invoiceCrudApplicationService->create(
             UserId::fromInt($this->regularUser->id),
-            [],
+            $this->invoiceWriteData(),
             new InvoicePartySelection(
                 BusinessId::fromInt($business->id),
                 BankAccountId::fromInt($account->id),

@@ -11,7 +11,6 @@ use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
@@ -62,7 +61,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                 'payment_currency',
                 'issue_date',
                 'due_in',
-                'payment_status_id',
+                'status',
+                'template',
                 'invoice-products',
             ],
         );
@@ -74,11 +74,9 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         // Provide full valid payload to satisfy validation (guest create)
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
-        $statusId = $statusQuery->firstOrFail()->id;
         $now = CarbonImmutable::now();
         $invoiceData = [
-            'invoice_vs' => 'GUEST-' . uniqid(),
+            'invoice_vs' => $now->format('Y') . '0001',
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 100,
             'payment_currency' => 'CZK',
@@ -95,7 +93,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'issue_date' => $now->format('Y-m-d'),
             'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => $statusId,
+            'status' => InvoiceStatus::PENDING->value,
+            'template' => 'default',
             'supplier_name' => 'Supplier Test',
             'supplier_street' => 'Street 1',
             'supplier_city' => 'City',
@@ -114,7 +113,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
         $expectation->once();
         $expectation->andReturn(
-            new InvoiceMutationPayload($invoiceData, []),
+            new InvoiceMutationPayload($invoiceData),
         );
 
         $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
@@ -144,11 +143,9 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         // Provide full valid payload to satisfy validation then simulate exception in service
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
-        $statusId = $statusQuery->firstOrFail()->id;
         $now = CarbonImmutable::now();
         $invoiceData = [
-            'invoice_vs' => 'GUEST-' . uniqid(),
+            'invoice_vs' => $now->format('Y') . '0001',
             'payment_method_id' => $paymentMethodId,
             'payment_amount' => 50,
             'payment_currency' => 'CZK',
@@ -165,7 +162,8 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'issue_date' => $now->format('Y-m-d'),
             'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 7,
-            'payment_status_id' => $statusId,
+            'status' => InvoiceStatus::PENDING->value,
+            'template' => 'default',
             'supplier_name' => 'Supp X',
             'supplier_street' => 'S',
             'supplier_city' => 'C',
@@ -183,7 +181,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
         $expectation->once();
         $expectation->andReturn(
-            new InvoiceMutationPayload($invoiceData, []),
+            new InvoiceMutationPayload($invoiceData),
         );
         $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
         $expectation = $guestInvoiceApplicationService->shouldReceive('storeGuestInvoice');

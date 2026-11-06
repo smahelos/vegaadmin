@@ -72,7 +72,7 @@ $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 
 // Fields to determine start and end of sections
 $sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
-$sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
+$sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
 
 $storeRoute = $userLoggedIn ? 'frontend.invoice.store' : 'frontend.invoice.store.guest';
 $formAction = route($storeRoute, ['locale' => App::getLocale()]);
@@ -192,11 +192,11 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                             @enderror
                         </div>
 
-                        @elseif($field['name'] === 'payment_status_id')
+                        @elseif($field['name'] === 'status')
                         <div class="md:col-span-1">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id" :selected="old($field['name'], '2')"
-                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$statuses"
+                                id="{{ $field['name'] }}" valueField="id" :selected="old($field['name'], $field['default'])"
+                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$field['options']"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
 

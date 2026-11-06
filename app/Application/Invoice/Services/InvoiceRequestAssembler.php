@@ -13,16 +13,13 @@ class InvoiceRequestAssembler implements InvoiceRequestAssemblerInterface
 {
     public function __construct(
         private readonly FileUploadServiceInterface $fileUploadService,
-        private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
     public function assemble(InvoiceRequest $request): InvoiceMutationPayload
     {
         $validated = $request->validated();
 
-        $products = $this->products->fromValidated($validated['invoice-products']);
-
-        $payload = new InvoiceMutationPayload($validated, $products);
+        $payload = new InvoiceMutationPayload($validated);
 
         // Handle logo upload uniformly
         if (array_key_exists('invoice_logo', $validated) && $request->hasFile('invoice_logo')) {

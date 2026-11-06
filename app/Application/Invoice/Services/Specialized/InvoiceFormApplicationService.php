@@ -16,7 +16,6 @@ use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
-use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
@@ -33,7 +32,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         private PaymentMethodDtoReadRepositoryInterface $paymentMethodRepository,
         private TaxDtoReadRepositoryInterface $taxRepository,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
-        private StatusDtoRepositoryInterface $statusRepository,
         private InvoiceLimitApplicationServiceInterface $invoiceLimitService,
         private InvoiceServiceInterface $invoiceService,
         private InvoiceDtoReadRepositoryInterface $invoices,
@@ -70,9 +68,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // Initial empty products list
         $invoiceProducts = [];
 
-        // Statuses
-        $statuses = $this->statusRepository->getAllForDropdown();
-
         // Tax rates
         $taxRates = $this->taxRepository->getDphRatesForDropdown();
 
@@ -83,17 +78,13 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $limitsData = $this->getInvoicesLimit($userId);
 
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
-        $fieldSet = $fieldSetFactory->build(
-            $paymentMethods,
-            $statuses,
-        );
+        $fieldSet = $fieldSetFactory->build($paymentMethods);
 
         return new InvoiceFormDTO(
             $fieldSet,
             [
                 'paymentMethods' => $paymentMethods,
                 'invoiceProducts' => $invoiceProducts,
-                'statuses' => $statuses,
                 'taxRates' => $taxRates,
                 'suggestedNumber' => $suggestedNumber,
                 'limitsData' => $limitsData,
@@ -129,24 +120,19 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
 
         // Dropdown and related data
         $paymentMethods = $this->paymentMethodRepository->getAllForDropdown();
-        $statuses = $this->statusRepository->getAllForDropdown();
         $taxRates = $this->taxRepository->getDphRatesForDropdown();
         // Prefill existing invoice products for edit UI
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
         $limitsData = $this->getInvoicesLimit($userId);
 
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
-        $fieldSet = $fieldSetFactory->build(
-            $paymentMethods,
-            $statuses,
-        );
+        $fieldSet = $fieldSetFactory->build($paymentMethods);
 
         return new InvoiceFormDTO(
             $fieldSet,
             [
                 'invoice' => $invoice,
                 'paymentMethods' => $paymentMethods,
-                'statuses' => $statuses,
                 'taxRates' => $taxRates,
                 'invoiceProducts' => $invoiceProducts,
                 'limitsData' => $limitsData,

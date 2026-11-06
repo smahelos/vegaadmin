@@ -16,20 +16,12 @@ class InvoiceFieldParityTest extends TestCase
 
     private array $paymentMethods = ['3' => 'bank_transfer'];
 
-    private array $statuses = ['4' => 'paid'];
-
     #[Test]
     public function factory_matches_trait_field_names_and_types(): void
     {
-        $legacy = $this->getInvoiceFields(
-            $this->paymentMethods,
-            $this->statuses,
-        );
+        $legacy = $this->getInvoiceFields($this->paymentMethods);
         $factory = new InvoiceCreateFieldSetFactory;
-        $dtoSet = $factory->build(
-            $this->paymentMethods,
-            $this->statuses,
-        );
+        $dtoSet = $factory->build($this->paymentMethods);
         $built = $dtoSet->toArray();
 
         $this->assertCount(

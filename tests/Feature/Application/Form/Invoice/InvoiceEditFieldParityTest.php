@@ -19,17 +19,10 @@ class InvoiceEditFieldParityTest extends TestCase
     {
         // Simulated option lists (would be same source in real app)
         $paymentMethods = ['3' => 'bank_transfer'];
-        $statuses = ['4' => 'paid'];
 
-        $legacy = $this->getInvoiceFields(
-            $paymentMethods,
-            $statuses,
-        );
+        $legacy = $this->getInvoiceFields($paymentMethods);
         $factory = new InvoiceCreateFieldSetFactory;
-        $fieldSet = $factory->build(
-            $paymentMethods,
-            $statuses,
-        );
+        $fieldSet = $factory->build($paymentMethods);
         $built = $fieldSet->toArray();
 
         $this->assertCount(

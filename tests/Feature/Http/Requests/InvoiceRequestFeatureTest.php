@@ -13,7 +13,6 @@ use App\Models\Contact;
 use App\Models\EntityLimit;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Status;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -235,8 +234,10 @@ final class InvoiceRequestFeatureTest extends TestCase
             'payment_method_id',
             'payment_currency',
             'issue_date',
+            'tax_point_date',
             'due_in',
-            'payment_status_id',
+            'status',
+            'template',
             'business_id',
         ];
 
@@ -409,14 +410,38 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_an_expense_status(): void
     {
-        $statusQuery = Status::where('slug', 'paid-expense');
-        $data = ['payment_status_id' => $statusQuery->firstOrFail()->id] + $this->validInvoiceData;
+        $data = ['status' => 'paid-expense'] + $this->validInvoiceData;
 
         $this->assertSame(
-            ['payment_status_id'],
+            ['status'],
             array_keys(
                 $this->errors($data),
             ),
+        );
+    }
+
+    #[Test]
+    public function the_number_must_be_an_invoice_number_that_fits_the_variable_symbol(): void
+    {
+        foreach (
+            [
+                'FV-2026/1',
+                '20260000',
+                '202600001',
+                '2026',
+            ] as $number
+        ) {
+            $this->assertSame(
+                ['invoice_vs'],
+                array_keys(
+                    $this->errors(['invoice_vs' => $number] + $this->validInvoiceData),
+                ),
+                "{$number} should be rejected",
+            );
+        }
+        $this->assertSame(
+            [],
+            $this->errors(['invoice_vs' => '2026123456'] + $this->validInvoiceData),
         );
     }
 
@@ -426,7 +451,6 @@ final class InvoiceRequestFeatureTest extends TestCase
         foreach (
             [
                 'payment_method_id',
-                'payment_status_id',
                 'business_id',
                 'bank_account_id',
                 'contact_id',

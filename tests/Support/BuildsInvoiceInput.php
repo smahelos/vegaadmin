@@ -4,15 +4,20 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use DateTimeImmutable;
 
 /**
  * The input of the invoice form: a signed-in user selects a business and its account and enters the customer,
@@ -93,19 +98,53 @@ trait BuildsInvoiceInput
     private function invoiceDetailsInput(): array
     {
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $now = CarbonImmutable::now();
 
         return [
-            'invoice_vs' => 'INV-' . uniqid(),
+            'invoice_vs' => $this->invoiceNumber(),
             'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
-            'payment_status_id' => $statusQuery->firstOrFail()->id,
+            'status' => InvoiceStatus::PENDING->value,
+            'template' => InvoiceTemplate::DEFAULT->value,
             'issue_date' => $now->toDateString(),
             'tax_point_date' => $now->toDateString(),
             'due_in' => 14,
             'payment_currency' => 'CZK',
             'invoice-products' => json_encode([$this->invoiceItem()]),
         ];
+    }
+
+    /** What the form would send for an invoice in CZK paid by bank transfer, as the requests build it. */
+    private function invoiceWriteData(?string $number = null): InvoiceWriteData
+    {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
+        $today = new DateTimeImmutable('today');
+
+        return new InvoiceWriteData(
+            number: new InvoiceNumber($number ?? $this->invoiceNumber()),
+            constantSymbol: null,
+            specificSymbol: null,
+            issueDate: $today,
+            taxPointDate: $today,
+            dueIn: 14,
+            currency: Currency::CZK,
+            status: InvoiceStatus::PENDING,
+            paymentMethodId: PaymentMethodId::fromInt($paymentMethod->id),
+            text: null,
+            template: InvoiceTemplate::DEFAULT,
+        );
+    }
+
+    /** A number of this year in the InvoiceNumber format, unlikely to repeat within a test. */
+    private function invoiceNumber(): string
+    {
+        $now = CarbonImmutable::now();
+        $number = InvoiceNumber::fromYearAndSequence(
+            $now->year,
+            random_int(1, 999999),
+        );
+
+        return $number->getNumber();
     }
 
     /**

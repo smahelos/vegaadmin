@@ -272,6 +272,24 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
+    public function payment_amount_is_stored_and_read_back_without_a_float(): void
+    {
+        // A float holds this amount as 9007199254740992
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'payment_amount' => '9007199254740993.01',
+                'payment_currency' => 'CZK',
+            ],
+        );
+
+        $invoice->refresh();
+        $money = $invoice->payment_amount_money;
+        $this->assertSame('9007199254740993.01', $invoice->payment_amount);
+        $this->assertSame('9007199254740993.01', $money->getAmount());
+    }
+
+    #[Test]
     public function subtotal_money_attribute_aggregates_products_correctly(): void
     {
         $invoiceFactory = Invoice::factory();

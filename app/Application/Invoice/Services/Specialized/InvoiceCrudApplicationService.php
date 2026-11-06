@@ -13,6 +13,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
@@ -42,12 +43,11 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
     /**
      * A customer saved to the contacts is created with the invoice or not at all.
      *
-     * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     public function create(
         UserId $userId,
-        array $data,
+        InvoiceWriteData $data,
         InvoicePartySelection $parties,
         array $products,
         ?UserId $actorId = null,
@@ -102,19 +102,18 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
     /**
      * The invoice and its lines are replaced together; a failure leaves the stored invoice untouched.
      *
-     * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     public function update(
         UserId $userId,
         InvoiceId $invoiceId,
-        array $data,
+        InvoiceWriteData $data,
         InvoicePartySelection $parties,
-        ?array $products,
+        array $products,
     ): InvoiceDTO {
         $stored = $this->invoices->findByIdForUser($invoiceId, $userId)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
-        $this->productOwnership->assertOwned($userId, $products ?? []);
+        $this->productOwnership->assertOwned($userId, $products);
         $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
             ?? throw new BusinessNotFoundException($parties->businessId);
         $keep = !$parties->reloadBusiness && $stored->parties->businessId->equals($parties->businessId);

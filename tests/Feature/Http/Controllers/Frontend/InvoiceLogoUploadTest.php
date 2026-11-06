@@ -58,6 +58,7 @@ final class InvoiceLogoUploadTest extends TestCase
     #[Test]
     public function a_signed_in_invoice_uses_a_private_copy_of_the_selected_business_logo(): void
     {
+        $number = $this->invoiceNumber();
         $disk = Storage::disk('public');
         $disk->put('parties/logo.png', 'business logo contents');
         $this->business->update(['logo' => 'parties/logo.png']);
@@ -66,14 +67,14 @@ final class InvoiceLogoUploadTest extends TestCase
         $response = $this->post(
             $url,
             $this->invoiceData(
-                'TEST001',
+                $number,
                 [
                     'invoice_logo' => $fileFactory->image('unrelated.png'),
                 ],
             ),
         );
         $response->assertRedirect();
-        $invoiceQuery = Invoice::where('invoice_vs', 'TEST001');
+        $invoiceQuery = Invoice::where('invoice_vs', $number);
         $invoice = $invoiceQuery->sole();
         $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
         $this->assertSame(
@@ -90,7 +91,7 @@ final class InvoiceLogoUploadTest extends TestCase
         $copy = $invoice->supplier_logo;
         $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData('TEST001'),
+            $this->invoiceData($number),
         );
         $httpResponse->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
@@ -100,7 +101,7 @@ final class InvoiceLogoUploadTest extends TestCase
         );
         $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData('TEST001', ['reload_business' => '1']),
+            $this->invoiceData($number, ['reload_business' => '1']),
         );
         $httpResponse->assertRedirect();
         $this->assertNull($invoice->fresh()->supplier_logo);

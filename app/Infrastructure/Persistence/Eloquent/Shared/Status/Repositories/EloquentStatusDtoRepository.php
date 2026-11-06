@@ -14,9 +14,4 @@ class EloquentStatusDtoRepository implements StatusDtoRepositoryInterface
     {
         return $this->statusRepository->findIdBySlug($slug);
     }
-
-    public function getAllForDropdown(): array
-    {
-        return $this->statusRepository->getAllForDropdown();
-    }
 }

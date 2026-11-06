@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Address;
 use App\Models\Contact;
@@ -46,7 +48,7 @@ final class InvoiceCrudControllerTest extends TestCase
         $data = $this->invoiceInput(
             $business,
             $account,
-            ['user_id' => $owner->id, 'payment_amount' => '100'],
+            ['user_id' => $owner->id],
         );
         $this->actingAs(
             $this->backendUser('can_create_invoice'),
@@ -64,12 +66,14 @@ final class InvoiceCrudControllerTest extends TestCase
                 'current_value' => 1,
             ],
         );
+        $blocked = $this->invoiceNumber();
         $httpResponse = $this->post(
             '/admin/invoice',
-            array_replace($data, ['invoice_vs' => 'BLOCKED']),
+            array_replace($data, ['invoice_vs' => $blocked]),
         );
+        $httpResponse = $httpResponse->assertSessionDoesntHaveErrors('invoice_vs');
         $httpResponse->assertRedirect();
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => 'BLOCKED']);
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $blocked]);
     }
 
     #[Test]
@@ -79,7 +83,7 @@ final class InvoiceCrudControllerTest extends TestCase
         $data = $this->invoiceInput(
             $business,
             $account,
-            ['user_id' => $this->regularUser->id, 'payment_amount' => '100'],
+            ['user_id' => $this->regularUser->id],
         );
         $this->actingAs(
             $this->backendUser('can_create_invoice'),
@@ -133,7 +137,6 @@ final class InvoiceCrudControllerTest extends TestCase
                 'contact_id' => $contact->id,
                 'customer_name' => 'Ignored input',
                 'customer_country' => 'invalid',
-                'payment_amount' => '0',
             ],
         );
         $httpResponse = $this->post('/admin/invoice', $data);
@@ -179,7 +182,6 @@ final class InvoiceCrudControllerTest extends TestCase
                     'invoice_vs' => $invoice->invoice_vs,
                     'contact_id' => $contact->id,
                     'customer_name' => 'Corrected name',
-                    'payment_amount' => '0',
                 ],
             ),
         );
@@ -216,7 +218,6 @@ final class InvoiceCrudControllerTest extends TestCase
                     'invoice_vs' => $invoice->invoice_vs,
                     'contact_id' => $new->id,
                     'customer_name' => 'Ignored name',
-                    'payment_amount' => '0',
                 ],
             ),
         );
@@ -239,7 +240,6 @@ final class InvoiceCrudControllerTest extends TestCase
                 [
                     'user_id' => $this->adminUser->id,
                     'contact_id' => $contact->id,
-                    'payment_amount' => '0',
                 ],
             ),
         );
@@ -256,7 +256,6 @@ final class InvoiceCrudControllerTest extends TestCase
             $account,
             [
                 'user_id' => $this->regularUser->id,
-                'payment_amount' => '0',
                 'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             ],
         );
@@ -289,7 +288,6 @@ final class InvoiceCrudControllerTest extends TestCase
                 [
                     'user_id' => $this->regularUser->id,
                     'contact_id' => $contact->id,
-                    'payment_amount' => '0',
                 ],
             ),
         );
@@ -310,7 +308,6 @@ final class InvoiceCrudControllerTest extends TestCase
                 [
                     'user_id' => $this->regularUser->id,
                     'contact_id' => $contact->id,
-                    'payment_amount' => '123.45',
                 ],
             ),
         );
@@ -319,7 +316,7 @@ final class InvoiceCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function a_document_without_lines_keeps_its_entered_amount_on_create_and_update(): void
+    public function the_total_comes_from_the_lines_and_a_typed_amount_is_ignored(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $data = $this->invoiceInput(
@@ -327,8 +324,19 @@ final class InvoiceCrudControllerTest extends TestCase
             $account,
             [
                 'user_id' => $this->regularUser->id,
-                'payment_amount' => '1234.56',
-                'invoice-products' => [],
+                'payment_amount' => '9999.99',
+                'invoice-products' => json_encode(
+                    [
+                        $this->invoiceItem(
+                            [
+                                'quantity' => '2',
+                                'price' => '100',
+                                'tax_rate' => '21',
+                            ],
+                        ),
+                        $this->invoiceItem(['price' => '0.10']),
+                    ],
+                ),
             ],
         );
         $httpResponse = $this->post('/admin/invoice', $data);
@@ -336,20 +344,35 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse->assertRedirect();
         $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
         $invoice = $invoiceQuery->sole();
-        $this->assertSame('1234.56', $invoice->payment_amount);
-        $httpResponse = $this->put(
-            '/admin/invoice/' . $invoice->id,
-            array_replace($data, ['payment_amount' => '2345.67']),
-        );
-        $httpResponse = $httpResponse->assertSessionHasNoErrors();
-        $httpResponse->assertRedirect();
-        $this->assertSame('2345.67', $invoice->fresh()->payment_amount);
-        $invoiceProducts = $invoice->invoiceProducts();
-        $this->assertSame(0, $invoiceProducts->count());
+        $this->assertSame('242.10', $invoice->payment_amount);
     }
 
     #[Test]
-    public function editing_a_document_with_lines_keeps_the_lines_and_their_total(): void
+    public function an_invoice_needs_at_least_one_line(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+            ],
+        );
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            ['user_id' => $this->regularUser->id, 'invoice-products' => json_encode([])],
+        );
+        $httpResponse = $this->post('/admin/invoice', $data);
+        $httpResponse->assertSessionHasErrors('invoice-products');
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
+        unset($data['invoice-products']);
+        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
+        $httpResponse->assertSessionHasErrors('invoice-products');
+    }
+
+    #[Test]
+    public function editing_an_invoice_replaces_its_fields_lines_and_total(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);
         $invoiceFactory = Invoice::factory();
@@ -358,39 +381,52 @@ final class InvoiceCrudControllerTest extends TestCase
                 'user_id' => $this->regularUser->id,
                 'business_id' => $business->id,
                 'payment_currency' => 'CZK',
+                'invoice_ks' => '0308',
+                'template' => 'default',
             ],
         );
         $invoiceProductFactory = InvoiceProduct::factory();
-        $line = $invoiceProductFactory->create(
-            [
-                'invoice_id' => $invoice->id,
-                'currency' => 'CZK',
-                'quantity' => '2',
-                'price' => '100',
-                'tax_rate' => '21',
-                'tax_amount' => '42',
-                'total_price' => '242',
-            ],
-        );
+        $line = $invoiceProductFactory->create(['invoice_id' => $invoice->id, 'currency' => 'CZK']);
         $data = $this->invoiceInput(
             $business,
             $account,
             [
                 'user_id' => $this->regularUser->id,
                 'invoice_vs' => $invoice->invoice_vs,
-                'payment_amount' => '9999.99',
+                'invoice_ks' => null,
+                'status' => InvoiceStatus::PAID->value,
+                'template' => InvoiceTemplate::MODERN->value,
+                'invoice_text' => 'Paid in advance',
+                'invoice-products' => json_encode(
+                    [
+                        $this->invoiceItem(
+                            [
+                                'name' => 'Design',
+                                'quantity' => '3',
+                                'price' => '33.33',
+                            ],
+                        ),
+                    ],
+                ),
             ],
         );
-        unset($data['invoice-products']);
         $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
-        $this->assertSame('242.00', $invoice->fresh()->payment_amount);
-        $invoiceProducts = $invoice->invoiceProducts();
-        $lineIds = $invoiceProducts->pluck('id');
-        $this->assertSame(
-            [$line->id],
-            $lineIds->all(),
+        $invoice = $invoice->fresh();
+        $this->assertSame('99.99', $invoice->payment_amount);
+        $this->assertNull($invoice->invoice_ks);
+        $this->assertSame('Paid in advance', $invoice->invoice_text);
+        $this->assertSame('modern', $invoice->template);
+        $this->assertSame(InvoiceStatus::PAID->value, $invoice->paymentStatus->slug);
+        $this->assertDatabaseMissing('invoice_products', ['id' => $line->id]);
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id,
+                'name' => 'Design',
+                'total_price' => '99.99',
+            ],
         );
     }
 

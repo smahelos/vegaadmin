@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Requests;
 
 use App\Application\Invoice\DTO\InvoicePartySelection;
-use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\ValueObjects\BankAccountId;
@@ -14,10 +16,9 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Http\Requests\Invoice\InvoiceItemInput;
+use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
-use App\Http\Requests\Rules\InvoiceStatusId;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
@@ -123,34 +124,12 @@ final class InvoiceRequest extends BaseEntityRequest
         // Get max file size from config
         $maxFileSize = Config::get('file_upload.contexts.invoice_logo.max_kb', 2048);
 
-        $rules = [
-            'invoice_vs' => 'required|string|max:50',
-            'invoice_ks' => 'nullable|string|max:20',
-            'invoice_ss' => 'nullable|string|max:20',
-            'payment_method_id' => 'required|exists:payment_methods,id',
-            'payment_currency' => ['required', Rule::enum(Currency::class)],
-            'issue_date' => 'required|date',
-            'tax_point_date' => 'required|date',
-            'due_in' => 'required|integer|min:1|max:' . InvoiceDueDate::MAX_DAYS,
-            'payment_status_id' => [
-                'required',
-                InvoiceStatusId::rule(),
-            ],
-
-            // Invoice text
-            'invoice_text' => 'nullable|string',
-
-            // Ensure only allowed file types are accepted; allow SVG as image format
-            'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
-
-            'template' => 'nullable|string|in:default,modern,minimal', // Add template validation
-
-        ];
-
         $user = $this->user();
 
         return [
-            ...$rules,
+            ...InvoiceWriteDataInput::rules(),
+            // Ensure only allowed file types are accepted; allow SVG as image format
+            'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
             ...InvoiceItemInput::rules(
                 $user?->getAuthIdentifier(),
                 $this->isGuestStore(),
@@ -249,6 +228,23 @@ final class InvoiceRequest extends BaseEntityRequest
         return $paymentMethod?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
 
+    public function toWriteData(): InvoiceWriteData
+    {
+        return InvoiceWriteDataInput::writeData(
+            $this->validated(),
+        );
+    }
+
+    /** @return list<InvoiceProductWriteData> */
+    public function products(): array
+    {
+        $assembler = app(InvoiceProductWriteDataAssembler::class);
+
+        return $assembler->fromValidated(
+            $this->validated('invoice-products'),
+        );
+    }
+
     /**
      * The parties a signed-in user chose, from the validated input.
      */
@@ -303,18 +299,8 @@ final class InvoiceRequest extends BaseEntityRequest
     public function attributes(): array
     {
         return [
-            'invoice_vs' => __('invoices.fields.invoice_vs'),
-            'invoice_ks' => __('invoices.fields.invoice_ks'),
-            'invoice_ss' => __('invoices.fields.invoice_ss'),
-            'payment_method_id' => __('invoices.fields.payment_method_id'),
-            'payment_currency' => __('invoices.fields.payment_currency'),
-            'issue_date' => __('invoices.fields.issue_date'),
-            'tax_point_date' => __('invoices.fields.tax_point_date'),
-            'due_in' => __('invoices.fields.due_in'),
-            'payment_status_id' => __('invoices.fields.status'),
-            'invoice_text' => __('invoices.fields.invoice_text'),
+            ...InvoiceWriteDataInput::attributes(),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
-            'template' => __('invoices.fields.template'),
             ...InvoiceItemInput::attributes(),
             'business_id' => __('invoices.fields.business_id'),
             'bank_account_id' => __('invoices.fields.bank_account_id'),
@@ -358,7 +344,7 @@ final class InvoiceRequest extends BaseEntityRequest
             [
                 'payment_method_id',
                 'due_in',
-                'payment_status_id',
+                'status',
             ] as $field
         ) {
             if (!$this->filled($field) && $this->has($field . '_fallback')) {

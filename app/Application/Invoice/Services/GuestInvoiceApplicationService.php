@@ -15,7 +15,6 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\Tax;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
@@ -102,8 +101,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
     {
         $paymentMethods = PaymentMethod::pluck('slug', 'id');
         $paymentMethods = $paymentMethods->toArray();
-        $statuses = Status::pluck('name', 'id');
-        $statuses = $statuses->toArray();
         $taxQuery = Tax::where('slug', 'dph');
         $taxRates = $taxQuery->pluck('rate', 'id');
         $taxRates = $taxRates->toArray();
@@ -116,15 +113,11 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         ];
         $invoiceProducts = [];
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
-        $fieldSet = $fieldSetFactory->build(
-            $paymentMethods,
-            $statuses,
-        );
+        $fieldSet = $fieldSetFactory->build($paymentMethods);
         $fields = $fieldSet->toArray();
 
         return compact(
             'paymentMethods',
-            'statuses',
             'taxRates',
             'suggestedNumber',
             'limitsData',
