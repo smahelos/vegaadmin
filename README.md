@@ -98,3 +98,8 @@ The `cron` container runs the Laravel scheduler (`php artisan schedule:work`), t
   ```
 
   `--drop-databases` removes the `invoice_testing_test_N` databases after the run.
+- Coding agents read the database through the local read-only MCP server `mcp-mysql`, which Claude Code starts from `.mcp.json` and Codex from `.codex/config.toml` (both local, not in Git). The server reads the `MCP_MYSQL_*` values from `.env`, connects to MySQL on the host port and exposes the databases in `MCP_MYSQL_ALLOWED_DBS` (the development database and `invoice_testing`). Its account may only read:
+
+  ```bash
+  docker exec -it BILLEX-db mysql -u root -p -e "CREATE USER '<MCP_MYSQL_USERNAME>'@'%' IDENTIFIED BY '<MCP_MYSQL_PASSWORD>'; GRANT SELECT ON \`<DB_DATABASE>\`.* TO '<MCP_MYSQL_USERNAME>'@'%'; GRANT SELECT ON invoice_testing.* TO '<MCP_MYSQL_USERNAME>'@'%';"
+  ```

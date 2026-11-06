@@ -11,7 +11,7 @@ paths:
 
 # Admin (Backpack)
 
-Backpack 6 (free packages only — no PRO licence) runs the admin; the upgrade to Backpack 7 is prepared, so everything here is written to survive it.
+Backpack 7 (free packages only — no PRO licence) runs the admin.
 
 ## CRUD controllers
 
