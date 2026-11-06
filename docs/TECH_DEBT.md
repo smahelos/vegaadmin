@@ -29,7 +29,7 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 
 **D. Conversion to the standard, one context at a time** (`/convert-to-standard`)
 
-13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Product: unit field, prices as `Money`); "Move cache invalidation from observers to domain event handlers" after step 4.
+13. Invoice, Party, Product, Payment, User, Analytics, Content — each with the items of "Conversion to the standard" that apply to it and the context's own items (Invoice: write data; Product: unit field, prices as `Money`); "Move cache invalidation from observers to domain event handlers" after step 4.
 14. "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 
 **E. Before production and last**
@@ -93,6 +93,11 @@ Decided 2026-10-23: most important first (money, law, data exposure), but an ite
 - **Where:** `app/Domain/Invoice/Services/InvoiceService.php::generateInvoiceNumber()`, `app/Domain/Invoice/ValueObjects/InvoiceNumber.php::generateNext()`.
 - **Problem:** the service ignores its `$year` argument and queries the current system year through `date('Y')`; the value object independently reads the system year again. Requesting another year still generates a number for the current year, and an injected clock cannot control the year boundary (`rules/domain.md`, Time).
 - **Fix:** with issue-time numbering in step 8, resolve the year once in the use case (honour an explicit year; derive current time through `ClockInterface`) and pass the same year to the repository query and pure number generator. Cover a requested year different from the system year and a year rollover with behaviour tests.
+
+### Invoice write data is not a typed data class
+- **Where:** `app/Domain/Invoice/DTO/InvoiceWriteData.php`, `app/Domain/Invoice/Services/InvoiceService.php`, `app/Application/Invoice/Services/Specialized/InvoiceCrudApplicationService.php`, `app/Infrastructure/Persistence/Eloquent/Invoice/Mappers/EloquentInvoiceMapper.php`, `app/Http/Requests/InvoiceRequest.php`, `app/Http/Requests/Admin/InvoiceRequest.php`
+- **Problem:** `InvoiceWriteData::fromArray()` builds the write data from the validated request array: nullable snake_case properties where `null` means "do not change", fallback keys (`invoice_vs`, `invoice_ss`, `invoice_ks`, `invoice_text`, `payment_currency`) and `status: $data['status'] ?? (int) $data['payment_status_id'] ?? null`, whose last `?? null` is unreachable and which fails on an undefined key when both keys are missing (both requests require `payment_status_id`, so no form reaches it today). `InvoiceService` writes the total back into that array, and the mapper stores it through `(float)` and `number_format()` (`docs/adr/D-046-money-amounts.md`). The admin form accepts an invoice without items and takes its typed `payment_amount` as the total, although line items are the source of truth (`rules/domain.md`, Invoices). The class lacks `declare(strict_types=1)` and `final readonly`.
+- **Fix (decided 2026-11-06):** `InvoiceWriteData` as a `final readonly class` with typed camelCase properties from the existing value objects (`UserId`, `DocumentParties`, `InvoiceNumber`, `Currency`, `InvoiceStatusId`, `DateTimeImmutable`), built by the delivery layer from one input shape, without `fromArray()` and `toArray()`; an update replaces the invoice. The total is not input: `InvoiceService` computes it from the items through `InvoiceTotals` and passes it to the repository beside the write data, and the mapper stores the decimal string of `Money`. The admin requires items like the frontend and drops `payment_amount`. Feature tests create and update an invoice from both forms; a mapper test checks the stored total without a float.
 
 ## Payment
 
