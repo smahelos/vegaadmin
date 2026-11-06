@@ -4,7 +4,6 @@ function setupItems(editor) {
     const hidden = editor.querySelector('[name="invoice-products"]');
     const owner = form.querySelector('[name="user_id"]');
     const currency = form.querySelector('[name="payment_currency"]');
-    const amount = form.querySelector('[name="payment_amount"]');
     const status = editor.querySelector('[data-items-status]');
     const catalogStatus = editor.querySelector('[data-catalog-status]');
     const select = editor.querySelector('[data-catalog-select]');
@@ -46,7 +45,6 @@ function setupItems(editor) {
             for (const key of ['subtotal', 'tax', 'total']) {
                 editor.querySelector(`[data-${key}]`).textContent = formatter.format(result.data[key]);
             }
-            amount.value = result.data.total;
             totals.hidden = false;
             status.textContent = '';
         } catch {
@@ -58,7 +56,6 @@ function setupItems(editor) {
         const generation = ++previewGeneration;
         clearTimeout(previewTimer);
         hidden.value = JSON.stringify(values());
-        amount.readOnly = rows.children.length > 0;
         totals.hidden = true;
         status.textContent = '';
         if (rows.children.length) previewTimer = setTimeout(() => preview(generation), 200);
