@@ -1,6 +1,6 @@
 # PHP syntax enforcement
 
-Status: Implementation design, 2026-10-31; rollout in progress. Implements the agreed syntax and readability scope in [the PHP standard](../../.claude/rules/php.md). Documentation follows [the shared policy](../DOCUMENTATION.md).
+Status: Implementation design, 2026-10-31; formatting, call chains and complex ternaries rolled out 2026-11-06, hand-written numbered names remain ([technical debt](../TECH_DEBT.md)). Implements the agreed syntax and readability scope in [the PHP standard](../../.claude/rules/php.md). Documentation follows [the shared policy](../DOCUMENTATION.md).
 
 ## Purpose and scope
 
