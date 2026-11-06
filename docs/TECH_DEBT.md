@@ -64,9 +64,9 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ### Unreachable branch of the frontend user request
 - **Status:** in progress: the branch is gone from `app/Http/Requests/UserRequest.php`.
-- **Where:** `tests/Feature/Architecture/PermissionCatalogCoverageTest.php` (`UNREACHABLE`)
-- **Problem:** the test still allowlists `frontend.can_create_edit_user`, which no code checks any more.
-- **Fix:** drop the allowlist.
+- **Where:** `tests/Feature/Architecture/PermissionCatalogCoverageTest.php` (`UNREACHABLE`), `tests/Feature/Http/Controllers/Frontend/ProfileControllerFeatureTest.php` (`setUp()`)
+- **Problem:** the coverage test still allowlists `frontend.can_create_edit_user`, which no code checks any more, and the profile test still creates it and grants it to its user.
+- **Fix:** drop the allowlist and the profile test's permission setup.
 
 ## Step 10: Entity limit conversion
 
