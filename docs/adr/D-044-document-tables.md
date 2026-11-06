@@ -43,6 +43,6 @@ Examples: the reference of a corrective document to the document it corrects is 
 
 ## Consequences
 
-- The issued-invoice work (TECH_DEBT step 8) introduces the document type enum, the VAT lines and the first type-specific table (corrective documents); the received-documents work reuses them.
+- The issued-invoice work (TECH_DEBT step 12) introduces the document type enum, the VAT lines and the first type-specific table (corrective documents); the received-documents work reuses them.
 - Repositories load the common row with its type-specific row and VAT lines in one method (`rules/persistence.md`); the mapper picks the Domain class by the type.
 - Revisit when a type needs so many own fields that most of its data lives outside the common table.

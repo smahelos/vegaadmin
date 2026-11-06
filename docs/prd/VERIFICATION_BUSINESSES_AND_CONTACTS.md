@@ -17,7 +17,7 @@ Requirements: [PRD](PRD_BUSINESSES_AND_CONTACTS.md). Technical design: [DESIGN](
 - Default bank-account changes hold the owner lock in their transaction, like account archiving, so a concurrent archive cannot race the active-account check. Account mutations also require the selected Business/Contact owner, including calls made directly to the application service; an account of another owner in the same user account is refused. Expenses require the own business name while invoices require its full address, matching DESIGN Q47.
 - Capacity and first-business default decisions use current locking reads after locking the user. Earlier consistent reads in the same transaction cannot hide another request's committed activation. Counterparty identity checks apply to frontend and admin documents, while an unchanged historical identity remains valid after the source contact is corrected.
 - Obsolete client/supplier permissions are removed from the catalog and existing grants by a dedicated migration. Its rollback restores definitions and system-role defaults; arbitrary grants of removed permissions are not recovered. Additive catalog sync continues to preserve unrelated permissions.
-- UELS API uses business/contact names and active lifetime counts. Monitoring queries use current tables. Invoice archival stores business/contact references and the full stored document data; it never erases businesses or contacts. This preserves the existing retention behavior pending step 8.
+- UELS API uses business/contact names and active lifetime counts. Monitoring queries use current tables. Invoice archival stores business/contact references and the full stored document data; it never erases businesses or contacts. This preserves the existing retention behavior pending step 12.
 - Old translation files, selectors, upload configuration and unused classes are removed. Document role names `supplier` / `customer` remain. Historical migrations retain old names for rollback; GoPay credentials and HTTP clients are unrelated to Party entities.
 
 ## Acceptance test map
@@ -58,7 +58,7 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 
 ## Source review against A01–A29
 
-The review compares the PRD with the actual storage, use cases and consumers, in addition to the tests listed above. File/class names below identify the owning implementation. This is a review of the delivered scope; it does not introduce step 8 requirements.
+The review compares the PRD with the actual storage, use cases and consumers, in addition to the tests listed above. File/class names below identify the owning implementation. This is a review of the delivered scope; it does not introduce requirements of steps 12 and 13.
 
 | Scenario | Source invariant checked and review result |
 |---|---|
@@ -94,6 +94,6 @@ The review compares the PRD with the actual storage, use cases and consumers, in
 
 ## Remaining boundaries
 
-Step 8 covers issue-time locking, immutable stored PDFs, issue-time numbering and variable-symbol rules, product archiving, the full received-document model and the Business tax profile. Sending an invoice by email remains separate work; A25's sending rule applies when that operation exists. Independent party, account and logo copies in step 7 do not freeze the complete document.
+Step 12 covers issue-time locking, immutable stored PDFs, issue-time numbering and variable-symbol rules and product archiving; step 13 the full received-document model and the Business tax profile. Sending an invoice by email remains separate work; A25's sending rule applies when that operation exists. Independent party, account and logo copies in step 7 do not freeze the complete document.
 
 General API/UELS resources, maintenance services, remaining mutation DTOs and frontend globals remain in [TECH_DEBT](../TECH_DEBT.md). Existing financial aggregate meanings are unchanged. Test-run logs, local implementation journals and delivery preparation are local working material under the [documentation policy](../DOCUMENTATION.md); this map remains usable without them.
