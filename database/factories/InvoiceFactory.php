@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -18,13 +19,6 @@ class InvoiceFactory extends Factory
 
     public function definition(): array
     {
-        // Custom simple generators (vyhneme se numerify kvůli chybějícímu Base provideru ve Faker default konfiguraci)
-        $rand4 = str_pad(
-            (string) random_int(0, 9999),
-            4,
-            '0',
-            STR_PAD_LEFT,
-        );
         $randKS = random_int(1000, 9999);
         $randSS = random_int(1000, 9999);
         $now = CarbonImmutable::now();
@@ -36,7 +30,7 @@ class InvoiceFactory extends Factory
         );
 
         return [
-            'invoice_vs' => 'INV-' . $rand4,
+            'invoice_vs' => $this->number($now),
             'invoice_ks' => (random_int(0, 1) ? (string) $randKS : null),
             'invoice_ss' => (random_int(0, 1) ? (string) $randSS : null),
             'issue_date' => $issueDate->toDateString(),
@@ -56,5 +50,16 @@ class InvoiceFactory extends Factory
             ...$this->party('supplier'),
             ...$this->party('customer'),
         ];
+    }
+
+    /** A number in the InvoiceNumber format, so the invoice can be saved through the forms. */
+    private function number(CarbonImmutable $now): string
+    {
+        $number = InvoiceNumber::fromYearAndSequence(
+            $now->year,
+            random_int(1, 999999),
+        );
+
+        return $number->getNumber();
     }
 }

@@ -21,16 +21,16 @@ use App\Models\Contact;
 use App\Models\EntityLimitUsage;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
-use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
 
 final class InvoiceCrudApplicationServiceTest extends TestCase
 {
+    use BuildsInvoiceInput;
     use BuildsParties;
 
     #[Test]
@@ -42,7 +42,7 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $user->id,
-                'invoice_vs' => 'BEFORE',
+                'invoice_vs' => '20260001',
                 'payment_currency' => 'CZK',
             ],
         );
@@ -55,11 +55,7 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
             $invoiceService->update(
                 new UserId($user->id),
                 InvoiceId::fromInt($invoice->id),
-                [
-                    'invoice_vs' => 'AFTER',
-                    'payment_currency' => 'CZK',
-                    'payment_status_id' => $invoice->payment_status_id,
-                ],
+                $this->invoiceWriteData('20260002'),
                 new InvoicePartySelection(
                     BusinessId::fromInt($invoice->business_id),
                     null,
@@ -87,7 +83,7 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         } catch (RuntimeException) {
         }
 
-        $this->assertSame('BEFORE', $invoice->fresh()->invoice_vs);
+        $this->assertSame('20260001', $invoice->fresh()->invoice_vs);
         $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
         $invoiceProductValues = $invoiceProductQuery->pluck('id');
         $this->assertSame(
@@ -110,19 +106,9 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
         try {
             $invoiceService = $this->app->make(InvoiceCrudApplicationServiceInterface::class);
-            $paymentMethodQuery = PaymentMethod::where('slug', 'cash');
-            $statusQuery = Status::where('slug', 'pending');
             $invoiceService->create(
                 $this->idOf($user),
-                [
-                    'invoice_vs' => '20260042',
-                    'issue_date' => '2026-01-01',
-                    'tax_point_date' => '2026-01-01',
-                    'due_in' => 14,
-                    'payment_currency' => 'CZK',
-                    'payment_method_id' => $paymentMethodQuery->value('id'),
-                    'payment_status_id' => $statusQuery->value('id'),
-                ],
+                $this->invoiceWriteData('20260042'),
                 new InvoicePartySelection(
                     BusinessId::fromInt($business->id),
                     null,

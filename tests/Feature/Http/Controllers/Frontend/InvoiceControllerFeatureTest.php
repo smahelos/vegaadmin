@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Contact;
 use App\Models\EntityLimit;
@@ -364,6 +366,61 @@ class InvoiceControllerFeatureTest extends TestCase
                 'user_id' => $this->user->id,
             ],
         );
+    }
+
+    #[Test]
+    public function the_form_creates_an_invoice_and_an_edit_replaces_everything_it_sent(): void
+    {
+        $this->actingAs($this->user, 'web');
+        [$business, $account] = $this->issuerOf($this->user);
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'invoice_ks' => '0308',
+                'invoice_text' => 'Thank you',
+                'template' => InvoiceTemplate::MODERN->value,
+            ],
+        );
+
+        $response = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $data,
+        );
+
+        $response->assertSessionHas('success');
+        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
+        $invoice = $invoiceQuery->sole();
+        $this->assertSame('0308', $invoice->invoice_ks);
+        $this->assertSame('modern', $invoice->template);
+        $this->assertSame(InvoiceStatus::PENDING->value, $invoice->paymentStatus->slug);
+        $this->assertSame('100.00', $invoice->payment_amount);
+
+        $response = $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
+            array_replace(
+                $data,
+                [
+                    'invoice_ks' => null,
+                    'invoice_text' => null,
+                    'status' => InvoiceStatus::PAID->value,
+                    'issue_date' => '2026-01-15',
+                    'due_in' => 30,
+                ],
+            ),
+        );
+
+        $response->assertSessionHasNoErrors();
+        $invoice = $invoice->fresh();
+        $this->assertNull($invoice->invoice_ks);
+        $this->assertNull($invoice->invoice_text);
+        $this->assertSame('modern', $invoice->template);
+        $this->assertSame(InvoiceStatus::PAID->value, $invoice->paymentStatus->slug);
+        $this->assertSame(
+            '2026-01-15',
+            $invoice->issue_date->format('Y-m-d'),
+        );
+        $this->assertSame(30, $invoice->due_in);
     }
 
     #[Test]

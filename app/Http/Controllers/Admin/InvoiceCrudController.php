@@ -8,6 +8,7 @@ use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
@@ -292,10 +293,10 @@ final class InvoiceCrudController extends CrudController
         $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest();
         $result = $invoices->create(
-            (int) $request->validated('user_id'),
-            $request->validated(),
+            $request->owner(),
+            $request->toWriteData(),
             $request->partySelection(),
-            $request->products() ?? [],
+            $request->products(),
             UserId::fromInt((int) backpack_user()->id),
         );
 
@@ -307,9 +308,9 @@ final class InvoiceCrudController extends CrudController
         $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest();
         $result = $invoices->update(
-            (int) $request->validated('user_id'),
-            (int) $this->crud->getCurrentEntryId(),
-            $request->validated(),
+            $request->owner(),
+            InvoiceId::fromInt((int) $this->crud->getCurrentEntryId()),
+            $request->toWriteData(),
             $request->partySelection(),
             $request->products(),
         );

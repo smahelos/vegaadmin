@@ -7,7 +7,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Models\Contact;
 use App\Models\Invoice;
-use App\Models\Status;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsInvoiceInput;
@@ -38,8 +37,9 @@ final class InvoiceRequestFeatureTest extends TestCase
             'missing postal code' => ['customer_postal_code', ''],
             'invalid country' => ['customer_country', 'invalid'],
             'missing account for transfer' => ['bank_account_id', null],
-            'negative amount' => ['payment_amount', '-1'],
-            'excess decimal places' => ['payment_amount', '1.234'],
+            'number outside the invoice number format' => ['invoice_vs', 'FV-2026/1'],
+            'status from the expense category' => ['status', 'paid-expense'],
+            'unknown template' => ['template', 'fancy'],
             'zero due days' => ['due_in', 0],
             'too many due days' => ['due_in', InvoiceDueDate::MAX_DAYS + 1],
             'unknown currency' => ['payment_currency', 'ABC'],
@@ -60,32 +60,11 @@ final class InvoiceRequestFeatureTest extends TestCase
                 $account,
                 [
                     'user_id' => $this->adminUser->id,
-                    'payment_amount' => '100.50',
                     $field => $value,
                 ],
             ),
         );
         $httpResponse->assertSessionHasErrors($field);
-    }
-
-    #[Test]
-    public function rejects_a_status_from_the_expense_category(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $statusQuery = Status::where('slug', 'paid-expense');
-        $httpResponse = $this->post(
-            '/admin/invoice',
-            $this->invoiceInput(
-                $business,
-                $account,
-                [
-                    'user_id' => $this->adminUser->id,
-                    'payment_amount' => '100.50',
-                    'payment_status_id' => $statusQuery->firstOrFail()->id,
-                ],
-            ),
-        );
-        $httpResponse->assertSessionHasErrors('payment_status_id');
     }
 
     #[Test]
@@ -109,7 +88,6 @@ final class InvoiceRequestFeatureTest extends TestCase
                 $account,
                 [
                     'user_id' => $this->adminUser->id,
-                    'payment_amount' => '100.50',
                     'contact_id' => $invoice->contact_id,
                     'customer_street' => '',
                 ],

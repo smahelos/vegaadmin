@@ -12,6 +12,8 @@ use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -112,13 +114,11 @@ class InvoiceController extends Controller
      */
     public function store(InvoiceRequest $request): RedirectResponse
     {
-        $payload = $this->invoiceRequestAssembler->assemble($request);
-        // Let ValidationException bubble up to trigger redirect with errors
         $result = $this->invoiceMutationService->create(
-            Auth::user()->id,
-            $payload->validated,
+            UserId::fromInt(Auth::id()),
+            $request->toWriteData(),
             $request->partySelection(),
-            $payload->products,
+            $request->products(),
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
             $redirect = back();
@@ -280,14 +280,12 @@ class InvoiceController extends Controller
         string $locale,
         int $id,
     ): RedirectResponse {
-        $payload = $this->invoiceRequestAssembler->assemble($request);
-        // Let ValidationException bubble up to trigger redirect with errors
         $result = $this->invoiceMutationService->update(
-            Auth::user()->id,
-            $id,
-            $payload->validated,
+            UserId::fromInt(Auth::id()),
+            InvoiceId::fromInt($id),
+            $request->toWriteData(),
             $request->partySelection(),
-            $payload->products,
+            $request->products(),
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
             $redirect = back();

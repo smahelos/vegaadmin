@@ -5,6 +5,7 @@ namespace App\Application\Invoice\Form;
 use App\Application\Shared\Form\DTO\FieldDTO;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Application\Shared\Form\Enum\FieldType;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields; // Temporarily reuse trait logic Phase 1
 
 /**
@@ -21,12 +22,10 @@ class InvoiceCreateFieldSetFactory
      */
     public function build(
         array $paymentMethods,
-        array $statuses,
         array $currencies = [],
     ): FieldSetDTO {
         $raw = $this->getInvoiceFields(
             $paymentMethods,
-            $statuses,
             $currencies,
         );
         $fields = [];
@@ -58,14 +57,12 @@ class InvoiceCreateFieldSetFactory
      */
     protected function getInvoiceFields(
         array $paymentMethods = [],
-        array $statuses = [],
         array $currencies = [],
     ): array {
         try {
             // Attempt to call the original trait implementation (requires Laravel container)
             return $this->traitGetInvoiceFields(
                 $paymentMethods,
-                $statuses,
                 $currencies,
             );
         } catch (\Throwable $e) {
@@ -94,10 +91,14 @@ class InvoiceCreateFieldSetFactory
                     'required' => true,
                 ],
                 [
-                    'name' => 'payment_status_id',
+                    'name' => 'status',
                     'label' => 'Status',
-                    'type' => 'select',
-                    'options' => $statuses,
+                    'type' => 'select_from_array',
+                    'options' => array_column(
+                        InvoiceStatus::cases(),
+                        'value',
+                        'value',
+                    ),
                     'required' => true,
                 ],
                 [

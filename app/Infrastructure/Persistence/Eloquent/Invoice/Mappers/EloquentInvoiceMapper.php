@@ -1,18 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentParties;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentDocumentPartiesMapper;
 use App\Models\Invoice;
 
-/**
- * Maps between Eloquent Invoice models and Invoice DTOs.
- * Keeps Domain layer independent from Eloquent specifics.
- */
-class EloquentInvoiceMapper
+final class EloquentInvoiceMapper
 {
     /**
      * Convert Eloquent Invoice model to InvoiceDTO.
@@ -62,79 +62,28 @@ class EloquentInvoiceMapper
     }
 
     /**
-     * Convert write DTO into Eloquent attributes for persistence.
-     * This keeps all column name mappings and totals normalization in one place.
+     * The status is stored as a reference to its statuses row, which the repository resolves.
      *
-     * Note: It intentionally ignores DTO-only fields like items and status name.
+     * @return array<string, mixed>
      */
-    public function toModelAttributes(InvoiceWriteData $data): array
-    {
-        $attrs = [];
-
-        if ($data->user_id !== null) {
-            $attrs['user_id'] = (int) $data->user_id;
-        }
-        if ($data->parties !== null) {
-            $attrs += EloquentDocumentPartiesMapper::toAttributes($data->parties);
-        }
-
-        if ($data->number !== null) {
-            $attrs['invoice_vs'] = $data->number;
-        }
-        if ($data->payment_reference !== null) {
-            $attrs['invoice_ss'] = $data->payment_reference;
-        }
-        if ($data->constant_code !== null) {
-            $attrs['invoice_ks'] = $data->constant_code;
-        }
-
-        if ($data->issue_date !== null) {
-            $attrs['issue_date'] = $data->issue_date;
-        }
-        if ($data->tax_point_date !== null) {
-            $attrs['tax_point_date'] = $data->tax_point_date;
-        }
-        if ($data->due_in !== null) {
-            $attrs['due_in'] = (int) $data->due_in;
-        }
-
-        if ($data->template !== null) {
-            $attrs['template'] = $data->template;
-        }
-        if ($data->note !== null) {
-            $attrs['invoice_text'] = $data->note;
-        }
-        if ($data->status !== null) {
-            $attrs['payment_status_id'] = (int) $data->status;
-        }
-
-        if ($data->payment_method_id !== null) {
-            $attrs['payment_method_id'] = (int) $data->payment_method_id;
-        }
-
-        // Currency may come from total_amount Money or explicit currency
-        if ($data->currency !== null) {
-            $attrs['payment_currency'] = strtoupper($data->currency);
-        }
-        if ($data->total_amount !== null) {
-            $attrs['payment_amount'] = number_format(
-                (float) $data->total_amount->getAmount(),
-                2,
-                '.',
-                '',
-            );
-            $attrs['payment_currency'] = $data->total_amount->getCurrency();
-        }
-        // We do not persist subtotal/total_tax directly; they are derived from products
-
-        // Timestamps can be optionally overridden
-        if ($data->created_at !== null) {
-            $attrs['created_at'] = $data->created_at;
-        }
-        if ($data->updated_at !== null) {
-            $attrs['updated_at'] = $data->updated_at;
-        }
-
-        return $attrs;
+    public function toAttributes(
+        InvoiceWriteData $data,
+        DocumentParties $parties,
+        Money $total,
+    ): array {
+        return [
+            ...EloquentDocumentPartiesMapper::toAttributes($parties),
+            'invoice_vs' => $data->number->getNumber(),
+            'invoice_ks' => $data->constantSymbol,
+            'invoice_ss' => $data->specificSymbol,
+            'issue_date' => $data->issueDate->format('Y-m-d'),
+            'tax_point_date' => $data->taxPointDate->format('Y-m-d'),
+            'due_in' => $data->dueIn,
+            'payment_method_id' => $data->paymentMethodId->getValue(),
+            'payment_currency' => $data->currency->value,
+            'payment_amount' => $total->getAmount(),
+            'invoice_text' => $data->text,
+            'template' => $data->template->value,
+        ];
     }
 }

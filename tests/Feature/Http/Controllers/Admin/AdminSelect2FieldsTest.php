@@ -56,14 +56,14 @@ class AdminSelect2FieldsTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $httpResponse = $this->get('/admin/invoice/create');
+        $httpResponse = $this->get('/admin/expense/create');
         $httpResponse = $httpResponse->assertOk();
         $content = $httpResponse->getContent();
 
-        // payment_status_id has no matching relation method name; the column itself is the value
+        // status_id has no matching relation method name (the relation is status()); the column itself is the value
         $this->assertSelect2Field(
             $content,
-            'payment_status_id',
+            'status_id',
             'bpFieldInitBillexSelect2',
         );
     }

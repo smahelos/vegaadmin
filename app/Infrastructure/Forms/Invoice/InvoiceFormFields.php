@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Forms\Invoice;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 
 trait InvoiceFormFields
 {
@@ -11,12 +11,10 @@ trait InvoiceFormFields
      * Get invoice form field definitions; the parties come from the party picker
      *
      * @param  array  $paymentMethods  Payment method options for dropdowns
-     * @param  array  $statuses  Status options for dropdowns
      * @param  array  $currencies  Currency options for dropdowns
      */
     protected function getInvoiceFields(
         array $paymentMethods = [],
-        array $statuses = [],
         array $currencies = [],
     ): array {
         // Default currencies if not provided
@@ -26,6 +24,11 @@ trait InvoiceFormFields
                 'EUR' => 'EUR',
                 'USD' => 'USD',
             ];
+        }
+
+        $statuses = [];
+        foreach (InvoiceStatus::cases() as $status) {
+            $statuses[$status->value] = __('statuses.statuses.' . $status->value);
         }
 
         return [
@@ -53,15 +56,13 @@ trait InvoiceFormFields
                 'hint' => __('invoices.hints.invoice_vs'),
             ],
             [
-                'name' => 'payment_status_id',
+                'name' => 'status',
                 'label' => __('invoices.fields.status'),
-                'type' => 'select',
+                'type' => 'select_from_array',
                 'options' => $statuses,
+                'default' => InvoiceStatus::PENDING->value,
                 'required' => true,
-                'entity' => 'paymentStatus',
-                'attribute' => 'name',
                 'hint' => __('invoices.hints.status'),
-                'model' => Status::class,
             ],
             [
                 'name' => 'invoice_ks',

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
@@ -8,6 +10,7 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
@@ -23,24 +26,23 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use Illuminate\Support\Facades\Log;
 
-class InvoiceMutationApplicationService implements InvoiceMutationApplicationServiceInterface
+final class InvoiceMutationApplicationService implements InvoiceMutationApplicationServiceInterface
 {
     public function __construct(private readonly InvoiceCrudApplicationServiceInterface $invoiceCrud) {}
 
     /**
-     * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     public function create(
-        int $userId,
-        array $data,
+        UserId $userId,
+        InvoiceWriteData $data,
         InvoicePartySelection $parties,
         array $products,
         ?UserId $actorId = null,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->create(
-                new UserId($userId),
+                $userId,
                 $data,
                 $parties,
                 $products,
@@ -76,20 +78,19 @@ class InvoiceMutationApplicationService implements InvoiceMutationApplicationSer
     }
 
     /**
-     * @param  array<string, mixed>  $data
      * @param  list<InvoiceProductWriteData>  $products
      */
     public function update(
-        int $userId,
-        int $invoiceId,
-        array $data,
+        UserId $userId,
+        InvoiceId $invoiceId,
+        InvoiceWriteData $data,
         InvoicePartySelection $parties,
-        ?array $products,
+        array $products,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->update(
-                new UserId($userId),
-                new InvoiceId($invoiceId),
+                $userId,
+                $invoiceId,
                 $data,
                 $parties,
                 $products,

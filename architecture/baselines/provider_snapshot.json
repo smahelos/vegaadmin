@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-10-30T16:53:58+00:00",
+    "generated_at": "2026-11-06T12:55:36+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -432,10 +432,6 @@
                 {
                     "abstract": "App\\Domain\\Product\\Contracts\\ProductDtoWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Product\\Contracts\\InvoiceProductDtoReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Product\\Contracts\\InvoiceProductDtoWriteRepositoryInterface",
@@ -1075,14 +1071,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository",
-                "provider": "App\\Providers\\ProductServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Product\\Contracts\\InvoiceProductDtoReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository",
                 "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }

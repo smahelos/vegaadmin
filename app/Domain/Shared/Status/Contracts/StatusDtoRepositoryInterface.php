@@ -10,6 +10,4 @@ interface StatusDtoRepositoryInterface
 {
     /** Return status ID for given slug or null if not found */
     public function findIdBySlug(string $slug): ?int;
-
-    public function getAllForDropdown(): array;
 }

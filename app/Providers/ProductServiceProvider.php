@@ -11,7 +11,6 @@ use App\Application\Product\Services\ProductApplicationService;
 use App\Application\Product\Services\ProductAuthorizationService;
 use App\Application\Product\Services\ProductInputValidationService;
 use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
-use App\Domain\Product\Contracts\InvoiceProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
@@ -83,11 +82,6 @@ class ProductServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductDtoWriteRepositoryInterface::class,
             EloquentProductDtoRepository::class,
-        );
-
-        $this->app->bind(
-            InvoiceProductDtoReadRepositoryInterface::class,
-            EloquentInvoiceProductDtoRepository::class,
         );
 
         $this->app->bind(

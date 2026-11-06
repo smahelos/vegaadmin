@@ -1,25 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
+use App\Models\Status;
+use InvalidArgumentException;
+use LogicException;
 
-/**
- * Eloquent implementation of Invoice DTO repositories.
- *
- * Read methods return InvoiceDTO instances using EloquentInvoiceMapper.
- * Write methods accept InvoiceWriteData and return InvoiceDTO after persistence.
- */
-class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
+final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
 {
     public function __construct(
         private readonly EloquentInvoiceRepository $invoiceRepository,
@@ -46,22 +48,39 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         return $model === null ? null : $this->mapper->toDto($model);
     }
 
-    public function create(InvoiceWriteData $writeData): InvoiceDTO
-    {
-        // Delegate attribute mapping to mapper to keep logic centralized
-        $attrs = $this->mapper->toModelAttributes($writeData);
+    public function create(
+        UserId $owner,
+        InvoiceWriteData $data,
+        DocumentParties $parties,
+        Money $total,
+    ): InvoiceDTO {
+        $attributes = $this->mapper->toAttributes(
+            $data,
+            $parties,
+            $total,
+        );
+        $attributes['user_id'] = $owner->toInt();
+        $attributes['payment_status_id'] = $this->statusId($data->status);
 
-        $model = $this->invoiceRepository->create($attrs);
+        $model = $this->invoiceRepository->create($attributes);
 
         return $this->mapper->toDto($model);
     }
 
-    public function update(InvoiceId $id, InvoiceWriteData $writeData): InvoiceDTO
-    {
-        // Delegate attribute mapping to mapper to keep logic centralized
-        $attrs = $this->mapper->toModelAttributes($writeData);
+    public function update(
+        InvoiceId $id,
+        InvoiceWriteData $data,
+        DocumentParties $parties,
+        Money $total,
+    ): InvoiceDTO {
+        $attributes = $this->mapper->toAttributes(
+            $data,
+            $parties,
+            $total,
+        );
+        $attributes['payment_status_id'] = $this->statusId($data->status);
 
-        $model = $this->invoiceRepository->updateById($id->getValue(), $attrs);
+        $model = $this->invoiceRepository->updateById($id->getValue(), $attributes);
 
         return $this->mapper->toDto($model);
     }
@@ -86,7 +105,7 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         foreach ($this->invoiceRepository->findInvoiceNumbersForYear($userId->toInt(), $year) as $number) {
             try {
                 $candidate = new InvoiceNumber($number);
-            } catch (\InvalidArgumentException) {
+            } catch (InvalidArgumentException) {
                 continue;
             }
             if ($candidate->getYear() === $year && ($last === null || $candidate->isGreaterThan($last))) {
@@ -95,5 +114,20 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
         }
 
         return $last?->getNumber();
+    }
+
+    /** The statuses row an invoice status is stored as; the reference data contain one for every case. */
+    private function statusId(InvoiceStatus $status): int
+    {
+        $query = Status::query();
+        $query->where('slug', $status->value);
+        $id = $query->value('id');
+        if ($id === null) {
+            throw new LogicException(
+                'Invoice status ' . $status->value . ' is missing from the statuses table',
+            );
+        }
+
+        return (int) $id;
     }
 }

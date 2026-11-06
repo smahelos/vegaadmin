@@ -5,7 +5,6 @@ namespace Tests\Feature\Traits;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -19,19 +18,11 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Arrange
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $paymentMethod = $paymentMethodQuery->firstOrFail();
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create(['name' => 'Paid']);
-
         $paymentMethods = [$paymentMethod->id => $paymentMethod->name];
-        $statuses = [$status->id => $status->name];
         $currencies = ['EUR' => 'EUR', 'USD' => 'USD'];
 
         // Act
-        $result = $this->getInvoiceFields(
-            $paymentMethods,
-            $statuses,
-            $currencies,
-        );
+        $result = $this->getInvoiceFields($paymentMethods, $currencies);
 
         // Assert
         $this->assertIsArray($result);
@@ -40,11 +31,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Verify options are passed correctly
         $resultList = collect($result);
         $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
-        $statusField = $resultList->firstWhere('name', 'payment_status_id');
         $currencyField = $resultList->firstWhere('name', 'payment_currency');
 
         $this->assertEquals($paymentMethods, $paymentMethodField['options']);
-        $this->assertEquals($statuses, $statusField['options']);
         $this->assertEquals($currencies, $currencyField['options']);
     }
 
@@ -61,10 +50,27 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Check that empty arrays are handled correctly
         $resultList = collect($result);
         $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
-        $statusField = $resultList->firstWhere('name', 'payment_status_id');
 
         $this->assertEquals([], $paymentMethodField['options']);
-        $this->assertEquals([], $statusField['options']);
+    }
+
+    #[Test]
+    public function the_status_offers_the_invoice_statuses_by_their_value_with_pending_preselected(): void
+    {
+        $result = $this->getInvoiceFields();
+
+        $resultList = collect($result);
+        $statusField = $resultList->firstWhere('name', 'status');
+        $this->assertSame(
+            [
+                'paid' => __('statuses.statuses.paid'),
+                'pending' => __('statuses.statuses.pending'),
+                'partially-paid' => __('statuses.statuses.partially-paid'),
+                'cancelled' => __('statuses.statuses.cancelled'),
+            ],
+            $statusField['options'],
+        );
+        $this->assertSame('pending', $statusField['default']);
     }
 
     #[Test]
@@ -79,7 +85,7 @@ class InvoiceFormFieldsFeatureTest extends TestCase
                 'invoice_logo',
                 'template',
                 'invoice_vs',
-                'payment_status_id',
+                'status',
                 'invoice_ks',
                 'invoice_ss',
                 'issue_date',
@@ -114,7 +120,7 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertContains('due_in', $requiredFieldNames);
         $this->assertContains('payment_amount', $requiredFieldNames);
         $this->assertContains('payment_currency', $requiredFieldNames);
-        $this->assertContains('payment_status_id', $requiredFieldNames);
+        $this->assertContains('status', $requiredFieldNames);
     }
 
     #[Test]
@@ -206,7 +212,6 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Arrange
         $testData = [
             [1 => 'Cash'],
-            [1 => 'Paid'],
             ['EUR' => 'EUR'],
         ];
 

@@ -4,14 +4,9 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Forms\Invoice;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Models\Status;
-use App\Models\StatusCategory;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 
 final class AdminInvoiceFormFields
 {
@@ -24,16 +19,12 @@ final class AdminInvoiceFormFields
     public function fields(array $countries, ?Invoice $document): array
     {
         $fields = [];
-        $query = StatusCategory::where('slug', 'invoice-statuses');
-        $categoryId = $query->value('id');
         foreach ($this->getInvoiceFields() as $field) {
-            if ($field['name'] === 'invoice_logo') {
+            // The total comes from the lines, which the item editor shows
+            if ($field['name'] === 'invoice_logo' || $field['name'] === 'payment_amount') {
                 continue;
             }
             $field['wrapper'] = ['class' => 'form-group col-12 col-md-6'];
-            if ($field['name'] === 'payment_amount') {
-                $field['attributes'] = ['step' => '0.01'];
-            }
             if ($document !== null) {
                 unset($field['default']);
             }
@@ -43,6 +34,9 @@ final class AdminInvoiceFormFields
                     break;
                 case 'select_from_array':
                     $field['type'] = 'select2_from_array';
+                    if ($field['name'] === 'status' && $document !== null) {
+                        $field['value'] = $document->paymentStatus?->slug;
+                    }
                     $current = $document?->getAttribute($field['name']);
                     if (filled($current) && !array_key_exists($current, $field['options'])) {
                         $field['options'][$current] = $field['name'] === 'due_in' ? $current . ' ' . __('invoices.units.days') : $current;
@@ -51,19 +45,7 @@ final class AdminInvoiceFormFields
                 case 'select':
                     $field['type'] = 'select2';
                     unset($field['options']);
-                    if ($field['name'] === 'payment_status_id') {
-                        $field['options'] = function (Builder $query) use ($categoryId): Collection {
-                            $query->where('category_id', $categoryId);
-                            $query->where('is_active', true);
-                            $query->orderBy('name');
-
-                            return $query->get();
-                        };
-                        if ($document === null) {
-                            $query = Status::where('slug', InvoiceStatus::PENDING->value);
-                            $field['default'] = $query->value('id');
-                        }
-                    } elseif ($document === null) {
+                    if ($document === null) {
                         $query = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
                         $field['default'] = $query->value('id');
                     }
@@ -116,13 +98,12 @@ final class AdminInvoiceFormFields
                 __('invoices.sections.amounts'),
             ),
             AdminInvoiceItemFields::field($document),
-            $fields['payment_amount'],
             $fields['payment_currency'],
             AdminDocumentFormFields::section(
                 'status',
                 __('invoices.sections.status'),
             ),
-            $fields['payment_status_id'],
+            $fields['status'],
             AdminDocumentFormFields::section(
                 'other',
                 __('invoices.sections.other'),

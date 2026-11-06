@@ -16,7 +16,6 @@ final class InvoiceCreateFieldSetFactoryTest extends TestCase
         $factory = new InvoiceCreateFieldSetFactory;
         $set = $factory->build(
             paymentMethods: ['3' => 'bank_transfer'],
-            statuses: ['4' => 'paid'],
             currencies: ['CZK' => 'CZK'],
         );
 
