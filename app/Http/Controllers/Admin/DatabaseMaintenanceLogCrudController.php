@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Models\DatabaseMaintenanceLog;
@@ -11,7 +13,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 /**
  * Database Maintenance Log CRUD Controller
  */
-class DatabaseMaintenanceLogCrudController extends CrudController
+final class DatabaseMaintenanceLogCrudController extends CrudController
 {
     use ListOperation;
     use ShowOperation;
@@ -90,8 +92,8 @@ class DatabaseMaintenanceLogCrudController extends CrudController
         $column->function(
             function ($entry) {
                 if ($entry->started_at && $entry->completed_at) {
-                    $start = strtotime($entry->started_at);
-                    $end = strtotime($entry->completed_at);
+                    $start = $entry->started_at->getTimestamp();
+                    $end = $entry->completed_at->getTimestamp();
                     $duration = $end - $start;
 
                     if ($duration < 60) {
@@ -174,8 +176,8 @@ class DatabaseMaintenanceLogCrudController extends CrudController
         $column->function(
             function ($entry) {
                 if ($entry->started_at && $entry->completed_at) {
-                    $start = strtotime($entry->started_at);
-                    $end = strtotime($entry->completed_at);
+                    $start = $entry->started_at->getTimestamp();
+                    $end = $entry->completed_at->getTimestamp();
                     $duration = $end - $start;
 
                     if ($duration < 60) {

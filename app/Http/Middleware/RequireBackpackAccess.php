@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use Closure;
@@ -10,7 +12,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Middleware to check if user has admin access via roles with 'backpack' guard
  */
-class RequireBackpackAccess
+final class RequireBackpackAccess
 {
     /**
      * Handle an incoming request.
