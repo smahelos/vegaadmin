@@ -60,7 +60,7 @@ class InvoiceWriteData
             payment_reference: $data['payment_reference'] ?? ($data['invoice_ss'] ?? null),
             constant_code: $data['constant_code'] ?? ($data['invoice_ks'] ?? null),
             tax_point_date: $data['tax_point_date'] ?? null,
-            total_amount: $data['total_amount'],
+            total_amount: $data['total_amount'] ?? null,
             payment_method_id: isset($data['payment_method_id']) ? (int) $data['payment_method_id'] : null,
             invoice_text: $data['invoice_text'] ?? null,
             items: $data['items'] ?? [],
