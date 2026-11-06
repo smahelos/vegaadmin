@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
@@ -12,7 +14,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProductCategoryCrudController extends CrudController
+final class ProductCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;

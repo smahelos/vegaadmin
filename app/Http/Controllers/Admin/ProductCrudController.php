@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
@@ -18,7 +20,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
-class ProductCrudController extends CrudController
+final class ProductCrudController extends CrudController
 {
     use CreateOperation {
         store as traitStore;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\StatusCategoryRequest;
@@ -18,7 +20,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  *
  * @property-read CrudPanel $crud
  */
-class StatusCategoryCrudController extends CrudController
+final class StatusCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;

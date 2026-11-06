@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
@@ -20,7 +22,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  *
  * @property-read CrudPanel $crud
  */
-class SubscriptionCrudController extends CrudController
+final class SubscriptionCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
