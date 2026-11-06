@@ -14,7 +14,7 @@ Billex is not in production. There is no backward compatibility to keep: classes
 
 The rules in `.claude/rules/` describe the **target standard**. Much of the existing code predates it (see the conversion backlog in `docs/TECH_DEBT.md`), so the surrounding code is not a template: when a rule and the existing code disagree, the rule wins. Every new or changed line follows the rules. Rule violations you notice in the code you touch are listed to the user with a proposed conversion; converting whole files or contexts is its own task, run with the `/convert-to-standard` skill.
 
-The following catalog is shared by both agents. Claude Code loads a rule automatically when it reads a file matching the rule's `paths`; Codex finds the matching rules through the `paths` frontmatter of each file:
+The following catalog is shared by both agents. Claude Code loads a rule automatically when it reads a file matching the rule's `paths`; Codex lists the frontmatter of all rules with `head -n 15 .claude/rules/*.md` before changing code and reads every rule whose `paths` glob matches a changed or planned file, plus `translations.md`:
 
 - [`.claude/rules/php.md`](.claude/rules/php.md) — PHP style: strict types, `final`, typing, naming, exceptions, comments (all PHP)
 - [`.claude/rules/architecture.md`](.claude/rules/architecture.md) — layers and allowed dependencies, bounded contexts, ports and interfaces, data classes (DTO / WriteData / Result), events, composition roots, architecture guards
