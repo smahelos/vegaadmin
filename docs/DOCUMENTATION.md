@@ -25,7 +25,7 @@ Paths in this table are relative to the repository root. Keep existing ADR ident
 
 `AGENTS.md` is the canonical entry for project guidance. Codex reads it directly; `.claude/CLAUDE.md` imports it using `@../AGENTS.md`. Keep the same project standard for both agents, without tool-specific copies of rules or workflow bodies. The `.claude/` directory name does not limit those files to Claude.
 
-Both agents read the entire `.claude/rules/` catalog once per session before editing, then apply the rules relevant to the change. Keep the catalog in `AGENTS.md` current when adding or removing a rule. Read referenced examples and workflow `SKILL.md` files when their task applies. The shared workflow table makes the same procedures available even when an agent does not list repository skills in its native picker.
+Before changing code, both agents read the rules whose `paths` match the changed files, plus `architecture.md` when adding a class or placing code: Claude Code loads them automatically, Codex matches the rule frontmatter listed by `head -n 15 .claude/rules/*.md`; the GitHub review reads the whole catalog, because a diff can reach every layer. Keep the catalog in `AGENTS.md` current when adding or removing a rule. Read referenced examples and workflow `SKILL.md` files when their task applies. The shared workflow table makes the same procedures available even when an agent does not list repository skills in its native picker.
 
 Shared review criteria live in `AGENTS.md` under Code Review Rules. GitHub review prompts reference those criteria and add only event context and output instructions. Personal tool settings and higher-priority user instructions may still differ; they do not create a second version of Billex's project standard.
 
