@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Providers;
 
 use Illuminate\Support\Str;
@@ -18,7 +20,7 @@ use Tests\TestCase;
  *  - QrPaymentProviderInterface: Implemented by provider classes discovered dynamically, not bound directly.
  *  - Invoice\Contracts\ClientRepositoryInterface & SupplierRepositoryInterface: Legacy duplicates superseded by Party domain repositories (keep until full removal).
  */
-class DomainServiceProviderBindingsTest extends TestCase
+final class DomainServiceProviderBindingsTest extends TestCase
 {
     /** @var array<string> */
     private array $skip = [

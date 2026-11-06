@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
@@ -10,7 +12,7 @@ use Illuminate\Console\Command;
  * Validates that payment gateway adapters are properly registered in the GatewayRegistry
  * and implement required contract methods. Produces a concise report for CI or manual audit.
  */
-class PaymentAdapterGuardCommand extends Command
+final class PaymentAdapterGuardCommand extends Command
 {
     /** @var string */
     protected $signature = 'payment:adapter-guard {--json : Output JSON report}';

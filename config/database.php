@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 if (extension_loaded('pdo_mysql')) {
     $mysqlOptions = array_filter(
         [

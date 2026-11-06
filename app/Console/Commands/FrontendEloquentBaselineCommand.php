@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Carbon\CarbonImmutable;
@@ -10,7 +12,7 @@ use Illuminate\Support\Str;
  * Generates baseline JSON for frontend controller direct Eloquent static call usage.
  * Mirrors existing manual baseline file and allows regeneration in CI / dev.
  */
-class FrontendEloquentBaselineCommand extends Command
+final class FrontendEloquentBaselineCommand extends Command
 {
     protected $signature = 'ddd:frontend-eloquent:baseline {--save : Persist baseline JSON} {--path= : Optional custom output path}';
 

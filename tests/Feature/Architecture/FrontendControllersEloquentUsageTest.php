@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
@@ -9,7 +11,7 @@ use Tests\TestCase;
  * Ensures no Frontend controller exceeds 1 direct Eloquent static call (thin controller rule).
  * Baseline controllers listed in architecture/baselines/frontend_controller_eloquent_baseline.json.
  */
-class FrontendControllersEloquentUsageTest extends TestCase
+final class FrontendControllersEloquentUsageTest extends TestCase
 {
     private array $baselineControllers;
 

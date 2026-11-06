@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 use Symfony\Component\Finder\Finder;
 
-class ProvidersSnapshotCommand extends Command
+final class ProvidersSnapshotCommand extends Command
 {
     protected $signature = 'ddd:providers:snapshot {--write : Persist current snapshot} {--diff : Compare with existing snapshot} {--format=json : Output format json|human} {--strict : Treat warnings as errors}';
 

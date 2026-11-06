@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +15,7 @@ use Tests\TestCase;
  *  - db_facade_calls must NOT increase.
  *  - new_model_insts may increase by at most 2 absolute (allow small refactors) but should be avoided.
  */
-class ControllerThinnessEnforcementTest extends TestCase
+final class ControllerThinnessEnforcementTest extends TestCase
 {
     private array $baseline;
 

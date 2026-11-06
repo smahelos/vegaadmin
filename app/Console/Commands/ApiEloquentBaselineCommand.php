@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use Carbon\CarbonImmutable;
@@ -10,7 +12,7 @@ use Illuminate\Support\Str;
  * Generates baseline JSON for API controller direct Eloquent static call usage.
  * Mirrors the frontend baseline command for symmetry and CI drift detection.
  */
-class ApiEloquentBaselineCommand extends Command
+final class ApiEloquentBaselineCommand extends Command
 {
     protected $signature = 'ddd:api-eloquent:baseline {--save : Persist baseline JSON} {--path= : Optional custom output path}';
 
