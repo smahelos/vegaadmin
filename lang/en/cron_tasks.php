@@ -50,6 +50,8 @@ return [
     'messages' => [
         'task_executed' => 'Task was successfully executed',
         'execution_failed' => 'Task execution failed',
+        'run_output' => "Result: :output\nDuration: :seconds s",
+        'run_error' => 'Error: :error',
     ],
     'validation' => [
         'cron_expression' => 'Invalid CRON expression. Use format: minute hour day month day_of_week.',

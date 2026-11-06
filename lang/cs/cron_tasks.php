@@ -50,6 +50,8 @@ return [
     'messages' => [
         'task_executed' => 'Úloha byla úspěšně spuštěna',
         'execution_failed' => 'Spuštění úlohy selhalo',
+        'run_output' => "Výsledek: :output\nDoba trvání: :seconds s",
+        'run_error' => 'Chyba: :error',
     ],
     'validation' => [
         'cron_expression' => 'Neplatný CRON výraz. Použijte formát: minuta hodina den měsíc den_v_týdnu.',

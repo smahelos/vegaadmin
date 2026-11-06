@@ -107,16 +107,23 @@ class CronTask extends Model
                 2,
             );
 
-            // Aktualizace informací o posledním spuštění
             $this->last_run = now();
-            $this->last_output = 'Výsledek: ' . Artisan::output() .
-                                "\nDoba trvání: {$executionTime}s";
+            $this->last_output = __(
+                'cron_tasks.messages.run_output',
+                [
+                    'output' => Artisan::output(),
+                    'seconds' => $executionTime,
+                ],
+            );
             $this->save();
 
             return $exitCode === Command::SUCCESS;
         } catch (\Exception $e) {
             $this->last_run = now();
-            $this->last_output = 'Chyba: ' . $e->getMessage();
+            $this->last_output = __(
+                'cron_tasks.messages.run_error',
+                ['error' => $e->getMessage()],
+            );
             $this->save();
 
             return false;

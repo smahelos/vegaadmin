@@ -261,7 +261,13 @@ class CronTaskFeatureTest extends TestCase
 
         $this->assertFalse($succeeded);
         $task->refresh();
-        $this->assertStringStartsWith('Chyba: ', $task->last_output);
+        $this->assertStringStartsWith(
+            __(
+                'cron_tasks.messages.run_error',
+                ['error' => ''],
+            ),
+            $task->last_output,
+        );
     }
 
     #[Test]

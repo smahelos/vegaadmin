@@ -50,6 +50,8 @@ return [
     'messages' => [
         'task_executed' => 'Aufgabe wurde erfolgreich ausgeführt',
         'execution_failed' => 'Aufgabenausführung fehlgeschlagen',
+        'run_output' => "Ergebnis: :output\nDauer: :seconds s",
+        'run_error' => 'Fehler: :error',
     ],
     'validation' => [
         'cron_expression' => 'Ungültiger CRON-Ausdruck. Verwenden Sie das Format: Minute Stunde Tag Monat Wochentag.',
