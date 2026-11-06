@@ -10,7 +10,7 @@ paths:
 
 # Frontend
 
-Public frontend: Blade layouts and components, Livewire 3 (which ships Alpine), Tailwind 4 through Vite. Admin views follow `admin.md`.
+Public frontend: Blade layouts and components, Livewire 3 (which ships Alpine), Tailwind 4 through Vite. Admin views follow `admin.md`. Assets build on the host: `npm run dev` (Vite dev server) or `npm run build`.
 
 ## Where behaviour lives
 

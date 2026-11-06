@@ -6,7 +6,7 @@ Read the full set of rule files in `.claude/rules/` once per session before chan
 
 ## Project
 
-Billex (formerly "vegaadmin" / "Invoice"; old names survive in some files) is an invoicing app: Laravel 12 on PHP 8.3, Backpack 6.8 admin panel (with PermissionManager / spatie/laravel-permission), a public frontend built with Blade + Livewire 3 + Alpine + Tailwind 4 (Vite), GoPay payments, dompdf invoice PDFs and QR payment codes. UI languages: cs, de, en, sk.
+Billex (formerly "vegaadmin" / "Invoice"; old names survive in some files) is an invoicing app on Laravel: a Backpack admin panel, a public Blade + Livewire frontend, GoPay payments, dompdf invoice PDFs and QR payment codes. Versions are in `composer.json` and `package.json`. UI languages: cs, de, en, sk.
 
 ## One standard, no legacy
 
@@ -41,6 +41,8 @@ Put all agent-created temporary scripts, logs, reports, screenshots, browser pro
 
 Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.yaml`: app/php-fpm, nginx, MySQL, Redis, MailHog, phpMyAdmin, cron, queue). The host `php` / `./php` wrappers exec into other containers; never use them.
 
+Agents read the database through the read-only `mcp-mysql` MCP server (development and `invoice_testing` databases; setup in `README.md`). `docker exec … mysql` is the fallback when the server is unavailable or cannot run the statement, and it only reads too (`SELECT`, `SHOW`, `EXPLAIN`): schema and data change only through migrations and seeders.
+
 ```bash
 docker exec BILLEX-app php artisan test                                  # full suite
 docker exec BILLEX-app php artisan test --parallel --drop-databases      # paratest, drops invoice_testing_test_N afterwards
@@ -56,20 +58,10 @@ docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Laras
 
 - `app`, `cron` and `queue` bind-mount the project (`./:/var/www`): code changes apply immediately, `vendor/` comes from the host (`docker exec BILLEX-app composer install` after `composer.lock` changes). Rebuild (`docker compose up -d --build app cron queue`) only after changing `app.dockerfile` or the `WWW_UID`/`WWW_GID` build args in `.env`. `cron` runs `php artisan schedule:work` and `queue` runs `php artisan queue:work` from the same image; the worker keeps the code in memory, so after a change to code a job or listener runs, `docker exec BILLEX-app php artisan queue:restart`. `public/storage` stays a relative symlink (`../storage/app/public`).
 - PHPUnit 11: `-v` / `--verbose` fail with `Unknown option`.
-- Frontend assets: `npm run dev` / `npm run build` (Vite, `vite.config.js`).
 
 ## Architecture at a glance
 
-Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = businesses/contacts, Payment, Product, User, Shared):
-
-- `app/Domain/<Context>/` — business rules in plain PHP
-- `app/Application/<Context>/` — use cases called by controllers, Livewire and commands
-- `app/Infrastructure/` — everything framework- or vendor-bound: repositories, mappers, gateways, policies, Backpack form fields
-- `app/Http/Controllers/{Frontend,Admin,Api}`, `app/Livewire/<Context>/` — delivery
-- `app/Models/` — Eloquent models, used only by Infrastructure
-- `app/Providers/<Context>ServiceProvider` — one composition root per context (ADR `docs/adr/D-042-context-service-providers.md`)
-
-Routes: `routes/web.php` (frontend, localized), `routes/backpack/custom.php` (admin, `admin` prefix, `backpack` guard), `routes/api.php`. Two auth guards: `backpack` (admin) and `web` (frontend users).
+Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = businesses/contacts, Payment, Product, User, Shared). Layers, allowed dependencies and composition roots are defined in `architecture.md`; route groups and guards in `http.md` and `permissions.md`.
 
 ## High-risk areas
 

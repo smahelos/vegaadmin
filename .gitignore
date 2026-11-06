@@ -39,5 +39,9 @@ robots.txt
 /.claude/settings.local.json*
 /.claude/reports/
 
+# Local MCP server configuration of Claude Code and Codex (absolute paths of the developer's machine)
+/.mcp.json
+/.codex/
+
 # Local working documents and AI artifacts; maintained project documentation lives in docs/
 /dev_docs/
