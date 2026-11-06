@@ -41,7 +41,7 @@ Put all agent-created temporary scripts, logs, reports, screenshots, browser pro
 
 Everything PHP runs inside the `BILLEX-app` container (stack in `docker-compose.yaml`: app/php-fpm, nginx, MySQL, Redis, MailHog, phpMyAdmin, cron, queue). The host `php` / `./php` wrappers exec into other containers; never use them.
 
-Agents read the database through the read-only `mcp-mysql` MCP server (development and `invoice_testing` databases; setup in `README.md`). `docker exec … mysql` is the fallback when the server is unavailable or cannot run the statement (`SHOW`, `EXPLAIN`). Schema and data changes go through migrations and seeders.
+Agents read the database through the read-only `mcp-mysql` MCP server (development and `invoice_testing` databases; setup in `README.md`). `docker exec … mysql` is the fallback when the server is unavailable or cannot run the statement, and it only reads too (`SELECT`, `SHOW`, `EXPLAIN`): schema and data change only through migrations and seeders.
 
 ```bash
 docker exec BILLEX-app php artisan test                                  # full suite

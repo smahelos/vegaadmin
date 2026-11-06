@@ -98,8 +98,23 @@ The `cron` container runs the Laravel scheduler (`php artisan schedule:work`), t
   ```
 
   `--drop-databases` removes the `invoice_testing_test_N` databases after the run.
-- Coding agents read the database through the local read-only MCP server `mcp-mysql`, which Claude Code starts from `.mcp.json` and Codex from `.codex/config.toml` (both local, not in Git). The server reads the `MCP_MYSQL_*` values from `.env`, connects to MySQL on the host port and exposes the databases in `MCP_MYSQL_ALLOWED_DBS` (the development database and `invoice_testing`). Its account may only read:
+- Coding agents read the database through `mcp-mysql`, a read-only MCP server that is a separate local tool, not part of this repository; without it they read through `docker exec … mysql`. The server reads the `MCP_MYSQL_*` values from `.env`, connects to MySQL on the host port and exposes the databases in `MCP_MYSQL_ALLOWED_DBS` (the development database and `invoice_testing`). Claude Code starts it from `.mcp.json`, Codex from `.codex/config.toml`; both files are local and ignored by Git:
 
-  ```bash
-  docker exec -it BILLEX-db mysql -u root -p -e "CREATE USER '<MCP_MYSQL_USERNAME>'@'%' IDENTIFIED BY '<MCP_MYSQL_PASSWORD>'; GRANT SELECT ON \`<DB_DATABASE>\`.* TO '<MCP_MYSQL_USERNAME>'@'%'; GRANT SELECT ON invoice_testing.* TO '<MCP_MYSQL_USERNAME>'@'%';"
+  ```json
+  { "mcpServers": { "mcp-mysql": { "type": "stdio", "command": "node", "args": ["<path-to-mcp-mysql>/src/index.js"] } } }
+  ```
+
+  ```toml
+  [mcp_servers.mcp-mysql]
+  command = "node"
+  args = ["<path-to-mcp-mysql>/src/index.js"]
+  cwd = "<path-to-billex>"
+  ```
+
+  Its account may only read. Create it in an interactive session (`docker exec -it BILLEX-db mysql -u root -p`), so the shell does not touch the password:
+
+  ```sql
+  CREATE USER '<MCP_MYSQL_USERNAME>'@'%' IDENTIFIED BY '<MCP_MYSQL_PASSWORD>';
+  GRANT SELECT ON `<DB_DATABASE>`.* TO '<MCP_MYSQL_USERNAME>'@'%';
+  GRANT SELECT ON invoice_testing.* TO '<MCP_MYSQL_USERNAME>'@'%';
   ```
