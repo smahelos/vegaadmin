@@ -229,62 +229,10 @@ class Invoice extends Model
         return $products;
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MUTATORS
-    |--------------------------------------------------------------------------
-    */
-    /**
-     * Ensure payment_amount is always stored as a string with 2 decimals.
-     * This avoids implicit float to decimal conversion issues with Laravel's decimal cast.
-     */
-    public function setPaymentAmountAttribute(float|int|string|null $value): void
-    {
-        // Allow null explicitly
-        if ($value === null || $value === '') {
-            $this->attributes['payment_amount'] = null;
-
-            return;
-        }
-
-        // Normalize numeric or string inputs into a string with 2 decimals
-        if (is_numeric($value) || is_string($value)) {
-            $normalized = number_format(
-                (float) $value,
-                2,
-                '.',
-                '',
-            );
-            $this->attributes['payment_amount'] = $normalized;
-
-            return;
-        }
-
-        // Fallback: cast anything else to float safely and format
-        $normalized = number_format(
-            (float) $value,
-            2,
-            '.',
-            '',
-        );
-        $this->attributes['payment_amount'] = $normalized;
-    }
-
-    /**
-     * Get payment amount as Money VO.
-     */
     public function getPaymentAmountMoneyAttribute(): Money
     {
-        if ($this->payment_amount !== null) {
-            $amount = (string) number_format(
-                (float) $this->payment_amount,
-                2,
-                '.',
-                '',
-            );
-        } else {
-            $amount = '0';
-        }
+        // The decimal cast reads the column as a decimal string, so the amount never passes through a float
+        $amount = $this->payment_amount ?? '0';
         $currency = $this->payment_currency ?: 'CZK';
 
         return Money::fromString(
