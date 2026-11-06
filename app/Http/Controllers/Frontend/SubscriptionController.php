@@ -103,8 +103,8 @@ class SubscriptionController extends Controller
         $returnUrl = route('payment.return');
         $notifyUrl = route('payment.notify');
         if (!config('services.gopay.production')) {
-            $returnUrl = config('services.gopay.test_return_url') ?? $returnUrl;
-            $notifyUrl = config('services.gopay.test_notify_url') ?? $notifyUrl;
+            $returnUrl = config('services.gopay.test_return_url') ?: $returnUrl;
+            $notifyUrl = config('services.gopay.test_notify_url') ?: $notifyUrl;
         }
 
         $application = app();

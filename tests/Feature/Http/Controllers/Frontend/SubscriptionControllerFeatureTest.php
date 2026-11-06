@@ -8,6 +8,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\Fakes\Payment\RecordingPaymentApplicationService;
@@ -207,14 +208,28 @@ class SubscriptionControllerFeatureTest extends TestCase
         $this->assertSame('https://notify.test/b', $initiated['notify_url']);
     }
 
+    /**
+     * An unset variable is null, an empty one from the `.env.example` template is an empty string.
+     *
+     * @return array<string, array{?string}>
+     */
+    public static function unsetTestUrls(): array
+    {
+        return [
+            'unset' => [null],
+            'empty' => [''],
+        ];
+    }
+
     #[Test]
-    public function subscribe_sends_the_payment_routes_outside_production_without_test_urls(): void
+    #[DataProvider('unsetTestUrls')]
+    public function subscribe_sends_the_payment_routes_outside_production_without_test_urls(?string $testUrl): void
     {
         config(
             [
                 'services.gopay.production' => false,
-                'services.gopay.test_return_url' => null,
-                'services.gopay.test_notify_url' => null,
+                'services.gopay.test_return_url' => $testUrl,
+                'services.gopay.test_notify_url' => $testUrl,
             ],
         );
 
