@@ -102,7 +102,7 @@ První firma vznikne při registraci a stane se výchozí.
 
 Daňový profil a budoucí stav plátce patří Business, protože jeden účet
 může spravovat několik podnikatelských identit. Zavedení plátcovství
-a jeho vlivu na výpočty a doklady zůstává navazujícímu kroku 8.
+a jeho vlivu na výpočty a doklady zůstává navazujícím krokům 12 a 13.
 
 ### 3.3 Společná pravidla
 
@@ -117,7 +117,7 @@ a jeho vlivu na výpočty a doklady zůstává navazujícímu kroku 8.
   údajích dokladu stejným způsobem při výběru kontaktu i jednorázovém zadání.
   Samotné `contact_id` nebo `business_id` není důkazem úplnosti údajů.
 - Tato funkcionalita nezavádí úplnou sadu daňových náležitostí nových typů
-  dokladů ani nový životní cyklus draft/issued; ty patří kroku 8.
+  dokladů ani nový životní cyklus draft/issued; ty patří kroku 12.
 
 ## 4. Fakturační adresy
 
@@ -256,7 +256,7 @@ uživatel může výslovně načíst aktuální údaje.
 
 Uložení stran a účtu patří již do této dodávky. Úplný životní cyklus,
 uzamčení vystaveného dokladu, číslování při vystavení, opravné doklady
-a uchování výsledného PDF včetně šablony a loga patří navazujícímu kroku 8.
+a uchování výsledného PDF včetně šablony a loga patří navazujícímu kroku 12.
 Uložené údaje stran samy nejsou úplnou neměnností celého PDF.
 
 ### 7.1 Formuláře dokladů
@@ -265,7 +265,7 @@ Uložené údaje stran samy nejsou úplnou neměnností celého PDF.
   název, ulice, město, PSČ a země dodavatele i odběratele. Platí stejně
   pro vybraný kontakt, jednorázovou protistranu, frontend, administraci
   i fakturu nepřihlášeného. IČO a DIČ se při vyplnění ukládají již nyní;
-  jejich povinnost podle daňového režimu a další náležitosti doplní krok 8.
+  jejich povinnost podle daňového režimu a další náležitosti doplní kroky 12 a 13.
 - Vlastní firma se na faktuře jen vybírá, údaje dodavatele se ručně
   nepřepisují. Firma bez úplné adresy vyvolá validační chybu s odkazem
   na její úpravu.
@@ -274,7 +274,7 @@ Uložené údaje stran samy nejsou úplnou neměnností celého PDF.
   převodem, výchozí účet firmy se předvyplní.
 - Faktura bez kontaktu nabízí na detailu „Uložit do kontaktů“; při shodě
   českého IČO „Propojit s existujícím kontaktem“. Obě akce nastaví jen
-  vazbu na kontakt, údaje dokladu nemění. Vystavená faktura se po kroku 8
+  vazbu na kontakt, údaje dokladu nemění. Vystavená faktura se po kroku 12
   nemění vůbec, ani vazbou na kontakt; akce pak zůstanou jen u nové
   faktury a konceptu.
 - Odesílání dokladu e-mailem v aplikaci zatím není; pravidlo 10.3 platí,
@@ -291,7 +291,7 @@ Uložené údaje stran samy nejsou úplnou neměnností celého PDF.
 
 Kontakty i vlastní firmy se v běžném rozhraní archivují, i když ještě
 nejsou použité na dokladech. Fyzické odstranění není běžnou uživatelskou akcí.
-Archivace a obnova obou entit patří do této dodávky, nikoli až do kroku 8.
+Archivace a obnova obou entit patří do této dodávky, nikoli až do kroku 12.
 
 - Archivovaný záznam se nenabízí v nových výběrech.
 - Zůstává dostupný v přehledu archivovaných s možností výslovné obnovy.
@@ -304,7 +304,7 @@ Archivace a obnova obou entit patří do této dodávky, nikoli až do kroku 8.
   ani výchozí Business; historie zůstává dostupná a vystavení dalšího
   dokladu vyžaduje založení nebo obnovení aktivní vlastní firmy.
 
-Archivace produktů zůstává v navazujícím kroku 8. Zrušení účtu a fyzické
+Archivace produktů zůstává v navazujícím kroku 12. Zrušení účtu a fyzické
 odstranění jeho dat jsou samostatným případem užití mimo tento PRD.
 
 ## 9. Katalog produktů a tarifní limity

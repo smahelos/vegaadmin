@@ -11,7 +11,7 @@ Status: Accepted 2026-10-30. Applies to human contributors, Codex, Claude and ot
 | `docs/prd/PRD_*.md` | Approved product behaviour, scope and acceptance criteria | Yes |
 | `docs/design/DESIGN_*.md` | Technical designs needed to understand nontrivial mechanisms | Yes |
 | `docs/prd/VERIFICATION_*.md` | Acceptance-to-test maps where useful for a larger feature | Yes |
-| `docs/TECH_DEBT.md` | Known implementation gaps and priorities | Yes |
+| `docs/TECH_DEBT.md` | Known implementation gaps and the order of work | Yes |
 | `AGENTS.md` | Canonical shared agent instructions, rule catalog, workflow routing and review rules | Yes |
 | `.claude/CLAUDE.md` | Claude entry point importing `AGENTS.md`, without separate project instructions | Yes |
 | `.claude/rules/` | Shared target code standard | Yes |
