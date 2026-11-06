@@ -12,7 +12,7 @@ final class RunCronTaskRequest extends FormRequest
     {
         $user = backpack_user();
 
-        return $user?->can('can_create_edit_cron_task') === true;
+        return $user?->can('can_run_cron_task') === true;
     }
 
     /**

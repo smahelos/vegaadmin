@@ -107,13 +107,13 @@ final class InvoiceRequest extends BaseEntityRequest
         return 'invoice';
     }
 
-    /**
-     * Get required permission for invoice operations
-     * Note: Invoice creation from frontend is currently unlimited
-     */
     protected function getRequiredPermission(): string
     {
-        return ''; // No permission required - frontend invoice creation is unlimited
+        if ($this->isCreatingEntity()) {
+            return 'frontend.can_create_invoice';
+        }
+
+        return 'frontend.can_update_invoice';
     }
 
     /**

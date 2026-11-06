@@ -33,7 +33,7 @@ final class InvoiceItemsFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_invoice');
+        $permissionQuery = Permission::where('name', 'frontend.can_create_invoice');
         $permissionQuery->where('guard_name', 'web');
         $permission = $permissionQuery->first();
         if ($permission) {
@@ -41,7 +41,7 @@ final class InvoiceItemsFeatureTest extends TestCase
         }
         EntityLimit::create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'limit_value' => 10,
                 'period_type' => 'monthly',

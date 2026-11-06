@@ -12,10 +12,12 @@ class PageRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow updates if the user has permission to manage pages
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_page') === true;
+        }
 
-        return $user?->can('can_create_edit_page') === true;
+        return $user?->can('can_update_page') === true;
     }
 
     /**

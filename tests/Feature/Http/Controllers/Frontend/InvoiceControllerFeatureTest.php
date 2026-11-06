@@ -33,13 +33,10 @@ class InvoiceControllerFeatureTest extends TestCase
 
         $this->setUpFrontendTestEnvironment();
 
-        // Give user specific invoice permission
-        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_invoice');
-        $permissionQuery->where('guard_name', 'web');
-        $permission = $permissionQuery->first();
-        if ($permission) {
-            $this->user->givePermissionTo($permission);
-        }
+        $this->user->givePermissionTo(
+            Permission::findByName('frontend.can_create_invoice', 'web'),
+            Permission::findByName('frontend.can_update_invoice', 'web'),
+        );
 
         // Create test invoice
         $invoiceFactory = Invoice::factory();
@@ -62,7 +59,7 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         EntityLimit::create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'limit_value' => 10,
                 'period_type' => 'monthly',
@@ -432,7 +429,7 @@ class InvoiceControllerFeatureTest extends TestCase
         // we need to set limit to 1, so update data in database
         $entityLimitQuery = EntityLimit::where(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
             ],
         );
         $entityLimitQuery->update(['limit_value' => 1]);

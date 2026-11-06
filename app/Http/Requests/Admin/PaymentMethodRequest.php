@@ -14,7 +14,11 @@ class PaymentMethodRequest extends BaseEntityRequest
 
     protected function getRequiredPermission(): string
     {
-        return 'can_create_edit_payment_method';
+        if ($this->isCreatingEntity()) {
+            return 'can_create_payment_method';
+        }
+
+        return 'can_update_payment_method';
     }
 
     public function rules(): array

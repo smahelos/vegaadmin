@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,17 +26,6 @@ class CronTaskFactory extends Factory
      */
     public function definition(): array
     {
-        $commands = [
-            'cache:clear',
-            'queue:work',
-            'backup:run',
-            'logs:clear',
-            'optimize:clear',
-            'route:cache',
-            'config:cache',
-            'view:cache',
-        ];
-
         $frequencies = [
             'daily',
             'weekly',
@@ -46,7 +36,8 @@ class CronTaskFactory extends Factory
 
         return [
             'name' => $this->faker->words(3, true) . ' Task',
-            'command' => $this->faker->randomElement($commands),
+            'command' => $this->faker->randomElement(ScheduledCommand::cases()),
+            'parameters' => null,
             'frequency' => $this->faker->randomElement($frequencies),
             'custom_expression' => $optional->regexify(
                 '[0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2}',
@@ -148,11 +139,14 @@ class CronTaskFactory extends Factory
     /**
      * Create a cron task with specific command.
      */
-    public function withCommand(string $command): static
+    public function withCommand(ScheduledCommand $command, ?string $parameters = null): static
     {
-        return $this->state(fn (array $attributes) => [
-            'command' => $command,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'command' => $command,
+                'parameters' => $parameters,
+            ],
+        );
     }
 
     /**

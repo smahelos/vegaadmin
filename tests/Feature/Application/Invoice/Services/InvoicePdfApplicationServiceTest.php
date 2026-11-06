@@ -36,9 +36,9 @@ class InvoicePdfApplicationServiceTest extends TestCase
         $userFactory = User::factory();
         $this->user = $userFactory->create();
         Permission::firstOrCreate(
-            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+            ['name' => 'frontend.can_create_invoice', 'guard_name' => 'web'],
         );
-        $this->user->givePermissionTo('frontend.can_create_edit_invoice');
+        $this->user->givePermissionTo('frontend.can_create_invoice');
         // Register fake limit service BEFORE resolving application services
         $fakeLimit = new class implements UniversalLimitServiceInterface
         {

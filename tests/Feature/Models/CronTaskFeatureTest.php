@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Models;
 
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -13,7 +17,7 @@ use Tests\TestCase;
  * Feature tests for CronTask Model
  *
  * Tests database operations, business logic, and model behavior requiring database interactions
- * Tests cron task creation, accessors, mutators, and cron expression generation
+ * Tests cron task creation, running and cron expression generation
  */
 class CronTaskFeatureTest extends TestCase
 {
@@ -34,38 +38,6 @@ class CronTaskFeatureTest extends TestCase
                 'frequency' => $cronTask->frequency,
             ],
         );
-    }
-
-    #[Test]
-    public function fillable_attributes_can_be_mass_assigned(): void
-    {
-        $data = [
-            'name' => 'Test Cron Task',
-            'command' => 'cache:clear',
-            'frequency' => 'daily',
-            'custom_expression' => null,
-            'run_at' => '08:00:00',
-            'day_of_week' => null,
-            'day_of_month' => null,
-            'is_active' => true,
-            'description' => 'Test description',
-            'last_run' => '2025-06-17 08:00:00',
-            'last_output' => 'Task completed successfully',
-        ];
-
-        $cronTask = CronTask::create($data);
-
-        $this->assertDatabaseHas(
-            'cron_tasks',
-            [
-                'name' => $data['name'],
-                'command' => $data['command'],
-                'frequency' => $data['frequency'],
-                'description' => $data['description'],
-            ],
-        );
-        $this->assertEquals($data['name'], $cronTask->name);
-        $this->assertEquals($data['command'], $cronTask->command);
     }
 
     #[Test]
@@ -97,39 +69,6 @@ class CronTaskFeatureTest extends TestCase
         $this->assertEquals(3, $cronTask->day_of_week);
         $this->assertIsInt($cronTask->day_of_month);
         $this->assertEquals(15, $cronTask->day_of_month);
-    }
-
-    #[Test]
-    public function get_base_command_attribute_works(): void
-    {
-        $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
-        $simpleCommand = $commandFactory->create();
-        $commandFactory = $cronTaskFactory->withCommand('queue:work --queue=high,default');
-        $commandWithParams = $commandFactory->create();
-
-        $this->assertEquals('cache:clear', $simpleCommand->getBaseCommandAttribute());
-        $this->assertEquals('queue:work', $commandWithParams->getBaseCommandAttribute());
-
-        // Test accessor via magic method
-        $this->assertEquals('cache:clear', $simpleCommand->base_command);
-    }
-
-    #[Test]
-    public function get_command_params_attribute_works(): void
-    {
-        $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
-        $simpleCommand = $commandFactory->create();
-        $commandFactory = $cronTaskFactory->withCommand('queue:work --queue=high,default --timeout=60');
-        $commandWithParams = $commandFactory->create();
-
-        $this->assertEmpty($simpleCommand->getCommandParamsAttribute());
-        $this->assertNotEmpty($commandWithParams->getCommandParamsAttribute());
-        $this->assertStringContainsString('--queue=high,default', $commandWithParams->getCommandParamsAttribute());
-
-        // Test accessor via magic method
-        $this->assertEmpty($simpleCommand->command_params);
     }
 
     #[Test]
@@ -273,18 +212,56 @@ class CronTaskFeatureTest extends TestCase
     }
 
     #[Test]
-    public function simulate_run_returns_appropriate_result(): void
+    public function simulate_run_runs_the_command_with_its_options_and_stores_the_run(): void
+    {
+        Mail::fake();
+        Notification::fake();
+        Queue::fake();
+        $cronTaskFactory = CronTask::factory();
+        $commandFactory = $cronTaskFactory->withCommand(
+            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
+            '--days-before=5 --days-after=2',
+        );
+        $task = $commandFactory->create(['last_run' => null]);
+
+        $succeeded = $task->simulateRun();
+
+        $this->assertTrue($succeeded);
+        $task->refresh();
+        $this->assertNotNull($task->last_run);
+        $this->assertStringContainsString('Notifications sent', $task->last_output);
+    }
+
+    #[Test]
+    public function simulate_run_reports_a_command_that_rejects_its_options_as_failed(): void
     {
         $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand('cache:clear');
+        $commandFactory = $cronTaskFactory->withCommand(
+            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
+            '--days-before=soon',
+        );
         $task = $commandFactory->create();
 
-        $result = $task->simulateRun();
-
-        // The actual implementation may vary, but it should return something
-        $this->assertTrue(
-            is_string($result) || is_array($result) || is_null($result) || is_bool($result) || is_int($result),
+        $this->assertFalse(
+            $task->simulateRun(),
         );
+    }
+
+    #[Test]
+    public function simulate_run_reports_an_unknown_option_as_failed_with_the_error(): void
+    {
+        $cronTaskFactory = CronTask::factory();
+        $commandFactory = $cronTaskFactory->withCommand(
+            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
+            '--no-such-option',
+        );
+        $task = $commandFactory->create();
+
+        $succeeded = $task->simulateRun();
+
+        $this->assertFalse($succeeded);
+        $task->refresh();
+        $this->assertStringStartsWith('Chyba: ', $task->last_output);
     }
 
     #[Test]
@@ -327,7 +304,7 @@ class CronTaskFeatureTest extends TestCase
     {
         $data = [
             'name' => 'Simple Task',
-            'command' => 'optimize:clear',
+            'command' => ScheduledCommand::OPTIMIZE_DATABASE,
             'frequency' => 'daily',
             'is_active' => true,
         ];
@@ -339,19 +316,5 @@ class CronTaskFeatureTest extends TestCase
         $this->assertNull($cronTask->description);
         $this->assertNull($cronTask->last_run);
         $this->assertNull($cronTask->last_output);
-    }
-
-    #[Test]
-    public function command_mutator_and_accessor_work_together(): void
-    {
-        $cronTaskFactory = CronTask::factory();
-        $cronTask = $cronTaskFactory->make();
-
-        // Test setting command through mutator
-        $cronTask->setCommandAttribute('queue:work --timeout=60');
-
-        // Test that base command and params are extracted correctly
-        $this->assertEquals('queue:work', $cronTask->getBaseCommandAttribute());
-        $this->assertEquals('--timeout=60', $cronTask->getCommandParamsAttribute());
     }
 }

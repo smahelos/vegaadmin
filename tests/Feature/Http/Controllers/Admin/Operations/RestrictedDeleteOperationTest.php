@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin\Operations;
 
-use App\Models\ArtisanCommand;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -38,16 +37,6 @@ final class RestrictedDeleteOperationTest extends TestCase
     public static function referencedEntryProvider(): array
     {
         return [
-            'artisan command category' => [
-                'artisan-command-category',
-                'artisan_command_categories',
-                static function (): int {
-                    $artisanCommandFactory = ArtisanCommand::factory();
-                    $artisanCommand = $artisanCommandFactory->create();
-
-                    return $artisanCommand->category_id;
-                },
-            ],
             'expense category' => [
                 'expense-category',
                 'expense_categories',

@@ -4,8 +4,11 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\PageCategoryCrudController;
 use App\Models\PageCategory;
+use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -22,6 +25,41 @@ class PageCategoryCrudControllerTest extends TestCase
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
+        $this->regularUser->givePermissionTo(
+            Permission::findByName('can_view_page', 'backpack'),
+            Permission::findByName('can_create_page', 'backpack'),
+            Permission::findByName('can_update_page', 'backpack'),
+            Permission::findByName('can_delete_page', 'backpack'),
+        );
+    }
+
+    #[Test]
+    public function every_operation_is_denied_without_the_page_permissions(): void
+    {
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
+        $user->givePermissionTo(
+            Permission::findByName('backpack.access', 'backpack'),
+        );
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->get('/admin/page-category');
+        $response->assertForbidden();
+        $response = $httpClient->get("/admin/page-category/{$category->id}/show");
+        $response->assertForbidden();
+        $response = $httpClient->get('/admin/page-category/create');
+        $response->assertForbidden();
+        $response = $httpClient->get("/admin/page-category/{$category->id}/edit");
+        $response->assertForbidden();
+        $response = $httpClient->delete("/admin/page-category/{$category->id}");
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('page_categories', ['id' => $category->id]);
     }
 
     #[Test]

@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Domain\Shared\Console\ValueObjects\CommandOptions;
 use App\Models\CronTask;
 use Carbon\Carbon;
 use Cron\CronExpression as CronParser;
@@ -69,8 +70,13 @@ class TestCronExpression extends Command
             if ($this->confirm('Do yu want to simulate task run? [y/N]', false)) {
                 if ($task !== null) {
                     // Run the task command
-                    $this->info("Task run: {$task->command}");
-                    $this->call($task->command);
+                    $options = CommandOptions::fromString($task->parameters ?? '');
+                    $commandLine = trim($task->command->value . ' ' . $task->parameters);
+                    $this->info("Task run: {$commandLine}");
+                    $this->call(
+                        $task->command->value,
+                        $options->input(),
+                    );
                 } else {
                     $this->line(
                         'Simulation is not accessible for testing of task expression.',

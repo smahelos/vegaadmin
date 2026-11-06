@@ -42,7 +42,7 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'entity_type' => 'product_category',
                 'limit_value' => 100,
                 'period_type' => 'monthly',

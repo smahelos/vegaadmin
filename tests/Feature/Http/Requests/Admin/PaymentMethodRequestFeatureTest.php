@@ -31,7 +31,7 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_payment_method',
+                'permission_name' => 'can_create_payment_method',
                 'entity_type' => 'payment_method',
                 'limit_value' => 100,
                 'period_type' => 'monthly',

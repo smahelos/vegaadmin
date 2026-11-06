@@ -22,10 +22,11 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        $permissionQuery = Permission::where('name', 'can_create_edit_expense');
-        $permissionQuery->where('guard_name', 'backpack');
-        $permission = $permissionQuery->first();
-        $this->regularUser->givePermissionTo($permission);
+        $this->regularUser->givePermissionTo(
+            Permission::findByName('can_view_expense', 'backpack'),
+            Permission::findByName('can_create_expense', 'backpack'),
+            Permission::findByName('can_update_expense', 'backpack'),
+        );
     }
 
     #[Test]

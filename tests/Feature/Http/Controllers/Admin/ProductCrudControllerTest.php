@@ -22,11 +22,11 @@ class ProductCrudControllerTest extends TestCase
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
-        $permissionQuery = Permission::where('name', 'can_create_edit_product');
-        $permissionQuery->where('guard_name', 'backpack');
-        $permission = $permissionQuery->first();
-
-        $this->regularUser->givePermissionTo($permission);
+        $this->regularUser->givePermissionTo(
+            Permission::findByName('can_view_product', 'backpack'),
+            Permission::findByName('can_create_product', 'backpack'),
+            Permission::findByName('can_update_product', 'backpack'),
+        );
 
         $this->limitService = app(UniversalLimitService::class);
     }
@@ -45,7 +45,7 @@ class ProductCrudControllerTest extends TestCase
                 'limit_value' => 10,
                 'period_type' => 'monthly',
                 'metric_type' => 'count',
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'is_active' => true,
             ],
         );
@@ -109,7 +109,7 @@ class ProductCrudControllerTest extends TestCase
                 'limit_value' => 1,
                 'period_type' => 'monthly',
                 'metric_type' => 'count',
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'is_active' => true,
             ],
         );

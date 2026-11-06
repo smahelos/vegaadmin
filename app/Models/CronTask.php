@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\Shared\Console\ValueObjects\CommandOptions;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
 use Cron\CronExpression;
+use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Artisan;
 
 class CronTask extends Model
 {
@@ -16,6 +20,7 @@ class CronTask extends Model
     protected $fillable = [
         'name',
         'command',
+        'parameters',
         'frequency',
         'custom_expression',
         'run_at',
@@ -28,73 +33,13 @@ class CronTask extends Model
     ];
 
     protected $casts = [
+        'command' => ScheduledCommand::class,
         'run_at' => 'datetime',
         'last_run' => 'datetime',
         'is_active' => 'boolean',
         'day_of_week' => 'integer',
         'day_of_month' => 'integer',
     ];
-
-    /**
-     * Získá základní příkaz bez parametrů.
-     */
-    public function getBaseCommandAttribute(): ?string
-    {
-        if (empty($this->command)) {
-            return null;
-        }
-
-        $parts = explode(
-            ' ',
-            trim($this->command),
-            2,
-        );
-
-        return $parts[0] ?? null;
-    }
-
-    /**
-     * Získá parametry příkazu.
-     */
-    public function getCommandParamsAttribute(): ?string
-    {
-        if (empty($this->command)) {
-            return null;
-        }
-
-        $parts = explode(
-            ' ',
-            trim($this->command),
-            2,
-        );
-
-        return $parts[1] ?? '';
-    }
-
-    /**
-     * Nastaví kompletní příkaz na základě základního příkazu a parametrů.
-     */
-    public function setCommandAttribute(string $value): void
-    {
-        // Pokud hodnota už obsahuje mezery (kompletní příkaz), uložíme ji přímo
-        if (strpos($value, ' ') !== false) {
-            $this->attributes['command'] = trim($value);
-
-            return;
-        }
-
-        // Jinak jde o základní příkaz bez parametrů
-        $baseCommand = trim($value);
-        $params = $this->command_params ?? '';
-
-        // Sestavíme kompletní příkaz
-        $fullCommand = $baseCommand;
-        if (!empty($params)) {
-            $fullCommand .= ' ' . trim($params);
-        }
-
-        $this->attributes['command'] = trim($fullCommand);
-    }
 
     /**
      * Získá CRON výraz podle nastavené frekvence.
@@ -143,23 +88,19 @@ class CronTask extends Model
     }
 
     /**
-     * Simuluje spuštění úlohy.
+     * Runs the command now and stores the time and output of the run. A failed or throwing command returns false
+     * with the error in last_output.
      */
-    public function simulateRun(): mixed
+    public function simulateRun(): bool
     {
         try {
             $startTime = microtime(true);
 
-            // Rozlišení mezi Artisan příkazem a PHP funkcí
-            if (strpos($this->command, '::') !== false) {
-                // PHP funkce
-                [$class, $method] = explode('::', $this->command);
-                $instance = app($class);
-                $result = $instance->$method();
-            } else {
-                // Artisan příkaz
-                $result = \Artisan::call($this->command);
-            }
+            $options = CommandOptions::fromString($this->parameters ?? '');
+            $exitCode = Artisan::call(
+                $this->command->value,
+                $options->input(),
+            );
 
             $executionTime = round(
                 microtime(true) - $startTime,
@@ -168,11 +109,11 @@ class CronTask extends Model
 
             // Aktualizace informací o posledním spuštění
             $this->last_run = now();
-            $this->last_output = 'Výsledek: ' . (is_string($result) ? $result : \Artisan::output()) .
+            $this->last_output = 'Výsledek: ' . Artisan::output() .
                                 "\nDoba trvání: {$executionTime}s";
             $this->save();
 
-            return $result;
+            return $exitCode === Command::SUCCESS;
         } catch (\Exception $e) {
             $this->last_run = now();
             $this->last_output = 'Chyba: ' . $e->getMessage();

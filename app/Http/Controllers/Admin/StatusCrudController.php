@@ -24,6 +24,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 final class StatusCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
@@ -41,6 +42,16 @@ final class StatusCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('statuses.entity.singular'),
             __('statuses.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_status',
+                'show' => 'can_view_status',
+                'create' => 'can_create_status',
+                'update' => 'can_update_status',
+                'delete' => 'can_delete_status',
+            ],
         );
 
         // Filter by category_id from URL

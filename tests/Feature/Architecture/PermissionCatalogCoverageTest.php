@@ -27,8 +27,11 @@ class PermissionCatalogCoverageTest extends TestCase
         $patterns = [
             // can('x'), hasPermissionTo('x', ...), hasBackpackPermission($id, 'x'), ...
             '/\b(?:can|hasPermissionTo|hasBackpackPermission|backpackUserHasPermission|checkPermissionTo)\(\s*(?:\(int\)\s*\$[\w>-]+\s*,\s*)?[\'"]((?:can_|backpack\.|frontend\.)[a-z_.]+)[\'"]/',
-            // form requests: getRequiredPermission() { return 'x'; }
+            // form requests: getRequiredPermission() { return 'x'; }, also one return per branch
             '/function getRequiredPermission\(\): string\s*\{\s*return [\'"]([a-z_.]+)[\'"]/',
+            '/\breturn [\'"]((?:can_|backpack\.|frontend\.)[a-z_.]+)[\'"];/',
+            // admin CRUD controllers: denyOperationsWithout(['list' => 'x', ...])
+            '/[\'"](?:list|show|create|update|delete)[\'"]\s*=>\s*[\'"]((?:can_|backpack\.)[a-z_.]+)[\'"]/',
             // any frontend permission named in code, such as the checks of Livewire components
             '/[\'"](frontend\.can_[a-z_]+)[\'"]/',
         ];
@@ -36,8 +39,13 @@ class PermissionCatalogCoverageTest extends TestCase
         $missing = [];
         $finder = new Finder;
         $finder->files();
+        // Templates too: a permission they ask for that does not exist hides a menu entry or button for everyone
         $finder->in(
-            [app_path(), base_path('routes')],
+            [
+                app_path(),
+                base_path('routes'),
+                resource_path('views'),
+            ],
         );
         $finder->name('*.php');
         foreach ($finder as $file) {

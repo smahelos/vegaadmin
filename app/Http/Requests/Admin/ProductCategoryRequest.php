@@ -18,11 +18,15 @@ class ProductCategoryRequest extends BaseEntityRequest
     }
 
     /**
-     * Required permission name
+     * Categories are managed with the product permissions
      */
     protected function getRequiredPermission(): string
     {
-        return 'can_create_edit_product'; // same permission group for products & categories
+        if ($this->isCreatingEntity()) {
+            return 'can_create_product';
+        }
+
+        return 'can_update_product';
     }
 
     /**

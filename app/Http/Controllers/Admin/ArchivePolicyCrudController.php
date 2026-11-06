@@ -19,6 +19,7 @@ class ArchivePolicyCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -35,6 +36,16 @@ class ArchivePolicyCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('admin/database.archive_policies.entity.singular'),
             __('admin/database.archive_policies.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_configure_system',
+                'show' => 'can_configure_system',
+                'create' => 'can_configure_system',
+                'update' => 'can_configure_system',
+                'delete' => 'can_configure_system',
+            ],
         );
     }
 

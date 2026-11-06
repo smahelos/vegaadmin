@@ -1,51 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
+use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
-// No Mockery needed; simple in-memory stub implements interface
-
-// Lightweight stub for ArtisanCommandsServiceInterface to avoid mocking framework overhead
-if (!class_exists(CronTaskCommandsServiceStub::class)) {
-    class CronTaskCommandsServiceStub implements ArtisanCommandsServiceInterface
-    {
-        public function getAllCommands(bool $onlyNames = false): array
-        {
-            return ['inspire' => 'php artisan inspire'];
-        }
-
-        public function getCommandsByCategory(?string $categorySlug = null, bool $withoutCategory = false): array
-        {
-            return [
-                'inspire' => 'php artisan inspire',
-                'queue:work' => 'php artisan queue:work',
-            ];
-        }
-
-        public function clearCommandsCache(): void {}
-
-        public function getAllCommandsWithDetails(): array
-        {
-            return [
-                'inspire' => [
-                    'name' => 'inspire',
-                    'description' => 'Display an inspiring quote',
-                    'signature' => 'inspire',
-                ],
-            ];
-        }
-    }
-}
-
-class CronTaskCrudControllerTest extends TestCase
+final class CronTaskCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
@@ -53,88 +24,119 @@ class CronTaskCrudControllerTest extends TestCase
     {
         parent::setUp();
         $this->setUpAdminTestEnvironment();
+    }
 
-        // Trait already ensures permission list including can_create_edit_cron_task for backpack guard
-        if (!$this->adminUser->hasPermissionTo('can_create_edit_cron_task', 'backpack')) {
-            $this->adminUser->givePermissionTo('can_create_edit_cron_task');
+    #[Test]
+    public function create_form_offers_only_the_scheduled_commands(): void
+    {
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->get('/admin/cron-task/create');
+
+        $response->assertOk();
+        foreach (ScheduledCommand::cases() as $command) {
+            $response->assertSee($command->value);
         }
+        $response->assertDontSee('db:wipe');
     }
 
     #[Test]
-    public function create_form_displays_commands_select_from_injected_service(): void
+    public function store_persists_the_command_and_its_options(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Monitor ' . uniqid();
 
-        // Mock service to ensure DI + usage in controller
-        $this->app->instance(ArtisanCommandsServiceInterface::class, new CronTaskCommandsServiceStub);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->post(
+            '/admin/cron-task',
+            [
+                'name' => $name,
+                'command' => 'db:monitor',
+                'parameters' => '--metric=all --store',
+                'frequency' => 'daily',
+                'run_at' => '09:30',
+                'is_active' => true,
+            ],
+        );
+        $response->assertRedirect();
+        $response->assertSessionHasNoErrors();
 
-        $response = $this->get('/admin/cron-task/create');
-        $response->assertStatus(200);
-        $response->assertSee('inspire');
-        $response->assertSee('queue:work');
+        $this->assertDatabaseHas(
+            'cron_tasks',
+            [
+                'name' => $name,
+                'command' => 'db:monitor',
+                'parameters' => '--metric=all --store',
+                'frequency' => 'daily',
+            ],
+        );
     }
 
     #[Test]
-    public function store_persists_minimal_daily_cron_task(): void
+    public function store_rejects_a_command_outside_the_scheduled_commands(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Wipe ' . uniqid();
 
-        $this->app->instance(ArtisanCommandsServiceInterface::class, new CronTaskCommandsServiceStub);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->post(
+            '/admin/cron-task',
+            [
+                'name' => $name,
+                'command' => 'db:wipe',
+                'frequency' => 'daily',
+                'is_active' => true,
+            ],
+        );
+        $response->assertSessionHasErrors(['command']);
 
-        $payload = [
-            'name' => 'Daily Inspire ' . uniqid(),
-            'base_command' => 'inspire',
-            'command' => 'inspire',
-            'command_params' => '',
-            'frequency' => 'daily',
-            'run_at' => '09:30',
-            'is_active' => true,
-        ];
+        $this->assertDatabaseMissing('cron_tasks', ['name' => $name]);
+    }
 
-        $response = $this->post('/admin/cron-task', $payload);
-        $response->assertStatus(302); // Redirect after create
+    #[Test]
+    public function store_rejects_parameters_with_shell_characters(): void
+    {
+        $name = 'Injected ' . uniqid();
 
-        $this->assertDatabaseHas('cron_tasks', [
-            'name' => $payload['name'],
-            'frequency' => 'daily',
-        ]);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->post(
+            '/admin/cron-task',
+            [
+                'name' => $name,
+                'command' => 'db:monitor',
+                'parameters' => '--metric=all; touch /tmp/billex',
+                'frequency' => 'daily',
+                'is_active' => true,
+            ],
+        );
+        $response->assertSessionHasErrors(['parameters']);
 
-        $cronTaskQuery = CronTask::where('name', $payload['name']);
-        $cronTask = $cronTaskQuery->first();
-        $this->assertNotNull($cronTask);
-        $this->assertEquals('inspire', $cronTask->base_command); // accessor
+        $this->assertDatabaseMissing('cron_tasks', ['name' => $name]);
     }
 
     #[Test]
     public function validation_fails_for_invalid_custom_expression(): void
     {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $this->app->instance(ArtisanCommandsServiceInterface::class, new CronTaskCommandsServiceStub);
-
-        $payload = [
-            'name' => 'Invalid Custom ' . uniqid(),
-            'base_command' => 'inspire',
-            'command' => 'inspire',
-            'command_params' => '',
-            'frequency' => 'custom',
-            'custom_expression' => 'invalid expression',
-            'is_active' => true,
-        ];
-
-        $response = $this->post('/admin/cron-task', $payload);
-        $response->assertStatus(302); // Validation redirect
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->post(
+            '/admin/cron-task',
+            [
+                'name' => 'Invalid Custom ' . uniqid(),
+                'command' => 'db:monitor',
+                'frequency' => 'custom',
+                'custom_expression' => 'invalid expression',
+                'is_active' => true,
+            ],
+        );
         $response->assertSessionHasErrors(['custom_expression']);
     }
 
     #[Test]
     public function run_executes_the_task_and_reports_success(): void
     {
+        Mail::fake();
+        Notification::fake();
+        Queue::fake();
         $cronTaskFactory = CronTask::factory();
-        $task = $cronTaskFactory->create([
-            'command' => 'inspire',
-            'last_run' => null,
-        ]);
+        $commandFactory = $cronTaskFactory->withCommand(ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS);
+        $task = $commandFactory->create(['last_run' => null]);
 
         $httpClient = $this->actingAs($this->adminUser, 'backpack');
         $httpClient = $httpClient->from('/admin/cron-task');
@@ -148,14 +150,19 @@ class CronTaskCrudControllerTest extends TestCase
         );
         $httpResponse->assertSessionMissing('alert_messages.error');
 
-        $this->assertNotNull($task->fresh()->last_run);
+        $task->refresh();
+        $this->assertNotNull($task->last_run);
     }
 
     #[Test]
     public function run_reports_a_failed_task_as_an_error(): void
     {
         $cronTaskFactory = CronTask::factory();
-        $task = $cronTaskFactory->create(['command' => 'billex:no-such-command']);
+        $commandFactory = $cronTaskFactory->withCommand(
+            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
+            '--days-before=soon',
+        );
+        $task = $commandFactory->create();
 
         $httpClient = $this->actingAs($this->adminUser, 'backpack');
         $httpClient = $httpClient->from('/admin/cron-task');
@@ -174,33 +181,28 @@ class CronTaskCrudControllerTest extends TestCase
     public function run_is_not_reachable_over_get(): void
     {
         $cronTaskFactory = CronTask::factory();
-        $task = $cronTaskFactory->create([
-            'command' => 'inspire',
-            'last_run' => null,
-        ]);
+        $task = $cronTaskFactory->create(['last_run' => null]);
 
         $httpClient = $this->actingAs($this->adminUser, 'backpack');
         $httpResponse = $httpClient->get('/admin/cron-task/' . $task->id . '/run');
         $httpResponse->assertMethodNotAllowed();
 
-        $this->assertNull($task->fresh()->last_run);
+        $task->refresh();
+        $this->assertNull($task->last_run);
     }
 
     #[Test]
-    public function run_requires_the_cron_task_permission(): void
+    public function run_requires_the_run_permission(): void
     {
         $cronTaskFactory = CronTask::factory();
-        $task = $cronTaskFactory->create([
-            'command' => 'inspire',
-            'last_run' => null,
-        ]);
-        $userFactory = User::factory();
-        $user = $userFactory->create();
-        $user->assignRole(
-            Role::findByName('backend_user', 'backpack'),
-        );
-        $user->givePermissionTo(
-            Permission::findByName('backpack.access', 'backpack'),
+        $task = $cronTaskFactory->create(['last_run' => null]);
+        $user = $this->backendUser(
+            [
+                'can_view_cron_task',
+                'can_create_cron_task',
+                'can_update_cron_task',
+                'can_delete_cron_task',
+            ],
         );
 
         $httpClient = $this->actingAs($user, 'backpack');
@@ -209,6 +211,64 @@ class CronTaskCrudControllerTest extends TestCase
         );
         $httpResponse->assertForbidden();
 
-        $this->assertNull($task->fresh()->last_run);
+        $task->refresh();
+        $this->assertNull($task->last_run);
+    }
+
+    #[Test]
+    public function every_operation_is_denied_without_its_permission(): void
+    {
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create();
+        $user = $this->backendUser([]);
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->get('/admin/cron-task');
+        $response->assertForbidden();
+        $response = $httpClient->get('/admin/cron-task/' . $task->id . '/show');
+        $response->assertForbidden();
+        $response = $httpClient->get('/admin/cron-task/create');
+        $response->assertForbidden();
+        $response = $httpClient->get('/admin/cron-task/' . $task->id . '/edit');
+        $response->assertForbidden();
+        $response = $httpClient->delete('/admin/cron-task/' . $task->id);
+        $response->assertForbidden();
+
+        $this->assertDatabaseHas('cron_tasks', ['id' => $task->id]);
+    }
+
+    #[Test]
+    public function the_view_permission_opens_the_list_but_not_the_editing(): void
+    {
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create();
+        $user = $this->backendUser(['can_view_cron_task']);
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->get('/admin/cron-task');
+        $response->assertOk();
+        $response = $httpClient->get('/admin/cron-task/' . $task->id . '/edit');
+        $response->assertForbidden();
+        $response = $httpClient->delete('/admin/cron-task/' . $task->id);
+        $response->assertForbidden();
+    }
+
+    /**
+     * @param  list<string>  $permissions
+     */
+    private function backendUser(array $permissions): User
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
+        foreach (['backpack.access', ...$permissions] as $permission) {
+            $user->givePermissionTo(
+                Permission::findByName($permission, 'backpack'),
+            );
+        }
+
+        return $user;
     }
 }

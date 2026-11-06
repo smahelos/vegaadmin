@@ -129,7 +129,7 @@
                     <span class="text-gray-500 dark:text-gray-400">({{ __('parties.statuses.archived') }})</span>
                     @endif
                     @elseif($contactToLink)
-                    @can('frontend.can_create_edit_invoice')
+                    @can('frontend.can_update_invoice')
                     <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <input type="hidden" name="contact_id" value="{{ $contactToLink->id->value }}">
@@ -140,7 +140,7 @@
                     @endcan
                     @else
                     @can('frontend.can_create_contact')
-                    @can('frontend.can_create_edit_invoice')
+                    @can('frontend.can_update_invoice')
                     <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>

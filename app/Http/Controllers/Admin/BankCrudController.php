@@ -24,6 +24,7 @@ class BankCrudController extends CrudController
     use BankFormFields;
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -38,6 +39,16 @@ class BankCrudController extends CrudController
             config('backpack.base.route_prefix') . '/bank',
         );
         CRUD::setEntityNameStrings('bank', 'banks');
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_bank',
+                'show' => 'can_view_bank',
+                'create' => 'can_create_bank',
+                'update' => 'can_update_bank',
+                'delete' => 'can_delete_bank',
+            ],
+        );
     }
 
     /**

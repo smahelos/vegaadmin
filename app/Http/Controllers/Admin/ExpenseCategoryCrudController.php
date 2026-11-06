@@ -23,6 +23,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 final class ExpenseCategoryCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
@@ -40,6 +41,16 @@ final class ExpenseCategoryCrudController extends CrudController
         CRUD::setEntityNameStrings(
             __('expenses.categories.entity.singular'),
             __('expenses.categories.entity.plural'),
+        );
+
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_expense',
+                'show' => 'can_view_expense',
+                'create' => 'can_create_expense',
+                'update' => 'can_update_expense',
+                'delete' => 'can_delete_expense',
+            ],
         );
     }
 

@@ -31,7 +31,7 @@ class BankRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_bank',
+                'permission_name' => 'can_create_bank',
                 'entity_type' => 'bank',
                 'limit_value' => 50,
                 'period_type' => 'monthly',

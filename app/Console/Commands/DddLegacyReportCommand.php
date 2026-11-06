@@ -114,7 +114,6 @@ class DddLegacyReportCommand extends Command
         $legacyServices = base_path('app/Services');
         if (is_dir($legacyServices)) {
             $allow = [
-                'ArtisanCommandsService.php',
                 'CacheService.php',
                 'CountryService.php',
                 'CurrencyService.php',

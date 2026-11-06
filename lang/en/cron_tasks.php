@@ -8,8 +8,7 @@ return [
     'fields' => [
         'name' => 'Name',
         'command' => 'Command',
-        'base_command' => 'Base Command',
-        'command_params' => 'Command Parameters',
+        'parameters' => 'Command Parameters',
         'frequency' => 'Frequency',
         'custom_expression' => 'Custom Cron Expression',
         'run_at' => 'Run At',
@@ -22,7 +21,7 @@ return [
         'next_run' => 'Next Run',
     ],
     'hints' => [
-        'command_params' => 'Enter parameters for the command, e.g. "--days=7 --force", or "--days-before=0 --days-after=14"',
+        'parameters' => 'Command options separated by spaces, e.g. "--days-before=5 --days-after=2" or "--analyze". A value may contain only letters, digits and the characters _ . , : -',
         'custom_expression' => 'If you choose custom expression, enter a valid cron expression. Examples: "*/5 * * * *" (every 5 minutes), "0 0 * * *" (every day at midnight), "0 12 * * 1-5" (every weekday at noon).',
     ],
     'tabs' => [
@@ -54,19 +53,12 @@ return [
     ],
     'validation' => [
         'cron_expression' => 'Invalid CRON expression. Use format: minute hour day month day_of_week.',
+        'parameters' => 'The command parameters must be options of the form --name or --name=value separated by spaces; a value may contain only letters, digits and the characters _ . , : -',
     ],
     'predefined' => [
-        'upcoming_invoices' => [
-            'name' => 'Upcoming Invoice Reminders',
-            'description' => 'Sends reminders for invoices that will be due soon (3 days before due date)',
-        ],
-        'overdue_invoices' => [
-            'name' => 'Overdue Invoice Reminders',
-            'description' => 'Sends reminders for invoices that are overdue (up to 7 days)',
-        ],
-        'long_overdue_invoices' => [
-            'name' => 'Long Overdue Invoice Reminders',
-            'description' => 'Sends reminders for invoices that are significantly overdue (14 days or more)',
+        'payment_reminders' => [
+            'name' => 'Invoice Reminders',
+            'description' => 'Sends reminders for invoices 3 days before the due date, on the due date and one day after it',
         ],
     ],
 ];

@@ -44,10 +44,11 @@ class ProductRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        $permissionQuery = Permission::where('name', 'can_create_edit_product');
-        $permissionQuery->where('guard_name', 'backpack');
-        $permission = $permissionQuery->first();
-        $this->regularUser->givePermissionTo($permission);
+        $this->regularUser->givePermissionTo(
+            Permission::findByName('can_view_product', 'backpack'),
+            Permission::findByName('can_create_product', 'backpack'),
+            Permission::findByName('can_update_product', 'backpack'),
+        );
 
         $userFactory = User::factory();
         $this->productUser = $userFactory->create();
@@ -495,7 +496,7 @@ class ProductRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'entity_type' => 'product',
                 'limit_value' => 10,
                 'period_type' => 'monthly',
@@ -560,7 +561,7 @@ class ProductRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'entity_type' => 'product',
                 'limit_value' => 1,
                 'period_type' => 'monthly',
@@ -620,7 +621,7 @@ class ProductRequestFeatureTest extends TestCase
         $entityLimitFactory = EntityLimit::factory();
         $entityLimitFactory->create(
             [
-                'permission_name' => 'can_create_edit_product',
+                'permission_name' => 'can_create_product',
                 'entity_type' => 'product',
                 'limit_value' => 0,
                 'period_type' => 'monthly',

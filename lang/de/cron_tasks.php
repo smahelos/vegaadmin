@@ -8,8 +8,7 @@ return [
     'fields' => [
         'name' => 'Name',
         'command' => 'Befehl',
-        'base_command' => 'Grundbefehl',
-        'command_params' => 'Befehlsparameter',
+        'parameters' => 'Befehlsparameter',
         'frequency' => 'Häufigkeit',
         'custom_expression' => 'Benutzerdefinierter Cron-Ausdruck',
         'run_at' => 'Ausführungszeit',
@@ -22,7 +21,7 @@ return [
         'next_run' => 'Nächste Ausführung',
     ],
     'hints' => [
-        'command_params' => 'Geben Sie Parameter für den Befehl ein, z.B. "--days=7 --force", oder "--days-before=0 --days-after=14"',
+        'parameters' => 'Durch Leerzeichen getrennte Befehlsoptionen, z.B. "--days-before=5 --days-after=2" oder "--analyze". Ein Wert darf nur Buchstaben, Ziffern und die Zeichen _ . , : - enthalten',
         'custom_expression' => 'Wenn Sie benutzerdefinierten Ausdruck wählen, geben Sie einen gültigen Cron-Ausdruck ein. Beispiele: "*/5 * * * *" (alle 5 Minuten), "0 0 * * *" (täglich um Mitternacht), "0 12 * * 1-5" (werktags um 12 Uhr mittags).',
     ],
     'tabs' => [
@@ -54,19 +53,12 @@ return [
     ],
     'validation' => [
         'cron_expression' => 'Ungültiger CRON-Ausdruck. Verwenden Sie das Format: Minute Stunde Tag Monat Wochentag.',
+        'parameters' => 'Die Befehlsparameter müssen durch Leerzeichen getrennte Optionen der Form --name oder --name=wert sein; ein Wert darf nur Buchstaben, Ziffern und die Zeichen _ . , : - enthalten',
     ],
     'predefined' => [
-        'upcoming_invoices' => [
-            'name' => 'Erinnerungen für bevorstehende Rechnungen',
-            'description' => 'Sendet Erinnerungen für Rechnungen, die bald fällig sind (3 Tage vor Fälligkeit)',
-        ],
-        'overdue_invoices' => [
-            'name' => 'Erinnerungen für überfällige Rechnungen',
-            'description' => 'Sendet Erinnerungen für überfällige Rechnungen (bis zu 7 Tage)',
-        ],
-        'long_overdue_invoices' => [
-            'name' => 'Erinnerungen für stark überfällige Rechnungen',
-            'description' => 'Sendet Erinnerungen für stark überfällige Rechnungen (14 Tage oder mehr)',
+        'payment_reminders' => [
+            'name' => 'Rechnungserinnerungen',
+            'description' => 'Sendet Erinnerungen für Rechnungen 3 Tage vor Fälligkeit, am Fälligkeitstag und einen Tag nach Fälligkeit',
         ],
     ],
 ];

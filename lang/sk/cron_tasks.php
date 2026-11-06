@@ -8,8 +8,7 @@ return [
     'fields' => [
         'name' => 'Názov',
         'command' => 'Príkaz',
-        'base_command' => 'Základný príkaz',
-        'command_params' => 'Parametre príkazu',
+        'parameters' => 'Parametre príkazu',
         'frequency' => 'Frekvencia',
         'custom_expression' => 'Vlastný cron výraz',
         'run_at' => 'Čas spustenia',
@@ -22,7 +21,7 @@ return [
         'next_run' => 'Ďalšie spustenie',
     ],
     'hints' => [
-        'command_params' => 'Zadajte parametre pre príkaz, napr. "--days=7 --force", alebo "--days-before=0 --days-after=14"',
+        'parameters' => 'Voľby príkazu oddelené medzerou, napr. "--days-before=5 --days-after=2" alebo "--analyze". Hodnota smie obsahovať len písmená, číslice a znaky _ . , : -',
         'custom_expression' => 'Ak zvolíte vlastný výraz, zadajte platný cron výraz. Príklady: "*/5 * * * *" (každých 5 minút), "0 0 * * *" (každý deň o polnoci), "0 12 * * 1-5" (každý pracovný deň na poludnie).',
     ],
     'tabs' => [
@@ -54,19 +53,12 @@ return [
     ],
     'validation' => [
         'cron_expression' => 'Neplatný CRON výraz. Použite formát: minúta hodina deň mesiac deň_v_týždni.',
+        'parameters' => 'Parametre príkazu musia byť voľby v tvare --nazov alebo --nazov=hodnota oddelené medzerou; hodnota smie obsahovať len písmená, číslice a znaky _ . , : -',
     ],
     'predefined' => [
-        'upcoming_invoices' => [
-            'name' => 'Upomienky pred splatnosťou faktúry',
-            'description' => 'Odosiela upomienky na faktúry, ktoré budú čoskoro splatné (3 dni pred splatnosťou)',
-        ],
-        'overdue_invoices' => [
-            'name' => 'Upomienky faktúr po splatnosti',
-            'description' => 'Odosiela upomienky na faktúry, ktoré sú po splatnosti (až 7 dní)',
-        ],
-        'long_overdue_invoices' => [
-            'name' => 'Upomienky faktúry dlho po splatnosti',
-            'description' => 'Odosiela upomienky na faktúry, ktoré sú výrazne po splatnosti (14 a viac dní)',
+        'payment_reminders' => [
+            'name' => 'Upomienky faktúr',
+            'description' => 'Odosiela upomienky na faktúry 3 dni pred splatnosťou, v deň splatnosti a deň po splatnosti',
         ],
     ],
 ];

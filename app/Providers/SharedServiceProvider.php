@@ -2,16 +2,12 @@
 
 namespace App\Providers;
 
-use App\Application\Shared\Console\Contracts\ArtisanCommandsRepositoryInterface;
 use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
 use App\Application\Shared\Geography\Services\CountryApplicationService;
 use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
 use App\Application\Shared\Money\Services\CurrencyApplicationService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Config\Contracts\Config;
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsDtoRepositoryInterface;
-use App\Domain\Shared\Console\Contracts\ArtisanCommandsServiceInterface;
-use App\Domain\Shared\Console\Services\ArtisanCommandsService;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\File\Config\FileUploadConfig;
@@ -41,8 +37,6 @@ use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
-use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsDtoRepository;
-use App\Infrastructure\Persistence\Eloquent\Shared\Console\Repositories\EloquentArtisanCommandsRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
 use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories\EloquentTaxDtoRepository;
@@ -141,12 +135,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             CountryServiceInterface::class,
             CountryService::class,
-        );
-
-        // Console / Artisan Commands meta service
-        $this->app->bind(
-            ArtisanCommandsServiceInterface::class,
-            ArtisanCommandsService::class,
         );
 
         // Tax service
@@ -274,15 +262,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             TaxDtoWriteRepositoryInterface::class,
             EloquentTaxDtoRepository::class,
-        );
-
-        $this->app->bind(
-            ArtisanCommandsDtoRepositoryInterface::class,
-            EloquentArtisanCommandsDtoRepository::class,
-        );
-        $this->app->bind(
-            ArtisanCommandsRepositoryInterface::class,
-            EloquentArtisanCommandsRepository::class,
         );
     }
 

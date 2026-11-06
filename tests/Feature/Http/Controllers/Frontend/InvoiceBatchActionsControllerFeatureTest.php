@@ -18,10 +18,9 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
         parent::setUp();
         $userFactory = User::factory();
         $this->user = $userFactory->create();
-        Permission::firstOrCreate(
-            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+        $this->user->givePermissionTo(
+            Permission::findByName('frontend.can_update_invoice', 'web'),
         );
-        $this->user->givePermissionTo('frontend.can_create_edit_invoice');
         // Fake permissive limits using only generic methods (specialized removed in refactor)
         $fakeLimit = new class implements UniversalLimitServiceInterface
         {

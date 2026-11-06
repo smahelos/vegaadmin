@@ -17,7 +17,7 @@ final class LinkInvoiceContactRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user?->can('frontend.can_create_edit_invoice') === true;
+        return $user?->can('frontend.can_update_invoice') === true;
     }
 
     /**

@@ -536,7 +536,7 @@ final class InvoiceRequestFeatureTest extends TestCase
     {
         EntityLimit::create(
             [
-                'permission_name' => 'frontend.can_create_edit_invoice',
+                'permission_name' => 'frontend.can_create_invoice',
                 'entity_type' => 'invoice',
                 'limit_value' => 10,
                 'period_type' => 'monthly',
