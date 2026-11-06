@@ -57,8 +57,10 @@ class UserCrudControllerTest extends TestCase
 
         // Either 403 (forbidden) or 302 (redirect) is acceptable
         // When a user doesn't have permissions, Backpack may redirect to dashboard
-        $this->assertTrue(in_array($response->status(), [302, 403]),
-            'Expected status 302 or 403, got: ' . $response->status());
+        $this->assertTrue(
+            in_array($response->status(), [302, 403]),
+            'Expected status 302 or 403, got: ' . $response->status(),
+        );
     }
 
     #[Test]
@@ -66,13 +68,13 @@ class UserCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $this->withSession(['backpack.language-switcher.locale' => 'cs'])
-            ->get('/admin/user/create')
-            ->assertOk()
-            ->assertSeeText('Jméno')
-            ->assertSeeText('Role a oprávnění')
-            ->assertSeeText('Oprávnění')
-            ->assertDontSeeText('permissionmanager.');
+        $httpClient = $this->withSession(['backpack.language-switcher.locale' => 'cs']);
+        $httpResponse = $httpClient->get('/admin/user/create');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSeeText('Jméno');
+        $httpResponse = $httpResponse->assertSeeText('Role a oprávnění');
+        $httpResponse = $httpResponse->assertSeeText('Oprávnění');
+        $httpResponse->assertDontSeeText('permissionmanager.');
     }
 
     /**
@@ -107,7 +109,8 @@ class UserCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create a user to be updated
-        $user = User::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create([
             'email' => $this->faker->unique()->safeEmail,
         ]);
 
@@ -137,16 +140,24 @@ class UserCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create a user to be deleted
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $response = $this->delete("/admin/user/{$user->id}");
 
         // Check for successful deletion response
-        $this->assertTrue(in_array($response->status(), [200, 302]),
-            'Expected status 200 or 302, got: ' . $response->status());
+        $this->assertTrue(
+            in_array($response->status(), [200, 302]),
+            'Expected status 200 or 302, got: ' . $response->status(),
+        );
 
         // For soft deletes the row remains with deleted_at set
-        if (in_array('Illuminate\\Database\\Eloquent\\SoftDeletes', class_uses_recursive(User::class))) {
+        if (
+            in_array(
+                'Illuminate\\Database\\Eloquent\\SoftDeletes',
+                class_uses_recursive(User::class),
+            )
+        ) {
             $this->assertSoftDeleted('users', ['id' => $user->id]);
         } else {
             $this->assertDatabaseMissing('users', ['id' => $user->id]);
@@ -172,8 +183,11 @@ class UserCrudControllerTest extends TestCase
 
         $this->post('/admin/user', $userData);
 
-        $user = User::where('email', $testEmail)->first();
+        $userQuery = User::where('email', $testEmail);
+        $user = $userQuery->first();
         $this->assertNotEquals($testPassword, $user->password);
-        $this->assertTrue(Hash::check($testPassword, $user->password));
+        $this->assertTrue(
+            Hash::check($testPassword, $user->password),
+        );
     }
 }

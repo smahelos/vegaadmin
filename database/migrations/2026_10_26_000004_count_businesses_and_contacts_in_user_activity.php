@@ -25,7 +25,8 @@ return new class extends Migration
         $firstTotal = 'total_' . $firstParties;
         $secondTotal = 'total_' . $secondParties;
 
-        DB::statement(<<<SQL
+        DB::statement(
+            <<<SQL
             CREATE OR REPLACE VIEW user_activity_summary AS
             SELECT
                 u.id AS user_id,
@@ -44,6 +45,7 @@ return new class extends Migration
             LEFT JOIN {$secondParties} s ON u.id = s.user_id
             LEFT JOIN products p ON u.id = p.user_id
             GROUP BY u.id, u.name, u.email
-            SQL);
+            SQL,
+        );
     }
 };

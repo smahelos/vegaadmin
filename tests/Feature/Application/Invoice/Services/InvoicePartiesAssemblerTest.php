@@ -49,7 +49,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_new_invoice_copies_the_business_and_its_account(): void
     {
         $business = $this->businessWithAddress(['name' => 'Moje firma s.r.o.']);
-        $account = BankAccount::factory()->ownedBy($business)->create();
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
 
         $parties = $this->assembler->assemble(
             $this->idOf($this->user),
@@ -108,7 +110,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
     #[Test]
     public function a_business_without_a_complete_address_cannot_issue_an_invoice(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
         $this->expectException(IncompleteBusinessAddressException::class);
 
@@ -122,8 +125,10 @@ final class InvoicePartiesAssemblerTest extends TestCase
     #[Test]
     public function another_users_business_is_not_found(): void
     {
-        $foreign = Business::factory()->create();
-        Address::factory()->create(['business_id' => $foreign->id]);
+        $businessFactory = Business::factory();
+        $foreign = $businessFactory->create();
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => $foreign->id]);
 
         $this->expectException(BusinessNotFoundException::class);
 
@@ -138,8 +143,11 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function an_account_of_another_business_is_not_found(): void
     {
         $business = $this->businessWithAddress();
-        $otherBusiness = Business::factory()->create(['user_id' => $this->user->id]);
-        $account = BankAccount::factory()->ownedBy($otherBusiness)->create();
+        $businessFactory = Business::factory();
+        $otherBusiness = $businessFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($otherBusiness);
+        $account = $bankAccountFactory->create();
 
         $this->expectException(BankAccountNotFoundException::class);
 
@@ -154,10 +162,13 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_contact_is_not_linked_to_a_customer_with_another_company_number(): void
     {
         $business = $this->businessWithAddress();
-        $contact = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'company_number' => self::OTHER_NUMBER,
-        ]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'company_number' => self::OTHER_NUMBER,
+            ],
+        );
 
         $this->expectException(ContactIdentityChangedException::class);
 
@@ -179,7 +190,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
             null,
         );
 
-        $contact = Contact::query()->where('user_id', $this->user->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $this->user->id);
+        $contact = $contactQuery->sole();
         $this->assertSame($contact->id, $parties->contactId?->value);
         $this->assertSame('Odběratel s.r.o.', $contact->name);
         $this->assertSame(self::CUSTOMER_NUMBER, $contact->company_number);
@@ -189,8 +202,13 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function archived_contact_and_account_keep_the_working_documents_copies(): void
     {
         $business = $this->businessWithAddress();
-        $account = BankAccount::factory()->ownedBy($business)->create();
-        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
+            ['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER],
+        );
         $selection = $this->selection(
             $business,
             account: $account,
@@ -201,7 +219,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
             $selection,
             null,
         );
-        $account->update(['archived_at' => now(), 'bank_name' => 'Changed source bank']);
+        $account->update(
+            ['archived_at' => now(), 'bank_name' => 'Changed source bank'],
+        );
         $contact->update(['archived_at' => now(), 'name' => 'Changed source contact']);
 
         $kept = $this->assembler->assemble(
@@ -221,7 +241,9 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_newly_selected_archived_account_is_refused_even_when_its_business_is_active(): void
     {
         $business = $this->businessWithAddress();
-        $account = BankAccount::factory()->ownedBy($business)->create(['archived_at' => now()]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($business);
+        $account = $bankAccountFactory->create(['archived_at' => now()]);
         $this->expectException(ArchivedReferenceSelectedException::class);
         $this->assembler->assemble(
             $this->idOf($this->user),
@@ -234,7 +256,10 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_contact_identity_correction_does_not_require_changing_the_stored_customer(): void
     {
         $business = $this->businessWithAddress();
-        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
+            ['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER],
+        );
         $selection = $this->selection($business, contact: $contact);
         $stored = $this->assembler->assemble(
             $this->idOf($this->user),
@@ -259,8 +284,10 @@ final class InvoicePartiesAssemblerTest extends TestCase
      */
     private function businessWithAddress(array $attributes = []): Business
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id, ...$attributes]);
-        Address::factory()->create([
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id, ...$attributes]);
+        $addressFactory = Address::factory();
+        $addressFactory->create([
             'business_id' => $business->id,
             'city' => 'Brno',
         ]);

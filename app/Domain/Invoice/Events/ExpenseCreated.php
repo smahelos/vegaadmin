@@ -14,7 +14,9 @@ final readonly class ExpenseCreated implements DomainEvent
 
     public function __construct(public ExpenseId $expenseId, public UserId $userId)
     {
-        $this->eventId = bin2hex(random_bytes(16));
+        $this->eventId = bin2hex(
+            random_bytes(16),
+        );
     }
 
     public function getEventName(): string

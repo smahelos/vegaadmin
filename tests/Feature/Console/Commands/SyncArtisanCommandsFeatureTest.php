@@ -24,7 +24,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     public function command_syncs_artisan_commands(): void
     {
         // Clear existing commands
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -75,7 +76,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     #[Test]
     public function command_creates_proper_command_records(): void
     {
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -97,7 +99,8 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
     public function command_handles_empty_database(): void
     {
         // Clear all commands
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
         $exitCode = Artisan::call('artisan:sync-commands');
 
@@ -120,10 +123,13 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
         // Sync again
         Artisan::call('artisan:sync-commands');
 
-        $this->assertDatabaseHas('artisan_commands', [
-            'id' => $command->id,
-            'description' => 'Custom description',
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            [
+                'id' => $command->id,
+                'description' => 'Custom description',
+            ],
+        );
     }
 
     #[Test]
@@ -135,7 +141,9 @@ final class SyncArtisanCommandsFeatureTest extends TestCase
 
         // Should provide some statistics about the sync
         $this->assertIsString($output);
-        $this->assertNotEmpty(trim($output));
+        $this->assertNotEmpty(
+            trim($output),
+        );
     }
 
     #[Test]

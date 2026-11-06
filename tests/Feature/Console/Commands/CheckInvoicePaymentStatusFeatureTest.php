@@ -12,6 +12,7 @@ use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Models\Business;
 use App\Models\Invoice;
 use App\Models\Status;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -35,31 +36,56 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     #[DataProvider('dueDates')]
     public function sends_both_roles_from_the_snapshot_without_a_contact(int $days, InvoiceReminderType $type): void
     {
-        $this->travelTo(now()->setDate(2026, 10, 29)->setTime(17, 45));
+        $now = CarbonImmutable::now();
+        $date = $now->setDate(
+            2026,
+            10,
+            29,
+        );
+        $this->travelTo(
+            $date->setTime(17, 45),
+        );
         $notifier = $this->captureReminders();
-        Invoice::factory()->create([
-            'invoice_vs' => '20260001',
-            'issue_date' => now()->startOfDay()->subDays(10)->addDays($days),
-            'due_in' => 10,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
-            'contact_id' => null,
-            'supplier_name' => 'Saved supplier',
-            'supplier_email' => 'saved-supplier@example.test',
-            'supplier_country' => 'DE',
-            'customer_name' => 'Saved customer',
-            'customer_email' => 'saved-customer@example.test',
-            'customer_country' => 'SK',
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $date = $now->startOfDay();
+        $date = $date->subDays(10);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $invoiceFactory->create(
+            [
+                'invoice_vs' => '20260001',
+                'issue_date' => $date->addDays($days),
+                'due_in' => 10,
+                'payment_status_id' => $statusQuery->sole()->id,
+                'contact_id' => null,
+                'supplier_name' => 'Saved supplier',
+                'supplier_email' => 'saved-supplier@example.test',
+                'supplier_country' => 'DE',
+                'customer_name' => 'Saved customer',
+                'customer_email' => 'saved-customer@example.test',
+                'customer_country' => 'SK',
+            ],
+        );
 
-        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame(
+            0,
+            Artisan::call('invoices:check-payment-status'),
+        );
         $this->assertCount(2, $notifier->sent);
         foreach ($notifier->sent as [$sentType, $payload, $recipient]) {
             $this->assertSame($type, $sentType);
             $this->assertSame('20260001', $payload->invoiceNumber);
-            $this->assertSame(now()->addDays($days)->toDateString(), $payload->dueDate->format('Y-m-d'));
+            $date = $now->addDays($days);
+            $this->assertSame(
+                $date->toDateString(),
+                $payload->dueDate->format('Y-m-d'),
+            );
             $supplier = $payload->recipientType === 'supplier';
             $this->assertSame($supplier ? 'Saved supplier' : 'Saved customer', $recipient->name);
-            $this->assertSame($supplier ? 'saved-supplier@example.test' : 'saved-customer@example.test', $recipient->email);
+            $this->assertSame(
+                $supplier ? 'saved-supplier@example.test' : 'saved-customer@example.test',
+                $recipient->email,
+            );
             $this->assertSame($supplier ? 'de' : 'sk', $payload->locale);
             $this->assertSame($type === InvoiceReminderType::UPCOMING_DUE ? $days : null, $payload->daysLeft);
             $this->assertSame($type === InvoiceReminderType::OVERDUE ? -$days : null, $payload->daysOverdue);
@@ -71,9 +97,13 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         $invoice = $this->dueInvoice(['supplier_email' => null, 'customer_email' => null]);
-        Business::whereKey($invoice->business_id)->update(['email' => 'live-business@example.test']);
+        $businessQuery = Business::whereKey($invoice->business_id);
+        $businessQuery->update(['email' => 'live-business@example.test']);
 
-        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame(
+            0,
+            Artisan::call('invoices:check-payment-status'),
+        );
         $this->assertSame([], $notifier->sent);
         $this->assertStringContainsString('Notifications sent: 0 upcoming, 0 today, 0 overdue.', Artisan::output());
     }
@@ -82,10 +112,15 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     public function counts_only_sent_notifications_and_keeps_the_payment_status(): void
     {
         $notifier = $this->captureReminders();
-        $invoice = $this->dueInvoice(['supplier_email' => null, 'customer_email' => 'one-off@example.test']);
+        $invoice = $this->dueInvoice(
+            ['supplier_email' => null, 'customer_email' => 'one-off@example.test'],
+        );
         $status = $invoice->payment_status_id;
 
-        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame(
+            0,
+            Artisan::call('invoices:check-payment-status'),
+        );
         $this->assertCount(1, $notifier->sent);
         $this->assertStringContainsString('0 upcoming, 1 today, 0 overdue', Artisan::output());
         $this->assertSame($status, $invoice->fresh()->payment_status_id);
@@ -96,10 +131,16 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         foreach ([InvoiceStatus::PAID, InvoiceStatus::CANCELLED] as $status) {
-            $this->dueInvoice(['payment_status_id' => Status::where('slug', $status->value)->sole()->id]);
+            $statusQuery = Status::where('slug', $status->value);
+            $this->dueInvoice(
+                ['payment_status_id' => $statusQuery->sole()->id],
+            );
         }
         $this->dueInvoice(['due_in' => 12]);
-        $this->assertSame(0, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame(
+            0,
+            Artisan::call('invoices:check-payment-status'),
+        );
         $this->assertSame([], $notifier->sent);
     }
 
@@ -109,7 +150,10 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $notifier = $this->captureReminders();
         $this->dueInvoice(['due_in' => 15, 'supplier_email' => null]);
         $this->dueInvoice(['due_in' => 8, 'supplier_email' => null]);
-        $this->assertSame(0, Artisan::call('invoices:check-payment-status', ['--days-before' => 5, '--days-after' => 2]));
+        $this->assertSame(
+            0,
+            Artisan::call('invoices:check-payment-status', ['--days-before' => 5, '--days-after' => 2]),
+        );
         $this->assertCount(2, $notifier->sent);
         $this->assertStringContainsString('1 upcoming, 0 today, 1 overdue', Artisan::output());
     }
@@ -119,13 +163,18 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         $this->dueInvoice();
-        foreach ([
-            '0',
-            '-1',
-            '1.5',
-            'three',
-        ] as $offset) {
-            $this->assertSame(2, Artisan::call('invoices:check-payment-status', ['--days-before' => $offset]));
+        foreach (
+            [
+                '0',
+                '-1',
+                '1.5',
+                'three',
+            ] as $offset
+        ) {
+            $this->assertSame(
+                2,
+                Artisan::call('invoices:check-payment-status', ['--days-before' => $offset]),
+            );
         }
         $this->assertSame([], $notifier->sent);
     }
@@ -133,30 +182,43 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     #[Test]
     public function fails_when_a_reminder_cannot_be_queued(): void
     {
-        $this->app->instance(InvoiceReminderNotifierInterface::class, new class implements InvoiceReminderNotifierInterface
-        {
-            public function send(
-                InvoiceReminderType $type,
-                InvoiceReminderDTO $payload,
-                Recipient $recipient,
-            ): void {
-                throw new RuntimeException('The mail queue is unavailable');
-            }
-        });
+        $this->app->instance(
+            InvoiceReminderNotifierInterface::class,
+            new class implements InvoiceReminderNotifierInterface
+            {
+                public function send(
+                    InvoiceReminderType $type,
+                    InvoiceReminderDTO $payload,
+                    Recipient $recipient,
+                ): void {
+                    throw new RuntimeException('The mail queue is unavailable');
+                }
+            },
+        );
         $this->dueInvoice();
-        $this->assertSame(1, Artisan::call('invoices:check-payment-status'));
+        $this->assertSame(
+            1,
+            Artisan::call('invoices:check-payment-status'),
+        );
     }
 
     /** @param array<string, mixed> $overrides */
     private function dueInvoice(array $overrides = []): Invoice
     {
-        return Invoice::factory()->create($overrides + [
-            'issue_date' => now()->subDays(10),
-            'due_in' => 10,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->sole()->id,
-            'supplier_email' => 'supplier@example.test',
-            'customer_email' => 'customer@example.test',
-        ]);
+        $invoiceFactory = Invoice::factory();
+
+        $now = CarbonImmutable::now();
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+
+        return $invoiceFactory->create(
+            $overrides + [
+                'issue_date' => $now->subDays(10),
+                'due_in' => 10,
+                'payment_status_id' => $statusQuery->sole()->id,
+                'supplier_email' => 'supplier@example.test',
+                'customer_email' => 'customer@example.test',
+            ],
+        );
     }
 
     private function captureReminders(): CapturingInvoiceReminderNotifier

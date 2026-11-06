@@ -8,11 +8,16 @@ class EloquentStatusRepository
 {
     public function findIdBySlug(string $slug): ?int
     {
-        return Status::where('slug', $slug)->value('id');
+        $query = Status::where('slug', $slug);
+
+        return $query->value('id');
     }
 
     public function getAllForDropdown(): array
     {
-        return Status::orderBy('name')->pluck('name', 'id')->toArray();
+        $query = Status::orderBy('name');
+        $statuses = $query->pluck('name', 'id');
+
+        return $statuses->toArray();
     }
 }

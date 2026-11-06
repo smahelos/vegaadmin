@@ -22,7 +22,7 @@ class EloquentPaymentDtoReadRepository implements PaymentDtoReadRepositoryInterf
 
     public function findByGatewayPaymentId(?string $gatewayPaymentId): ?PaymentDTO
     {
-        if (! $gatewayPaymentId) {
+        if (!$gatewayPaymentId) {
             return null;
         }
         $payment = $this->paymentReadRepository->findByGatewayPaymentId($gatewayPaymentId);
@@ -34,6 +34,9 @@ class EloquentPaymentDtoReadRepository implements PaymentDtoReadRepositoryInterf
     {
         $payment = $this->paymentReadRepository->findPendingBySubscription($subscriptionId);
 
-        return array_map(fn ($p) => $this->mapper->toDto($p), $payment);
+        return array_map(
+            fn ($p) => $this->mapper->toDto($p),
+            $payment,
+        );
     }
 }

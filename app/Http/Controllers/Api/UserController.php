@@ -31,28 +31,53 @@ class UserController extends Controller
     {
         try {
             // Authenticate via backpack guard
-            $current = function_exists('backpack_auth') ? backpack_auth()->user() : null;
-            if (! $current) {
-                return response()->json(['error' => __('users.auth.unauthenticated')], 401);
+            $current = backpack_user();
+            if (!$current) {
+                $responseFactory = response();
+
+                return $responseFactory->json(
+                    ['error' => __('users.auth.unauthenticated')],
+                    401,
+                );
             }
             // Permission check via adapter (backpack guard)
-            if (! $this->auth->hasBackpackPermission((int) $current->id, 'can_view_user')) {
-                return response()->json(['error' => __('users.auth.unauthorized')], 403);
+            if (!$this->auth->hasBackpackPermission((int) $current->id, 'can_view_user')) {
+                $responseFactory = response();
+
+                return $responseFactory->json(
+                    ['error' => __('users.auth.unauthorized')],
+                    403,
+                );
             }
 
             $user = $this->userService->findUserById((int) $id);
 
-            return response()->json($user);
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['error' => __('users.messages.not_found')], 404);
-        } catch (\Exception $e) {
-            Log::error('UserController@getUserAdmin error', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'user_id' => $id,
-            ]);
+            $responseFactory = response();
 
-            return response()->json(['error' => __('users.messages.load_failed')], 500);
+            return $responseFactory->json($user);
+        } catch (ModelNotFoundException $e) {
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.messages.not_found')],
+                404,
+            );
+        } catch (\Exception $e) {
+            Log::error(
+                'UserController@getUserAdmin error',
+                [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $id,
+                ],
+            );
+
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.messages.load_failed')],
+                500,
+            );
         }
     }
 
@@ -61,20 +86,32 @@ class UserController extends Controller
      */
     public function getUsersAdmin(): JsonResponse
     {
-        $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
-        if (! $user) {
-            return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
+        $user = backpack_user();
+        if (!$user) {
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.auth.unauthenticated'), 'code' => 401],
+                401,
+            );
         }
 
         // Check if user has permission to view users
-        if (! $this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
-            return response()->json(['error' => __('users.auth.unauthorized')], 403);
+        if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.auth.unauthorized')],
+                403,
+            );
         }
 
         // Admins can see all users via service abstraction
         $users = $this->userService->getAllUsers();
 
-        return response()->json($users);
+        $responseFactory = response();
+
+        return $responseFactory->json($users);
     }
 
     /**
@@ -85,17 +122,35 @@ class UserController extends Controller
      */
     public function searchUsersAdmin(Request $request): JsonResponse
     {
-        $user = function_exists('backpack_auth') ? backpack_auth()->user() : null;
-        if (! $user) {
-            return response()->json(['error' => __('users.auth.unauthenticated'), 'code' => 401], 401);
+        $user = backpack_user();
+        if (!$user) {
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.auth.unauthenticated'), 'code' => 401],
+                401,
+            );
         }
 
-        if (! $this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
-            return response()->json(['error' => __('users.auth.unauthorized')], 403);
+        if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                ['error' => __('users.auth.unauthorized')],
+                403,
+            );
         }
 
         $search_term = $request->input('q');
 
-        return response()->json($this->userService->searchUsers($search_term, 10, $request->integer('page', 1)));
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            $this->userService->searchUsers(
+                $search_term,
+                10,
+                $request->integer('page', 1),
+            ),
+        );
     }
 }

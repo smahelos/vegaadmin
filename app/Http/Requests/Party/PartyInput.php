@@ -60,7 +60,9 @@ final class PartyInput
                 'max:255',
             ],
             'registration_country' => [
-                Rule::requiredIf(self::filled($input, 'company_number')),
+                Rule::requiredIf(
+                    self::filled($input, 'company_number'),
+                ),
                 'nullable',
                 Rule::enum(Country::class),
             ],
@@ -68,7 +70,9 @@ final class PartyInput
                 'nullable',
                 'string',
                 'max:255',
-                new RegistrationNumberRule(self::country($input, 'registration_country')),
+                new RegistrationNumberRule(
+                    self::country($input, 'registration_country'),
+                ),
             ],
             'vat_number' => [
                 'nullable',
@@ -106,7 +110,9 @@ final class PartyInput
                 'max:20',
             ],
             'country' => [
-                Rule::requiredIf(self::hasAddress($input)),
+                Rule::requiredIf(
+                    self::hasAddress($input),
+                ),
                 'nullable',
                 Rule::enum(Country::class),
             ],
@@ -142,13 +148,17 @@ final class PartyInput
     public static function profile(array $input): PartyProfile
     {
         return new PartyProfile(
-            name: trim(self::text($input, 'name') ?? ''),
+            name: trim(
+                self::text($input, 'name') ?? '',
+            ),
             shortName: self::text($input, 'short_name'),
             registrationNumber: RegistrationNumber::fromParts(
                 self::country($input, 'registration_country'),
                 self::text($input, 'company_number'),
             ),
-            vatNumber: VatNumber::fromNullable(self::text($input, 'vat_number')),
+            vatNumber: VatNumber::fromNullable(
+                self::text($input, 'vat_number'),
+            ),
             email: self::text($input, 'email'),
             phone: self::text($input, 'phone'),
             note: self::text($input, 'note'),
@@ -190,7 +200,7 @@ final class PartyInput
     public static function text(array $input, string $field): ?string
     {
         $value = $input[$field] ?? null;
-        if (! is_string($value)) {
+        if (!is_string($value)) {
             return null;
         }
 
@@ -204,7 +214,9 @@ final class PartyInput
      */
     public static function country(array $input, string $field): ?Country
     {
-        return Country::tryFrom(self::text($input, $field) ?? '');
+        return Country::tryFrom(
+            self::text($input, $field) ?? '',
+        );
     }
 
     /**

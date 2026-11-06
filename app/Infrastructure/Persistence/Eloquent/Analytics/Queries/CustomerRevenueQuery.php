@@ -23,25 +23,31 @@ final class CustomerRevenueQuery
         $country = "CASE WHEN invoices.contact_id IS NULL AND NULLIF(invoices.customer_company_number, '') IS NOT NULL THEN invoices.customer_registration_country ELSE NULL END";
         $kind = "CASE WHEN invoices.contact_id IS NOT NULL THEN 'contact' WHEN NULLIF(invoices.customer_company_number, '') IS NOT NULL THEN 'registration' ELSE 'name' END";
 
-        return $invoices
-            ->leftJoin('contacts', function (JoinClause $join): void {
+        $invoices->leftJoin(
+            'contacts',
+            function (JoinClause $join): void {
                 $join->on(
                     'contacts.id',
                     '=',
                     'invoices.contact_id',
-                )
-                    ->on(
-                        'contacts.user_id',
-                        '=',
-                        'invoices.user_id',
-                    );
-            })
-            ->select('invoices.contact_id')
-            ->selectRaw('COALESCE(MAX(contacts.name), MIN(invoices.customer_name)) as customer_name')
-            ->selectRaw('SUM(invoices.payment_amount) as total')
-            ->groupBy('invoices.contact_id')
-            ->groupByRaw($kind)
-            ->groupByRaw($identity)
-            ->groupByRaw($country);
+                );
+                $join->on(
+                    'contacts.user_id',
+                    '=',
+                    'invoices.user_id',
+                );
+            },
+        );
+        $invoices->select('invoices.contact_id');
+        $invoices->selectRaw(
+            'COALESCE(MAX(contacts.name), MIN(invoices.customer_name)) as customer_name',
+        );
+        $invoices->selectRaw('SUM(invoices.payment_amount) as total');
+        $invoices->groupBy('invoices.contact_id');
+        $invoices->groupByRaw($kind);
+        $invoices->groupByRaw($identity);
+        $invoices->groupByRaw($country);
+
+        return $invoices;
     }
 }

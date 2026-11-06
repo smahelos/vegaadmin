@@ -37,7 +37,10 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(401, $response->getStatusCode());
         $json = json_decode($response->getContent(), true);
         $this->assertEquals(401, $json['code']);
@@ -46,7 +49,8 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_without_permission_gets_403(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
         $request = Request::create(
             '/api/frontend/resource',
@@ -59,24 +63,32 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
                 'HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest',
             ],
         );
-        $response = $this->middleware->handle($request, fn () => response('OK'));
+        $response = $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
         $this->assertEquals(403, $response->getStatusCode());
     }
 
     #[Test]
     public function authenticated_user_with_permission_passes(): void
     {
-        $user = User::factory()->create();
-        $role = Role::where('name', 'frontend_user')->first();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $role = $roleQuery->first();
         $user->assignRole($role);
         $this->actingAs($user, 'web');
         $request = Request::create('/api/frontend/resource');
         $passed = false;
-        $this->middleware->handle($request, function () use (&$passed) {
-            $passed = true;
+        $this->middleware->handle(
+            $request,
+            function () use (&$passed) {
+                $passed = true;
 
-            return response('OK');
-        });
+                return response('OK');
+            },
+        );
         $this->assertTrue($passed);
     }
 }

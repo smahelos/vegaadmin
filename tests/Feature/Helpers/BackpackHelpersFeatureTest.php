@@ -63,7 +63,8 @@ class BackpackHelpersFeatureTest extends TestCase
     #[Test]
     public function backpack_user_returns_authenticated_user(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $authenticatedUser = backpack_user();
@@ -79,7 +80,10 @@ class BackpackHelpersFeatureTest extends TestCase
 
         $url = backpack_url();
 
-        $this->assertEquals(url('admin'), $url);
+        $this->assertEquals(
+            url('admin'),
+            $url,
+        );
     }
 
     #[Test]
@@ -89,7 +93,10 @@ class BackpackHelpersFeatureTest extends TestCase
 
         $url = backpack_url('users');
 
-        $this->assertEquals(url('admin/users'), $url);
+        $this->assertEquals(
+            url('admin/users'),
+            $url,
+        );
     }
 
     #[Test]
@@ -99,7 +106,10 @@ class BackpackHelpersFeatureTest extends TestCase
 
         $url = backpack_url('users/create');
 
-        $this->assertEquals(url('admin/users/create'), $url);
+        $this->assertEquals(
+            url('admin/users/create'),
+            $url,
+        );
     }
 
     #[Test]
@@ -109,7 +119,10 @@ class BackpackHelpersFeatureTest extends TestCase
 
         $url = backpack_url('');
 
-        $this->assertEquals(url('admin'), $url);
+        $this->assertEquals(
+            url('admin'),
+            $url,
+        );
     }
 
     #[Test]
@@ -120,7 +133,10 @@ class BackpackHelpersFeatureTest extends TestCase
         $url = backpack_url('users');
 
         // When config is null, Laravel's config() helper treats null as empty, not using default
-        $this->assertEquals(url('/users'), $url);
+        $this->assertEquals(
+            url('/users'),
+            $url,
+        );
     }
 
     #[Test]
@@ -140,7 +156,8 @@ class BackpackHelpersFeatureTest extends TestCase
         Config::set('backpack.base.route_prefix', 'admin');
 
         // Create and authenticate user
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         // Test all functions work together
@@ -153,7 +170,10 @@ class BackpackHelpersFeatureTest extends TestCase
         $this->assertEquals('backpack', $guardName);
         $this->assertInstanceOf(Guard::class, $auth);
         $this->assertEquals($user->id, $authenticatedUser->id);
-        $this->assertEquals(url('admin/dashboard'), $url);
+        $this->assertEquals(
+            url('admin/dashboard'),
+            $url,
+        );
         $this->assertTrue($isPro);
     }
 
@@ -164,7 +184,8 @@ class BackpackHelpersFeatureTest extends TestCase
         Config::set('backpack.base.guard', 'web');
         Config::set('backpack.base.route_prefix', 'backend');
 
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
 
         $guardName = backpack_guard_name();
@@ -173,18 +194,31 @@ class BackpackHelpersFeatureTest extends TestCase
 
         $this->assertEquals('web', $guardName);
         $this->assertEquals($user->id, $authenticatedUser->id);
-        $this->assertEquals(url('backend/settings'), $url);
+        $this->assertEquals(
+            url('backend/settings'),
+            $url,
+        );
     }
 
     #[Test]
     public function backpack_functions_are_available_globally(): void
     {
         // Verify that all functions are available globally
-        $this->assertTrue(function_exists('backpack_auth'));
-        $this->assertTrue(function_exists('backpack_guard_name'));
-        $this->assertTrue(function_exists('backpack_user'));
-        $this->assertTrue(function_exists('backpack_url'));
-        $this->assertTrue(function_exists('backpack_pro'));
+        $this->assertTrue(
+            function_exists('backpack_auth'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_guard_name'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_user'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_url'),
+        );
+        $this->assertTrue(
+            function_exists('backpack_pro'),
+        );
     }
 
     #[Test]
@@ -201,6 +235,9 @@ class BackpackHelpersFeatureTest extends TestCase
         // When backpack.base.guard is empty string, it returns that, not the fallback
         $this->assertEquals('', $guardName);
         // When route_prefix is empty, it still gets used
-        $this->assertEquals(url('/test'), $url);
+        $this->assertEquals(
+            url('/test'),
+            $url,
+        );
     }
 }

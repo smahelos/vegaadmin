@@ -26,9 +26,15 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $this->request = new SubscriptionPlanFeatureRequest;
 
         // Set up test route
-        Route::post('/test-subscription-plan-feature', function (SubscriptionPlanFeatureRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-subscription-plan-feature',
+            function (SubscriptionPlanFeatureRequest $request) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -48,11 +54,11 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     #[Test]
     public function authorize_returns_true_with_permission(): void
     {
-        $response = $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-subscription-plan-feature', [
-                'name' => 'Test Feature',
-                'slug' => 'test-feature',
-            ]);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $response = $httpClient->postJson('/test-subscription-plan-feature', [
+            'name' => 'Test Feature',
+            'slug' => 'test-feature',
+        ]);
 
         $response->assertStatus(200);
     }
@@ -69,7 +75,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -85,7 +92,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -100,13 +108,15 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_slug_is_not_unique(): void
     {
-        SubscriptionPlanFeature::factory()->create(['slug' => 'existing-feature']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['slug' => 'existing-feature']);
 
         $data = [
             'name' => 'Test Feature',
@@ -118,7 +128,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -134,7 +145,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('sort_order', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('sort_order', $errors->toArray());
     }
 
     #[Test]
@@ -150,7 +162,8 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]

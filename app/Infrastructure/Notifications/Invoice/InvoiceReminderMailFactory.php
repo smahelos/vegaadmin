@@ -23,19 +23,26 @@ final class InvoiceReminderMailFactory
         ?string $locale,
         string $fallbackName,
     ): MailMessage {
-        $locale ??= $payload->locale ?? app()->getLocale();
+        $application = app();
+        $locale ??= $payload->locale ?? $application->getLocale();
+        $customer = $payload->recipientType === 'customer';
         $view = match ($type) {
-            InvoiceReminderType::UPCOMING_DUE => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',
-            InvoiceReminderType::DUE_TODAY => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.due_today_customer' : 'emails.invoices.reminders.due_today_supplier',
-            InvoiceReminderType::OVERDUE => $payload->recipientType === 'customer'
-                ? 'emails.invoices.reminders.overdue_customer' : 'emails.invoices.reminders.overdue_supplier',
+            InvoiceReminderType::UPCOMING_DUE => $customer ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',
+            InvoiceReminderType::DUE_TODAY => $customer ? 'emails.invoices.reminders.due_today_customer' : 'emails.invoices.reminders.due_today_supplier',
+            InvoiceReminderType::OVERDUE => $customer ? 'emails.invoices.reminders.overdue_customer' : 'emails.invoices.reminders.overdue_supplier',
         };
 
-        return (new MailMessage)
-            ->subject(__('invoices.reminders.' . $type->value . '_subject', ['number' => $payload->invoiceNumber], $locale))
-            ->view($view, [
+        $message = new MailMessage;
+        $message->subject(
+            __(
+                'invoices.reminders.' . $type->value . '_subject',
+                ['number' => $payload->invoiceNumber],
+                $locale,
+            ),
+        );
+        $message->view(
+            $view,
+            [
                 'invoiceNumber' => $payload->invoiceNumber,
                 'supplierName' => $payload->supplierName,
                 'customerName' => $payload->customerName,
@@ -50,6 +57,9 @@ final class InvoiceReminderMailFactory
                 ),
                 'locale' => $locale,
                 'invoiceUrl' => route('frontend.invoice.show', ['id' => $payload->invoiceId->value, 'locale' => $locale]),
-            ]);
+            ],
+        );
+
+        return $message;
     }
 }

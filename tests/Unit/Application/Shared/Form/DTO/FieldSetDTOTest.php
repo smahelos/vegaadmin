@@ -14,18 +14,20 @@ final class FieldSetDTOTest extends TestCase
     #[Test]
     public function it_converts_all_fields_to_arrays(): void
     {
-        $set = new FieldSetDTO([
-            new FieldDTO(
-                name: 'a',
-                label: 'A',
-                type: 'text',
-            ),
-            new FieldDTO(
-                name: 'b',
-                label: 'B',
-                type: 'number',
-            ),
-        ]);
+        $set = new FieldSetDTO(
+            [
+                new FieldDTO(
+                    name: 'a',
+                    label: 'A',
+                    type: 'text',
+                ),
+                new FieldDTO(
+                    name: 'b',
+                    label: 'B',
+                    type: 'number',
+                ),
+            ],
+        );
 
         $arr = $set->toArray();
         $this->assertCount(2, $arr);

@@ -14,17 +14,27 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('invoices')->whereNull('tax_point_date')->update(['tax_point_date' => DB::raw('issue_date')]);
+        $invoices = DB::table('invoices');
+        $invoices->whereNull('tax_point_date');
+        $invoices->update(
+            ['tax_point_date' => DB::raw('issue_date')],
+        );
 
-        Schema::table('invoices', function (Blueprint $table): void {
-            $table->date('tax_point_date')->nullable(false)->change();
-        });
+        Schema::table(
+            'invoices',
+            function (Blueprint $table): void {
+                $table->date('tax_point_date')->nullable(false)->change();
+            },
+        );
     }
 
     public function down(): void
     {
-        Schema::table('invoices', function (Blueprint $table): void {
-            $table->date('tax_point_date')->nullable()->change();
-        });
+        Schema::table(
+            'invoices',
+            function (Blueprint $table): void {
+                $table->date('tax_point_date')->nullable()->change();
+            },
+        );
     }
 };

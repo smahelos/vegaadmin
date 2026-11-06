@@ -14,8 +14,11 @@ final class PublicDocumentLogoStorage implements DocumentLogoStorageInterface
 {
     public function copy(string $source): string
     {
-        $path = $this->path(pathinfo($source, PATHINFO_EXTENSION));
-        if (! Storage::disk('public')->copy($source, $path)) {
+        $path = $this->path(
+            pathinfo($source, PATHINFO_EXTENSION),
+        );
+        $disk = Storage::disk('public');
+        if (!$disk->copy($source, $path)) {
             throw new RuntimeException('The document logo could not be copied');
         }
 
@@ -26,7 +29,12 @@ final class PublicDocumentLogoStorage implements DocumentLogoStorageInterface
     {
         $path = $this->path($file->extension);
         $contents = file_get_contents($file->path);
-        if ($contents === false || ! Storage::disk('public')->put($path, $contents)) {
+        $stored = false;
+        if ($contents !== false) {
+            $disk = Storage::disk('public');
+            $stored = $disk->put($path, $contents);
+        }
+        if (!$stored) {
             throw new RuntimeException('The document logo could not be stored');
         }
 
@@ -36,12 +44,15 @@ final class PublicDocumentLogoStorage implements DocumentLogoStorageInterface
     public function delete(string $path): void
     {
         if (str_starts_with($path, 'documents/logos/')) {
-            Storage::disk('public')->delete($path);
+            $disk = Storage::disk('public');
+            $disk->delete($path);
         }
     }
 
     private function path(string $extension): string
     {
-        return 'documents/logos/' . Str::uuid()->toString() . '.' . strtolower($extension);
+        $uuid = Str::uuid();
+
+        return 'documents/logos/' . $uuid->toString() . '.' . strtolower($extension);
     }
 }

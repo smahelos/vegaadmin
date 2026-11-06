@@ -92,7 +92,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function handle_file_upload_integrates_with_file_upload_service(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image('test.jpg');
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image('test.jpg');
         $this->attributes = ['old_file' => 'old_file.jpg'];
 
         // Act
@@ -128,7 +129,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function handle_file_upload_passes_options_to_service(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image('test.jpg');
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image('test.jpg');
         $options = ['maxFileSize' => 2048, 'allowedMimeTypes' => ['image/jpeg']];
 
         // Act - Should not throw exception with valid options
@@ -148,7 +150,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('public')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getFileUrl('file');
@@ -178,7 +181,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('custom')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getFileUrl('file', 'custom');
@@ -192,7 +196,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('public')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('public');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl('image');
@@ -207,7 +212,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('public')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('public');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl('image', 'custom_thumbnails');
@@ -222,7 +228,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['image' => 'test-image.jpg'];
-        Storage::disk('custom')->put('test-image.jpg', 'fake image content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-image.jpg', 'fake image content');
 
         // Act
         $url = $this->getThumbnailUrl(
@@ -303,7 +310,8 @@ class HasFileUploadsFeatureTest extends TestCase
     {
         // Arrange
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('public')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl('file');
@@ -322,7 +330,8 @@ class HasFileUploadsFeatureTest extends TestCase
             'file2.pdf',
             'file3.pdf',
         ]];
-        Storage::disk('public')->put('file2.pdf', 'fake content');
+        $disk = Storage::disk('public');
+        $disk->put('file2.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl('files', 1);
@@ -351,7 +360,8 @@ class HasFileUploadsFeatureTest extends TestCase
         // Arrange
         Storage::fake('custom');
         $this->attributes = ['file' => 'test-file.pdf'];
-        Storage::disk('custom')->put('test-file.pdf', 'fake content');
+        $disk = Storage::disk('custom');
+        $disk->put('test-file.pdf', 'fake content');
 
         // Act
         $url = $this->getAttributeFileUrl(
@@ -368,7 +378,8 @@ class HasFileUploadsFeatureTest extends TestCase
     public function trait_handles_file_upload_workflow_correctly(): void
     {
         // Arrange
-        $file = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->image(
             'upload.jpg',
             100,
             100,
@@ -402,10 +413,11 @@ class HasFileUploadsFeatureTest extends TestCase
     public function trait_methods_work_together_seamlessly(): void
     {
         // Arrange
+        $fileFactory = UploadedFile::fake();
         $files = [
-            UploadedFile::fake()->image('image1.jpg'),
-            UploadedFile::fake()->create('document.pdf', 100),
-            UploadedFile::fake()->image('image2.png'),
+            $fileFactory->image('image1.jpg'),
+            $fileFactory->create('document.pdf', 100),
+            $fileFactory->image('image2.png'),
         ];
 
         $model = new TestModelWithFileUploads;

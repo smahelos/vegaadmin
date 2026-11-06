@@ -13,7 +13,9 @@ class PageRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage pages
-        return backpack_user() && backpack_user()->can('can_create_edit_page');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_page') === true;
     }
 
     /**
@@ -47,7 +49,7 @@ class PageRequest extends FormRequest
                 $key = $field . '_' . $locale;
                 if ($this->has($key)) {
                     $value = $this->input($key);
-                    if (! empty($value)) {
+                    if (!empty($value)) {
                         $fieldData[$locale] = $value;
                         $hasData = true;
                     }
@@ -70,7 +72,11 @@ class PageRequest extends FormRequest
      */
     public function rules(): array
     {
-        $id = $this->get('id') ?? request()->route('id');
+        $id = $this->get('id');
+        if ($id === null) {
+            $currentRequest = request();
+            $id = $currentRequest->route('id');
+        }
 
         $rules = [
             // Multilingual name validation - at least one locale required
@@ -150,40 +156,46 @@ class PageRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [];
-        foreach ([
-            'name',
-            'slug',
-            'category_id',
-            'parent_id',
-            'sort_order',
-            'description',
-            'content',
-            'meta_title',
-            'meta_description',
-            'meta_keywords',
-            'main_image',
-            'published',
-            'publishing_start',
-            'publishing_end',
-        ] as $field) {
+        foreach (
+            [
+                'name',
+                'slug',
+                'category_id',
+                'parent_id',
+                'sort_order',
+                'description',
+                'content',
+                'meta_title',
+                'meta_description',
+                'meta_keywords',
+                'main_image',
+                'published',
+                'publishing_start',
+                'publishing_end',
+            ] as $field
+        ) {
             $attributes[$field] = __("pages.fields.$field");
         }
 
-        foreach ([
-            'name',
-            'slug',
-            'description',
-            'content',
-            'meta_title',
-            'meta_description',
-            'meta_keywords',
-        ] as $field) {
-            foreach (config('app.available_locales', [
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ]) as $locale) {
+        foreach (
+            [
+                'name',
+                'slug',
+                'description',
+                'content',
+                'meta_title',
+                'meta_description',
+                'meta_keywords',
+            ] as $field
+        ) {
+            foreach (
+                config('app.available_locales', [
+                    'cs',
+                    'en',
+                    'de',
+                    'sk',
+                ]) as $locale
+            ) {
                 $attributes["$field.$locale"] = __("pages.fields.$field") . ' (' . strtoupper($locale) . ')';
             }
         }
@@ -206,44 +218,58 @@ class PageRequest extends FormRequest
      */
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function ($validator): void {
-            // Ensure at least one name translation is provided
-            $names = $this->input('name', []);
-            $hasName = false;
-            foreach ([
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ] as $locale) {
-                if (! empty($names[$locale])) {
-                    $hasName = true;
-                    break;
+        $validator->after(
+            function ($validator): void {
+                // Ensure at least one name translation is provided
+                $names = $this->input('name', []);
+                $hasName = false;
+                foreach (
+                    [
+                        'cs',
+                        'en',
+                        'de',
+                        'sk',
+                    ] as $locale
+                ) {
+                    if (!empty($names[$locale])) {
+                        $hasName = true;
+                        break;
+                    }
                 }
-            }
 
-            if (! $hasName) {
-                $validator->errors()->add('name', __('pages.validation.at_least_one_locale'));
-            }
-
-            // Ensure at least one slug translation is provided
-            $slugs = $this->input('slug', []);
-            $hasSlug = false;
-            foreach ([
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ] as $locale) {
-                if (! empty($slugs[$locale])) {
-                    $hasSlug = true;
-                    break;
+                if (!$hasName) {
+                    $errors = $validator->errors();
+                    $errors->add(
+                        'name',
+                        __('pages.validation.at_least_one_locale'),
+                    );
                 }
-            }
 
-            if (! $hasSlug) {
-                $validator->errors()->add('slug', __('pages.validation.at_least_one_locale'));
-            }
-        });
+                // Ensure at least one slug translation is provided
+                $slugs = $this->input('slug', []);
+                $hasSlug = false;
+                foreach (
+                    [
+                        'cs',
+                        'en',
+                        'de',
+                        'sk',
+                    ] as $locale
+                ) {
+                    if (!empty($slugs[$locale])) {
+                        $hasSlug = true;
+                        break;
+                    }
+                }
+
+                if (!$hasSlug) {
+                    $errors = $validator->errors();
+                    $errors->add(
+                        'slug',
+                        __('pages.validation.at_least_one_locale'),
+                    );
+                }
+            },
+        );
     }
 }

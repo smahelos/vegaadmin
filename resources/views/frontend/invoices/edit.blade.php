@@ -38,7 +38,7 @@ $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
     <div class="flex-none space-x-2 space-y-2 grid grid-cols-2 md:flex md:grid-cols-none md:space-x-0">
         <x-back-button />
 
-        <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
             title="{{ __('invoices.actions.back_to_list') }}" aria-label="{{ __('invoices.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
@@ -57,7 +57,7 @@ $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 @endauth
 
 <form id="invoice-form" method="POST"
-    action="{{ route('frontend.invoice.update', ['locale' => app()->getLocale(), 'id' => $invoice->id]) }}"
+    action="{{ route('frontend.invoice.update', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
     enctype="multipart/form-data" data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}" data-is-editing="true"
     data-amount-required="{{ __('invoices.validation.amount_required') }}"
     data-amount-numeric="{{ __('invoices.validation.amount_numeric') }}"
@@ -408,7 +408,7 @@ $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
     <div class="flex flex-wrap justify-between gap-4 mb-20 md:mb-10">
         <div class="flex flex-wrap gap-4">
-            <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
                 class="inline-flex justify-center px-6 py-4 md:px-12 md:py-6 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('invoices.actions.cancel') }}
             </a>
@@ -432,7 +432,7 @@ $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
     </div>
 
     <!-- set Locale -->
-    <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+    <input type="hidden" name="lang" value="{{ App::getLocale() }}">
     <input type="hidden" name="tax_amount" value="0">
     <input type="hidden" name="payment_without_tax_amount" value="0">
     <input type="hidden" name="template" value="{{ $invoice->template ?? 'default' }}">

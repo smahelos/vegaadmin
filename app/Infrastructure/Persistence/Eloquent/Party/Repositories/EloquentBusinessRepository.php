@@ -28,16 +28,19 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function findByIdForUser(BusinessId $id, UserId $userId): ?BusinessDTO
     {
-        $business = $this->ofUser($userId)
-            ->whereKey($id->value)
-            ->first();
+        $query = $this->ofUser($userId);
+        $query->whereKey($id->value);
+        $business = $query->first();
 
         return $business === null ? null : EloquentBusinessMapper::toDTO($business);
     }
 
     public function listActiveForUser(UserId $userId): array
     {
-        return $this->list($this->ofUser($userId)->whereNull('archived_at'));
+        $query = $this->ofUser($userId);
+        $query->whereNull('archived_at');
+
+        return $this->list($query);
     }
 
     public function listLatestActiveForUser(UserId $userId, int $limit): array
@@ -72,9 +75,9 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function findDefaultIdForUser(UserId $userId): ?BusinessId
     {
-        $id = User::query()
-            ->whereKey($userId->toInt())
-            ->value('default_business_id');
+        $query = User::query();
+        $query->whereKey($userId->toInt());
+        $id = $query->value('default_business_id');
 
         return $id === null ? null : BusinessId::fromInt($id);
     }
@@ -92,7 +95,10 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         );
 
         return new PaginatedResult(
-            array_map(fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business), $found->items()),
+            array_map(
+                fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
+                $found->items(),
+            ),
             $found->total(),
             $found->perPage(),
             $found->currentPage(),
@@ -129,8 +135,10 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function update(BusinessId $id, BusinessWriteData $data): BusinessDTO
     {
+        $query = Business::query();
+        $business = $query->findOrFail($id->value);
         $business = $this->records->save(
-            Business::query()->findOrFail($id->value),
+            $business,
             EloquentBusinessMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -140,23 +148,23 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function archive(BusinessId $id, DateTimeImmutable $archived): void
     {
-        Business::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => $archived]);
+        $query = Business::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => $archived]);
     }
 
     public function restore(BusinessId $id): void
     {
-        Business::query()
-            ->whereKey($id->value)
-            ->update(['archived_at' => null]);
+        $query = Business::query();
+        $query->whereKey($id->value);
+        $query->update(['archived_at' => null]);
     }
 
     public function setDefaultForUser(UserId $userId, ?BusinessId $id): void
     {
-        User::query()
-            ->whereKey($userId->toInt())
-            ->update(['default_business_id' => $id?->value]);
+        $query = User::query();
+        $query->whereKey($userId->toInt());
+        $query->update(['default_business_id' => $id?->value]);
     }
 
     /**
@@ -164,9 +172,11 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
      */
     private function ofUser(UserId $userId): Builder
     {
-        return Business::query()
-            ->with('address')
-            ->where('user_id', $userId->toInt());
+        $query = Business::query();
+        $query->with('address');
+        $query->where('user_id', $userId->toInt());
+
+        return $query;
     }
 
     /**
@@ -175,12 +185,14 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
      */
     private function list(Builder $query): array
     {
-        return $query
-            ->orderBy('name')
-            ->orderBy('id')
-            ->get()
-            ->map(fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business))
-            ->values()
-            ->all();
+        $query->orderBy('name');
+        $query->orderBy('id');
+        $businesses = $query->get();
+        $businesses = $businesses->map(
+            fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
+        );
+        $businesses = $businesses->values();
+
+        return $businesses->all();
     }
 }

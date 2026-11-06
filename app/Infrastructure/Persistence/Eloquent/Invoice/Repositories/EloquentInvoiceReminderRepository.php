@@ -15,7 +15,8 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
 {
     public function findByIdAny(InvoiceId $id): ?ReminderInvoiceDTO
     {
-        $invoice = Invoice::query()->find($id->getValue());
+        $query = Invoice::query();
+        $invoice = $query->find($id->getValue());
 
         return $invoice === null ? null : EloquentReminderInvoiceMapper::toDTO($invoice);
     }
@@ -23,9 +24,14 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
     public function unpaidForReminders(): iterable
     {
         $statuses = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::unpaid());
-        $invoices = Invoice::query()->whereHas('paymentStatus', static function ($query) use ($statuses): void {
-            $query->whereIn('slug', $statuses);
-        })->lazyById();
+        $query = Invoice::query();
+        $query->whereHas(
+            'paymentStatus',
+            static function ($query) use ($statuses): void {
+                $query->whereIn('slug', $statuses);
+            },
+        );
+        $invoices = $query->lazyById();
 
         foreach ($invoices as $invoice) {
             yield EloquentReminderInvoiceMapper::toDTO($invoice);

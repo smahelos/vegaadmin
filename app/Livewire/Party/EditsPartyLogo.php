@@ -24,13 +24,15 @@ trait EditsPartyLogo
     private function logoPath(PartyLogoApplicationService $logos): ?string
     {
         if ($this->logo !== null) {
-            return $logos->store(new IncomingFile(
-                $this->logo->getClientOriginalName(),
-                strtolower($this->logo->getClientOriginalExtension()),
-                (string) $this->logo->getMimeType(),
-                (int) $this->logo->getSize(),
-                (string) $this->logo->getRealPath(),
-            ));
+            return $logos->store(
+                new IncomingFile(
+                    $this->logo->getClientOriginalName(),
+                    strtolower($this->logo->getClientOriginalExtension()),
+                    (string) $this->logo->getMimeType(),
+                    (int) $this->logo->getSize(),
+                    (string) $this->logo->getRealPath(),
+                ),
+            );
         }
 
         return $this->removeLogo ? null : $this->currentLogo;

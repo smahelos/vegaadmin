@@ -25,8 +25,12 @@ class BankCrudControllerTest extends TestCase
         $response = $this->get('/admin/bank/create');
 
         $response->assertOk();
-        $response->assertSee(__('banks.fields.name'));
-        $response->assertSee(__('banks.hints.code'));
+        $response->assertSee(
+            __('banks.fields.name'),
+        );
+        $response->assertSee(
+            __('banks.hints.code'),
+        );
         // Country is a select of ISO codes defaulting to CZ, not a free text input
         $response->assertSee('<option value="CZ"', false);
     }
@@ -37,14 +41,17 @@ class BankCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $code = substr(uniqid(), -6);
 
-        $response = $this->post('/admin/bank', [
-            'name' => 'Test Bank ' . $code,
-            'code' => $code,
-            'swift' => 'TESTCZPP',
-            'country' => 'CZ',
-            'active' => 1,
-            'description' => 'Created from test',
-        ]);
+        $response = $this->post(
+            '/admin/bank',
+            [
+                'name' => 'Test Bank ' . $code,
+                'code' => $code,
+                'swift' => 'TESTCZPP',
+                'country' => 'CZ',
+                'active' => 1,
+                'description' => 'Created from test',
+            ],
+        );
 
         $response->assertRedirect();
         $this->assertDatabaseHas('banks', ['code' => $code, 'country' => 'CZ']);

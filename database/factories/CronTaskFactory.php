@@ -42,19 +42,22 @@ class CronTaskFactory extends Factory
             'monthly',
             'custom',
         ];
+        $optional = $this->faker->optional();
 
         return [
             'name' => $this->faker->words(3, true) . ' Task',
             'command' => $this->faker->randomElement($commands),
             'frequency' => $this->faker->randomElement($frequencies),
-            'custom_expression' => $this->faker->optional()->regexify('[0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2}'),
-            'run_at' => $this->faker->optional()->time(),
-            'day_of_week' => $this->faker->optional()->numberBetween(0, 6),
-            'day_of_month' => $this->faker->optional()->numberBetween(1, 31),
+            'custom_expression' => $optional->regexify(
+                '[0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2} [0-9*]{1,2}',
+            ),
+            'run_at' => $optional->time(),
+            'day_of_week' => $optional->numberBetween(0, 6),
+            'day_of_month' => $optional->numberBetween(1, 31),
             'is_active' => $this->faker->boolean(80), // 80% chance of being active
-            'description' => $this->faker->optional()->sentence(),
-            'last_run' => $this->faker->optional()->dateTimeBetween('-1 month', 'now'),
-            'last_output' => $this->faker->optional()->paragraph(),
+            'description' => $optional->sentence(),
+            'last_run' => $optional->dateTimeBetween('-1 month', 'now'),
+            'last_output' => $optional->paragraph(),
         ];
     }
 
@@ -83,13 +86,15 @@ class CronTaskFactory extends Factory
      */
     public function daily(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'frequency' => 'daily',
-            'run_at' => $this->faker->time(),
-            'day_of_week' => null,
-            'day_of_month' => null,
-            'custom_expression' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'frequency' => 'daily',
+                'run_at' => $this->faker->time(),
+                'day_of_week' => null,
+                'day_of_month' => null,
+                'custom_expression' => null,
+            ],
+        );
     }
 
     /**
@@ -97,13 +102,15 @@ class CronTaskFactory extends Factory
      */
     public function weekly(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'frequency' => 'weekly',
-            'day_of_week' => $this->faker->numberBetween(0, 6),
-            'run_at' => $this->faker->time(),
-            'day_of_month' => null,
-            'custom_expression' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'frequency' => 'weekly',
+                'day_of_week' => $this->faker->numberBetween(0, 6),
+                'run_at' => $this->faker->time(),
+                'day_of_month' => null,
+                'custom_expression' => null,
+            ],
+        );
     }
 
     /**
@@ -111,13 +118,15 @@ class CronTaskFactory extends Factory
      */
     public function monthly(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'frequency' => 'monthly',
-            'day_of_month' => $this->faker->numberBetween(1, 28),
-            'run_at' => $this->faker->time(),
-            'day_of_week' => null,
-            'custom_expression' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'frequency' => 'monthly',
+                'day_of_month' => $this->faker->numberBetween(1, 28),
+                'run_at' => $this->faker->time(),
+                'day_of_week' => null,
+                'custom_expression' => null,
+            ],
+        );
     }
 
     /**
@@ -125,13 +134,15 @@ class CronTaskFactory extends Factory
      */
     public function custom(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'frequency' => 'custom',
-            'custom_expression' => '0 0 * * *', // Daily at midnight
-            'run_at' => null,
-            'day_of_week' => null,
-            'day_of_month' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'frequency' => 'custom',
+                'custom_expression' => '0 0 * * *', // Daily at midnight
+                'run_at' => null,
+                'day_of_week' => null,
+                'day_of_month' => null,
+            ],
+        );
     }
 
     /**
@@ -149,10 +160,12 @@ class CronTaskFactory extends Factory
      */
     public function recentlyRun(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'last_run' => $this->faker->dateTimeBetween('-24 hours', 'now'),
-            'last_output' => 'Task executed successfully',
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'last_run' => $this->faker->dateTimeBetween('-24 hours', 'now'),
+                'last_output' => 'Task executed successfully',
+            ],
+        );
     }
 
     /**
@@ -160,9 +173,11 @@ class CronTaskFactory extends Factory
      */
     public function withError(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'last_run' => $this->faker->dateTimeBetween('-1 week', 'now'),
-            'last_output' => 'ERROR: ' . $this->faker->sentence(),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'last_run' => $this->faker->dateTimeBetween('-1 week', 'now'),
+                'last_output' => 'ERROR: ' . $this->faker->sentence(),
+            ],
+        );
     }
 }

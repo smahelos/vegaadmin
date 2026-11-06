@@ -36,95 +36,125 @@ final class PartyListTest extends TestCase
     #[Test]
     public function shows_only_the_users_active_contacts(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
-        Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
-        Contact::factory()->create(['name' => 'Someone Else']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
+        $contactFactory->create(['name' => 'Someone Else']);
 
-        Livewire::test(ContactList::class)
-            ->assertSee('Active Mine')
-            ->assertDontSee('Archived Mine')
-            ->assertDontSee('Someone Else');
+        $component = Livewire::test(ContactList::class);
+        $component->assertSee('Active Mine');
+        $component->assertDontSee('Archived Mine');
+        $component->assertDontSee('Someone Else');
     }
 
     #[Test]
     public function the_archive_tab_shows_archived_contacts(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
-        Contact::factory()->archived()->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Active Mine']);
+        $archivedFactory = $contactFactory->archived();
+        $archivedFactory->create(['user_id' => $this->user->id, 'name' => 'Archived Mine']);
 
-        Livewire::test(ContactList::class)
-            ->call('showArchived', true)
-            ->assertSee('Archived Mine')
-            ->assertDontSee('Active Mine');
+        $component = Livewire::test(ContactList::class);
+        $component->call('showArchived', true);
+        $component->assertSee('Archived Mine');
+        $component->assertDontSee('Active Mine');
     }
 
     #[Test]
     public function searches_the_name_short_name_company_number_and_email(): void
     {
-        Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Nakladatelství',
-            'short_name' => 'NAK',
-        ]);
-        Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Tiskárna',
-            'email' => 'tisk@example.test',
-        ]);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Nakladatelství',
+                'short_name' => 'NAK',
+            ],
+        );
+        $contactFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Tiskárna',
+                'email' => 'tisk@example.test',
+            ],
+        );
 
-        Livewire::test(ContactList::class)
-            ->set('search', 'NAK')
-            ->assertSee('Nakladatelství')
-            ->assertDontSee('Tiskárna')
-            ->set('search', 'tisk@')
-            ->assertSee('Tiskárna')
-            ->assertDontSee('Nakladatelství');
+        $component = Livewire::test(ContactList::class);
+        $component->set('search', 'NAK');
+        $component->assertSee('Nakladatelství');
+        $component->assertDontSee('Tiskárna');
+        $component->set('search', 'tisk@');
+        $component->assertSee('Tiskárna');
+        $component->assertDontSee('Nakladatelství');
     }
 
     #[Test]
     public function a_wildcard_in_the_search_is_taken_literally(): void
     {
-        Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Plain Name']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Plain Name']);
 
-        Livewire::test(ContactList::class)
-            ->set('search', '%')
-            ->assertDontSee('Plain Name');
+        $component = Livewire::test(ContactList::class);
+        $component->set('search', '%');
+        $component->assertDontSee('Plain Name');
     }
 
     #[Test]
     public function the_business_list_marks_the_default_business(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id, 'name' => 'Default One']);
-        $this->user->forceFill(['default_business_id' => $business->id])->save();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id, 'name' => 'Default One']);
+        $this->user->forceFill(['default_business_id' => $business->id]);
+        $this->user->save();
 
-        Livewire::test(BusinessList::class)
-            ->assertSeeInOrder(['Default One', __('businesses.fields.default')]);
+        $component = Livewire::test(BusinessList::class);
+        $component->assertSeeInOrder(
+            ['Default One', __('businesses.fields.default')],
+        );
     }
 
     #[Test]
     public function a_list_needs_the_view_permission(): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
 
-        Livewire::test(ContactList::class)->assertForbidden();
-        Livewire::test(BusinessList::class)->assertForbidden();
+        $component = Livewire::test(ContactList::class);
+        $component->assertForbidden();
+        $component = Livewire::test(BusinessList::class);
+        $component->assertForbidden();
     }
 
     #[Test]
     public function pagination_uses_the_shared_controls_and_resets_after_filtering(): void
     {
+        $contactFactory = Contact::factory();
         for ($index = 1; $index <= 11; $index++) {
-            Contact::factory()->create([
-                'user_id' => $this->user->id,
-                'name' => sprintf('Contact %02d', $index),
-            ]);
+            $contactFactory->create(
+                [
+                    'user_id' => $this->user->id,
+                    'name' => sprintf('Contact %02d', $index),
+                ],
+            );
         }
 
-        Livewire::test(ContactList::class)
-            ->assertSee('Contact 01')->assertDontSee('Contact 11')
-            ->assertSee('aria-label="' . __('general.pagination.navigation') . '"', false)
-            ->call('setPage', 2)->assertSee('Contact 11')->assertDontSee('Contact 01')
-            ->set('search', 'Contact 01')->assertSee('Contact 01')
-            ->assertViewHas('contacts', fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1);
+        $component = Livewire::test(ContactList::class);
+        $component->assertSee('Contact 01');
+        $component->assertDontSee('Contact 11');
+        $component->assertSee(
+            'aria-label="' . __('general.pagination.navigation') . '"',
+            false,
+        );
+        $component->call('setPage', 2);
+        $component->assertSee('Contact 11');
+        $component->assertDontSee('Contact 01');
+        $component->set('search', 'Contact 01');
+        $component->assertSee('Contact 01');
+        $component->assertViewHas(
+            'contacts',
+            fn ($contacts): bool => $contacts->currentPage() === 1 && $contacts->total() === 1,
+        );
     }
 }

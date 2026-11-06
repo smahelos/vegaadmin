@@ -23,18 +23,22 @@ class MysqlOptimizationLogFeatureTest extends TestCase
         $log = MysqlOptimizationLog::create($data);
 
         $this->assertInstanceOf(MysqlOptimizationLog::class, $log);
-        $this->assertDatabaseHas('mysql_optimization_logs', [
-            'setting_name' => 'innodb_buffer_pool_size',
-            'current_value' => '128M',
-            'recommended_value' => '1G',
-            'priority' => 'high',
-        ]);
+        $this->assertDatabaseHas(
+            'mysql_optimization_logs',
+            [
+                'setting_name' => 'innodb_buffer_pool_size',
+                'current_value' => '128M',
+                'recommended_value' => '1G',
+                'priority' => 'high',
+            ],
+        );
     }
 
     #[Test]
     public function can_use_factory_to_create_mysql_optimization_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create();
 
         $this->assertInstanceOf(MysqlOptimizationLog::class, $log);
         $this->assertDatabaseHas('mysql_optimization_logs', [
@@ -45,7 +49,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_high_priority_state_creates_high_priority_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->highPriority()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $highPriorityFactory = $mysqlOptimizationLogFactory->highPriority();
+        $log = $highPriorityFactory->create();
 
         $this->assertEquals('high', $log->priority);
     }
@@ -53,7 +59,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_medium_priority_state_creates_medium_priority_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->mediumPriority()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $mediumPriorityFactory = $mysqlOptimizationLogFactory->mediumPriority();
+        $log = $mediumPriorityFactory->create();
 
         $this->assertEquals('medium', $log->priority);
     }
@@ -61,7 +69,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_low_priority_state_creates_low_priority_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->lowPriority()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $lowPriorityFactory = $mysqlOptimizationLogFactory->lowPriority();
+        $log = $lowPriorityFactory->create();
 
         $this->assertEquals('low', $log->priority);
     }
@@ -69,7 +79,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_applied_state_creates_applied_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->applied()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $appliedFactory = $mysqlOptimizationLogFactory->applied();
+        $log = $appliedFactory->create();
 
         $this->assertTrue($log->applied);
     }
@@ -77,7 +89,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_unapplied_state_creates_unapplied_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->unapplied()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $unappliedFactory = $mysqlOptimizationLogFactory->unapplied();
+        $log = $unappliedFactory->create();
 
         $this->assertFalse($log->applied);
     }
@@ -85,7 +99,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_buffer_pool_size_state_creates_specific_optimization(): void
     {
-        $log = MysqlOptimizationLog::factory()->bufferPoolSize()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $bufferPoolSizeFactory = $mysqlOptimizationLogFactory->bufferPoolSize();
+        $log = $bufferPoolSizeFactory->create();
 
         $this->assertEquals('innodb_buffer_pool_size', $log->setting_name);
         $this->assertEquals('128M', $log->current_value);
@@ -96,7 +112,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function factory_max_connections_state_creates_specific_optimization(): void
     {
-        $log = MysqlOptimizationLog::factory()->maxConnections()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $maxConnectionsFactory = $mysqlOptimizationLogFactory->maxConnections();
+        $log = $maxConnectionsFactory->create();
 
         $this->assertEquals('max_connections', $log->setting_name);
         $this->assertEquals('151', $log->current_value);
@@ -107,12 +125,13 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function applied_attribute_is_cast_to_boolean(): void
     {
-        $log = MysqlOptimizationLog::factory()->create(['applied' => '1']);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create(['applied' => '1']);
 
         $this->assertIsBool($log->applied);
         $this->assertTrue($log->applied);
 
-        $log = MysqlOptimizationLog::factory()->create(['applied' => '0']);
+        $log = $mysqlOptimizationLogFactory->create(['applied' => '0']);
         $this->assertIsBool($log->fresh()->applied);
         $this->assertFalse($log->fresh()->applied);
     }
@@ -120,13 +139,20 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_priority(): void
     {
-        MysqlOptimizationLog::factory()->highPriority()->create();
-        MysqlOptimizationLog::factory()->mediumPriority()->create();
-        MysqlOptimizationLog::factory()->lowPriority()->createMany(2);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $highPriorityFactory = $mysqlOptimizationLogFactory->highPriority();
+        $highPriorityFactory->create();
+        $mediumPriorityFactory = $mysqlOptimizationLogFactory->mediumPriority();
+        $mediumPriorityFactory->create();
+        $lowPriorityFactory = $mysqlOptimizationLogFactory->lowPriority();
+        $lowPriorityFactory->createMany(2);
 
-        $highPriorityLogs = MysqlOptimizationLog::where('priority', 'high')->get();
-        $mediumPriorityLogs = MysqlOptimizationLog::where('priority', 'medium')->get();
-        $lowPriorityLogs = MysqlOptimizationLog::where('priority', 'low')->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('priority', 'high');
+        $highPriorityLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('priority', 'medium');
+        $mediumPriorityLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('priority', 'low');
+        $lowPriorityLogs = $mysqlOptimizationLogQuery->get();
 
         $this->assertCount(1, $highPriorityLogs);
         $this->assertCount(1, $mediumPriorityLogs);
@@ -136,11 +162,16 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_applied_status(): void
     {
-        MysqlOptimizationLog::factory()->applied()->createMany(2);
-        MysqlOptimizationLog::factory()->unapplied()->createMany(3);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $appliedFactory = $mysqlOptimizationLogFactory->applied();
+        $appliedFactory->createMany(2);
+        $unappliedFactory = $mysqlOptimizationLogFactory->unapplied();
+        $unappliedFactory->createMany(3);
 
-        $appliedLogs = MysqlOptimizationLog::where('applied', true)->get();
-        $unappliedLogs = MysqlOptimizationLog::where('applied', false)->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('applied', true);
+        $appliedLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('applied', false);
+        $unappliedLogs = $mysqlOptimizationLogQuery->get();
 
         $this->assertCount(2, $appliedLogs);
         $this->assertCount(3, $unappliedLogs);
@@ -149,12 +180,15 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_query_logs_by_setting_name(): void
     {
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'innodb_buffer_pool_size']);
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'max_connections']);
-        MysqlOptimizationLog::factory()->create(['setting_name' => 'innodb_buffer_pool_size']);
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $mysqlOptimizationLogFactory->create(['setting_name' => 'innodb_buffer_pool_size']);
+        $mysqlOptimizationLogFactory->create(['setting_name' => 'max_connections']);
+        $mysqlOptimizationLogFactory->create(['setting_name' => 'innodb_buffer_pool_size']);
 
-        $bufferPoolLogs = MysqlOptimizationLog::where('setting_name', 'innodb_buffer_pool_size')->get();
-        $maxConnectionsLogs = MysqlOptimizationLog::where('setting_name', 'max_connections')->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('setting_name', 'innodb_buffer_pool_size');
+        $bufferPoolLogs = $mysqlOptimizationLogQuery->get();
+        $mysqlOptimizationLogQuery = MysqlOptimizationLog::where('setting_name', 'max_connections');
+        $maxConnectionsLogs = $mysqlOptimizationLogQuery->get();
 
         $this->assertCount(2, $bufferPoolLogs);
         $this->assertCount(1, $maxConnectionsLogs);
@@ -163,7 +197,9 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_update_mysql_optimization_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->unapplied()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $unappliedFactory = $mysqlOptimizationLogFactory->unapplied();
+        $log = $unappliedFactory->create();
 
         $log->update([
             'applied' => true,
@@ -177,7 +213,8 @@ class MysqlOptimizationLogFeatureTest extends TestCase
     #[Test]
     public function can_delete_mysql_optimization_log(): void
     {
-        $log = MysqlOptimizationLog::factory()->create();
+        $mysqlOptimizationLogFactory = MysqlOptimizationLog::factory();
+        $log = $mysqlOptimizationLogFactory->create();
         $logId = $log->id;
 
         $log->delete();

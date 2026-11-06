@@ -15,18 +15,23 @@ class ProductObserverTest extends TestCase
     public function product_observer_dispatches_events_on_lifecycle_and_only_on_relevant_updates(): void
     {
         $events = Event::fake([FormDataChanged::class]);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
-        $product = Product::factory()->create([
-            'user_id' => $user->id,
-            'name' => 'Prod A',
-            'price' => 10,
-        ]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $user->id,
+                'name' => 'Prod A',
+                'price' => 10,
+            ],
+        );
         // Product create triggers ProductObserver + possibly other observers; assert at least once
         Event::assertDispatched(FormDataChanged::class);
 
         // Non watched field update (e.g. description) - no dispatch
-        $countAfterCreate = $events->dispatched(FormDataChanged::class)->count();
+        $dispatchedEvents = $events->dispatched(FormDataChanged::class);
+        $countAfterCreate = $dispatchedEvents->count();
         $product->update(['description' => 'Some desc']);
         // No new dispatch for non-watched field
         Event::assertDispatchedTimes(FormDataChanged::class, $countAfterCreate);

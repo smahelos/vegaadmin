@@ -70,18 +70,31 @@ final class PartyPagesTest extends TestCase
     #[DataProvider('listPages')]
     public function a_guest_is_sent_to_the_login(string $index, string $create): void
     {
-        $this->get(route($index))->assertRedirect('/login');
-        $this->get(route($create))->assertRedirect('/login');
+        $httpResponse = $this->get(
+            route($index),
+        );
+        $httpResponse->assertRedirect('/login');
+        $httpResponse = $this->get(
+            route($create),
+        );
+        $httpResponse->assertRedirect('/login');
     }
 
     #[Test]
     #[DataProvider('listPages')]
     public function a_user_without_the_permissions_is_forbidden(string $index, string $create): void
     {
-        $this->actingAs(User::factory()->create());
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
 
-        $this->get(route($index))->assertForbidden();
-        $this->get(route($create))->assertForbidden();
+        $httpResponse = $this->get(
+            route($index),
+        );
+        $httpResponse->assertForbidden();
+        $httpResponse = $this->get(
+            route($create),
+        );
+        $httpResponse->assertForbidden();
     }
 
     #[Test]
@@ -90,8 +103,14 @@ final class PartyPagesTest extends TestCase
     {
         $this->actingAs($this->frontendUser());
 
-        $this->get(route($index))->assertOk();
-        $this->get(route($create))->assertOk();
+        $httpResponse = $this->get(
+            route($index),
+        );
+        $httpResponse->assertOk();
+        $httpResponse = $this->get(
+            route($create),
+        );
+        $httpResponse->assertOk();
     }
 
     /**
@@ -106,12 +125,15 @@ final class PartyPagesTest extends TestCase
         string $component,
     ): void {
         $user = $this->frontendUser();
-        $record = $model::factory()->create(['user_id' => $user->id]);
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create(['user_id' => $user->id]);
 
-        $this->actingAs($user)
-            ->get(route($route, [$parameter => $record->id]))
-            ->assertOk()
-            ->assertSeeLivewire($component);
+        $this->actingAs($user);
+        $response = $this->get(
+            route($route, [$parameter => $record->id]),
+        );
+        $response->assertOk();
+        $response->assertSeeLivewire($component);
     }
 
     /**
@@ -124,11 +146,14 @@ final class PartyPagesTest extends TestCase
         string $route,
         string $parameter,
     ): void {
-        $foreign = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $foreign = $modelFactory->create();
 
-        $this->actingAs($this->frontendUser())
-            ->get(route($route, [$parameter => $foreign->id]))
-            ->assertNotFound();
+        $httpClient = $this->actingAs($this->frontendUser());
+        $httpResponse = $httpClient->get(
+            route($route, [$parameter => $foreign->id]),
+        );
+        $httpResponse->assertNotFound();
     }
 
     /**
@@ -141,8 +166,12 @@ final class PartyPagesTest extends TestCase
         string $route,
         string $parameter,
     ): void {
-        $record = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create();
 
-        $this->get(route($route, [$parameter => $record->id]))->assertRedirect('/login');
+        $httpResponse = $this->get(
+            route($route, [$parameter => $record->id]),
+        );
+        $httpResponse->assertRedirect('/login');
     }
 }

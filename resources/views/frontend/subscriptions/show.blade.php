@@ -8,7 +8,7 @@
         <!-- Breadcrumb -->
         <nav class="mb-8">
             <div class="flex items-center space-x-2 text-sm text-gray-500">
-                <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}" class="hover:text-blue-600">
+                <a href="{{ route('subscriptions.index', ['locale' => App::getLocale()]) }}" class="hover:text-blue-600">
                     {{ __('subscriptions.plans.entity.plural') }}
                 </a>
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -95,7 +95,7 @@
                     </div>
                     @endif
 
-                    <form action="{{ route('subscriptions.subscribe', ['locale' => app()->getLocale(), 'plan' => $plan]) }}" method="POST" class="space-y-6">
+                    <form action="{{ route('subscriptions.subscribe', ['locale' => App::getLocale(), 'plan' => $plan]) }}" method="POST" class="space-y-6">
                         @csrf
 
                         <!-- Payment Gateway Selection -->
@@ -108,8 +108,7 @@
                                 <label
                                     class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-blue-300 dark:hover:border-blue-500 dark:text-white cursor-pointer">
                                     <input type="radio" name="gateway" value="{{ $gatewayKey }}"
-                                        class="text-blue-600 focus:ring-blue-500 border-gray-300" {{ $loop->first ?
-                                    'checked' : '' }}>
+                                        class="text-blue-600 focus:ring-blue-500 border-gray-300" {{ $loop->first ? 'checked' : '' }}>
                                     <div class="ml-3 flex items-center">
                                         @if($gatewayKey === 'gopay')
                                         <img src="https://www.gopay.com/images/gopay-logo.svg" alt="GoPay"

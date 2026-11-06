@@ -132,7 +132,8 @@ class ProductListSelect extends Component
     public function selectProduct(int $id): bool
     {
         try {
-            $product = Product::where('user_id', Auth::id())->findOrFail($id);
+            $query = Product::where('user_id', Auth::id());
+            $product = $query->findOrFail($id);
 
             // Manually load tax to ensure its availability
             if ($product->tax_id) {
@@ -202,45 +203,58 @@ class ProductListSelect extends Component
             $searchTerm = $this->search;
 
             // Explicit preloading of tax rates
-            $query = Product::with(['tax'])
-                ->where('user_id', Auth::id())
-                ->when($searchTerm, function ($query) use ($searchTerm): void {
-                    $query->where(function ($q) use ($searchTerm): void {
-                        $q->where(
-                            'name',
-                            'like',
-                            "%{$searchTerm}%",
-                        )
-                            ->orWhere(
+            $query = Product::with(['tax']);
+            $query->where('user_id', Auth::id());
+            $query->when(
+                $searchTerm,
+                function ($query) use ($searchTerm): void {
+                    $query->where(
+                        function ($q) use ($searchTerm): void {
+                            $q->where(
+                                'name',
+                                'like',
+                                "%{$searchTerm}%",
+                            );
+                            $q->orWhere(
                                 'description',
                                 'like',
                                 "%{$searchTerm}%",
                             );
-                    });
-                })
-                ->orderBy($this->sortColumn(), $this->sortDirection());
+                        },
+                    );
+                },
+            );
+            $query->orderBy($this->sortColumn(), $this->sortDirection());
 
             // If we have selected products, exclude them from results
-            if (! empty($this->selectedProductIds)) {
+            if (!empty($this->selectedProductIds)) {
                 $query->whereNotIn('id', $this->selectedProductIds);
             }
 
             $products = $query->paginate($this->perPage);
 
-            return view('livewire.product.product-list-select', [
-                'products' => $products,
-                'hasData' => $products->total() > 0,
-            ]);
+            return view(
+                'livewire.product.product-list-select',
+                [
+                    'products' => $products,
+                    'hasData' => $products->total() > 0,
+                ],
+            );
         } catch (Throwable $e) {
             Log::error('Loading products for selection failed', ['exception' => $e]);
             $this->errorMessage = __('products.messages.error_loading');
 
             // Return empty products collection in case of error
-            return view('livewire.product.product-list-select', [
-                'products' => Product::where('id', 0)->paginate(10), // Empty paginator
-                'hasData' => false,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            $query = Product::where('id', 0);
+
+            return view(
+                'livewire.product.product-list-select',
+                [
+                    'products' => $query->paginate(10), // Empty paginator
+                    'hasData' => false,
+                    'errorMessage' => $this->errorMessage,
+                ],
+            );
         }
     }
 }

@@ -10,12 +10,16 @@ final class DocumentPartySelectionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->canAny([
-            'can_create_invoice',
-            'can_update_invoice',
-            'can_create_expense',
-            'can_update_expense',
-        ]) === true;
+        $user = backpack_user();
+
+        return $user?->canAny(
+            [
+                'can_create_invoice',
+                'can_update_invoice',
+                'can_create_expense',
+                'can_update_expense',
+            ],
+        ) === true;
     }
 
     /** @return array<string, mixed> */

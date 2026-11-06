@@ -36,10 +36,14 @@ class InvoiceNumber
         }
 
         if ($sequence < 1 || $sequence > self::MAX_SEQUENCE) {
-            throw new InvalidArgumentException('Sequence must be between 1 and ' . self::MAX_SEQUENCE . ", got: {$sequence}");
+            throw new InvalidArgumentException(
+                'Sequence must be between 1 and ' . self::MAX_SEQUENCE . ", got: {$sequence}",
+            );
         }
 
-        return new self(self::format($year, $sequence));
+        return new self(
+            self::format($year, $sequence),
+        );
     }
 
     /**
@@ -49,7 +53,7 @@ class InvoiceNumber
     {
         $currentYear = (int) date('Y');
 
-        if (! $lastNumber) {
+        if (!$lastNumber) {
             return self::fromYearAndSequence($currentYear, 1);
         }
 
@@ -61,7 +65,9 @@ class InvoiceNumber
         }
 
         if ($lastInvoice->getSequence() >= self::MAX_SEQUENCE) {
-            throw new InvalidArgumentException("Invoice number sequence for year {$currentYear} is exhausted");
+            throw new InvalidArgumentException(
+                "Invoice number sequence for year {$currentYear} is exhausted",
+            );
         }
 
         // Otherwise increment sequence
@@ -82,12 +88,16 @@ class InvoiceNumber
         $number = trim($number);
 
         // Check format: YYYY + 4 to 6 digit sequence
-        if (! preg_match(
-            '/^(\d{4})(\d{4,6})$/',
-            $number,
-            $matches,
-        )) {
-            throw new InvalidArgumentException("Invalid invoice number format. Expected YYYYXXXX, got: {$number}");
+        if (
+            !preg_match(
+                '/^(\d{4})(\d{4,6})$/',
+                $number,
+                $matches,
+            )
+        ) {
+            throw new InvalidArgumentException(
+                "Invalid invoice number format. Expected YYYYXXXX, got: {$number}",
+            );
         }
 
         $this->year = (int) $matches[1];
@@ -106,7 +116,9 @@ class InvoiceNumber
 
         // Only the canonical padding is valid (2025010000 would be a second spelling of 202510000)
         if ($number !== self::format($this->year, $this->sequence)) {
-            throw new InvalidArgumentException("Invalid invoice number format. Expected YYYYXXXX, got: {$number}");
+            throw new InvalidArgumentException(
+                "Invalid invoice number format. Expected YYYYXXXX, got: {$number}",
+            );
         }
     }
 

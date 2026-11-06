@@ -50,8 +50,14 @@ class PaymentServiceProviderFeatureTest extends TestCase
     #[Test]
     public function provider_boot_method_executes_without_errors(): void
     {
-        $this->assertInstanceOf(QrPaymentService::class, $this->app->make(QrPaymentServiceInterface::class));
-        $this->assertInstanceOf(GatewayRegistry::class, $this->app->make(GatewayRegistryInterface::class));
+        $this->assertInstanceOf(
+            QrPaymentService::class,
+            $this->app->make(QrPaymentServiceInterface::class),
+        );
+        $this->assertInstanceOf(
+            GatewayRegistry::class,
+            $this->app->make(GatewayRegistryInterface::class),
+        );
     }
 
     #[Test]
@@ -62,7 +68,13 @@ class PaymentServiceProviderFeatureTest extends TestCase
         $this->assertInstanceOf(SubscriptionPaymentServiceInterface::class, $service);
         $interfaces = class_implements($gateway);
         $this->assertContains(PaymentGatewayInterface::class, $interfaces);
-        $this->assertInstanceOf(QrPaymentService::class, $this->app->make(QrPaymentServiceInterface::class));
-        $this->assertInstanceOf(GatewayRegistry::class, $this->app->make(GatewayRegistryInterface::class));
+        $this->assertInstanceOf(
+            QrPaymentService::class,
+            $this->app->make(QrPaymentServiceInterface::class),
+        );
+        $this->assertInstanceOf(
+            GatewayRegistry::class,
+            $this->app->make(GatewayRegistryInterface::class),
+        );
     }
 }

@@ -37,13 +37,25 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define test routes
-        Route::post('/test-page-category', function (PageCategoryRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-page-category',
+            function (PageCategoryRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-page-category/{id}', function (PageCategoryRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-page-category/{id}',
+            function (PageCategoryRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -160,7 +172,8 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create an existing category
-        $existingCategory = PageCategory::factory()->create(['slug' => 'existing-slug']);
+        $pageCategoryFactory = PageCategory::factory();
+        $existingCategory = $pageCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -255,12 +268,18 @@ class PageCategoryRequestFeatureTest extends TestCase
     public function validation_error_names_the_field_and_its_locale(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/test-page-category', [
-            'name_cs' => str_repeat('a', 256),
-            'slug_cs' => 'category-' . uniqid(),
-        ]);
+        $response = $this->postJson(
+            '/test-page-category',
+            [
+                'name_cs' => str_repeat('a', 256),
+                'slug_cs' => 'category-' . uniqid(),
+            ],
+        );
         $response->assertStatus(422);
-        $this->assertStringContainsString(__('pages.categories.fields.name') . ' (CS)', $response->json('errors')['name_cs'][0]);
+        $this->assertStringContainsString(
+            __('pages.categories.fields.name') . ' (CS)',
+            $response->json('errors')['name_cs'][0],
+        );
     }
 
     #[Test]
@@ -269,6 +288,9 @@ class PageCategoryRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/test-page-category', ['description_cs' => 'Popis']);
         $response->assertStatus(422);
-        $this->assertSame([__('pages.categories.validation.at_least_one_locale')], $response->json('errors')['name']);
+        $this->assertSame(
+            [__('pages.categories.validation.at_least_one_locale')],
+            $response->json('errors')['name'],
+        );
     }
 }

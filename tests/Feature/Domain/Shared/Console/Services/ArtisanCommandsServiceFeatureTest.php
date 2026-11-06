@@ -65,7 +65,9 @@ final class ArtisanCommandsServiceFeatureTest extends TestCase
         }
 
         // At least some commands should have descriptions
-        $this->assertTrue($hasDescriptions || count($commands) > 0);
+        $this->assertTrue(
+            $hasDescriptions || count($commands) > 0,
+        );
     }
 
     #[Test]
@@ -80,7 +82,9 @@ final class ArtisanCommandsServiceFeatureTest extends TestCase
         $this->assertEquals($commands1, $commands2);
 
         // Check that cache key exists
-        $this->assertTrue(Cache::has('artisan_commands_list'));
+        $this->assertTrue(
+            Cache::has('artisan_commands_list'),
+        );
     }
 
     #[Test]
@@ -98,21 +102,25 @@ final class ArtisanCommandsServiceFeatureTest extends TestCase
         $uniqueId = uniqid();
 
         // Create a test category
-        $category = ArtisanCommandCategory::create([
-            'name' => 'Test Category ' . $uniqueId,
-            'slug' => 'test-category-' . $uniqueId,
-            'is_active' => true,
-        ]);
+        $category = ArtisanCommandCategory::create(
+            [
+                'name' => 'Test Category ' . $uniqueId,
+                'slug' => 'test-category-' . $uniqueId,
+                'is_active' => true,
+            ],
+        );
 
         // Create a test command in this category
-        ArtisanCommand::create([
-            'name' => 'Test Command ' . $uniqueId,
-            'command' => 'test:command:' . $uniqueId,
-            'description' => 'Test command description ' . $uniqueId,
-            'category_id' => $category->id,
-            'is_active' => true,
-            'sort_order' => 1,
-        ]);
+        ArtisanCommand::create(
+            [
+                'name' => 'Test Command ' . $uniqueId,
+                'command' => 'test:command:' . $uniqueId,
+                'description' => 'Test command description ' . $uniqueId,
+                'category_id' => $category->id,
+                'is_active' => true,
+                'sort_order' => 1,
+            ],
+        );
 
         $commands = $this->service->getCommandsByCategory('test-category-' . $uniqueId);
 
@@ -126,21 +134,25 @@ final class ArtisanCommandsServiceFeatureTest extends TestCase
     {
         $uniqueId = uniqid();
 
-        $category = ArtisanCommandCategory::create([
-            'name' => 'Test Category ' . $uniqueId,
-            'slug' => 'test-category-' . $uniqueId,
-            'is_active' => true,
-        ]);
+        $category = ArtisanCommandCategory::create(
+            [
+                'name' => 'Test Category ' . $uniqueId,
+                'slug' => 'test-category-' . $uniqueId,
+                'is_active' => true,
+            ],
+        );
 
         // Create inactive command
-        ArtisanCommand::create([
-            'name' => 'Inactive Command ' . $uniqueId,
-            'command' => 'inactive:command:' . $uniqueId,
-            'description' => 'Inactive command description',
-            'category_id' => $category->id,
-            'is_active' => false,
-            'sort_order' => 1,
-        ]);
+        ArtisanCommand::create(
+            [
+                'name' => 'Inactive Command ' . $uniqueId,
+                'command' => 'inactive:command:' . $uniqueId,
+                'description' => 'Inactive command description',
+                'category_id' => $category->id,
+                'is_active' => false,
+                'sort_order' => 1,
+            ],
+        );
 
         $commands = $this->service->getCommandsByCategory('test-category-' . $uniqueId);
 

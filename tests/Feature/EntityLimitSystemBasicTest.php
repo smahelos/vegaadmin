@@ -25,27 +25,32 @@ final class EntityLimitSystemBasicTest extends TestCase
 
         // Roles and permissions come from the sync_permission_catalog migration
         // $adminRole = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
-        $frontendUserRole = Role::where('name', 'frontend_user')->where('guard_name', 'web')->first();
-        $backendUserRole = Role::where('name', 'backend_user')->where('guard_name', 'backpack')->first();
-        $permission = Permission::where('name', 'can_create_edit_invoice')
-            ->where('guard_name', 'backpack')
-            ->first();
-        $permission2 = Permission::where('name', 'can_create_contact')
-            ->where('guard_name', 'backpack')
-            ->first();
-        $permission3 = Permission::where('name', 'can_create_business')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $roleQuery = Role::where('name', 'frontend_user');
+        $roleQuery->where('guard_name', 'web');
+        $frontendUserRole = $roleQuery->first();
+        $roleQuery = Role::where('name', 'backend_user');
+        $roleQuery->where('guard_name', 'backpack');
+        $backendUserRole = $roleQuery->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_invoice');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
+        $permissionQuery = Permission::where('name', 'can_create_contact');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission2 = $permissionQuery->first();
+        $permissionQuery = Permission::where('name', 'can_create_business');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission3 = $permissionQuery->first();
 
         // Create admin user with admin role (has all permissions)
-        $this->backendUser = User::factory()->create();
+        $userFactory = User::factory();
+        $this->backendUser = $userFactory->create();
         $this->backendUser->assignRole($backendUserRole);
         $this->backendUser->givePermissionTo($permission);
         $this->backendUser->givePermissionTo($permission2);
         $this->backendUser->givePermissionTo($permission3);
 
         // Create regular user with limited role
-        $this->user = User::factory()->create();
+        $this->user = $userFactory->create();
         $this->user->assignRole($frontendUserRole);
     }
 
@@ -55,19 +60,24 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Create permission for testing
-        Permission::firstOrCreate([
-            'name' => 'test_invoice_limit',
-            'guard_name' => 'web',
-        ]);
+        Permission::firstOrCreate(
+            [
+                'name' => 'test_invoice_limit',
+                'guard_name' => 'web',
+            ],
+        );
 
-        $limit = EntityLimit::factory()->create([
-            'permission_name' => 'test_invoice_limit',
-            'entity_type' => 'invoice',
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'limit_value' => 10,
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->create(
+            [
+                'permission_name' => 'test_invoice_limit',
+                'entity_type' => 'invoice',
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'limit_value' => 10,
+                'is_active' => true,
+            ],
+        );
 
         $this->assertNotNull($limit->id);
         $this->assertEquals('test_invoice_limit', $limit->permission_name);
@@ -81,23 +91,28 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Create permission for testing
-        Permission::firstOrCreate([
-            'name' => 'monthly_invoice_limit',
-            'guard_name' => 'web',
-        ]);
+        Permission::firstOrCreate(
+            [
+                'name' => 'monthly_invoice_limit',
+                'guard_name' => 'web',
+            ],
+        );
 
         // Give user the permission
         $this->user->givePermissionTo('monthly_invoice_limit');
 
         // Create a limit
-        EntityLimit::factory()->create([
-            'permission_name' => 'monthly_invoice_limit',
-            'entity_type' => 'invoice',
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'limit_value' => 5,
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'monthly_invoice_limit',
+                'entity_type' => 'invoice',
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'limit_value' => 5,
+                'is_active' => true,
+            ],
+        );
 
         $limitService = app(UniversalLimitService::class);
 
@@ -112,7 +127,16 @@ final class EntityLimitSystemBasicTest extends TestCase
         $this->assertTrue($check['allowed']);
 
         // Record usage
-        $this->assertTrue($limitService->recordUsage($this->user->id, 'invoice', 'count', 'monthly', 'web', 1));
+        $this->assertTrue(
+            $limitService->recordUsage(
+                $this->user->id,
+                'invoice',
+                'count',
+                'monthly',
+                'web',
+                1,
+            ),
+        );
 
         // Should still be allowed
         $check = $limitService->checkLimit(
@@ -130,13 +154,26 @@ final class EntityLimitSystemBasicTest extends TestCase
     {
         $keys = array_merge(
             array_map(fn ($type) => "entity_limits.entity_types.$type.singular", EntityLimit::ENTITY_TYPES),
-            array_map(fn ($type) => "entity_limits.metric_types.$type", array_keys(EntityLimit::METRIC_TYPES)),
-            array_map(fn ($type) => "entity_limits.periods.$type", array_keys(EntityLimit::PERIOD_TYPES)),
+            array_map(
+                fn ($type) => "entity_limits.metric_types.$type",
+                array_keys(EntityLimit::METRIC_TYPES),
+            ),
+            array_map(
+                fn ($type) => "entity_limits.periods.$type",
+                array_keys(EntityLimit::PERIOD_TYPES),
+            ),
         );
 
         foreach (config('app.available_locales') as $locale) {
             foreach ($keys as $key) {
-                $this->assertTrue(Lang::has($key, $locale, false), "Missing $key in $locale");
+                $this->assertTrue(
+                    Lang::has(
+                        $key,
+                        $locale,
+                        false,
+                    ),
+                    "Missing $key in $locale",
+                );
             }
         }
     }
@@ -145,16 +182,19 @@ final class EntityLimitSystemBasicTest extends TestCase
     public function entity_limit_factory_works(): void
     {
         // Test the factory can create instances
-        $limit = EntityLimit::factory()->make();
+        $entityLimitFactory = EntityLimit::factory();
+        $limit = $entityLimitFactory->make();
         $this->assertNotNull($limit->permission_name);
         $this->assertNotNull($limit->entity_type);
 
         // Test specific factory states
-        $countLimit = EntityLimit::factory()->countLimit(15)->make();
+        $limitFactory = $entityLimitFactory->countLimit(15);
+        $countLimit = $limitFactory->make();
         $this->assertEquals('count', $countLimit->metric_type);
         $this->assertEquals(15, $countLimit->limit_value);
 
-        $invoiceLimit = EntityLimit::factory()->forEntity('invoice')->make();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $invoiceLimit = $limitFactory->make();
         $this->assertEquals('invoice', $invoiceLimit->entity_type);
     }
 }

@@ -61,7 +61,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -78,7 +79,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('price', $errors->toArray());
     }
 
     #[Test]
@@ -96,7 +98,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('price', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('price', $errors->toArray());
     }
 
     #[Test]
@@ -114,7 +117,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('currency', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('currency', $errors->toArray());
     }
 
     #[Test]
@@ -132,7 +136,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('billing_period', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('billing_period', $errors->toArray());
     }
 
     #[Test]
@@ -159,8 +164,9 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_features(): void
     {
         // Create some test features first
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
 
         $data = [
             'name' => 'Test Plan',
@@ -197,8 +203,9 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('features.0', $validator->errors()->toArray());
-        $this->assertArrayHasKey('features.1', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('features.0', $errors->toArray());
+        $this->assertArrayHasKey('features.1', $errors->toArray());
     }
 
     #[Test]
@@ -219,7 +226,8 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('features', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('features', $errors->toArray());
     }
 
     #[Test]
@@ -247,6 +255,11 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
         );
 
         $this->assertTrue($validator->fails());
-        $this->assertStringContainsString(__('subscriptions.plans.fields.price'), $validator->errors()->first('price'));
+        $fieldLabel = __('subscriptions.plans.fields.price');
+        $errors = $validator->errors();
+        $this->assertStringContainsString(
+            $fieldLabel,
+            $errors->first('price'),
+        );
     }
 }

@@ -20,7 +20,8 @@ class ProductListSelectFeatureTest extends TestCase
         parent::setUp();
 
         $this->setupTestRoutes();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
         $this->actingAs($this->user);
     }
 
@@ -29,25 +30,30 @@ class ProductListSelectFeatureTest extends TestCase
      */
     private function setupTestRoutes(): void
     {
-        \Route::get('/test/products', function () {
+        $route = \Route::get('/test/products', function () {
             return 'test';
-        })->name('frontend.product.index');
+        });
+        $route->name('frontend.product.index');
 
-        \Route::get('/test/product/{id}', function ($id) {
+        $route = \Route::get('/test/product/{id}', function ($id) {
             return "product {$id}";
-        })->name('frontend.product.show');
+        });
+        $route->name('frontend.product.show');
 
-        \Route::get('/test/product/{id}/edit', function ($id) {
+        $route = \Route::get('/test/product/{id}/edit', function ($id) {
             return "edit product {$id}";
-        })->name('frontend.product.edit');
+        });
+        $route->name('frontend.product.edit');
 
-        \Route::post('/test/product/{id}', function ($id) {
+        $route = \Route::post('/test/product/{id}', function ($id) {
             return "delete product {$id}";
-        })->name('frontend.product.destroy');
+        });
+        $route->name('frontend.product.destroy');
 
-        \Route::get('/test/product/create', function () {
+        $route = \Route::get('/test/product/create', function () {
             return 'create product';
-        })->name('frontend.product.create');
+        });
+        $route->name('frontend.product.create');
     }
 
     #[Test]
@@ -62,8 +68,9 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function component_displays_user_products(): void
     {
-        $userProduct = Product::factory()->create(['user_id' => $this->user->id]);
-        $otherProduct = Product::factory()->create();
+        $productFactory = Product::factory();
+        $userProduct = $productFactory->create(['user_id' => $this->user->id]);
+        $otherProduct = $productFactory->create();
 
         $this->actingAs($this->user);
         $component = Livewire::test(ProductListSelect::class);
@@ -72,7 +79,9 @@ class ProductListSelectFeatureTest extends TestCase
         // $component->assertSet('hasData', true);
         $this->assertEquals(1, $products->count());
         $this->assertEquals($userProduct->id, $products->first()->id);
-        $this->assertFalse($products->contains('id', $otherProduct->id));
+        $this->assertFalse(
+            $products->contains('id', $otherProduct->id),
+        );
     }
 
     #[Test]
@@ -92,22 +101,31 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $product1 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Test Product One',
-        ]);
-        $product2 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Another Product',
-        ]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Test Product One',
+            ],
+        );
+        $product2 = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Another Product',
+            ],
+        );
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'Test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'Test');
 
         $products = $component->viewData('products');
 
-        $this->assertTrue($products->contains('id', $product1->id));
-        $this->assertFalse($products->contains('id', $product2->id));
+        $this->assertTrue(
+            $products->contains('id', $product1->id),
+        );
+        $this->assertFalse(
+            $products->contains('id', $product2->id),
+        );
     }
 
     #[Test]
@@ -115,28 +133,39 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $product1 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'description' => 'This is a test product description',
-        ]);
-        $product2 = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'description' => 'This is another product description',
-        ]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'description' => 'This is a test product description',
+            ],
+        );
+        $product2 = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'description' => 'This is another product description',
+            ],
+        );
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'test');
 
         $products = $component->viewData('products');
-        $this->assertTrue($products->contains('id', $product1->id));
-        $this->assertFalse($products->contains('id', $product2->id));
+        $this->assertTrue(
+            $products->contains('id', $product1->id),
+        );
+        $this->assertFalse(
+            $products->contains('id', $product2->id),
+        );
     }
 
     #[Test]
     public function search_update_resets_pagination(): void
     {
         // Create 16 products to have multiple pages
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
 
@@ -147,10 +176,15 @@ class ProductListSelectFeatureTest extends TestCase
         $component->set('search', 'test');
 
         // Verify search was set
-        $this->assertEquals('test', $component->get('search'));
+        $this->assertEquals(
+            'test',
+            $component->get('search'),
+        );
 
         // Test that pagination was reset by checking the rendered view
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
 
@@ -158,25 +192,35 @@ class ProductListSelectFeatureTest extends TestCase
     public function reset_filters_clears_all_filters_and_pagination(): void
     {
         // Create 16 products to have multiple pages
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('search', 'test');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('search', 'test');
 
         // Navigate to page 2
         $component->call('gotoPage', 2);
 
         // Verify we have search filter
-        $this->assertEquals('test', $component->get('search'));
+        $this->assertEquals(
+            'test',
+            $component->get('search'),
+        );
 
         // Call resetFilters method
         $component->call('resetFilters');
 
         // Search filter should be reset
-        $this->assertEquals('', $component->get('search'));
+        $this->assertEquals(
+            '',
+            $component->get('search'),
+        );
 
         // Verify products are displayed
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
 
@@ -184,16 +228,23 @@ class ProductListSelectFeatureTest extends TestCase
     public function pagination_respects_per_page_setting(): void
     {
         // Create 15 products to test with different per page setting
-        Product::factory()->count(15)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(15);
+        $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('perPage', 5);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('perPage', 5);
 
         // Check component state
-        $this->assertEquals(5, $component->get('perPage'));
+        $this->assertEquals(
+            5,
+            $component->get('perPage'),
+        );
 
         // Verify products are displayed with correct pagination
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
         // Should show 5 products per page
@@ -203,32 +254,32 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function sort_by_toggles_direction_for_same_field(): void
     {
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', false);
+        $component->assertSet('orderBy', 'name');
+        $component->assertSet('orderAsc', false);
 
         $component->call('sortBy', 'name');
 
-        $component->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
+        $component->assertSet('orderBy', 'name');
+        $component->assertSet('orderAsc', true);
     }
 
     #[Test]
     public function sort_by_sets_ascending_for_different_field(): void
     {
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', false);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', false);
 
         $component->call('sortBy', 'price');
 
-        $component->assertSet('orderBy', 'price')
-            ->assertSet('orderAsc', true);
+        $component->assertSet('orderBy', 'price');
+        $component->assertSet('orderAsc', true);
     }
 
     #[Test]
@@ -236,21 +287,23 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $productB = Product::factory()->create([
+        $productFactory = Product::factory();
+        $productB = $productFactory->create([
             'user_id' => $this->user->id,
             'name' => 'B Product',
         ]);
-        $productA = Product::factory()->create([
+        $productA = $productFactory->create([
             'user_id' => $this->user->id,
             'name' => 'A Product',
         ]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('orderBy', 'name')
-            ->set('orderAsc', true);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('orderBy', 'name');
+        $component->set('orderAsc', true);
 
         $products = $component->viewData('products');
-        $productIds = $products->pluck('id')->toArray();
+        $productValues = $products->pluck('id');
+        $productIds = $productValues->toArray();
 
         $this->assertEquals($productA->id, $productIds[0]);
         $this->assertEquals($productB->id, $productIds[1]);
@@ -261,18 +314,25 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $product1 = Product::factory()->create(['user_id' => $this->user->id]);
-        $product2 = Product::factory()->create(['user_id' => $this->user->id]);
-        $product3 = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->user->id]);
+        $product2 = $productFactory->create(['user_id' => $this->user->id]);
+        $product3 = $productFactory->create(['user_id' => $this->user->id]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->set('selectedProductIds', [$product1->id, $product2->id]);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->set('selectedProductIds', [$product1->id, $product2->id]);
 
         $products = $component->viewData('products');
 
-        $this->assertFalse($products->contains('id', $product1->id));
-        $this->assertFalse($products->contains('id', $product2->id));
-        $this->assertTrue($products->contains('id', $product3->id));
+        $this->assertFalse(
+            $products->contains('id', $product1->id),
+        );
+        $this->assertFalse(
+            $products->contains('id', $product2->id),
+        );
+        $this->assertTrue(
+            $products->contains('id', $product3->id),
+        );
     }
 
     #[Test]
@@ -280,22 +340,31 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $product1 = Product::factory()->create(['user_id' => $this->user->id]);
-        $product2 = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->user->id]);
+        $product2 = $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
 
         // Initially both products should be visible
         $products = $component->viewData('products');
-        $this->assertTrue($products->contains('id', $product1->id));
-        $this->assertTrue($products->contains('id', $product2->id));
+        $this->assertTrue(
+            $products->contains('id', $product1->id),
+        );
+        $this->assertTrue(
+            $products->contains('id', $product2->id),
+        );
 
         // Set selected IDs to exclude product1
         $component->call('setSelectedProductIds', [$product1->id]);
 
         $products = $component->viewData('products');
-        $this->assertFalse($products->contains('id', $product1->id));
-        $this->assertTrue($products->contains('id', $product2->id));
+        $this->assertFalse(
+            $products->contains('id', $product1->id),
+        );
+        $this->assertTrue(
+            $products->contains('id', $product2->id),
+        );
     }
 
     #[Test]
@@ -351,14 +420,16 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $tax = Tax::factory()->create();
-        $product = Product::factory()->create([
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create([
             'user_id' => $this->user->id,
             'tax_id' => $tax->id,
         ]);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', $product->id);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', $product->id);
 
         // Check that events were dispatched (indicates success)
         $component->assertDispatched('product-selected');
@@ -373,15 +444,18 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $component = Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', 999999);
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', 999999);
 
         // Check that events were NOT dispatched (indicates failure)
         $component->assertNotDispatched('product-selected');
         $component->assertNotDispatched('closeModal');
 
         // Check that error message was set
-        $component->assertSet('errorMessage', __('products.messages.not_found'));
+        $component->assertSet(
+            'errorMessage',
+            __('products.messages.not_found'),
+        );
     }
 
     #[Test]
@@ -389,14 +463,18 @@ class ProductListSelectFeatureTest extends TestCase
     {
         $this->actingAs($this->user);
 
-        $tax = Tax::factory()->create(['rate' => 21]);
-        $product = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'tax_id' => $tax->id,
-            'price' => 100.50,
-            'unit' => 'pieces',
-            'currency' => 'EUR',
-        ]);
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create(['rate' => 21]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'tax_id' => $tax->id,
+                'price' => 100.50,
+                'unit' => 'pieces',
+                'currency' => 'EUR',
+            ],
+        );
 
         $component = Livewire::test(ProductListSelect::class);
 
@@ -410,7 +488,8 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function select_product_dispatches_close_modal_event(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
 
@@ -422,7 +501,8 @@ class ProductListSelectFeatureTest extends TestCase
     #[Test]
     public function select_product_handles_missing_tax_gracefully(): void
     {
-        $product = Product::factory()->create([
+        $productFactory = Product::factory();
+        $product = $productFactory->create([
             'user_id' => $this->user->id,
             'tax_id' => null,
         ]);
@@ -440,7 +520,8 @@ class ProductListSelectFeatureTest extends TestCase
     public function select_product_handles_invalid_tax_id_gracefully(): void
     {
         // Create product with valid factory data first
-        $product = Product::factory()->create([
+        $productFactory = Product::factory();
+        $product = $productFactory->create([
             'user_id' => $this->user->id,
         ]);
 
@@ -461,11 +542,14 @@ class ProductListSelectFeatureTest extends TestCase
     public function component_uses_default_values_when_product_fields_are_null(): void
     {
         // Create product with minimal required fields, some fields can be null
-        $product = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'price' => 10.00, // price is required, cannot be null
-            // currency has default value 'CZK' in database, so we test that it uses the default
-        ]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'price' => 10.00, // price is required, cannot be null
+                // currency has default value 'CZK' in database, so we test that it uses the default
+            ],
+        );
 
         $component = Livewire::test(ProductListSelect::class);
 
@@ -488,12 +572,16 @@ class ProductListSelectFeatureTest extends TestCase
     public function pagination_functionality_is_available(): void
     {
         // Create exactly 16 products to test pagination (10 on page 1, 6 on page 2)
-        Product::factory()->count(16)->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(16);
+        $productFactory->create(['user_id' => $this->user->id]);
 
         $component = Livewire::test(ProductListSelect::class);
 
         // Verify products are displayed with pagination
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
         // Should show 10 products on first page
@@ -504,36 +592,51 @@ class ProductListSelectFeatureTest extends TestCase
         $component->call('gotoPage', 2);
 
         // Re-render to get updated products
-        $products = $component->instance()->render()->getData()['products'];
+        $productList = $component->instance();
+        $view = $productList->render();
+        $products = $view->getData()['products'];
         $this->assertCount(6, $products->items()); // Remaining 6 products on page 2
     }
 
     #[Test]
     public function select_product_does_not_reveal_another_users_product(): void
     {
-        $foreign = Product::factory()->create(['user_id' => User::factory()->create()->id]);
+        $productFactory = Product::factory();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $foreign = $productFactory->create(['user_id' => $user->id]);
 
-        Livewire::test(ProductListSelect::class)
-            ->call('selectProduct', $foreign->id)
-            ->assertNotDispatched('product-selected')
-            ->assertNotDispatched('closeModal')
-            ->assertSet('errorMessage', __('products.messages.not_found'));
+        $component = Livewire::test(ProductListSelect::class);
+        $component->call('selectProduct', $foreign->id);
+        $component->assertNotDispatched('product-selected');
+        $component->assertNotDispatched('closeModal');
+        $component->assertSet(
+            'errorMessage',
+            __('products.messages.not_found'),
+        );
     }
 
     #[Test]
     public function lists_only_the_signed_in_users_products(): void
     {
-        Product::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Own Product ' . uniqid(),
-        ]);
-        Product::factory()->create([
-            'user_id' => User::factory()->create()->id,
-            'name' => 'Foreign Product ' . uniqid(),
-        ]);
+        $productFactory = Product::factory();
+        $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Own Product ' . uniqid(),
+            ],
+        );
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory->create(
+            [
+                'user_id' => $user->id,
+                'name' => 'Foreign Product ' . uniqid(),
+            ],
+        );
 
-        Livewire::test(ProductListSelect::class)
-            ->assertSee('Own Product')
-            ->assertDontSee('Foreign Product');
+        $component = Livewire::test(ProductListSelect::class);
+        $component->assertSee('Own Product');
+        $component->assertDontSee('Foreign Product');
     }
 }

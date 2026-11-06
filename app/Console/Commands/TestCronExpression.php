@@ -22,8 +22,10 @@ class TestCronExpression extends Command
 
         if ($this->argument('id')) {
             // Check existing tasks
-            $task = CronTask::find($this->argument('id'));
-            if (! $task) {
+            $task = CronTask::find(
+                $this->argument('id'),
+            );
+            if (!$task) {
                 $this->error("Task with ID {$this->argument('id')} not found.");
 
                 return 1;
@@ -52,8 +54,14 @@ class TestCronExpression extends Command
             $this->info('Next runs (5):');
 
             for ($i = 0; $i < 5; $i++) {
-                $nextRun = Carbon::createFromFormat('Y-m-d H:i:s', $cron->getNextRunDate($now)->format('Y-m-d H:i:s'));
-                $this->info(' - ' . $nextRun->format('Y-m-d H:i:s') . ' (' . $nextRun->diffForHumans() . ')');
+                $nextRunDate = $cron->getNextRunDate($now);
+                $nextRun = Carbon::createFromFormat(
+                    'Y-m-d H:i:s',
+                    $nextRunDate->format('Y-m-d H:i:s'),
+                );
+                $this->info(
+                    ' - ' . $nextRun->format('Y-m-d H:i:s') . ' (' . $nextRun->diffForHumans() . ')',
+                );
                 $now = $nextRun; // Update for next iteration
             }
 
@@ -64,7 +72,9 @@ class TestCronExpression extends Command
                     $this->info("Task run: {$task->command}");
                     $this->call($task->command);
                 } else {
-                    $this->line('Simulation is not accessible for testing of task expression.');
+                    $this->line(
+                        'Simulation is not accessible for testing of task expression.',
+                    );
                 }
             }
 

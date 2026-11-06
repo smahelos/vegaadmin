@@ -46,23 +46,19 @@ class ProductDTO
             description: $data['description'] ?? null,
             slug: $data['slug'] ?? null,
             image: $data['image'] ?? null,
-            price: isset($data['price'])
-                ? ($data['price'] instanceof Money
-                    ? $data['price']
-                    : (isset($data['currency'])
-                        ? Money::fromFloat(
-                            (float) $data['price'],
-                            strtoupper((string) $data['currency']),
-                        )
-                        : null))
-                : null,
+            price: $data['price'] ?? null,
             unit: ($data['unit'] ?? null) instanceof Unit ? $data['unit'] : Unit::fromInput($data['unit'] ?? null),
             category_id: isset($data['category_id']) ? (int) $data['category_id'] : null,
             category: isset($data['category']) && is_array($data['category']) ? $data['category'] : null,
             currency: $data['currency'] ?? null,
             tax_id: isset($data['tax_id']) ? (int) $data['tax_id'] : null,
             tax: isset($data['tax']) && is_array($data['tax']) ? $data['tax'] : null,
-            invoices: array_values(array_filter($data['invoices'] ?? [], fn ($v) => is_int($v) || ctype_digit((string) $v))),
+            invoices: array_values(
+                array_filter(
+                    $data['invoices'] ?? [],
+                    fn ($v) => is_int($v) || ctype_digit((string) $v),
+                ),
+            ),
             created_at: $data['created_at'] ?? null,
             updated_at: $data['updated_at'] ?? null,
             user_id: isset($data['user_id']) ? (int) $data['user_id'] : null,

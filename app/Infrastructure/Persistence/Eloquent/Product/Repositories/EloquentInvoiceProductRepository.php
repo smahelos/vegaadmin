@@ -15,14 +15,16 @@ class EloquentInvoiceProductRepository implements InvoiceProductReadRepositoryIn
 
     public function allForInvoice(int $invoiceId): array
     {
-        return InvoiceProduct::where('invoice_id', $invoiceId)
-            ->with(relations: ['product'])
-            ->get()
-            ->toArray();
+        $query = InvoiceProduct::where('invoice_id', $invoiceId);
+        $query->with(relations: ['product']);
+        $products = $query->get();
+
+        return $products->toArray();
     }
 
     public function deleteByInvoiceId(int $invoiceId): void
     {
-        InvoiceProduct::where('invoice_id', $invoiceId)->delete();
+        $query = InvoiceProduct::where('invoice_id', $invoiceId);
+        $query->delete();
     }
 }

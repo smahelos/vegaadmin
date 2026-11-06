@@ -46,17 +46,19 @@ final class BankAccountApplicationService
         AccountOwner $owner,
         BankAccountWriteData $data,
     ): BankAccountDTO {
-        return $this->transactions->transaction(function () use ($userId, $owner, $data): BankAccountDTO {
-            $this->users->lockForUpdate($userId);
-            $this->assertOwnedBy($userId, $owner);
+        return $this->transactions->transaction(
+            function () use ($userId, $owner, $data): BankAccountDTO {
+                $this->users->lockForUpdate($userId);
+                $this->assertOwnedBy($userId, $owner);
 
-            $account = $this->accountWriter->create($owner, $data);
-            if ($this->accounts->findDefaultIdForOwner($owner) === null) {
-                $this->accountWriter->setDefaultForOwner($owner, $account->id);
-            }
+                $account = $this->accountWriter->create($owner, $data);
+                if ($this->accounts->findDefaultIdForOwner($owner) === null) {
+                    $this->accountWriter->setDefaultForOwner($owner, $account->id);
+                }
 
-            return $account;
-        });
+                return $account;
+            },
+        );
     }
 
     public function update(
@@ -87,24 +89,29 @@ final class BankAccountApplicationService
         BankAccountId $id,
         ?BankAccountId $newDefault,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $owner, $id, $newDefault): void {
-            $this->users->lockForUpdate($userId);
-            $account = $this->getForOwner(
-                $userId,
-                $owner,
-                $id,
-            );
-            if ($account->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $owner, $id, $newDefault): void {
+                $this->users->lockForUpdate($userId);
+                $account = $this->getForOwner(
+                    $userId,
+                    $owner,
+                    $id,
+                );
+                if ($account->isArchived()) {
+                    return;
+                }
 
-            $default = $this->accounts->findDefaultIdForOwner($account->owner);
-            if ($default !== null && $default->equals($id)) {
-                $this->accountWriter->setDefaultForOwner($account->owner, $this->replacementDefault($account, $newDefault));
-            }
+                $default = $this->accounts->findDefaultIdForOwner($account->owner);
+                if ($default !== null && $default->equals($id)) {
+                    $this->accountWriter->setDefaultForOwner(
+                        $account->owner,
+                        $this->replacementDefault($account, $newDefault),
+                    );
+                }
 
-            $this->accountWriter->archive($id, $this->clock->now());
-        });
+                $this->accountWriter->archive($id, $this->clock->now());
+            },
+        );
     }
 
     /**
@@ -115,22 +122,24 @@ final class BankAccountApplicationService
         AccountOwner $owner,
         BankAccountId $id,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $owner, $id): void {
-            $this->users->lockForUpdate($userId);
-            $account = $this->getForOwner(
-                $userId,
-                $owner,
-                $id,
-            );
-            if (! $account->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $owner, $id): void {
+                $this->users->lockForUpdate($userId);
+                $account = $this->getForOwner(
+                    $userId,
+                    $owner,
+                    $id,
+                );
+                if (!$account->isArchived()) {
+                    return;
+                }
 
-            $this->accountWriter->restore($id);
-            if ($this->accounts->findDefaultIdForOwner($account->owner) === null) {
-                $this->accountWriter->setDefaultForOwner($account->owner, $id);
-            }
-        });
+                $this->accountWriter->restore($id);
+                if ($this->accounts->findDefaultIdForOwner($account->owner) === null) {
+                    $this->accountWriter->setDefaultForOwner($account->owner, $id);
+                }
+            },
+        );
     }
 
     /**
@@ -141,19 +150,21 @@ final class BankAccountApplicationService
         AccountOwner $owner,
         BankAccountId $id,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $owner, $id): void {
-            $this->users->lockForUpdate($userId);
-            $account = $this->getForOwner(
-                $userId,
-                $owner,
-                $id,
-            );
-            if ($account->isArchived()) {
-                throw new BankAccountArchivedException($id);
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $owner, $id): void {
+                $this->users->lockForUpdate($userId);
+                $account = $this->getForOwner(
+                    $userId,
+                    $owner,
+                    $id,
+                );
+                if ($account->isArchived()) {
+                    throw new BankAccountArchivedException($id);
+                }
 
-            $this->accountWriter->setDefaultForOwner($account->owner, $id);
-        });
+                $this->accountWriter->setDefaultForOwner($account->owner, $id);
+            },
+        );
     }
 
     /**
@@ -171,8 +182,10 @@ final class BankAccountApplicationService
         BankAccountId $id,
     ): BankAccountDTO {
         $account = $this->get($userId, $id);
-        if ($account->owner->businessId?->value !== $owner->businessId?->value ||
-            $account->owner->contactId?->value !== $owner->contactId?->value) {
+        if (
+            $account->owner->businessId?->value !== $owner->businessId?->value
+            || $account->owner->contactId?->value !== $owner->contactId?->value
+        ) {
             throw new BankAccountNotFoundException($id);
         }
 
@@ -216,7 +229,7 @@ final class BankAccountApplicationService
         $ownerAccounts = $this->accounts->listForOwner($archived->owner);
         $othersActive = array_filter(
             $ownerAccounts,
-            fn (BankAccountDTO $other): bool => ! $other->isArchived() && ! $other->id->equals($archived->id),
+            fn (BankAccountDTO $other): bool => !$other->isArchived() && !$other->id->equals($archived->id),
         );
 
         if ($newDefault === null || $newDefault->equals($archived->id)) {
@@ -228,7 +241,7 @@ final class BankAccountApplicationService
         }
 
         foreach ($ownerAccounts as $candidate) {
-            if (! $candidate->id->equals($newDefault)) {
+            if (!$candidate->id->equals($newDefault)) {
                 continue;
             }
 

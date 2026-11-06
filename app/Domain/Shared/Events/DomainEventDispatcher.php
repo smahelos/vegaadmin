@@ -36,16 +36,19 @@ class DomainEventDispatcher
         $eventTypes = is_array($eventTypes) ? $eventTypes : [$eventTypes];
 
         foreach ($eventTypes as $eventType) {
-            if (! isset($this->handlers[$eventType])) {
+            if (!isset($this->handlers[$eventType])) {
                 $this->handlers[$eventType] = [];
             }
 
             $this->handlers[$eventType][] = $handler;
 
             // Sort by priority (higher first)
-            usort($this->handlers[$eventType], function ($a, $b) {
-                return $b->getPriority() <=> $a->getPriority();
-            });
+            usort(
+                $this->handlers[$eventType],
+                function ($a, $b) {
+                    return $b->getPriority() <=> $a->getPriority();
+                },
+            );
         }
     }
 
@@ -87,7 +90,7 @@ class DomainEventDispatcher
             }
 
             foreach ($handlers as $handler) {
-                if (! $handler->canHandle($event)) {
+                if (!$handler->canHandle($event)) {
                     continue;
                 }
 
@@ -129,7 +132,10 @@ class DomainEventDispatcher
         } finally {
             $this->isDispatching = false;
 
-            $totalTime = round((microtime(true) - $startTime) * 1000, 2);
+            $totalTime = round(
+                (microtime(true) - $startTime) * 1000,
+                2,
+            );
 
             // $this->logger->log(
             //     'info',

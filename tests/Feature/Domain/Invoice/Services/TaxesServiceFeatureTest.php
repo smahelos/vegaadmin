@@ -19,7 +19,8 @@ class TaxesServiceFeatureTest extends TestCase
         $this->service = app(TaxesService::class);
 
         // The service lists the whole taxes table; start without the seeded VAT rates
-        Tax::query()->delete();
+        $taxQuery = Tax::query();
+        $taxQuery->delete();
 
         // Clear cache before each test
         Cache::flush();
@@ -29,9 +30,10 @@ class TaxesServiceFeatureTest extends TestCase
     public function get_all_taxes_for_select_returns_ordered_taxes_as_id_name_array(): void
     {
         // Arrange
-        $tax1 = Tax::factory()->create(['name' => 'Zebra Tax']);
-        $tax2 = Tax::factory()->create(['name' => 'Alpha Tax']);
-        $tax3 = Tax::factory()->create(['name' => 'Beta Tax']);
+        $taxFactory = Tax::factory();
+        $tax1 = $taxFactory->create(['name' => 'Zebra Tax']);
+        $tax2 = $taxFactory->create(['name' => 'Alpha Tax']);
+        $tax3 = $taxFactory->create(['name' => 'Beta Tax']);
 
         // Act
         $result = $this->service->getAllTaxesForSelect();
@@ -66,23 +68,30 @@ class TaxesServiceFeatureTest extends TestCase
     public function taxes_for_select_cache_expires_after_5_minutes(): void
     {
         // Arrange
-        $t1 = Tax::factory()->create(['name' => 'Test Tax']);
+        $taxFactory = Tax::factory();
+        $t1 = $taxFactory->create(['name' => 'Test Tax']);
 
         // Act - First call to populate cache
         $initial = $this->service->getAllTaxesForSelect();
         $this->assertArrayHasKey($t1->id, $initial);
 
         // Before TTL: add new tax but expect cached result (no new id)
-        $this->travel(4)->minutes();
-        $t2 = Model::withoutEvents(function () {
-            return Tax::factory()->create(['name' => 'New Tax']);
-        });
+        $wormhole = $this->travel(4);
+        $wormhole->minutes();
+        $t2 = Model::withoutEvents(
+            function () {
+                $taxFactory = Tax::factory();
+
+                return $taxFactory->create(['name' => 'New Tax']);
+            },
+        );
         $beforeExpire = $this->service->getAllTaxesForSelect();
         $this->assertEquals($initial, $beforeExpire);
         $this->assertArrayNotHasKey($t2->id, $beforeExpire);
 
         // After TTL: expect refreshed result to include new id
-        $this->travel(2)->minutes(); // Total 6 minutes
+        $wormhole = $this->travel(2);
+        $wormhole->minutes(); // Total 6 minutes
         $afterExpire = $this->service->getAllTaxesForSelect();
         $this->assertArrayHasKey($t2->id, $afterExpire);
     }

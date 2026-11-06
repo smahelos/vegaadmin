@@ -13,7 +13,9 @@ class ExpenseCategoryRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage expenses
-        return backpack_user() && backpack_user()->can('can_create_edit_expense');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_expense') === true;
     }
 
     /**
@@ -25,7 +27,7 @@ class ExpenseCategoryRequest extends FormRequest
     {
         // Determine current ID (if updating) using route parameter; fall back to NULL for create.
         $id = $this->route('id');
-        if (! $id && $this->has('id')) {
+        if (!$id && $this->has('id')) {
             $id = $this->get('id');
         }
         $id = $id ?: 'NULL';
@@ -62,9 +64,11 @@ class ExpenseCategoryRequest extends FormRequest
     {
         // Generate slug if not provided
         if (empty($this->slug)) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 }

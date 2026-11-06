@@ -74,11 +74,13 @@ final class ExpenseApplicationService
 
     private function assertPermission(UserId $actorId, string $permission): void
     {
-        if (! in_array(
-            $permission,
-            $this->permissions->getUserPermissions($actorId->toInt(), 'backpack'),
-            true,
-        )) {
+        if (
+            !in_array(
+                $permission,
+                $this->permissions->getUserPermissions($actorId->toInt(), 'backpack'),
+                true,
+            )
+        ) {
             throw new ExpenseAccessDeniedException('The administrator cannot change expenses');
         }
     }
@@ -93,76 +95,92 @@ final class ExpenseApplicationService
         $saved = false;
         try {
             $stored = $id === null ? null : $this->get($userId, $id);
-            $contact = $data->contactId === null ? null : ($this->contacts->findByIdForUser($data->contactId, $userId)
-                ?? throw new ContactNotFoundException($data->contactId));
+            if ($data->contactId === null) {
+                $contact = null;
+            } else {
+                $contact = $this->contacts->findByIdForUser($data->contactId, $userId)
+                    ?? throw new ContactNotFoundException($data->contactId);
+            }
             $sameSupplier = $stored !== null && $stored->parties->contactId?->value === $data->contactId?->value;
-            $keepLogo = $sameSupplier && ($data->contactId !== null || ($data->supplierLogo === null && ! $data->removeSupplierLogo));
+            $keepLogo = $sameSupplier && ($data->contactId !== null || ($data->supplierLogo === null && !$data->removeSupplierLogo));
             $expense = $this->logos->saveWithLogo(
                 $stored?->parties->supplierLogo,
                 $keepLogo,
                 $contact?->logo,
                 $data->contactId === null ? $data->supplierLogo : null,
                 function (?string $logo) use ($userId, $data, $id, $stored, &$uploaded, &$removed): ExpenseDTO {
-                    return $this->transactions->transaction(function () use ($userId, $data, $id, $stored, $logo, &$uploaded, &$removed): ExpenseDTO {
-                        if ($id === null && ! in_array(
-                            'can_create_expense_unlimited',
-                            $this->permissions->getUserPermissions($userId->toInt(), 'backpack'),
-                            true,
-                        )) {
-                            $check = $this->limits->checkLimit(
-                                $userId->toInt(),
-                                'expense',
-                                'count',
-                                $this->limits->getBestPeriodType($userId->toInt(), 'expense'),
-                            );
-                            if (! $check['allowed']) {
-                                throw new EntityLimitExceededException($check);
+                    return $this->transactions->transaction(
+                        function () use ($userId, $data, $id, $stored, $logo, &$uploaded, &$removed): ExpenseDTO {
+                            if (
+                                $id === null
+                                && !in_array(
+                                    'can_create_expense_unlimited',
+                                    $this->permissions->getUserPermissions($userId->toInt(), 'backpack'),
+                                    true,
+                                )
+                            ) {
+                                $check = $this->limits->checkLimit(
+                                    $userId->toInt(),
+                                    'expense',
+                                    'count',
+                                    $this->limits->getBestPeriodType($userId->toInt(), 'expense'),
+                                );
+                                if (!$check['allowed']) {
+                                    throw new EntityLimitExceededException($check);
+                                }
                             }
-                        }
-                        $parties = $this->parties->assemble(
-                            $userId,
-                            $data,
-                            $stored?->parties,
-                        )->withSupplierLogo($logo);
-                        $attachments = $stored?->attachments ?? [];
-                        $removed = array_values(array_intersect($attachments, $data->removedAttachments));
-                        $attachments = array_values(array_diff($attachments, $removed));
-                        foreach ($data->uploads as $upload) {
-                            $path = $this->files->handleFileUpload(
-                                $upload,
-                                'attachments',
-                                'expenses/attachments',
-                                [
-                                    'disk' => 'public',
-                                    'sanitizeFilename' => true,
-                                    'randomizeFilename' => true,
-                                ],
-                                null,
-                                'attachment',
-                            ) ?? throw new RuntimeException('The attachment was not stored');
-                            $uploaded[] = $path;
-                            $attachments[] = $path;
-                        }
-                        $expense = $id === null
-                            ? $this->writer->create(
+                            $parties = $this->parties->assemble(
                                 $userId,
                                 $data,
-                                $parties,
-                                $attachments,
-                            )
-                            : $this->writer->update(
-                                $id,
-                                $userId,
-                                $data,
-                                $parties,
-                                $attachments,
+                                $stored?->parties,
                             );
-                        if ($id === null) {
-                            $this->events->publish(new ExpenseCreated($expense->id, $userId));
-                        }
+                            $parties = $parties->withSupplierLogo($logo);
+                            $attachments = $stored?->attachments ?? [];
+                            $removed = array_values(
+                                array_intersect($attachments, $data->removedAttachments),
+                            );
+                            $attachments = array_values(
+                                array_diff($attachments, $removed),
+                            );
+                            foreach ($data->uploads as $upload) {
+                                $path = $this->files->handleFileUpload(
+                                    $upload,
+                                    'attachments',
+                                    'expenses/attachments',
+                                    [
+                                        'disk' => 'public',
+                                        'sanitizeFilename' => true,
+                                        'randomizeFilename' => true,
+                                    ],
+                                    null,
+                                    'attachment',
+                                ) ?? throw new RuntimeException('The attachment was not stored');
+                                $uploaded[] = $path;
+                                $attachments[] = $path;
+                            }
+                            if ($id === null) {
+                                $expense = $this->writer->create(
+                                    $userId,
+                                    $data,
+                                    $parties,
+                                    $attachments,
+                                );
+                                $this->events->publish(
+                                    new ExpenseCreated($expense->id, $userId),
+                                );
+                            } else {
+                                $expense = $this->writer->update(
+                                    $id,
+                                    $userId,
+                                    $data,
+                                    $parties,
+                                    $attachments,
+                                );
+                            }
 
-                        return $expense;
-                    });
+                            return $expense;
+                        },
+                    );
                 },
             );
             $saved = true;

@@ -61,16 +61,21 @@ class AdminDateRangeFilterTest extends TestCase
             '2026-05-20',
         );
 
-        $range = json_encode(['from' => '2026-03-01 00:00:00', 'to' => '2026-03-31 23:59:59']);
+        $range = json_encode(
+            ['from' => '2026-03-01 00:00:00', 'to' => '2026-03-31 23:59:59'],
+        );
 
-        $this->postJson("/admin/{$route}/search?{$filter}=" . urlencode($range), [
-            'draw' => 1,
-            'start' => 0,
-            'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonPath('recordsTotal', 2)
-            ->assertJsonPath('recordsFiltered', 1);
+        $httpResponse = $this->postJson(
+            "/admin/{$route}/search?{$filter}=" . urlencode($range),
+            [
+                'draw' => 1,
+                'start' => 0,
+                'length' => 10,
+            ],
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('recordsTotal', 2);
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 
     private function createRecord(
@@ -78,18 +83,23 @@ class AdminDateRangeFilterTest extends TestCase
         string $filter,
         string $date,
     ): Model {
+        $invoiceFactory = Invoice::factory();
+        $expenseFactory = Expense::factory();
+
         return match ($route) {
-            'invoice' => Invoice::factory()->create([$filter => $date]),
-            'expense' => Expense::factory()->create([$filter => $date]),
-            'entity-usage' => EntityLimitUsage::create([
-                'user_id' => $this->adminUser->id,
-                'entity_type' => 'invoice',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'period_start' => $date,
-                'period_end' => $date . ' 23:59:59',
-                'current_value' => 1,
-            ]),
+            'invoice' => $invoiceFactory->create([$filter => $date]),
+            'expense' => $expenseFactory->create([$filter => $date]),
+            'entity-usage' => EntityLimitUsage::create(
+                [
+                    'user_id' => $this->adminUser->id,
+                    'entity_type' => 'invoice',
+                    'metric_type' => 'count',
+                    'period_type' => 'monthly',
+                    'period_start' => $date,
+                    'period_end' => $date . ' 23:59:59',
+                    'current_value' => 1,
+                ],
+            ),
         };
     }
 }

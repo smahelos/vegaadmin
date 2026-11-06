@@ -35,8 +35,11 @@ final class InvoiceRequest extends BaseEntityRequest
             return true; // Skip parent authorization & limit checks for guest temporary invoices
         }
 
-        if ($this->boolean('save_customer_to_contacts') && $this->user()?->can('frontend.can_create_contact') !== true) {
-            return false;
+        if ($this->boolean('save_customer_to_contacts')) {
+            $user = $this->user();
+            if ($user?->can('frontend.can_create_contact') !== true) {
+                return false;
+            }
         }
 
         return parent::authorize();
@@ -49,20 +52,29 @@ final class InvoiceRequest extends BaseEntityRequest
     {
         if ($this->isGuestStore()) {
             // For guest JSON endpoint, return 422 JSON response
-            $response = response()->json([
-                'message' => __('invoices.messages.validation_failed'),
-                'errors' => $validator->errors()->toArray(),
-            ], 422);
+            $responseFactory = response();
+            $errors = $validator->errors();
+            $response = $responseFactory->json(
+                [
+                    'message' => __('invoices.messages.validation_failed'),
+                    'errors' => $errors->toArray(),
+                ],
+                422,
+            );
             throw new ValidationException($validator, $response);
         }
 
         // For regular routes, show both field errors and general error message
-        throw new ValidationException($validator,
-            redirect()->back()
-                ->withErrors($validator->errors())
-                ->withInput()
-                ->with('error', __('invoices.messages.validation_failed')),
+        $redirector = redirect();
+        $redirect = $redirector->back();
+        $redirect->withErrors($validator->errors());
+        $redirect->withInput();
+        $redirect->with(
+            'error',
+            __('invoices.messages.validation_failed'),
         );
+
+        throw new ValidationException($validator, $redirect);
     }
 
     /**
@@ -135,10 +147,12 @@ final class InvoiceRequest extends BaseEntityRequest
 
         ];
 
+        $user = $this->user();
+
         return [
             ...$rules,
             ...InvoiceItemInput::rules(
-                $this->user()?->getAuthIdentifier(),
+                $user?->getAuthIdentifier(),
                 $this->isGuestStore(),
                 true,
             ),
@@ -177,23 +191,38 @@ final class InvoiceRequest extends BaseEntityRequest
             ];
         }
 
-        $userId = $this->user()?->getAuthIdentifier();
+        $user = $this->user();
+        $userId = $user?->getAuthIdentifier();
+        $businessExists = Rule::exists('businesses', 'id');
+        $businessExists->where('user_id', $userId);
+        if ($bankTransfer) {
+            $bankAccountExists = Rule::exists('bank_accounts', 'id');
+            $bankAccountExists->where(
+                'business_id',
+                $this->integer('business_id'),
+            );
+            $bankAccountRules = [
+                'required',
+                'integer',
+                $bankAccountExists,
+            ];
+        } else {
+            $bankAccountRules = ['exclude'];
+        }
+        $contactExists = Rule::exists('contacts', 'id');
+        $contactExists->where('user_id', $userId);
 
         return [
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where('user_id', $userId),
+                $businessExists,
             ],
-            'bank_account_id' => $bankTransfer ? [
-                'required',
-                'integer',
-                Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
-            ] : ['exclude'],
+            'bank_account_id' => $bankAccountRules,
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where('user_id', $userId),
+                $contactExists,
             ],
             'save_customer_to_contacts' => ['boolean'],
             'reload_business' => ['boolean'],
@@ -212,7 +241,10 @@ final class InvoiceRequest extends BaseEntityRequest
             return false;
         }
 
-        $paymentMethod = app(PaymentMethodDtoReadRepositoryInterface::class)->findById(PaymentMethodId::fromInt($paymentMethodId));
+        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
+        $paymentMethod = $paymentMethods->findById(
+            PaymentMethodId::fromInt($paymentMethodId),
+        );
 
         return $paymentMethod?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
@@ -322,12 +354,14 @@ final class InvoiceRequest extends BaseEntityRequest
         $merge = [];
 
         // Handle any other fallback fields
-        foreach ([
-            'payment_method_id',
-            'due_in',
-            'payment_status_id',
-        ] as $field) {
-            if (! $this->filled($field) && $this->has($field . '_fallback')) {
+        foreach (
+            [
+                'payment_method_id',
+                'due_in',
+                'payment_status_id',
+            ] as $field
+        ) {
+            if (!$this->filled($field) && $this->has($field . '_fallback')) {
                 $merge[$field] = $this->input($field . '_fallback');
             }
         }
@@ -341,7 +375,7 @@ final class InvoiceRequest extends BaseEntityRequest
             }
         }
 
-        if (! empty($merge)) {
+        if (!empty($merge)) {
             $this->merge($merge);
         }
     }

@@ -14,80 +14,102 @@ class ApiBackpackControllerFeatureTest extends TestCase
     {
         parent::setUp();
         // Define temporary test routes using reflection to access protected controller methods (no fake wrapper class)
-        Route::middleware('web')->get('/api/test-backpack-auth-user', function () {
-            $controller = app(ApiBackpackController::class);
-            $ref = new ReflectionClass($controller);
-            $mAuth = $ref->getMethod('getAuthenticatedUser');
-            $mAuth->setAccessible(true);
-            $user = $mAuth->invoke($controller);
-            // Determine guard used
-            $guardUsed = 'none';
-            if ($user) {
-                if (auth('backpack')->check() && auth('backpack')->id() === $user->id) {
-                    $guardUsed = 'backpack';
-                } elseif (auth('web')->check() && auth('web')->id() === $user->id) {
-                    $guardUsed = 'web';
-                } elseif (auth('sanctum')->check() && auth('sanctum')->id() === $user->id) {
-                    $guardUsed = 'sanctum';
-                } else {
+        $routeRegistrar = Route::middleware('web');
+        $routeRegistrar->get(
+            '/api/test-backpack-auth-user',
+            function () {
+                $controller = app(ApiBackpackController::class);
+                $ref = new ReflectionClass($controller);
+                $mAuth = $ref->getMethod('getAuthenticatedUser');
+                $mAuth->setAccessible(true);
+                $user = $mAuth->invoke($controller);
+                // Determine guard used
+                $guardUsed = 'none';
+                if ($user) {
                     $guardUsed = 'unknown';
+                    $guards = [
+                        'backpack',
+                        'web',
+                        'sanctum',
+                    ];
+                    foreach ($guards as $guard) {
+                        $auth = auth($guard);
+                        if ($auth->check() && $auth->id() === $user->id) {
+                            $guardUsed = $guard;
+                            break;
+                        }
+                    }
                 }
-            }
 
-            return response()->json([
-                'user_id' => $user?->id ?? 'unauthenticated',
-                'guard_used' => $guardUsed,
-            ]);
-        });
-        Route::middleware('web')->get('/api/test-backpack-auth-context', function () {
-            $controller = app(ApiBackpackController::class);
-            $ref = new ReflectionClass($controller);
-            $mCtx = $ref->getMethod('getLogContext');
-            $mCtx->setAccessible(true);
-            $ctx = $mCtx->invoke($controller, []);
+                $responseFactory = response();
 
-            return response()->json(['context' => $ctx]);
-        });
+                return $responseFactory->json(
+                    [
+                        'user_id' => $user?->id ?? 'unauthenticated',
+                        'guard_used' => $guardUsed,
+                    ],
+                );
+            },
+        );
+        $routeRegistrar = Route::middleware('web');
+        $routeRegistrar->get(
+            '/api/test-backpack-auth-context',
+            function () {
+                $controller = app(ApiBackpackController::class);
+                $ref = new ReflectionClass($controller);
+                $mCtx = $ref->getMethod('getLogContext');
+                $mCtx->setAccessible(true);
+                $ctx = $mCtx->invoke($controller, []);
+
+                $responseFactory = response();
+
+                return $responseFactory->json(['context' => $ctx]);
+            },
+        );
     }
 
     public function test_returns_backpack_user_when_authenticated_via_backpack_guard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $response = $this->getJson('/api/test-backpack-auth-user');
-        $response->assertOk()
-            ->assertJsonPath('user_id', $user->id)
-            ->assertJsonPath('guard_used', 'backpack');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertJsonPath('user_id', $user->id);
+        $assertionResponse->assertJsonPath('guard_used', 'backpack');
     }
 
     public function test_falls_back_to_web_guard_when_backpack_not_authenticated(): void
     {
-        $webUser = User::factory()->create();
+        $userFactory = User::factory();
+        $webUser = $userFactory->create();
         $this->actingAs($webUser, 'web');
 
         $response = $this->getJson('/api/test-backpack-auth-user');
-        $response->assertOk()
-            ->assertJsonPath('user_id', $webUser->id)
-            ->assertJsonPath('guard_used', 'web');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertJsonPath('user_id', $webUser->id);
+        $assertionResponse->assertJsonPath('guard_used', 'web');
     }
 
     public function test_returns_unauthenticated_when_no_guard_authenticated(): void
     {
         $response = $this->getJson('/api/test-backpack-auth-user');
-        $response->assertOk()
-            ->assertJsonPath('user_id', 'unauthenticated')
-            ->assertJsonPath('guard_used', 'none');
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertJsonPath('user_id', 'unauthenticated');
+        $assertionResponse->assertJsonPath('guard_used', 'none');
     }
 
     public function test_log_context_endpoint_contains_required_keys(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'backpack');
 
         $response = $this->getJson('/api/test-backpack-auth-context');
-        $response->assertOk()
-            ->assertJsonStructure([
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertJsonStructure(
+            [
                 'context' => [
                     'user_id',
                     'route',
@@ -101,6 +123,7 @@ class ApiBackpackControllerFeatureTest extends TestCase
                     'session_id',
                     'has_backpack_session',
                 ],
-            ]);
+            ],
+        );
     }
 }

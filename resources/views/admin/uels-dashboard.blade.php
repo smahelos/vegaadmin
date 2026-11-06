@@ -343,10 +343,14 @@ $widgets['before_content'][] = [
 @endsection
 
 @section('after_scripts')
+@php
+$entityTypes = collect(\App\Models\EntityLimit::ENTITY_TYPES);
+$entityTypeLabels = $entityTypes->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")]);
+@endphp
 <script>
 const uelsText = @js([
     'dashboard' => __('entity_limits.dashboard'),
-    'entityTypes' => collect(\App\Models\EntityLimit::ENTITY_TYPES)->mapWithKeys(fn ($type) => [$type => __("entity_limits.entity_types.$type.singular")]),
+    'entityTypes' => $entityTypeLabels,
     'metricTypes' => __('entity_limits.metric_types'),
     'periods' => __('entity_limits.periods'),
     'notAllowed' => __('entity_limits.statuses.not_allowed'),

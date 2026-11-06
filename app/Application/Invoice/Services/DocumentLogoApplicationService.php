@@ -29,7 +29,7 @@ final class DocumentLogoApplicationService
         $logo = $stored;
         $saved = false;
         try {
-            if (! $keep) {
+            if (!$keep) {
                 $logo = null;
                 if ($upload !== null) {
                     $logo = $this->storage->store($upload);

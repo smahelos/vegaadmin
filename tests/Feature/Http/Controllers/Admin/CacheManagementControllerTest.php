@@ -66,7 +66,12 @@ final class CacheManagementControllerTest extends TestCase
     ): void {
         $artisan = Artisan::spy();
 
-        $this->post(route($route))->assertRedirect(route('backpack.auth.login'));
+        $httpResponse = $this->post(
+            route($route),
+        );
+        $httpResponse->assertRedirect(
+            route('backpack.auth.login'),
+        );
 
         $artisan->shouldNotHaveReceived('call');
     }
@@ -82,11 +87,20 @@ final class CacheManagementControllerTest extends TestCase
         string $message,
     ): void {
         $artisan = Artisan::spy();
-        $user = User::factory()->create();
-        $user->assignRole(Role::findByName('backend_user', 'backpack'));
-        $user->givePermissionTo(Permission::findByName('backpack.access', 'backpack'));
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
+        $user->givePermissionTo(
+            Permission::findByName('backpack.access', 'backpack'),
+        );
 
-        $this->actingAs($user, 'backpack')->post(route($route))->assertForbidden();
+        $httpClient = $this->actingAs($user, 'backpack');
+        $httpResponse = $httpClient->post(
+            route($route),
+        );
+        $httpResponse->assertForbidden();
 
         $artisan->shouldNotHaveReceived('call');
     }
@@ -103,28 +117,49 @@ final class CacheManagementControllerTest extends TestCase
     ): void {
         $artisan = Artisan::spy();
 
-        $this->actingAs($this->admin(), 'backpack')
-            ->from('/admin/dashboard')
-            ->post(route($route))
-            ->assertRedirect('/admin/dashboard')
-            ->assertSessionHas('alert_messages.success', [__($message)]);
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpClient = $httpClient->from('/admin/dashboard');
+        $httpResponse = $httpClient->post(
+            route($route),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/dashboard');
+        $httpResponse->assertSessionHas(
+            'alert_messages.success',
+            [__($message)],
+        );
 
         foreach ($commands as $command) {
-            $artisan->shouldHaveReceived('call')->with($command)->once();
+            $verification = $artisan->shouldHaveReceived('call');
+            $verification = $verification->with($command);
+            $verification->once();
         }
     }
 
     #[Test]
     public function a_failure_shows_a_message_without_the_exception_text(): void
     {
-        Artisan::shouldReceive('call')->with('cache:clear')->andThrow(new RuntimeException('Connection refused [tcp://redis:6379]'));
+        $expectation = Artisan::shouldReceive('call');
+        $expectation->with('cache:clear');
+        $expectation->andThrow(
+            new RuntimeException('Connection refused [tcp://redis:6379]'),
+        );
 
-        $response = $this->actingAs($this->admin(), 'backpack')
-            ->from('/admin/dashboard')
-            ->post(route('admin.cache.clear'));
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpClient = $httpClient->from('/admin/dashboard');
+        $response = $httpClient->post(
+            route('admin.cache.clear'),
+        );
 
-        $response->assertSessionHas('alert_messages.error', [__('admin.cache.cache_cleared_error')]);
-        $this->assertStringNotContainsString('redis', json_encode(session('alert_messages')));
+        $response->assertSessionHas(
+            'alert_messages.error',
+            [__('admin.cache.cache_cleared_error')],
+        );
+        $this->assertStringNotContainsString(
+            'redis',
+            json_encode(
+                session('alert_messages'),
+            ),
+        );
     }
 
     #[Test]
@@ -132,17 +167,20 @@ final class CacheManagementControllerTest extends TestCase
     {
         $artisan = Artisan::spy();
 
-        $this->actingAs($this->admin(), 'backpack')
-            ->get('/admin/cache/clear')
-            ->assertMethodNotAllowed();
+        $httpClient = $this->actingAs($this->admin(), 'backpack');
+        $httpResponse = $httpClient->get('/admin/cache/clear');
+        $httpResponse->assertMethodNotAllowed();
 
         $artisan->shouldNotHaveReceived('call');
     }
 
     private function admin(): User
     {
-        $user = User::factory()->create();
-        $user->assignRole(Role::findByName('admin', 'backpack'));
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName('admin', 'backpack'),
+        );
 
         return $user;
     }

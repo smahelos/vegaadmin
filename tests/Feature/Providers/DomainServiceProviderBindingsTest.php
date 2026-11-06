@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Providers;
 
 use Illuminate\Support\Str;
@@ -18,7 +20,7 @@ use Tests\TestCase;
  *  - QrPaymentProviderInterface: Implemented by provider classes discovered dynamically, not bound directly.
  *  - Invoice\Contracts\ClientRepositoryInterface & SupplierRepositoryInterface: Legacy duplicates superseded by Party domain repositories (keep until full removal).
  */
-class DomainServiceProviderBindingsTest extends TestCase
+final class DomainServiceProviderBindingsTest extends TestCase
 {
     /** @var array<string> */
     private array $skip = [
@@ -32,9 +34,17 @@ class DomainServiceProviderBindingsTest extends TestCase
     {
         $paths = [];
         // Domain interfaces
-        $paths = array_merge($paths, glob(app_path('Domain/*/Contracts/*Interface.php')) ?: []);
+        $domainPattern = app_path('Domain/*/Contracts/*Interface.php');
+        $paths = array_merge(
+            $paths,
+            glob($domainPattern) ?: [],
+        );
         // Application layer interfaces (one level Application/<Context>/Contracts)
-        $paths = array_merge($paths, glob(app_path('Application/*/Contracts/*Interface.php')) ?: []);
+        $applicationPattern = app_path('Application/*/Contracts/*Interface.php');
+        $paths = array_merge(
+            $paths,
+            glob($applicationPattern) ?: [],
+        );
         // Application layer interfaces with an extra sub-namespace (e.g. Application/Invoice/Contracts already covered, but keep pattern flexible)
         $paths = array_unique($paths);
 
@@ -44,16 +54,19 @@ class DomainServiceProviderBindingsTest extends TestCase
         foreach ($paths as $path) {
             $fqcn = $this->fqcnFromPath($path);
 
-            if (in_array(
-                $fqcn,
-                $this->skip,
-                true,
-            )) {
+            if (
+                in_array(
+                    $fqcn,
+                    $this->skip,
+                    true,
+                )
+            ) {
                 continue; // intentionally unmanaged binding
             }
 
             // Assert container has explicit binding (bound()). If not, mark missing.
-            if (! app()->bound($fqcn)) {
+            $application = app();
+            if (!$application->bound($fqcn)) {
                 $missingBindings[] = $fqcn;
 
                 continue; // do not attempt resolution
@@ -61,8 +74,8 @@ class DomainServiceProviderBindingsTest extends TestCase
 
             // Attempt to resolve & ensure instance implements interface
             try {
-                $instance = app()->make($fqcn);
-                if (! $instance instanceof $fqcn) {
+                $instance = $application->make($fqcn);
+                if (!$instance instanceof $fqcn) {
                     $resolutionErrors[] = $fqcn . ' resolved to ' . get_debug_type($instance) . ' which does not implement it';
                 }
             } catch (\Throwable $e) {
@@ -78,7 +91,10 @@ class DomainServiceProviderBindingsTest extends TestCase
             $messages[] = 'Resolution errors: ' . implode(', ', $resolutionErrors);
         }
 
-        $this->assertEmpty($messages, "All interfaces should be bound & resolvable.\n" . implode("\n", $messages));
+        $this->assertEmpty(
+            $messages,
+            "All interfaces should be bound & resolvable.\n" . implode("\n", $messages),
+        );
     }
 
     private function fqcnFromPath(string $path): string

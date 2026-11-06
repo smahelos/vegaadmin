@@ -27,13 +27,24 @@ class InvoiceProductFactory extends Factory
                 10,
             ),
             unit: $this->faker->randomElement(Unit::cases()),
-            price: Money::fromString((string) $this->faker->randomFloat(2, 10, 1000), Currency::CZK->value),
+            price: Money::fromString(
+                (string) $this->faker->randomFloat(
+                    2,
+                    10,
+                    1000,
+                ),
+                Currency::CZK->value,
+            ),
             taxRate: $this->faker->randomElement([
                 '0',
                 '12',
                 '21',
             ]),
         );
+
+        $optional = $this->faker->optional();
+        $taxAmount = $line->taxAmount();
+        $total = $line->total();
 
         return [
             'invoice_id' => Invoice::factory(),
@@ -43,12 +54,12 @@ class InvoiceProductFactory extends Factory
             'price' => $line->price->getAmount(),
             'currency' => $line->price->getCurrency(),
             'unit' => $line->unit->value,
-            'category' => $this->faker->optional()->word(),
-            'description' => $this->faker->optional()->sentence(),
+            'category' => $optional->word(),
+            'description' => $optional->sentence(),
             'is_custom_product' => $this->faker->boolean(20), // 20% chance of being custom
             'tax_rate' => $line->taxRate,
-            'tax_amount' => $line->taxAmount()->getAmount(),
-            'total_price' => $line->total()->getAmount(),
+            'tax_amount' => $taxAmount->getAmount(),
+            'total_price' => $total->getAmount(),
         ];
     }
 }

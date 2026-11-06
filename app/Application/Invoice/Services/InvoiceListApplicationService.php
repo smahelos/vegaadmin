@@ -66,11 +66,13 @@ final class InvoiceListApplicationService
 
     private function assertPermission(UserId $userId): void
     {
-        if (! in_array(
-            'frontend.can_view_invoice',
-            $this->permissions->getUserPermissions($userId->toInt(), 'web'),
-            true,
-        )) {
+        if (
+            !in_array(
+                'frontend.can_view_invoice',
+                $this->permissions->getUserPermissions($userId->toInt(), 'web'),
+                true,
+            )
+        ) {
             throw new InvoiceAccessDeniedException('The user cannot view invoices');
         }
     }

@@ -22,7 +22,8 @@ class InvoiceLogoHashDedupIntegrationTest extends TestCase
     {
         Storage::fake('public');
         $service = app(FileUploadServiceInterface::class);
-        $file1 = UploadedFile::fake()->image(
+        $fileFactory = UploadedFile::fake();
+        $file1 = $fileFactory->image(
             'logo.png',
             120,
             120,
@@ -55,7 +56,8 @@ class InvoiceLogoHashDedupIntegrationTest extends TestCase
         );
 
         $this->assertSame($path1, $path2);
-        $record = FileHash::where('path', $path1)->first();
+        $fileHashQuery = FileHash::where('path', $path1);
+        $record = $fileHashQuery->first();
         $this->assertNotNull($record);
         $this->assertGreaterThanOrEqual(2, $record->ref_count);
     }

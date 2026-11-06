@@ -17,26 +17,46 @@ final class StatisticsController extends Controller
 
     public function monthlyRevenue(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->monthlyRevenue($request->userId(), $request->filter())]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            ['data' => $this->statistics->monthlyRevenue($request->userId(), $request->filter())],
+        );
     }
 
     public function customerRevenue(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->customerRevenue($request->userId(), $request->filter())]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            ['data' => $this->statistics->customerRevenue($request->userId(), $request->filter())],
+        );
     }
 
     public function invoiceStatus(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->invoiceStatus($request->userId(), $request->filter())]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            ['data' => $this->statistics->invoiceStatus($request->userId(), $request->filter())],
+        );
     }
 
     public function paymentMethods(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->paymentMethods($request->userId(), $request->filter())]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            ['data' => $this->statistics->paymentMethods($request->userId(), $request->filter())],
+        );
     }
 
     public function revenueExpenses(StatisticsRequest $request): JsonResponse
     {
-        return response()->json(['data' => $this->statistics->revenueExpenses($request->userId(), $request->filter())]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            ['data' => $this->statistics->revenueExpenses($request->userId(), $request->filter())],
+        );
     }
 }

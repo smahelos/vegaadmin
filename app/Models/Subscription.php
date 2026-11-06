@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -85,7 +86,9 @@ class Subscription extends Model
             return null;
         }
 
-        return (int) now()->diffInDays($this->ends_at, false);
+        $now = CarbonImmutable::now();
+
+        return (int) $now->diffInDays($this->ends_at, false);
     }
 
     /**

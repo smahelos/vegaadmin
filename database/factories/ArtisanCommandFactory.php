@@ -27,9 +27,11 @@ class ArtisanCommandFactory extends Factory
     public function definition(): array
     {
         // Generate unique command to avoid database constraint violations
-        $uniqueId = $this->faker->unique()->randomNumber(6);
+        $unique = $this->faker->unique();
+        $uniqueId = $unique->randomNumber(6);
         $commandName = "test:command-{$uniqueId}";
         $description = "Test command {$uniqueId} description";
+        $optional = $this->faker->optional(0.6);
 
         return [
             'name' => "Test Command {$uniqueId}",
@@ -37,7 +39,7 @@ class ArtisanCommandFactory extends Factory
             'category_id' => ArtisanCommandCategory::factory(),
             'is_active' => $this->faker->boolean(85), // 85% chance of being active
             'command' => "php artisan {$commandName}",
-            'parameters_description' => $this->faker->optional(0.6)->sentence(),
+            'parameters_description' => $optional->sentence(),
             'sort_order' => $this->faker->numberBetween(1, 100),
         ];
     }

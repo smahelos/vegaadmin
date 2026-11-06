@@ -17,8 +17,10 @@ class InvoiceFormFieldsFeatureTest extends TestCase
     public function get_invoice_fields_works_with_real_data(): void
     {
         // Arrange
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
-        $status = Status::factory()->create(['name' => 'Paid']);
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(['name' => 'Paid']);
 
         $paymentMethods = [$paymentMethod->id => $paymentMethod->name];
         $statuses = [$status->id => $status->name];
@@ -36,9 +38,10 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertNotEmpty($result);
 
         // Verify options are passed correctly
-        $paymentMethodField = collect($result)->firstWhere('name', 'payment_method_id');
-        $statusField = collect($result)->firstWhere('name', 'payment_status_id');
-        $currencyField = collect($result)->firstWhere('name', 'payment_currency');
+        $resultList = collect($result);
+        $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
+        $statusField = $resultList->firstWhere('name', 'payment_status_id');
+        $currencyField = $resultList->firstWhere('name', 'payment_currency');
 
         $this->assertEquals($paymentMethods, $paymentMethodField['options']);
         $this->assertEquals($statuses, $statusField['options']);
@@ -56,8 +59,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertNotEmpty($result);
 
         // Check that empty arrays are handled correctly
-        $paymentMethodField = collect($result)->firstWhere('name', 'payment_method_id');
-        $statusField = collect($result)->firstWhere('name', 'payment_status_id');
+        $resultList = collect($result);
+        $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
+        $statusField = $resultList->firstWhere('name', 'payment_status_id');
 
         $this->assertEquals([], $paymentMethodField['options']);
         $this->assertEquals([], $statusField['options']);
@@ -70,21 +74,24 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert: the parties and the account are chosen in the DocumentPartyPicker, not in this field set
-        $this->assertSame([
-            'invoice_logo',
-            'template',
-            'invoice_vs',
-            'payment_status_id',
-            'invoice_ks',
-            'invoice_ss',
-            'issue_date',
-            'tax_point_date',
-            'payment_method_id',
-            'due_in',
-            'payment_amount',
-            'payment_currency',
-            'invoice_text',
-        ], array_column($result, 'name'));
+        $this->assertSame(
+            [
+                'invoice_logo',
+                'template',
+                'invoice_vs',
+                'payment_status_id',
+                'invoice_ks',
+                'invoice_ss',
+                'issue_date',
+                'tax_point_date',
+                'payment_method_id',
+                'due_in',
+                'payment_amount',
+                'payment_currency',
+                'invoice_text',
+            ],
+            array_column($result, 'name'),
+        );
     }
 
     #[Test]
@@ -94,9 +101,11 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check required fields
-        $requiredFields = collect($result)->where('required', true);
+        $collection = collect($result);
+        $requiredFields = $collection->where('required', true);
 
-        $requiredFieldNames = $requiredFields->pluck('name')->toArray();
+        $requiredFieldNames = $requiredFields->pluck('name');
+        $requiredFieldNames = $requiredFieldNames->toArray();
 
         // These fields should be required
         $this->assertContains('invoice_vs', $requiredFieldNames);
@@ -115,12 +124,19 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check default values
-        $issueDateField = collect($result)->firstWhere('name', 'issue_date');
-        $taxPointDateField = collect($result)->firstWhere('name', 'tax_point_date');
-        $paymentAmountField = collect($result)->firstWhere('name', 'payment_amount');
+        $resultList = collect($result);
+        $issueDateField = $resultList->firstWhere('name', 'issue_date');
+        $taxPointDateField = $resultList->firstWhere('name', 'tax_point_date');
+        $paymentAmountField = $resultList->firstWhere('name', 'payment_amount');
 
-        $this->assertEquals(date('Y-m-d'), $issueDateField['default']);
-        $this->assertEquals(date('Y-m-d'), $taxPointDateField['default']);
+        $this->assertEquals(
+            date('Y-m-d'),
+            $issueDateField['default'],
+        );
+        $this->assertEquals(
+            date('Y-m-d'),
+            $taxPointDateField['default'],
+        );
         $this->assertEquals(0, $paymentAmountField['default']);
     }
 
@@ -137,7 +153,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         }
 
         // Check specific field exists
-        $invoiceVsField = collect($result)->firstWhere('name', 'invoice_vs');
+        $collection = collect($result);
+        $invoiceVsField = $collection->firstWhere('name', 'invoice_vs');
         $this->assertNotNull($invoiceVsField);
         $this->assertArrayHasKey('label', $invoiceVsField);
     }
@@ -149,12 +166,13 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert - Check that fields have hints
-        $fieldsWithHints = collect($result)->whereNotNull('hint');
+        $resultList = collect($result);
+        $fieldsWithHints = $resultList->whereNotNull('hint');
 
         $this->assertGreaterThan(5, $fieldsWithHints->count());
 
         // Check specific hint exists
-        $invoiceVsField = collect($result)->firstWhere('name', 'invoice_vs');
+        $invoiceVsField = $resultList->firstWhere('name', 'invoice_vs');
         $this->assertArrayHasKey('hint', $invoiceVsField);
         $this->assertNotNull($invoiceVsField['hint']);
     }
@@ -166,7 +184,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $result = $this->getInvoiceFields();
 
         // Assert
-        $dueInField = collect($result)->firstWhere('name', 'due_in');
+        $collection = collect($result);
+        $dueInField = $collection->firstWhere('name', 'due_in');
 
         $this->assertArrayHasKey('options', $dueInField);
         $this->assertArrayHasKey(1, $dueInField['options']);
@@ -176,7 +195,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $this->assertArrayHasKey(30, $dueInField['options']);
 
         // Check format includes days unit
-        $this->assertTrue(str_contains($dueInField['options'][1], 'days') || str_contains($dueInField['options'][1], 'dní'));
+        $this->assertTrue(
+            str_contains($dueInField['options'][1], 'days') || str_contains($dueInField['options'][1], 'dní'),
+        );
     }
 
     #[Test]
@@ -195,6 +216,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
 
         // Assert
         $this->assertEquals($result1, $result2);
-        $this->assertCount(count($result1), $result2);
+        $this->assertCount(
+            count($result1),
+            $result2,
+        );
     }
 }

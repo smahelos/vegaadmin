@@ -30,7 +30,10 @@ final class ContactDetail extends Component
     public function mount(ContactApplicationService $contacts, int $contactId): void
     {
         $this->requirePermission('frontend.can_view_contact');
-        $contacts->get($this->userId(), ContactId::fromInt($contactId));
+        $contacts->get(
+            $this->userId(),
+            ContactId::fromInt($contactId),
+        );
         $this->contactId = $contactId;
     }
 
@@ -60,10 +63,13 @@ final class ContactDetail extends Component
 
     public function render(ContactApplicationService $contacts): View
     {
-        return view('livewire.party.contact-detail', [
-            'contact' => $contacts->get($this->userId(), $this->currentId()),
-            'countries' => $this->countryOptions(),
-        ]);
+        return view(
+            'livewire.party.contact-detail',
+            [
+                'contact' => $contacts->get($this->userId(), $this->currentId()),
+                'countries' => $this->countryOptions(),
+            ],
+        );
     }
 
     private function currentId(): ContactId

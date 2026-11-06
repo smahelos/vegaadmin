@@ -13,7 +13,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        app(PermissionCatalogSync::class)->sync();
+        $catalogSync = app(PermissionCatalogSync::class);
+        $catalogSync->sync();
     }
 
     /**

@@ -13,12 +13,16 @@ class ArchivePolicyFeatureTest extends TestCase
     public function can_create_archive_policy_with_factory(): void
     {
 
-        $archivePolicy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $archivePolicy = $archivePolicyFactory->create();
 
-        $this->assertDatabaseHas('archive_policies', [
-            'id' => $archivePolicy->id,
-            'table_name' => $archivePolicy->table_name,
-        ]);
+        $this->assertDatabaseHas(
+            'archive_policies',
+            [
+                'id' => $archivePolicy->id,
+                'table_name' => $archivePolicy->table_name,
+            ],
+        );
     }
 
     #[Test]
@@ -45,11 +49,14 @@ class ArchivePolicyFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $archivePolicy = ArchivePolicy::factory()->create([
-            'enabled' => 1,
-            'retention_months' => '36',
-            'records_archived' => '500',
-        ]);
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $archivePolicy = $archivePolicyFactory->create(
+            [
+                'enabled' => 1,
+                'retention_months' => '36',
+                'records_archived' => '500',
+            ],
+        );
 
         $this->assertIsBool($archivePolicy->enabled);
         $this->assertIsInt($archivePolicy->retention_months);
@@ -61,10 +68,15 @@ class ArchivePolicyFeatureTest extends TestCase
     public function factory_states_work_correctly(): void
     {
 
-        $enabledPolicy = ArchivePolicy::factory()->enabled()->create();
-        $disabledPolicy = ArchivePolicy::factory()->disabled()->create();
-        $neverRunPolicy = ArchivePolicy::factory()->neverRun()->create();
-        $recentlyRunPolicy = ArchivePolicy::factory()->recentlyRun()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $enabledFactory = $archivePolicyFactory->enabled();
+        $enabledPolicy = $enabledFactory->create();
+        $disabledFactory = $archivePolicyFactory->disabled();
+        $disabledPolicy = $disabledFactory->create();
+        $neverRunFactory = $archivePolicyFactory->neverRun();
+        $neverRunPolicy = $neverRunFactory->create();
+        $recentlyRunFactory = $archivePolicyFactory->recentlyRun();
+        $recentlyRunPolicy = $recentlyRunFactory->create();
 
         $this->assertTrue($enabledPolicy->enabled);
         $this->assertFalse($disabledPolicy->enabled);
@@ -78,7 +90,8 @@ class ArchivePolicyFeatureTest extends TestCase
     public function model_can_be_updated(): void
     {
 
-        $policy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create();
 
         $newData = [
             'table_name' => 'updated_table',
@@ -88,17 +101,21 @@ class ArchivePolicyFeatureTest extends TestCase
 
         $policy->update($newData);
 
-        $this->assertDatabaseHas('archive_policies', array_merge(
-            ['id' => $policy->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'archive_policies',
+            array_merge(
+                ['id' => $policy->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
     public function model_can_be_deleted(): void
     {
 
-        $policy = ArchivePolicy::factory()->create();
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create();
         $policyId = $policy->id;
 
         $policy->delete();
@@ -110,18 +127,23 @@ class ArchivePolicyFeatureTest extends TestCase
     public function datetime_cast_works_with_last_archived_at(): void
     {
 
-        $policy = ArchivePolicy::factory()->create(['last_archived_at' => '2024-01-15 10:30:00']);
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $policy = $archivePolicyFactory->create(['last_archived_at' => '2024-01-15 10:30:00']);
 
         $this->assertInstanceOf(Carbon::class, $policy->last_archived_at);
-        $this->assertEquals('2024-01-15 10:30:00', $policy->last_archived_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2024-01-15 10:30:00',
+            $policy->last_archived_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
     public function boolean_cast_works_with_enabled(): void
     {
 
-        $truePolicy = ArchivePolicy::factory()->create(['enabled' => 1]);
-        $falsePolicy = ArchivePolicy::factory()->create(['enabled' => 0]);
+        $archivePolicyFactory = ArchivePolicy::factory();
+        $truePolicy = $archivePolicyFactory->create(['enabled' => 1]);
+        $falsePolicy = $archivePolicyFactory->create(['enabled' => 0]);
 
         $this->assertTrue($truePolicy->enabled);
         $this->assertFalse($falsePolicy->enabled);

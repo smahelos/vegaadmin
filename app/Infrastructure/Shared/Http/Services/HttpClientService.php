@@ -14,7 +14,8 @@ class HttpClientService implements HttpClientInterface
 {
     public function get(string $url, array $headers = []): array
     {
-        $response = Http::withHeaders($headers)->get($url);
+        $request = Http::withHeaders($headers);
+        $response = $request->get($url);
         if ($response->successful()) {
             $json = $response->json();
 
@@ -29,7 +30,8 @@ class HttpClientService implements HttpClientInterface
         array $data = [],
         array $headers = [],
     ): array {
-        $response = Http::withHeaders($headers)->put($url, $data);
+        $request = Http::withHeaders($headers);
+        $response = $request->put($url, $data);
         $return = [];
         $json = $response->json();
         $return['data'] = is_array($json) ? $json : [];

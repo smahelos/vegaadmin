@@ -22,7 +22,10 @@ final class TemporaryInvoiceStoreTest extends TestCase
 
         $token = $store->store($data, minutes: 5);
 
-        $this->assertGreaterThanOrEqual(16, strlen($token));
+        $this->assertGreaterThanOrEqual(
+            16,
+            strlen($token),
+        );
         $retrieved = $store->get($token);
         $this->assertNotNull($retrieved);
         $this->assertSame('INV-UNIT', $retrieved['invoice_vs']);
@@ -34,7 +37,9 @@ final class TemporaryInvoiceStoreTest extends TestCase
     {
         $store = app(TemporaryInvoiceStoreInterface::class);
 
-        $this->assertNull($store->get('nonexistent-token'));
+        $this->assertNull(
+            $store->get('nonexistent-token'),
+        );
     }
 
     #[Test]
@@ -43,8 +48,12 @@ final class TemporaryInvoiceStoreTest extends TestCase
         $store = app(TemporaryInvoiceStoreInterface::class);
         $token = $store->store(['invoice_vs' => 'INV-DEL', 'lang' => 'cs'], minutes: 5);
 
-        $this->assertTrue($store->delete($token));
+        $this->assertTrue(
+            $store->delete($token),
+        );
 
-        $this->assertNull($store->get($token));
+        $this->assertNull(
+            $store->get($token),
+        );
     }
 }

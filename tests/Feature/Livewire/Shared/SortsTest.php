@@ -27,60 +27,70 @@ final class SortsTest extends TestCase
         $this->user = $this->frontendUser();
         $this->actingAs($this->user);
 
-        $alpha = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Alpha Contact',
-        ]);
-        $beta = Contact::factory()->create([
-            'user_id' => $this->user->id,
-            'name' => 'Beta Contact',
-        ]);
-        Address::factory()->create([
-            'business_id' => null,
-            'contact_id' => $alpha->id,
-            'city' => 'Zlín',
-        ]);
-        Address::factory()->create([
-            'business_id' => null,
-            'contact_id' => $beta->id,
-            'city' => 'Brno',
-        ]);
+        $contactFactory = Contact::factory();
+        $alpha = $contactFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Alpha Contact',
+            ],
+        );
+        $beta = $contactFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'name' => 'Beta Contact',
+            ],
+        );
+        $addressFactory = Address::factory();
+        $addressFactory->create(
+            [
+                'business_id' => null,
+                'contact_id' => $alpha->id,
+                'city' => 'Zlín',
+            ],
+        );
+        $addressFactory->create(
+            [
+                'business_id' => null,
+                'contact_id' => $beta->id,
+                'city' => 'Brno',
+            ],
+        );
     }
 
     #[Test]
     public function sorts_by_an_allowed_key_and_toggles_the_direction(): void
     {
-        Livewire::test(ContactList::class)
-            ->assertSeeInOrder(['Alpha Contact', 'Beta Contact'])
-            ->call('sortBy', 'name')
-            ->assertSet('orderAsc', false)
-            ->assertSeeInOrder(['Beta Contact', 'Alpha Contact']);
+        $component = Livewire::test(ContactList::class);
+        $component->assertSeeInOrder(['Alpha Contact', 'Beta Contact']);
+        $component->call('sortBy', 'name');
+        $component->assertSet('orderAsc', false);
+        $component->assertSeeInOrder(['Beta Contact', 'Alpha Contact']);
     }
 
     #[Test]
     public function sorts_a_key_by_its_mapped_column(): void
     {
-        Livewire::test(ContactList::class)
-            ->call('sortBy', 'city')
-            ->assertSet('orderBy', 'city')
-            ->assertSet('orderAsc', true)
-            ->assertSeeInOrder(['Beta Contact', 'Alpha Contact']);
+        $component = Livewire::test(ContactList::class);
+        $component->call('sortBy', 'city');
+        $component->assertSet('orderBy', 'city');
+        $component->assertSet('orderAsc', true);
+        $component->assertSeeInOrder(['Beta Contact', 'Alpha Contact']);
     }
 
     #[Test]
     public function ignores_a_key_the_list_does_not_offer(): void
     {
-        Livewire::test(ContactList::class)
-            ->call('sortBy', 'user_id')
-            ->assertSet('orderBy', 'name')
-            ->assertSet('orderAsc', true);
+        $component = Livewire::test(ContactList::class);
+        $component->call('sortBy', 'user_id');
+        $component->assertSet('orderBy', 'name');
+        $component->assertSet('orderAsc', true);
     }
 
     #[Test]
     public function an_unknown_key_from_the_url_falls_back_to_the_default_order(): void
     {
-        Livewire::withQueryParams(['sort' => 'password', 'direction' => '1'])
-            ->test(ContactList::class)
-            ->assertSeeInOrder(['Alpha Contact', 'Beta Contact']);
+        Livewire::withQueryParams(['sort' => 'password', 'direction' => '1']);
+        $component = Livewire::test(ContactList::class);
+        $component->assertSeeInOrder(['Alpha Contact', 'Beta Contact']);
     }
 }

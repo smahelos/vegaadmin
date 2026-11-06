@@ -25,8 +25,11 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
+        Permission::firstOrCreate(
+            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+        );
         $this->user->givePermissionTo('frontend.can_create_edit_invoice');
         $fakeLimit = new class implements UniversalLimitServiceInterface
         {
@@ -106,10 +109,16 @@ class InvoiceFrontendActionsOrchestrateApplicationServiceTest extends TestCase
 
     private function pendingInvoiceId(): int
     {
-        return Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-        ])->id;
+        $invoiceFactory = Invoice::factory();
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_status_id' => $statusQuery->firstOrFail()->id,
+            ],
+        );
+
+        return $invoice->id;
     }
 
     #[Test]

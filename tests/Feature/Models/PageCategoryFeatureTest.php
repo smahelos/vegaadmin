@@ -43,11 +43,26 @@ class PageCategoryFeatureTest extends TestCase
         $this->assertInstanceOf(PageCategory::class, $category);
 
         // Test multilingual helper methods
-        $this->assertEquals('Testovací kategorie', $category->getName('cs'));
-        $this->assertEquals('Test Category', $category->getName('en'));
-        $this->assertEquals('testovaci-kategorie', $category->getSlug('cs'));
-        $this->assertEquals('test-category', $category->getSlug('en'));
-        $this->assertEquals('Popis testovací kategorie', $category->getDescription('cs'));
+        $this->assertEquals(
+            'Testovací kategorie',
+            $category->getName('cs'),
+        );
+        $this->assertEquals(
+            'Test Category',
+            $category->getName('en'),
+        );
+        $this->assertEquals(
+            'testovaci-kategorie',
+            $category->getSlug('cs'),
+        );
+        $this->assertEquals(
+            'test-category',
+            $category->getSlug('en'),
+        );
+        $this->assertEquals(
+            'Popis testovací kategorie',
+            $category->getDescription('cs'),
+        );
 
         // Test fallback behavior (should return CS by default)
         $this->assertEquals('Testovací kategorie', $category->getName());
@@ -57,12 +72,14 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_has_many_pages(): void
     {
-        $category = PageCategory::factory()->create(['name' => 'Test Category']);
-        $page1 = Page::factory()->create([
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create(['name' => 'Test Category']);
+        $pageFactory = Page::factory();
+        $page1 = $pageFactory->create([
             'name' => 'Page 1',
             'category_id' => $category->id,
         ]);
-        $page2 = Page::factory()->create([
+        $page2 = $pageFactory->create([
             'name' => 'Page 2',
             'category_id' => $category->id,
         ]);
@@ -70,15 +87,20 @@ class PageCategoryFeatureTest extends TestCase
         $pages = $category->pages;
 
         $this->assertCount(2, $pages);
-        $this->assertTrue($pages->contains('name', 'Page 1'));
-        $this->assertTrue($pages->contains('name', 'Page 2'));
+        $this->assertTrue(
+            $pages->contains('name', 'Page 1'),
+        );
+        $this->assertTrue(
+            $pages->contains('name', 'Page 2'),
+        );
         $this->assertInstanceOf(Page::class, $pages->first());
     }
 
     #[Test]
     public function page_category_multilingual_attributes_work_correctly(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Test that multilingual attributes are accessible as arrays via accessors
         $this->assertIsArray($category->name);
@@ -94,7 +116,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_can_be_updated(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name' => [
@@ -105,14 +128,22 @@ class PageCategoryFeatureTest extends TestCase
 
         $category->update($updateData);
 
-        $this->assertEquals('Aktualizovaný název', $category->fresh()->getName('cs'));
-        $this->assertEquals('Updated Name', $category->fresh()->getName('en'));
+        $freshCategory = $category->fresh();
+        $this->assertEquals(
+            'Aktualizovaný název',
+            $freshCategory->getName('cs'),
+        );
+        $this->assertEquals(
+            'Updated Name',
+            $freshCategory->getName('en'),
+        );
     }
 
     #[Test]
     public function page_category_can_be_deleted(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
         $categoryId = $category->id;
 
         $category->delete();
@@ -123,7 +154,8 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_can_be_deactivated(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $updateData = [
             'name' => [
@@ -134,8 +166,15 @@ class PageCategoryFeatureTest extends TestCase
 
         $category->update($updateData);
 
-        $this->assertEquals('Aktualizovaná kategorie', $category->fresh()->getName('cs'));
-        $this->assertEquals('Updated Category', $category->fresh()->getName('en'));
+        $freshCategory = $category->fresh();
+        $this->assertEquals(
+            'Aktualizovaná kategorie',
+            $freshCategory->getName('cs'),
+        );
+        $this->assertEquals(
+            'Updated Category',
+            $freshCategory->getName('en'),
+        );
     }
 
     #[Test]
@@ -143,13 +182,17 @@ class PageCategoryFeatureTest extends TestCase
     {
         // Slug uniqueness je nyní testovaná v PageCategoryRequest testech
         // Protože model už automaticky negeneruje slugy - dělá to request
-        $category1 = PageCategory::factory()->create();
-        $category2 = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category1 = $pageCategoryFactory->create();
+        $category2 = $pageCategoryFactory->create();
 
         // Both categories should be created successfully
         $this->assertInstanceOf(PageCategory::class, $category1);
         $this->assertInstanceOf(PageCategory::class, $category2);
-        $this->assertNotEquals($category1->getSlug('cs'), $category2->getSlug('cs'));
+        $this->assertNotEquals(
+            $category1->getSlug('cs'),
+            $category2->getSlug('cs'),
+        );
     }
 
     #[Test]
@@ -157,11 +200,13 @@ class PageCategoryFeatureTest extends TestCase
     {
         // Name validation je nyní řešena v PageCategoryRequest, ne v modelu
         // Model může mít prázdná pole, protože validace je na úrovni requestu
-        $category = PageCategory::create([
-            'name' => ['cs' => '', 'en' => ''],
-            'slug' => ['cs' => '', 'en' => ''],
-            'description' => ['cs' => '', 'en' => ''],
-        ]);
+        $category = PageCategory::create(
+            [
+                'name' => ['cs' => '', 'en' => ''],
+                'slug' => ['cs' => '', 'en' => ''],
+                'description' => ['cs' => '', 'en' => ''],
+            ],
+        );
 
         $this->assertInstanceOf(PageCategory::class, $category);
     }
@@ -187,16 +232,29 @@ class PageCategoryFeatureTest extends TestCase
 
         $category = PageCategory::create($categoryData);
 
-        $this->assertEquals('Testovací kategorie', $category->getName('cs'));
-        $this->assertEquals('Test Category', $category->getName('en'));
-        $this->assertEquals('testovaci-kategorie', $category->getSlug('cs'));
-        $this->assertEquals('test-category', $category->getSlug('en'));
+        $this->assertEquals(
+            'Testovací kategorie',
+            $category->getName('cs'),
+        );
+        $this->assertEquals(
+            'Test Category',
+            $category->getName('en'),
+        );
+        $this->assertEquals(
+            'testovaci-kategorie',
+            $category->getSlug('cs'),
+        );
+        $this->assertEquals(
+            'test-category',
+            $category->getSlug('en'),
+        );
     }
 
     #[Test]
     public function page_category_pages_relationship_returns_has_many(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $category->pages());
     }
@@ -204,14 +262,17 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_pages_count_attribute_returns_correct_count(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Vytvoříme 3 stránky v kategorii
-        Page::factory()->count(3)->create(['category_id' => $category->id]);
+        $pageFactory = Page::factory();
+        $batchFactory = $pageFactory->count(3);
+        $batchFactory->create(['category_id' => $category->id]);
 
         // Vytvoříme stránku v jiné kategorii
-        $otherCategory = PageCategory::factory()->create();
-        Page::factory()->create(['category_id' => $otherCategory->id]);
+        $otherCategory = $pageCategoryFactory->create();
+        $pageFactory->create(['category_id' => $otherCategory->id]);
 
         $this->assertEquals(3, $category->pages_count);
         $this->assertEquals(1, $otherCategory->pages_count);
@@ -220,16 +281,19 @@ class PageCategoryFeatureTest extends TestCase
     #[Test]
     public function page_category_published_pages_count_attribute_returns_correct_count(): void
     {
-        $category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
 
         // Vytvoříme 2 publikované stránky
-        Page::factory()->count(2)->create([
+        $pageFactory = Page::factory();
+        $batchFactory = $pageFactory->count(2);
+        $batchFactory->create([
             'category_id' => $category->id,
             'published' => true,
         ]);
 
         // Vytvoříme 1 nepublikovanou stránku
-        Page::factory()->create([
+        $pageFactory->create([
             'category_id' => $category->id,
             'published' => false,
         ]);
@@ -259,7 +323,8 @@ class PageCategoryFeatureTest extends TestCase
         $category = PageCategory::create($categoryData);
 
         // Fallback should return CS when EN is empty
-        app()->setLocale('en');
+        $application = app();
+        $application->setLocale('en');
         $this->assertEquals('Česká kategorie', $category->getName());
         $this->assertEquals('ceska-kategorie', $category->getSlug());
         $this->assertEquals('Český popis', $category->getDescription());
@@ -289,9 +354,21 @@ class PageCategoryFeatureTest extends TestCase
         $category = PageCategory::create($categoryData);
 
         // Test specific locale retrieval
-        $this->assertEquals('English Category', $category->getName('en'));
-        $this->assertEquals('Deutsche Kategorie', $category->getName('de'));
-        $this->assertEquals('english-category', $category->getSlug('en'));
-        $this->assertEquals('deutsche-kategorie', $category->getSlug('de'));
+        $this->assertEquals(
+            'English Category',
+            $category->getName('en'),
+        );
+        $this->assertEquals(
+            'Deutsche Kategorie',
+            $category->getName('de'),
+        );
+        $this->assertEquals(
+            'english-category',
+            $category->getSlug('en'),
+        );
+        $this->assertEquals(
+            'deutsche-kategorie',
+            $category->getSlug('de'),
+        );
     }
 }

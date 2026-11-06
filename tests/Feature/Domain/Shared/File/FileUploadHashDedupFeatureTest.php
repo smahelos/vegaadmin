@@ -17,7 +17,7 @@ class FileUploadHashDedupFeatureTest extends TestCase
     {
         parent::setUp();
         Storage::fake('public');
-        if (! Schema::hasTable('file_hashes')) {
+        if (!Schema::hasTable('file_hashes')) {
             $this->artisan('migrate');
         }
     }
@@ -31,7 +31,8 @@ class FileUploadHashDedupFeatureTest extends TestCase
     public function identical_files_are_deduplicated_and_ref_count_incremented(): void
     {
         $service = app(FileUploadServiceInterface::class);
-        $fileA = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $fileA = $fileFactory->create(
             'doc1.png',
             100,
             'image/png',
@@ -71,8 +72,9 @@ class FileUploadHashDedupFeatureTest extends TestCase
             $this->assertGreaterThanOrEqual(1, $record->ref_count);
         } else {
             // If fake generated different content, simulate re-upload of exact same file for dedupe check
+            $disk = Storage::disk('public');
             $duplicate = new UploadedFile(
-                Storage::disk('public')->path($path1),
+                $disk->path($path1),
                 'dup.png',
                 'image/png',
                 null,
@@ -98,7 +100,8 @@ class FileUploadHashDedupFeatureTest extends TestCase
     public function deleting_one_reference_keeps_file_until_last_reference_removed(): void
     {
         $service = app(FileUploadServiceInterface::class);
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'doc1.png',
             100,
             'image/png',
@@ -132,11 +135,16 @@ class FileUploadHashDedupFeatureTest extends TestCase
         // Simulate delete: first call should only decrement
         $service->deleteFile($path1, 'public');
         $this->assertDatabaseHas('file_hashes', ['path' => $path1, 'ref_count' => 1]);
-        $this->assertTrue(Storage::disk('public')->exists($path1));
+        $disk = Storage::disk('public');
+        $this->assertTrue(
+            $disk->exists($path1),
+        );
 
         // Second delete removes file and record
         $service->deleteFile($path2, 'public');
         $this->assertDatabaseMissing('file_hashes', ['path' => $path1]);
-        $this->assertFalse(Storage::disk('public')->exists($path1));
+        $this->assertFalse(
+            $disk->exists($path1),
+        );
     }
 }

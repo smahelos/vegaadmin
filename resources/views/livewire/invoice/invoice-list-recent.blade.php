@@ -3,7 +3,7 @@
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
             @foreach($invoices as $invoice)
                 <li class="px-4 hover:bg-gray-50 dark:hover:bg-gray-700 bg-{{ $invoice->status_color_class }}-100 dark:bg-{{ $invoice->status_color_class }}-600">
-                    <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => app()->getLocale()]) }}" class="flex flex-row items-center">
+                    <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => App::getLocale()]) }}" class="flex flex-row items-center">
                         <div class="basis-3/18 lg:basis-3/24">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->invoice_vs }}</p>
                         </div>
@@ -44,7 +44,7 @@
             @endforeach
         </ul>
         <div class="bg-gray-50 dark:bg-gray-800 px-4 py-3 border-t border-gray-200 dark:border-gray-700 sm:px-6">
-            <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
                 class="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
                 {{ __('dashboard.actions.view_all_invoices') }} <i class="fas fa-arrow-right ml-1"></i>
             </a>

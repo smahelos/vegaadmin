@@ -36,23 +36,38 @@ class TaxRequestFeatureTest extends TestCase
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous default limit for taxes
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_tax',
-            'entity_type' => 'tax',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'can_create_edit_tax',
+                'entity_type' => 'tax',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         // Define test routes
-        Route::post('/test-tax', function (TaxRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-tax',
+            function (TaxRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-tax/{id}', function (TaxRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-tax/{id}',
+            function (TaxRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     /**
@@ -84,8 +99,9 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**
@@ -104,7 +120,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     /**
@@ -123,7 +140,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**
@@ -142,7 +160,8 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('rate', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('rate', $errors->toArray());
     }
 
     /**
@@ -206,10 +225,11 @@ class TaxRequestFeatureTest extends TestCase
     public function authorization_passes_when_authenticated(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'VAT 21%',
             'rate' => 21,
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     /**
@@ -218,22 +238,25 @@ class TaxRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_when_not_authenticated(): void
     {
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'VAT 21%',
             'rate' => 21,
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
     public function authorization_fails_for_authenticated_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'No Perm Tax',
             'rate' => 5,
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -241,12 +264,14 @@ class TaxRequestFeatureTest extends TestCase
     {
         $this->revokeUnlimitedAccess('tax');
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 1]);
 
-        $this->postJson('/test-tax', [
+        $httpResponse = $this->postJson('/test-tax', [
             'name' => 'Tax One',
             'rate' => 5,
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
 
         $this->limitService->recordUsage(
             $this->adminUser->id,
@@ -274,7 +299,8 @@ class TaxRequestFeatureTest extends TestCase
     public function admin_creation_bypasses_entity_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 0]);
 
         $request = new class extends TaxRequest
         {
@@ -293,7 +319,8 @@ class TaxRequestFeatureTest extends TestCase
     public function tax_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'tax')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'tax',
@@ -400,7 +427,21 @@ class TaxRequestFeatureTest extends TestCase
             $request->attributes(),
         );
 
-        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.name')]), $validator->errors()->first('name'));
-        $this->assertSame(__('validation.required', ['attribute' => __('taxes.fields.rate')]), $validator->errors()->first('rate'));
+        $nameMessage = __(
+            'validation.required',
+            ['attribute' => __('taxes.fields.name')],
+        );
+        $errors = $validator->errors();
+        $this->assertSame(
+            $nameMessage,
+            $errors->first('name'),
+        );
+        $this->assertSame(
+            __(
+                'validation.required',
+                ['attribute' => __('taxes.fields.rate')],
+            ),
+            $errors->first('rate'),
+        );
     }
 }

@@ -64,10 +64,18 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
                 $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
                 $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
-                $hasQr = ! empty($qrCode);
+                $hasQr = !empty($qrCode);
             }
         } catch (\Throwable) {
             // ignore QR generation errors in renderer
+        }
+
+        $logoPath = null;
+        if ($data->supplierLogo !== null) {
+            $disk = Storage::disk('public');
+            if ($disk->exists($data->supplierLogo)) {
+                $logoPath = $disk->path($data->supplierLogo);
+            }
         }
 
         $viewData = [
@@ -83,8 +91,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'bankName' => $data->account?->bankName,
             'iban' => $data->account?->account->iban,
             'swift' => $data->account?->account->swift,
-            'logoPath' => $data->supplierLogo !== null && Storage::disk('public')->exists($data->supplierLogo)
-                ? Storage::disk('public')->path($data->supplierLogo) : null,
+            'logoPath' => $logoPath,
             'paymentMethod' => $data->paymentMethod,
             'qrCode' => $qrCode,
             'hasQrCode' => $hasQr,
@@ -97,13 +104,14 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
         ];
 
-        $previousLocale = app()->getLocale();
+        $application = app();
+        $previousLocale = $application->getLocale();
         try {
-            app()->setLocale($locale);
+            $application->setLocale($locale);
 
             return Pdf::loadView($templateName, $viewData);
         } finally {
-            app()->setLocale($previousLocale);
+            $application->setLocale($previousLocale);
         }
     }
 
@@ -124,14 +132,16 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'minimal',
         ];
         $tpl = $template ?? 'default';
-        if (! in_array(
-            $tpl,
-            $available,
-            true,
-        )) {
+        if (
+            !in_array(
+                $tpl,
+                $available,
+                true,
+            )
+        ) {
             $tpl = 'default';
         }
-        if (! $this->templateFileExists($tpl)) {
+        if (!$this->templateFileExists($tpl)) {
             $tpl = 'default';
         }
 

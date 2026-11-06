@@ -59,7 +59,7 @@ class ProductCreated implements DomainEvent
             'product_tax_id' => $this->product->tax_id,
             'is_default' => $this->product->is_default,
             'is_active' => $this->product->is_active,
-            'has_image' => ! empty($this->product->image),
+            'has_image' => !empty($this->product->image),
         ];
     }
 

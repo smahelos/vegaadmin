@@ -110,73 +110,90 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 return $this->meta;
             }
         };
-        app()->instance(GatewayRegistryInterface::class, $registryStub);
+        $application = app();
+        $application->instance(GatewayRegistryInterface::class, $registryStub);
         // Rebind PaymentDtoWriteRepositoryInterface to a safe test implementation (avoid loading undefined relations)
-        app()->bind(PaymentDtoWriteRepositoryInterface::class, function ($app) {
-            $eloquent = $app->make(EloquentPaymentWriteRepository::class);
-            $mapper = $app->make(EloquentPaymentMapper::class);
+        $application->bind(
+            PaymentDtoWriteRepositoryInterface::class,
+            function ($app) {
+                $eloquent = $app->make(EloquentPaymentWriteRepository::class);
+                $mapper = $app->make(EloquentPaymentMapper::class);
 
-            return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface
-            {
-                public function __construct(
-                    private EloquentPaymentWriteRepository $eloquent,
-                    private EloquentPaymentMapper $mapper,
-                ) {}
-
-                public function create(PaymentWriteData $attributes): PaymentDTO
+                return new class($eloquent, $mapper) implements PaymentDtoWriteRepositoryInterface
                 {
-                    $m = $this->eloquent->create($attributes->toModelAttributes());
+                    public function __construct(
+                        private EloquentPaymentWriteRepository $eloquent,
+                        private EloquentPaymentMapper $mapper,
+                    ) {}
 
-                    return $this->mapper->toDto($m);
-                }
+                    public function create(PaymentWriteData $attributes): PaymentDTO
+                    {
+                        $m = $this->eloquent->create($attributes->toModelAttributes());
 
-                public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO
-                {
-                    $m = Payment::query()->find($paymentId);
-                    if ($m && ($arr = $attributes->toModelAttributes())) {
-                        $m->fill($arr);
-                        $m->save();
+                        return $this->mapper->toDto($m);
                     }
-                    $m = Payment::query()->findOrFail($paymentId);
 
-                    return $this->mapper->toDto($m);
-                }
-            };
-        });
+                    public function updateById(int $paymentId, PaymentWriteData $attributes): PaymentDTO
+                    {
+                        $paymentQuery = Payment::query();
+                        $m = $paymentQuery->find($paymentId);
+                        if ($m && ($arr = $attributes->toModelAttributes())) {
+                            $m->fill($arr);
+                            $m->save();
+                        }
+                        $paymentQuery = Payment::query();
+                        $m = $paymentQuery->findOrFail($paymentId);
+
+                        return $this->mapper->toDto($m);
+                    }
+                };
+            },
+        );
         // Bind a safe SubscriptionDtoReadRepositoryInterface stub to bypass faulty mapper subscriptionPlan handling
-        app()->bind(SubscriptionDtoReadRepositoryInterface::class, function () {
-            return new class implements SubscriptionDtoReadRepositoryInterface
-            {
-                public function findById(int $id): ?SubscriptionDTO
+        $application->bind(
+            SubscriptionDtoReadRepositoryInterface::class,
+            function () {
+                return new class implements SubscriptionDtoReadRepositoryInterface
                 {
-                    $m = Subscription::find($id);
-                    if (! $m) {
-                        return null;
-                    }
+                    public function findById(int $id): ?SubscriptionDTO
+                    {
+                        $m = Subscription::find($id);
+                        if (!$m) {
+                            return null;
+                        }
 
-                    return SubscriptionDTO::fromArray([
-                        'id' => (int) $m->id,
-                        'user_id' => (int) $m->user_id,
-                        'subscription_plan_id' => $m->subscription_plan_id ? (int) $m->subscription_plan_id : null,
-                        'subscriptionPlan' => null,
-                        'status' => $m->status,
-                        'starts_at' => $m->starts_at?->toDateTimeString(),
-                        'ends_at' => $m->ends_at?->toDateTimeString(),
-                        'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
-                        'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
-                        'amount' => $m->amount !== null ? number_format(
-                            (float) $m->amount,
-                            2,
-                            '.',
-                            '',
-                        ) : null,
-                        'currency' => $m->currency,
-                        'metadata' => null,
-                        'created_at' => $m->created_at?->toDateTimeString(),
-                    ]);
-                }
-            };
-        });
+                        if ($m->amount !== null) {
+                            $amount = number_format(
+                                (float) $m->amount,
+                                2,
+                                '.',
+                                '',
+                            );
+                        } else {
+                            $amount = null;
+                        }
+
+                        return SubscriptionDTO::fromArray(
+                            [
+                                'id' => (int) $m->id,
+                                'user_id' => (int) $m->user_id,
+                                'subscription_plan_id' => $m->subscription_plan_id ? (int) $m->subscription_plan_id : null,
+                                'subscriptionPlan' => null,
+                                'status' => $m->status,
+                                'starts_at' => $m->starts_at?->toDateTimeString(),
+                                'ends_at' => $m->ends_at?->toDateTimeString(),
+                                'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
+                                'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
+                                'amount' => $amount,
+                                'currency' => $m->currency,
+                                'metadata' => null,
+                                'created_at' => $m->created_at?->toDateTimeString(),
+                            ],
+                        );
+                    }
+                };
+            },
+        );
         // Resolve service after registry prepared
         $this->service = app(SubscriptionPaymentServiceInterface::class);
     }
@@ -184,27 +201,32 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     private function makeSubscription(): Subscription
     {
         $unique = uniqid();
-        $user = User::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create([
             'email' => 'user_' . $unique . '@example.com',
         ]);
 
-        $plan = SubscriptionPlan::create([
-            'name' => 'Plan ' . $unique,
-            'price' => 10.00,
-            'currency' => 'EUR',
-            'billing_period' => 'monthly',
-            'billing_interval' => 1,
-            'is_active' => true,
-            'trial_days' => 0,
-        ]);
+        $plan = SubscriptionPlan::create(
+            [
+                'name' => 'Plan ' . $unique,
+                'price' => 10.00,
+                'currency' => 'EUR',
+                'billing_period' => 'monthly',
+                'billing_interval' => 1,
+                'is_active' => true,
+                'trial_days' => 0,
+            ],
+        );
 
-        return Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'pending',
-            'amount' => 10.00,
-            'currency' => 'EUR',
-        ]);
+        return Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => 10.00,
+                'currency' => 'EUR',
+            ],
+        );
     }
 
     #[Test]
@@ -261,7 +283,8 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $this->assertFalse($result['success']);
         $this->assertArrayHasKey('error', $result);
         // Current implementation keeps the created payment record as 'pending' without gateway_payment_id
-        $payment = Payment::where('subscription_id', $subscription->id)->first();
+        $paymentQuery = Payment::where('subscription_id', $subscription->id);
+        $payment = $paymentQuery->first();
         $this->assertNotNull($payment);
         $this->assertEquals('pending', $payment->status);
         $this->assertNull($payment->gateway_payment_id);
@@ -287,11 +310,14 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $payment = Payment::find($process['payment_id']);
         $this->assertEquals('pending', $payment->status);
         // Simulate gateway callback with completed status
-        $cb = $this->service->handlePaymentCallback('fake', [
-            'payment_id' => $process['gateway_payment_id'],
-            'order_id' => $payment->id,
-            'status' => 'completed',
-        ]);
+        $cb = $this->service->handlePaymentCallback(
+            'fake',
+            [
+                'payment_id' => $process['gateway_payment_id'],
+                'order_id' => $payment->id,
+                'status' => 'completed',
+            ],
+        );
         $this->assertTrue($cb['success']);
         $payment->refresh();
         $subscription->refresh();
@@ -319,11 +345,14 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         );
         $payment = Payment::find($process['payment_id']);
         // Simulate failed callback
-        $cb = $this->service->handlePaymentCallback('fake', [
-            'payment_id' => $process['gateway_payment_id'],
-            'order_id' => $payment->id,
-            'status' => 'failed',
-        ]);
+        $cb = $this->service->handlePaymentCallback(
+            'fake',
+            [
+                'payment_id' => $process['gateway_payment_id'],
+                'order_id' => $payment->id,
+                'status' => 'failed',
+            ],
+        );
         $this->assertTrue($cb['success']);
         $payment->refresh();
         $subscription->refresh();

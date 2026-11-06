@@ -28,30 +28,49 @@ class PaymentMethodRequestFeatureTest extends TestCase
 
         $this->limitService = app(UniversalLimitService::class);
 
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_payment_method',
-            'entity_type' => 'payment_method',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'can_create_edit_payment_method',
+                'entity_type' => 'payment_method',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
-        Route::post('/test-payment-method', function (PaymentMethodRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-payment-method',
+            function (PaymentMethodRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-payment-method/{id}', function (PaymentMethodRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-payment-method/{id}',
+            function (PaymentMethodRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
     public function accepts_a_payment_method_code_that_is_not_stored(): void
     {
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
 
-        $validator = Validator::make(['name' => 'Other', 'slug' => PaymentMethodCode::OTHER->value], (new PaymentMethodRequest)->rules());
+        $validator = Validator::make(
+            ['name' => 'Other', 'slug' => PaymentMethodCode::OTHER->value],
+            (new PaymentMethodRequest)->rules(),
+        );
 
         $this->assertTrue($validator->passes());
     }
@@ -61,7 +80,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Card'], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -69,7 +89,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Bank Transfer', 'slug' => 'bank-transfer'], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -78,7 +99,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $request = new PaymentMethodRequest;
         $validator = Validator::make(['slug' => 'something'], $request->rules());
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -86,7 +108,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $validator = Validator::make(['name' => 'Cash', 'slug' => PaymentMethodCode::CASH->value], (new PaymentMethodRequest)->rules());
 
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -98,36 +121,45 @@ class PaymentMethodRequestFeatureTest extends TestCase
         ];
         $validator = Validator::make($data, $request->rules());
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
         $this->actingAs($this->adminUser, 'backpack');
-        $this->postJson('/test-payment-method', [
-            'name' => 'Fast Pay',
-            'slug' => PaymentMethodCode::OTHER->value,
-        ])->assertStatus(200);
+        $httpResponse = $this->postJson(
+            '/test-payment-method',
+            [
+                'name' => 'Fast Pay',
+                'slug' => PaymentMethodCode::OTHER->value,
+            ],
+        );
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-payment-method', [
+        $httpResponse = $this->postJson('/test-payment-method', [
             'name' => 'Fail Pay',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
     public function authorization_fails_for_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
-        $this->postJson('/test-payment-method', [
+        $httpResponse = $this->postJson('/test-payment-method', [
             'name' => 'No Perm',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -135,12 +167,18 @@ class PaymentMethodRequestFeatureTest extends TestCase
     {
         $this->revokeUnlimitedAccess('payment_method');
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 1]);
-        PaymentMethod::where('slug', PaymentMethodCode::OTHER->value)->delete();
-        $this->postJson('/test-payment-method', [
-            'name' => 'First Method',
-            'slug' => PaymentMethodCode::OTHER->value,
-        ])->assertStatus(200);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
+        $entityLimitQuery->update(['limit_value' => 1]);
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
+        $paymentMethodQuery->delete();
+        $httpResponse = $this->postJson(
+            '/test-payment-method',
+            [
+                'name' => 'First Method',
+                'slug' => PaymentMethodCode::OTHER->value,
+            ],
+        );
+        $httpResponse->assertStatus(200);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'payment_method',
@@ -166,7 +204,8 @@ class PaymentMethodRequestFeatureTest extends TestCase
     public function payment_method_update_bypasses_limits(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'payment_method')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'payment_method',

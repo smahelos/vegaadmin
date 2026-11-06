@@ -40,48 +40,59 @@ class InvoiceServiceFeatureTest extends TestCase
     #[Test]
     public function save_invoice_products_stores_each_line_with_its_computed_amounts(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
-        $this->service->saveInvoiceProducts(InvoiceId::fromInt($invoice->id), [
-            new InvoiceProductWriteData(
-                name: 'Consulting',
-                quantity: '1.5',
-                unit: Unit::HOURS,
-                price: Money::fromString('249.30', 'CZK'),
-                taxRate: '12',
-                category: 'Service',
-            ),
-            new InvoiceProductWriteData(
-                name: 'Existing Product',
-                quantity: '3',
-                unit: Unit::PIECES,
-                price: Money::fromString('74.67', 'CZK'),
-                taxRate: '21',
-                productId: ProductId::fromInt($product->id),
-            ),
-        ]);
+        $this->service->saveInvoiceProducts(
+            InvoiceId::fromInt($invoice->id),
+            [
+                new InvoiceProductWriteData(
+                    name: 'Consulting',
+                    quantity: '1.5',
+                    unit: Unit::HOURS,
+                    price: Money::fromString('249.30', 'CZK'),
+                    taxRate: '12',
+                    category: 'Service',
+                ),
+                new InvoiceProductWriteData(
+                    name: 'Existing Product',
+                    quantity: '3',
+                    unit: Unit::PIECES,
+                    price: Money::fromString('74.67', 'CZK'),
+                    taxRate: '21',
+                    productId: ProductId::fromInt($product->id),
+                ),
+            ],
+        );
 
-        $this->assertDatabaseHas('invoice_products', [
-            'invoice_id' => $invoice->id,
-            'name' => 'Consulting',
-            'product_id' => null,
-            'is_custom_product' => true,
-            'quantity' => '1.500',
-            'unit' => 'hours',
-            'price' => '249.30',
-            'tax_rate' => '12.00',
-            'tax_amount' => '44.87',
-            'total_price' => '418.82',
-            'category' => 'Service',
-        ]);
-        $this->assertDatabaseHas('invoice_products', [
-            'invoice_id' => $invoice->id,
-            'product_id' => $product->id,
-            'is_custom_product' => false,
-            'tax_amount' => '47.04',
-            'total_price' => '271.05',
-        ]);
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id,
+                'name' => 'Consulting',
+                'product_id' => null,
+                'is_custom_product' => true,
+                'quantity' => '1.500',
+                'unit' => 'hours',
+                'price' => '249.30',
+                'tax_rate' => '12.00',
+                'tax_amount' => '44.87',
+                'total_price' => '418.82',
+                'category' => 'Service',
+            ],
+        );
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => $product->id,
+                'is_custom_product' => false,
+                'tax_amount' => '47.04',
+                'total_price' => '271.05',
+            ],
+        );
     }
 
     // --- Mark as paid ---
@@ -94,36 +105,65 @@ class InvoiceServiceFeatureTest extends TestCase
     public function set_invoice_template_updates_invoice_successfully(): void
     {
         Auth::login($this->user);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'template' => 'default',
-        ]);
-        $this->assertTrue($this->service->setInvoiceTemplate(InvoiceId::fromInt($invoice->id), 'modern'));
-        $this->assertEquals('modern', Invoice::find($invoice->id)->template);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'template' => 'default',
+            ],
+        );
+        $this->assertTrue(
+            $this->service->setInvoiceTemplate(
+                InvoiceId::fromInt($invoice->id),
+                'modern',
+            ),
+        );
+        $this->assertEquals(
+            'modern',
+            Invoice::find($invoice->id)->template,
+        );
     }
 
     #[Test]
     public function set_invoice_template_fails_for_non_existent_invoice(): void
     {
         Auth::login($this->user);
-        $this->assertFalse($this->service->setInvoiceTemplate(InvoiceId::fromInt(99999), 'modern'));
+        $this->assertFalse(
+            $this->service->setInvoiceTemplate(
+                InvoiceId::fromInt(99999),
+                'modern',
+            ),
+        );
     }
 
     #[Test]
     public function set_invoice_template_accepts_valid_template_names(): void
     {
         Auth::login($this->user);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'template' => 'default',
-        ]);
-        foreach ([
-            'default',
-            'modern',
-            'minimal',
-        ] as $template) {
-            $this->assertTrue($this->service->setInvoiceTemplate(InvoiceId::fromInt($invoice->id), $template));
-            $this->assertEquals($template, Invoice::find($invoice->id)->template);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'template' => 'default',
+            ],
+        );
+        foreach (
+            [
+                'default',
+                'modern',
+                'minimal',
+            ] as $template
+        ) {
+            $this->assertTrue(
+                $this->service->setInvoiceTemplate(
+                    InvoiceId::fromInt($invoice->id),
+                    $template,
+                ),
+            );
+            $this->assertEquals(
+                $template,
+                Invoice::find($invoice->id)->template,
+            );
         }
     }
 
@@ -133,51 +173,92 @@ class InvoiceServiceFeatureTest extends TestCase
     public function generate_invoice_number_starts_sequence_for_user_without_invoices(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
-        $this->assertSame($year . '0001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+        $this->assertSame(
+            $year . '0001',
+            $this->service->generateInvoiceNumber(
+                UserId::fromInt($user->id),
+                $year,
+            ),
+        );
     }
 
     #[Test]
     public function generate_invoice_number_continues_sequence_of_current_year(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0007']);
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0012']);
 
-        $this->assertSame($year . '0013', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+        $this->assertSame(
+            $year . '0013',
+            $this->service->generateInvoiceNumber(
+                UserId::fromInt($user->id),
+                $year,
+            ),
+        );
     }
 
     #[Test]
     public function generate_invoice_number_restarts_sequence_after_non_standard_last_number(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-A1']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '-A1']);
 
-        $this->assertSame($year . '0001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+        $this->assertSame(
+            $year . '0001',
+            $this->service->generateInvoiceNumber(
+                UserId::fromInt($user->id),
+                $year,
+            ),
+        );
     }
 
     #[Test]
     public function generate_invoice_number_continues_past_9999(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '9999']);
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '10000']);
 
-        $this->assertSame($year . '10001', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+        $this->assertSame(
+            $year . '10001',
+            $this->service->generateInvoiceNumber(
+                UserId::fromInt($user->id),
+                $year,
+            ),
+        );
     }
 
     #[Test]
     public function generate_invoice_number_ignores_non_standard_numbers(): void
     {
         $year = (int) date('Y');
-        $user = User::factory()->create();
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
-        Invoice::factory()->create(['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER']);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'invoice_vs' => $year . '0005']);
+        $invoiceFactory->create(
+            ['user_id' => $user->id, 'invoice_vs' => $year . '-ZZZ-LONG-NUMBER'],
+        );
 
-        $this->assertSame($year . '0006', $this->service->generateInvoiceNumber(UserId::fromInt($user->id), $year));
+        $this->assertSame(
+            $year . '0006',
+            $this->service->generateInvoiceNumber(
+                UserId::fromInt($user->id),
+                $year,
+            ),
+        );
     }
 }

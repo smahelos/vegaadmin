@@ -29,29 +29,54 @@ final class InvoiceRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_user()?->can($this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice') === true;
+        $user = backpack_user();
+
+        return $user?->can(
+            $this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice',
+        ) === true;
     }
 
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        $businessExists = Rule::exists('businesses', 'id');
+        $businessExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        $contactExists = Rule::exists('contacts', 'id');
+        $contactExists->where(
+            'user_id',
+            $this->integer('user_id'),
+        );
+        if ($this->paysByBankTransfer()) {
+            $bankAccountExists = Rule::exists('bank_accounts', 'id');
+            $bankAccountExists->where(
+                'business_id',
+                $this->integer('business_id'),
+            );
+            $bankAccountRules = [
+                'required',
+                'integer',
+                $bankAccountExists,
+            ];
+        } else {
+            $bankAccountRules = ['exclude'];
+        }
+
         $rules = [
             'user_id' => 'required|integer|exists:users,id',
             'business_id' => [
                 'required',
                 'integer',
-                Rule::exists('businesses', 'id')->where('user_id', $this->integer('user_id')),
+                $businessExists,
             ],
             'contact_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('contacts', 'id')->where('user_id', $this->integer('user_id')),
+                $contactExists,
             ],
-            'bank_account_id' => $this->paysByBankTransfer() ? [
-                'required',
-                'integer',
-                Rule::exists('bank_accounts', 'id')->where('business_id', $this->integer('business_id')),
-            ] : ['exclude'],
+            'bank_account_id' => $bankAccountRules,
             'invoice_vs' => 'required|string|max:50',
             'invoice_ks' => 'nullable|string|max:20',
             'invoice_ss' => 'nullable|string|max:20',
@@ -69,7 +94,7 @@ final class InvoiceRequest extends FormRequest
         $customerRules = AdminDocumentPartyInput::rules(
             $this->all(),
             'customer',
-            $this->filled('contact_id') && ! $this->keepsContact(),
+            $this->filled('contact_id') && !$this->keepsContact(),
         );
 
         return [
@@ -97,11 +122,15 @@ final class InvoiceRequest extends FormRequest
     /** @return list<InvoiceProductWriteData>|null */
     public function products(): ?array
     {
-        if (! $this->has('invoice-products')) {
+        if (!$this->has('invoice-products')) {
             return null;
         }
 
-        return app(InvoiceProductWriteDataAssembler::class)->fromValidated($this->validated('invoice-products'));
+        $assembler = app(InvoiceProductWriteDataAssembler::class);
+
+        return $assembler->fromValidated(
+            $this->validated('invoice-products'),
+        );
     }
 
     public function partySelection(): InvoicePartySelection
@@ -123,23 +152,25 @@ final class InvoiceRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [...DocumentPartyInput::attributes('customer'), ...InvoiceItemInput::attributes()];
-        foreach ([
-            'user_id',
-            'business_id',
-            'contact_id',
-            'bank_account_id',
-            'invoice_vs',
-            'invoice_ks',
-            'invoice_ss',
-            'due_in',
-            'payment_amount',
-            'payment_currency',
-            'payment_method_id',
-            'issue_date',
-            'tax_point_date',
-            'invoice_text',
-            'template',
-        ] as $field) {
+        foreach (
+            [
+                'user_id',
+                'business_id',
+                'contact_id',
+                'bank_account_id',
+                'invoice_vs',
+                'invoice_ks',
+                'invoice_ss',
+                'due_in',
+                'payment_amount',
+                'payment_currency',
+                'payment_method_id',
+                'issue_date',
+                'tax_point_date',
+                'invoice_text',
+                'template',
+            ] as $field
+        ) {
             $attributes[$field] = __('invoices.fields.' . $field);
         }
         $attributes['payment_status_id'] = __('invoices.fields.status');
@@ -153,9 +184,12 @@ final class InvoiceRequest extends FormRequest
         if ($this->isMethod('POST') || $id <= 0 || $this->integer('user_id') <= 0) {
             return false;
         }
-        $invoice = app(InvoiceListingApplicationServiceInterface::class)->getById(
+        $invoices = app(InvoiceListingApplicationServiceInterface::class);
+        $invoice = $invoices->getById(
             InvoiceId::fromInt($id),
-            UserId::fromInt($this->integer('user_id')),
+            UserId::fromInt(
+                $this->integer('user_id'),
+            ),
         );
 
         return $invoice->parties?->contactId?->value === $this->integer('contact_id');
@@ -168,6 +202,11 @@ final class InvoiceRequest extends FormRequest
             return false;
         }
 
-        return app(PaymentMethodDtoReadRepositoryInterface::class)->findById(PaymentMethodId::fromInt($id))?->code === PaymentMethodCode::BANK_ACCOUNT;
+        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
+        $paymentMethod = $paymentMethods->findById(
+            PaymentMethodId::fromInt($id),
+        );
+
+        return $paymentMethod?->code === PaymentMethodCode::BANK_ACCOUNT;
     }
 }

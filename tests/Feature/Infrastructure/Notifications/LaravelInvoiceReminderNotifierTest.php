@@ -64,7 +64,8 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
                 ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 // locale is set on notification instance
                 $ref = new \ReflectionClass($notification);
-                $prop = $ref->getParentClass()->getProperty('locale'); // property on base Notification
+                $parent = $ref->getParentClass();
+                $prop = $parent->getProperty('locale'); // property on base Notification
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
 
@@ -114,7 +115,8 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
                     true,
                 ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 $ref = new \ReflectionClass($notification);
-                $prop = $ref->getParentClass()->getProperty('locale');
+                $parent = $ref->getParentClass();
+                $prop = $parent->getProperty('locale');
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
 
@@ -165,7 +167,8 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
                     true,
                 ) && ($notifiable->routes['mail'] ?? null) === $recipient->email;
                 $ref = new \ReflectionClass($notification);
-                $prop = $ref->getParentClass()->getProperty('locale');
+                $parent = $ref->getParentClass();
+                $prop = $parent->getProperty('locale');
                 $prop->setAccessible(true);
                 $locale = $prop->getValue($notification);
 

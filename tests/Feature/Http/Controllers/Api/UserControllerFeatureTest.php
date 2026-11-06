@@ -7,6 +7,7 @@ use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Log;
@@ -55,8 +56,11 @@ class UserControllerFeatureTest extends TestCase
             $this->testUser2 ?? null,
             $this->testUser3 ?? null,
         ];
-        $this->userServiceStub->seedFromModels(array_filter($models));
-        app()->instance(UserServiceInterface::class, $this->userServiceStub);
+        $this->userServiceStub->seedFromModels(
+            array_filter($models),
+        );
+        $application = app();
+        $application->instance(UserServiceInterface::class, $this->userServiceStub);
     }
 
     /**
@@ -65,20 +69,27 @@ class UserControllerFeatureTest extends TestCase
     private function createTestUsers(): void
     {
         // Create test users for testing endpoints
-        $this->testUser1 = User::factory()->create([
-            'name' => 'Test User One',
-            'email' => 'testuser1@example.com',
-        ]);
+        $userFactory = User::factory();
+        $this->testUser1 = $userFactory->create(
+            [
+                'name' => 'Test User One',
+                'email' => 'testuser1@example.com',
+            ],
+        );
 
-        $this->testUser2 = User::factory()->create([
-            'name' => 'Test User Two',
-            'email' => 'testuser2@example.com',
-        ]);
+        $this->testUser2 = $userFactory->create(
+            [
+                'name' => 'Test User Two',
+                'email' => 'testuser2@example.com',
+            ],
+        );
 
-        $this->testUser3 = User::factory()->create([
-            'name' => 'Another Name',
-            'email' => 'testuser3@example.com',
-        ]);
+        $this->testUser3 = $userFactory->create(
+            [
+                'name' => 'Another Name',
+                'email' => 'testuser3@example.com',
+            ],
+        );
     }
 
     // ========================================================================
@@ -88,48 +99,54 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_user_data_for_authorized_admin(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
-                'id',
-                'name',
-                'email',
-                'created_at',
-                'updated_at',
-            ])
-            ->assertJson([
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse = $assertionResponse->assertJsonStructure([
+            'id',
+            'name',
+            'email',
+            'created_at',
+            'updated_at',
+        ]);
+        $assertionResponse->assertJson(
+            [
                 'id' => $this->testUser1->id,
                 'name' => $this->testUser1->name,
                 'email' => $this->testUser1->email,
-            ]);
+            ],
+        );
     }
 
     #[Test]
     public function get_user_admin_returns_403_for_admin_without_permission(): void
     {
-        $response = $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(403)
-            ->assertJson([
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJson(
+            [
                 'error' => __('users.auth.unauthorized'),
-            ]);
+            ],
+        );
     }
 
     #[Test]
     public function get_user_admin_returns_401_for_unauthenticated_request(): void
     {
-        $response = $this->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(401)
-            ->assertJson([
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJson(
+            [
                 'error' => __('users.auth.unauthenticated'),
-            ]);
+            ],
+        );
     }
 
     #[Test]
@@ -137,22 +154,24 @@ class UserControllerFeatureTest extends TestCase
     {
         $nonExistentId = 99999;
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$nonExistentId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$nonExistentId}");
 
-        $response->assertStatus(404)
-            ->assertJson([
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
+            [
                 'error' => __('users.messages.not_found'),
-            ]);
+            ],
+        );
     }
 
     #[Test]
     public function get_user_admin_returns_500_for_invalid_user_id(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson('/api/admin/user/invalid-id');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson('/api/admin/user/invalid-id');
 
         // Invalid ID causes Laravel route model binding error which returns 404, not 500
         $response->assertStatus(404);
@@ -165,16 +184,23 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_users_admin_returns_all_users_for_authorized_admin(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/user');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/user');
 
         $response->assertStatus(200);
         $users = $response->json();
         $this->assertIsArray($users);
-        $ids = collect($users)->pluck('id');
-        $this->assertTrue($ids->contains($this->testUser1->id));
-        $this->assertTrue($ids->contains($this->testUser2->id));
-        $this->assertTrue($ids->contains($this->testUser3->id));
+        $collection = collect($users);
+        $ids = $collection->pluck('id');
+        $this->assertTrue(
+            $ids->contains($this->testUser1->id),
+        );
+        $this->assertTrue(
+            $ids->contains($this->testUser2->id),
+        );
+        $this->assertTrue(
+            $ids->contains($this->testUser3->id),
+        );
     }
 
     #[Test]
@@ -207,7 +233,9 @@ class UserControllerFeatureTest extends TestCase
         $response = $this->getJson('/api/admin/user/search?q=Test+User');
         $response->assertStatus(200);
         $payload = $response->json();
-        $names = collect($payload['data'])->pluck('name')->toArray();
+        $collection = collect($payload['data']);
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('Test User One', $names);
         $this->assertContains('Test User Two', $names);
         $this->assertNotContains('Another Name', $names);
@@ -230,7 +258,9 @@ class UserControllerFeatureTest extends TestCase
         $response = $this->getJson('/api/admin/user/search?q=test+user');
         $response->assertStatus(200);
         $payload = $response->json();
-        $names = collect($payload['data'])->pluck('name')->toArray();
+        $collection = collect($payload['data']);
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('Test User One', $names);
         $this->assertContains('Test User Two', $names);
     }
@@ -245,31 +275,42 @@ class UserControllerFeatureTest extends TestCase
         $payload = $response->json();
         $this->assertEquals(10, $payload['per_page']);
         $this->assertGreaterThan(10, $payload['total']);
-        $this->assertLessThanOrEqual(10, count($payload['data']));
+        $this->assertLessThanOrEqual(
+            10,
+            count($payload['data']),
+        );
     }
 
     #[Test]
     public function search_users_admin_returns_the_requested_page(): void
     {
         $this->actingAs($this->backendAdminUser, 'backpack');
-        $first = $this->getJson('/api/admin/user/search?q=Paginated')->assertOk()->json();
-        $second = $this->getJson('/api/admin/user/search?q=Paginated&page=2')->assertOk()->json();
+        $httpResponse = $this->getJson('/api/admin/user/search?q=Paginated');
+        $httpResponse = $httpResponse->assertOk();
+        $first = $httpResponse->json();
+        $httpResponse = $this->getJson('/api/admin/user/search?q=Paginated&page=2');
+        $httpResponse = $httpResponse->assertOk();
+        $second = $httpResponse->json();
 
         $this->assertSame(2, $second['current_page']);
         $this->assertNotEmpty($second['data']);
-        $this->assertEmpty(array_intersect(
-            array_column($first['data'], 'id'),
-            array_column($second['data'], 'id'),
-        ));
+        $this->assertEmpty(
+            array_intersect(
+                array_column($first['data'], 'id'),
+                array_column($second['data'], 'id'),
+            ),
+        );
     }
 
     #[Test]
     public function search_users_admin_returns_403_for_admin_without_permission(): void
     {
-        $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->getJson('/api/admin/user/search?q=Test')
-            ->assertStatus(403)
-            ->assertJson(['error' => __('users.auth.unauthorized')]);
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpResponse = $httpClient->getJson('/api/admin/user/search?q=Test');
+        $httpResponse = $httpResponse->assertStatus(403);
+        $httpResponse->assertJson(
+            ['error' => __('users.auth.unauthorized')],
+        );
     }
 
     // ========================================================================
@@ -283,10 +324,17 @@ class UserControllerFeatureTest extends TestCase
         $this->app->forgetInstance(UserServiceInterface::class);
         $this->actingAs($this->backendAdminUser, 'backpack');
 
+        $userResponse = $this->getJson("/api/admin/user/{$this->testUser1->id}");
+        $userResponse->assertOk();
+        $searchResponse = $this->getJson('/api/admin/user/search?q=Test+User');
+        $searchResponse->assertOk();
+        $searchResponse->assertJsonPath('total', 2);
+        $listResponse = $this->getJson('/api/admin/user');
+        $listResponse->assertOk();
         $responses = [
-            $this->getJson("/api/admin/user/{$this->testUser1->id}")->assertOk(),
-            $this->getJson('/api/admin/user/search?q=Test+User')->assertOk()->assertJsonPath('total', 2),
-            $this->getJson('/api/admin/user')->assertOk(),
+            $userResponse,
+            $searchResponse,
+            $listResponse,
         ];
 
         foreach ($responses as $response) {
@@ -298,9 +346,9 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function api_endpoints_require_json_accept_header(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->get("/api/admin/user/{$this->testUser1->id}"); // Without JSON header
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->get("/api/admin/user/{$this->testUser1->id}"); // Without JSON header
 
         // Should still work as our controller returns JSON responses
         $this->assertTrue(true); // This test validates that endpoints work with or without JSON headers
@@ -313,9 +361,9 @@ class UserControllerFeatureTest extends TestCase
         // Malicious ID that doesn't match numeric pattern should return 404 (route not found)
         $maliciousId = "1'; DROP TABLE users; --";
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$maliciousId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$maliciousId}");
 
         // After casting inside controller malicious string becomes int; just assert it does not crash
         $this->assertNotEquals(500, $response->getStatusCode());
@@ -328,9 +376,9 @@ class UserControllerFeatureTest extends TestCase
         $this->assertGreaterThan(0, $userCountBefore);
 
         // Test 4: Valid ID still works normally
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
         $response->assertStatus(200);
         $data = $response->json();
@@ -343,7 +391,11 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $response = $this->getJson('/api/admin/user/search?q=%C5%A0p%C3%AB%C4%8Di%C3%A1l');
         $response->assertStatus(200);
-        $names = collect($response->json('data'))->pluck('name')->toArray();
+        $collection = collect(
+            $response->json('data'),
+        );
+        $values = $collection->pluck('name');
+        $names = $values->toArray();
         $this->assertContains('User with Špëčiál Ćháräçtërs', $names);
     }
 
@@ -353,7 +405,8 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $long = str_repeat('a', 1000);
         $response = $this->getJson('/api/admin/user/search?q=' . $long);
-        $response->assertStatus(200)->assertJsonPath('total', 0);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonPath('total', 0);
     }
 
     #[Test]
@@ -362,7 +415,8 @@ class UserControllerFeatureTest extends TestCase
         $this->actingAs($this->backendAdminUser, 'backpack');
         $maliciousQuery = "%27; DROP TABLE users; SELECT * FROM users WHERE name LIKE '%25";
         $response = $this->getJson('/api/admin/user/search?q=' . $maliciousQuery);
-        $response->assertStatus(200)->assertJsonPath('total', 0);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonPath('total', 0);
         $this->assertDatabaseHas('users', ['id' => $this->backendAdminUser->id]);
     }
 
@@ -373,19 +427,21 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_user_admin_returns_correct_json_structure(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(200)
-            ->assertJsonStructure([
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJsonStructure(
+            [
                 'id',
                 'name',
                 'email',
                 'email_verified_at',
                 'created_at',
                 'updated_at',
-            ]);
+            ],
+        );
 
         // Verify data types
         $data = $response->json();
@@ -399,8 +455,8 @@ class UserControllerFeatureTest extends TestCase
     #[Test]
     public function get_users_admin_returns_array_of_users(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/user');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/user');
 
         $response->assertStatus(200);
 
@@ -417,7 +473,10 @@ class UserControllerFeatureTest extends TestCase
         }
 
         // Response contains all users
-        $this->assertGreaterThanOrEqual(2, count($data));
+        $this->assertGreaterThanOrEqual(
+            2,
+            count($data),
+        );
 
         // Verify first user structure
         $firstUser = $data[0];
@@ -432,49 +491,51 @@ class UserControllerFeatureTest extends TestCase
     public function error_responses_have_consistent_format(): void
     {
         // Test 401 error format
-        $response = $this->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(401)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Test 403 error format
-        $response = $this->actingAs($this->unauthorizedAdmin, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$this->testUser1->id}");
+        $httpClient = $this->actingAs($this->unauthorizedAdmin, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$this->testUser1->id}");
 
-        $response->assertStatus(403)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Test 404 error format
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson('/api/admin/user/99999');
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson('/api/admin/user/99999');
 
-        $response->assertStatus(404)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJsonStructure(['error']);
     }
 
     #[Test]
     public function get_user_admin_returns_500_and_logs_when_service_throws(): void
     {
         // Expect an error log invocation with correct message and context
-        Log::shouldReceive('error')
-            ->once()
-            ->withArgs(function ($message, $context) {
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->withArgs(
+            function ($message, $context) {
                 return str_contains($message, 'UserController@getUserAdmin error')
                     && isset($context['user_id']);
-            });
+            },
+        );
         // Configure stub to throw for specific id (handled inside stub)
         $failingId = 777777;
         $this->userServiceStub->failOnId = $failingId;
 
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->withoutMiddleware()
-            ->getJson("/api/admin/user/{$failingId}");
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $response = $httpClient->getJson("/api/admin/user/{$failingId}");
 
-        $response->assertStatus(500)
-            ->assertJsonStructure(['error']);
+        $assertionResponse = $response->assertStatus(500);
+        $assertionResponse->assertJsonStructure(['error']);
 
         // Log expectation asserted automatically at test end by Mockery
         $this->assertTrue(true);
@@ -502,13 +563,14 @@ class InMemoryUserServiceStub implements UserServiceInterface
         }
         // Add special char user & paginated dataset
         $specialId = 555555;
+        $now = CarbonImmutable::now();
         $this->users[$specialId] = [
             'id' => $specialId,
             'name' => 'User with Špëčiál Ćháräçtërs',
             'email' => 'special@example.com',
             'email_verified_at' => null,
-            'created_at' => now()->toISOString(),
-            'updated_at' => now()->toISOString(),
+            'created_at' => $now->toISOString(),
+            'updated_at' => $now->toISOString(),
         ];
         // Add extra users for pagination (15) if not already
         $base = 800000;
@@ -519,8 +581,8 @@ class InMemoryUserServiceStub implements UserServiceInterface
                 'name' => 'Paginated User ' . $id,
                 'email' => 'p' . $id . '@example.com',
                 'email_verified_at' => null,
-                'created_at' => now()->toISOString(),
-                'updated_at' => now()->toISOString(),
+                'created_at' => $now->toISOString(),
+                'updated_at' => $now->toISOString(),
             ];
         }
     }
@@ -540,7 +602,7 @@ class InMemoryUserServiceStub implements UserServiceInterface
         if ($this->failOnId === $id) {
             throw new \Exception('Simulated failure');
         }
-        if (! isset($this->users[$id])) {
+        if (!isset($this->users[$id])) {
             throw (new ModelNotFoundException)->setModel(User::class, [$id]);
         }
         $data = $this->users[$id];
@@ -560,13 +622,18 @@ class InMemoryUserServiceStub implements UserServiceInterface
 
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult
     {
-        $filtered = array_values(array_filter($this->users, function ($u) use ($term) {
-            if (! $term) {
-                return true;
-            }
+        $filtered = array_values(
+            array_filter(
+                $this->users,
+                function ($u) use ($term) {
+                    if (!$term) {
+                        return true;
+                    }
 
-            return mb_stripos($u['name'], (string) $term) !== false;
-        }));
+                    return mb_stripos($u['name'], (string) $term) !== false;
+                },
+            ),
+        );
         $total = count($filtered);
         $perPage = $page->perPage();
         $currentPage = $page->page();

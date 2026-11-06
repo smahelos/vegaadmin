@@ -15,7 +15,8 @@ class ProductCategoryObserverTest extends TestCase
     {
         Event::fake([FormDataChanged::class]);
 
-        $category = ProductCategory::factory()->create(['name' => 'Cat A']);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create(['name' => 'Cat A']);
         Event::assertDispatchedTimes(FormDataChanged::class, 1);
 
         // Non watched field (e.g. description if exists) skip - we only have name so simulate no dispatch with another save

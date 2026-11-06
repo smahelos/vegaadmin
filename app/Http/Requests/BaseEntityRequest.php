@@ -22,7 +22,7 @@ abstract class BaseEntityRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        if (! Auth::check()) {
+        if (!Auth::check()) {
             return false;
         }
 
@@ -30,12 +30,12 @@ abstract class BaseEntityRequest extends FormRequest
 
         // Check basic permissions first (using web guard) - skip if no permission required
         $requiredPermission = $this->getRequiredPermission();
-        if (! empty($requiredPermission) && ! $user->can($requiredPermission)) {
+        if (!empty($requiredPermission) && !$user->can($requiredPermission)) {
             return false;
         }
 
         // Skip limit check for updates or if user has unlimited access
-        if (! $this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
+        if (!$this->isCreatingEntity() || $this->hasUnlimitedAccess()) {
             return true;
         }
 
@@ -53,7 +53,7 @@ abstract class BaseEntityRequest extends FormRequest
             $bestPeriod,
         );
 
-        if (! $limitStats['can_create']) {
+        if (!$limitStats['can_create']) {
             throw new EntityLimitExceededException($limitStats);
         }
 

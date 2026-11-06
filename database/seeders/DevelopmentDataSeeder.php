@@ -84,20 +84,25 @@ final class DevelopmentDataSeeder extends Seeder
     public function run(): void
     {
         // The accounts are overwritten and their data deleted, so never on a shared environment
-        if (! app()->environment(['local', 'testing'])) {
-            throw new RuntimeException('DevelopmentDataSeeder runs only in the local and testing environments');
+        $application = app();
+        if (!$application->environment(['local', 'testing'])) {
+            throw new RuntimeException(
+                'DevelopmentDataSeeder runs only in the local and testing environments',
+            );
         }
 
-        DB::transaction(function (): void {
-            $index = 0;
-            foreach (self::ACCOUNTS as $email => $account) {
-                $user = $this->account($email, $account);
-                if ($account['guard'] === PermissionCatalog::WEB) {
-                    $this->createData($user, $index);
+        DB::transaction(
+            function (): void {
+                $index = 0;
+                foreach (self::ACCOUNTS as $email => $account) {
+                    $user = $this->account($email, $account);
+                    if ($account['guard'] === PermissionCatalog::WEB) {
+                        $this->createData($user, $index);
+                    }
+                    $index++;
                 }
-                $index++;
-            }
-        });
+            },
+        );
     }
 
     /**
@@ -105,13 +110,19 @@ final class DevelopmentDataSeeder extends Seeder
      */
     private function account(string $email, array $account): User
     {
-        $user = User::query()->firstOrNew(['email' => $email]);
-        $user->forceFill([
-            'name' => $account['name'],
-            'password' => Hash::make(self::PASSWORD),
-            'email_verified_at' => now(),
-        ])->save();
-        $user->syncRoles([Role::findByName($account['role'], $account['guard'])]);
+        $userQuery = User::query();
+        $user = $userQuery->firstOrNew(['email' => $email]);
+        $user->forceFill(
+            [
+                'name' => $account['name'],
+                'password' => Hash::make(self::PASSWORD),
+                'email_verified_at' => now(),
+            ],
+        );
+        $user->save();
+        $user->syncRoles(
+            [Role::findByName($account['role'], $account['guard'])],
+        );
 
         return $user;
     }
@@ -121,7 +132,9 @@ final class DevelopmentDataSeeder extends Seeder
      */
     private function createData(User $user, int $index): void
     {
-        $this->random = new Randomizer(new Mt19937(2026 + $index));
+        $this->random = new Randomizer(
+            new Mt19937(2026 + $index),
+        );
         $this->deleteData($user);
 
         $business = $this->createBusinesses($user);
@@ -137,30 +150,63 @@ final class DevelopmentDataSeeder extends Seeder
 
     private function deleteData(User $user): void
     {
-        $invoiceIds = DB::table('invoices')->where('user_id', $user->id)->pluck('id');
-        DB::table('invoice_products')->whereIn('invoice_id', $invoiceIds)->delete();
-        DB::table('invoices')->where('user_id', $user->id)->delete();
-        DB::table('expenses')->where('user_id', $user->id)->delete();
+        $query = DB::table('invoices');
+        $query->where('user_id', $user->id);
+        $invoiceIds = $query->pluck('id');
+
+        $query = DB::table('invoice_products');
+        $query->whereIn('invoice_id', $invoiceIds);
+        $query->delete();
+
+        $query = DB::table('invoices');
+        $query->where('user_id', $user->id);
+        $query->delete();
+
+        $query = DB::table('expenses');
+        $query->where('user_id', $user->id);
+        $query->delete();
 
         // Default selections point into the rows deleted below
-        $user->forceFill(['default_business_id' => null])->save();
-        $businessIds = DB::table('businesses')->where('user_id', $user->id)->pluck('id');
-        $contactIds = DB::table('contacts')->where('user_id', $user->id)->pluck('id');
-        DB::table('businesses')->whereIn('id', $businessIds)->update(['default_bank_account_id' => null]);
-        DB::table('contacts')->whereIn('id', $contactIds)->update(['default_bank_account_id' => null]);
+        $user->forceFill(['default_business_id' => null]);
+        $user->save();
+
+        $query = DB::table('businesses');
+        $query->where('user_id', $user->id);
+        $businessIds = $query->pluck('id');
+
+        $query = DB::table('contacts');
+        $query->where('user_id', $user->id);
+        $contactIds = $query->pluck('id');
+
+        $query = DB::table('businesses');
+        $query->whereIn('id', $businessIds);
+        $query->update(['default_bank_account_id' => null]);
+
+        $query = DB::table('contacts');
+        $query->whereIn('id', $contactIds);
+        $query->update(['default_bank_account_id' => null]);
 
         foreach (['addresses', 'bank_accounts'] as $table) {
-            DB::table($table)->whereIn('business_id', $businessIds)->delete();
-            DB::table($table)->whereIn('contact_id', $contactIds)->delete();
+            $query = DB::table($table);
+            $query->whereIn('business_id', $businessIds);
+            $query->delete();
+
+            $query = DB::table($table);
+            $query->whereIn('contact_id', $contactIds);
+            $query->delete();
         }
 
-        foreach ([
-            'businesses',
-            'contacts',
-            'products',
-            'entity_limit_usage',
-        ] as $table) {
-            DB::table($table)->where('user_id', $user->id)->delete();
+        foreach (
+            [
+                'businesses',
+                'contacts',
+                'products',
+                'entity_limit_usage',
+            ] as $table
+        ) {
+            $query = DB::table($table);
+            $query->where('user_id', $user->id);
+            $query->delete();
         }
     }
 
@@ -212,7 +258,8 @@ final class DevelopmentDataSeeder extends Seeder
             ],
             false,
         );
-        $user->forceFill(['default_business_id' => $default->id])->save();
+        $user->forceFill(['default_business_id' => $default->id]);
+        $user->save();
 
         $second = $this->createParty(
             Business::class,
@@ -298,12 +345,14 @@ final class DevelopmentDataSeeder extends Seeder
             ],
         ];
 
-        foreach ($contacts as $index => [
-            $name,
-            $street,
-            $city,
-            $postalCode,
-        ]) {
+        foreach (
+            $contacts as $index => [
+                $name,
+                $street,
+                $city,
+                $postalCode,
+            ]
+        ) {
             $withoutNumber = $name === 'Epsilon Design';
             $this->createParty(
                 Contact::class,
@@ -427,11 +476,14 @@ final class DevelopmentDataSeeder extends Seeder
         array $attributes,
         array $address,
     ): Business|Contact {
-        $party = $model::query()->create([
-            'user_id' => $user->id,
-            'registration_country' => 'CZ',
-            ...$attributes,
-        ]);
+        $partyQuery = $model::query();
+        $party = $partyQuery->create(
+            [
+                'user_id' => $user->id,
+                'registration_country' => 'CZ',
+                ...$attributes,
+            ],
+        );
 
         [
             $street,
@@ -439,12 +491,15 @@ final class DevelopmentDataSeeder extends Seeder
             $postalCode,
             $country,
         ] = $address;
-        $party->address()->create([
-            'street' => $street,
-            'city' => $city,
-            'postal_code' => $postalCode,
-            'country' => $country,
-        ]);
+        $addressRelation = $party->address();
+        $addressRelation->create(
+            [
+                'street' => $street,
+                'city' => $city,
+                'postal_code' => $postalCode,
+                'country' => $country,
+            ],
+        );
 
         return $party;
     }
@@ -457,9 +512,11 @@ final class DevelopmentDataSeeder extends Seeder
         array $attributes,
         bool $default,
     ): void {
-        $account = $owner->bankAccounts()->create(['country' => 'CZ', ...$attributes]);
+        $bankAccounts = $owner->bankAccounts();
+        $account = $bankAccounts->create(['country' => 'CZ', ...$attributes]);
         if ($default) {
-            $owner->forceFill(['default_bank_account_id' => $account->id])->save();
+            $owner->forceFill(['default_bank_account_id' => $account->id]);
+            $owner->save();
         }
     }
 
@@ -510,22 +567,27 @@ final class DevelopmentDataSeeder extends Seeder
             ],
         ];
 
-        foreach ($products as $index => [
-            $name,
-            $unit,
-            $price,
-            $rate,
-        ]) {
-            Product::query()->create([
-                'user_id' => $user->id,
-                'name' => $name,
-                'slug' => 'dev-' . $user->id . '-' . ($index + 1),
-                'price' => $price,
-                'currency' => Currency::CZK->value,
-                'unit' => $unit->value,
-                'tax_id' => $this->taxId($rate),
-                'is_default' => $index === 0,
-            ]);
+        foreach (
+            $products as $index => [
+                $name,
+                $unit,
+                $price,
+                $rate,
+            ]
+        ) {
+            $productQuery = Product::query();
+            $productQuery->create(
+                [
+                    'user_id' => $user->id,
+                    'name' => $name,
+                    'slug' => 'dev-' . $user->id . '-' . ($index + 1),
+                    'price' => $price,
+                    'currency' => Currency::CZK->value,
+                    'unit' => $unit->value,
+                    'tax_id' => $this->taxId($rate),
+                    'is_default' => $index === 0,
+                ],
+            );
         }
     }
 
@@ -574,16 +636,23 @@ final class DevelopmentDataSeeder extends Seeder
         ];
 
         for ($monthsBack = self::MONTHS - 1; $monthsBack >= 0; $monthsBack--) {
-            $month = $today->modify('first day of this month')->modify('-' . $monthsBack . ' months');
+            $month = $today->modify('first day of this month');
+            $month = $month->modify('-' . $monthsBack . ' months');
             for ($i = $this->random->getInt(2, 4); $i > 0; $i--) {
-                $date = $month->modify('+' . $this->random->getInt(0, 27) . ' days');
+                $date = $month->modify(
+                    '+' . $this->random->getInt(0, 27) . ' days',
+                );
                 if ($date > $today) {
                     continue;
                 }
 
                 if ($this->random->getInt(1, 100) <= 60) {
-                    $contact = $suppliers[$this->random->getInt(0, count($suppliers) - 1)];
-                    $account = BankAccount::query()->findOrFail($contact->default_bank_account_id);
+                    $contact = $suppliers[$this->random->getInt(
+                        0,
+                        count($suppliers) - 1,
+                    )];
+                    $accountQuery = BankAccount::query();
+                    $account = $accountQuery->findOrFail($contact->default_bank_account_id);
                     $supplier = [
                         'contact_id' => $contact->id,
                         'bank_account_id' => $account->id,
@@ -596,7 +665,10 @@ final class DevelopmentDataSeeder extends Seeder
                         $street,
                         $city,
                         $postalCode,
-                    ] = $oneOffSuppliers[$this->random->getInt(0, count($oneOffSuppliers) - 1)];
+                    ] = $oneOffSuppliers[$this->random->getInt(
+                        0,
+                        count($oneOffSuppliers) - 1,
+                    )];
                     $supplier = [
                         'supplier_name' => $name,
                         'supplier_street' => $street,
@@ -607,26 +679,35 @@ final class DevelopmentDataSeeder extends Seeder
                 }
 
                 $amount = $this->random->getInt(800, 18000);
-                Expense::query()->create([
-                    'user_id' => $user->id,
-                    'business_id' => $business->id,
-                    ...$customer,
-                    ...$supplier,
-                    'category_id' => $categories[$this->random->getInt(0, count($categories) - 1)],
-                    'expense_date' => $date->format('Y-m-d'),
-                    'amount' => $amount . '.00',
-                    'currency' => Currency::CZK->value,
-                    'tax_amount' => number_format(
-                        $amount * 21 / 121,
-                        2,
-                        '.',
-                        '',
-                    ),
-                    'tax_included' => true,
-                    'description' => $descriptions[$this->random->getInt(0, count($descriptions) - 1)],
-                    'status_id' => $paidStatus,
-                    'attachments' => [],
-                ]);
+                $expenseQuery = Expense::query();
+                $expenseQuery->create(
+                    [
+                        'user_id' => $user->id,
+                        'business_id' => $business->id,
+                        ...$customer,
+                        ...$supplier,
+                        'category_id' => $categories[$this->random->getInt(
+                            0,
+                            count($categories) - 1,
+                        )],
+                        'expense_date' => $date->format('Y-m-d'),
+                        'amount' => $amount . '.00',
+                        'currency' => Currency::CZK->value,
+                        'tax_amount' => number_format(
+                            $amount * 21 / 121,
+                            2,
+                            '.',
+                            '',
+                        ),
+                        'tax_included' => true,
+                        'description' => $descriptions[$this->random->getInt(
+                            0,
+                            count($descriptions) - 1,
+                        )],
+                        'status_id' => $paidStatus,
+                        'attachments' => [],
+                    ],
+                );
             }
         }
     }
@@ -638,7 +719,8 @@ final class DevelopmentDataSeeder extends Seeder
      */
     private function documentParty(string $role, Business|Contact $party): array
     {
-        $address = $party->address()->firstOrFail();
+        $addressRelation = $party->address();
+        $address = $addressRelation->firstOrFail();
 
         return [
             $role . '_name' => $party->name,
@@ -682,9 +764,14 @@ final class DevelopmentDataSeeder extends Seeder
      */
     private function referenceIds(string $table): array
     {
-        $ids = DB::table($table)->pluck('id')->map(fn (mixed $id): int => (int) $id)->all();
+        $query = DB::table($table);
+        $ids = $query->pluck('id');
+        $ids = $ids->map(fn (mixed $id): int => (int) $id);
+        $ids = $ids->all();
         if ($ids === []) {
-            throw new RuntimeException('Table ' . $table . ' is empty; run ReferenceDataSeeder first');
+            throw new RuntimeException(
+                'Table ' . $table . ' is empty; run ReferenceDataSeeder first',
+            );
         }
 
         return array_values($ids);
@@ -692,9 +779,13 @@ final class DevelopmentDataSeeder extends Seeder
 
     private function taxId(string $rate): int
     {
-        $id = DB::table('taxes')->where('rate', $rate)->value('id');
+        $query = DB::table('taxes');
+        $query->where('rate', $rate);
+        $id = $query->value('id');
         if ($id === null) {
-            throw new RuntimeException('Tax rate ' . $rate . ' % is missing; run ReferenceDataSeeder first');
+            throw new RuntimeException(
+                'Tax rate ' . $rate . ' % is missing; run ReferenceDataSeeder first',
+            );
         }
 
         return (int) $id;
@@ -702,18 +793,20 @@ final class DevelopmentDataSeeder extends Seeder
 
     private function statusId(string $category, string $slug): int
     {
-        $id = DB::table('statuses')
-            ->join(
-                'status_categories',
-                'statuses.category_id',
-                '=',
-                'status_categories.id',
-            )
-            ->where('status_categories.slug', $category)
-            ->where('statuses.slug', $slug)
-            ->value('statuses.id');
+        $query = DB::table('statuses');
+        $query->join(
+            'status_categories',
+            'statuses.category_id',
+            '=',
+            'status_categories.id',
+        );
+        $query->where('status_categories.slug', $category);
+        $query->where('statuses.slug', $slug);
+        $id = $query->value('statuses.id');
         if ($id === null) {
-            throw new RuntimeException('Status ' . $category . '/' . $slug . ' is missing; run ReferenceDataSeeder first');
+            throw new RuntimeException(
+                'Status ' . $category . '/' . $slug . ' is missing; run ReferenceDataSeeder first',
+            );
         }
 
         return (int) $id;

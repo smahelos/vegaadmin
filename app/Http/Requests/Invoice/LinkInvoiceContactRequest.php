@@ -15,7 +15,9 @@ final class LinkInvoiceContactRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->can('frontend.can_create_edit_invoice') === true;
+        $user = $this->user();
+
+        return $user?->can('frontend.can_create_edit_invoice') === true;
     }
 
     /**
@@ -23,17 +25,23 @@ final class LinkInvoiceContactRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = $this->user();
+        $contactExists = Rule::exists('contacts', 'id');
+        $contactExists->where('user_id', $user?->getAuthIdentifier());
+
         return [
             'contact_id' => [
                 'required',
                 'integer',
-                Rule::exists('contacts', 'id')->where('user_id', $this->user()?->getAuthIdentifier()),
+                $contactExists,
             ],
         ];
     }
 
     public function contactId(): ContactId
     {
-        return ContactId::fromInt($this->integer('contact_id'));
+        return ContactId::fromInt(
+            $this->integer('contact_id'),
+        );
     }
 }

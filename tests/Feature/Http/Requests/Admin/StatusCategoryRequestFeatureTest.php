@@ -30,16 +30,29 @@ class StatusCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $statusCategoryFactory->create();
 
         // Define test routes
-        Route::post('/test-status-category', function (StatusCategoryRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-status-category',
+            function (StatusCategoryRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-status-category/{id}', function (StatusCategoryRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-status-category/{id}',
+            function (StatusCategoryRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -79,8 +92,9 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -95,7 +109,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -110,7 +125,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -125,7 +141,8 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -140,13 +157,15 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $existingCategory = StatusCategory::factory()->create(['slug' => 'existing-slug']);
+        $statusCategoryFactory = StatusCategory::factory();
+        $existingCategory = $statusCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Valid Name',
@@ -157,13 +176,15 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingCategory = StatusCategory::factory()->create(['slug' => 'existing-slug']);
+        $statusCategoryFactory = StatusCategory::factory();
+        $existingCategory = $statusCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'id' => $existingCategory->id,
@@ -196,42 +217,44 @@ class StatusCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_with_required_permission(): void
     {
-        $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-status-category', [
-                'name' => 'Test Category',
-                'slug' => 'test-category',
-            ])
-            ->assertStatus(200);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-status-category', [
+            'name' => 'Test Category',
+            'slug' => 'test-category',
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_without_permission(): void
     {
         // Create a user without the required permission
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
         // Give basic backpack access but not the specific permission (for backpack guard)
-        $backpackAccess = Permission::where('name', 'backpack.access')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery->where('guard_name', 'backpack');
+        $backpackAccess = $permissionQuery->first();
         if ($backpackAccess) {
             $userWithoutPermission->givePermissionTo($backpackAccess);
         }
 
-        $this->actingAs($userWithoutPermission, 'backpack')
-            ->postJson('/test-status-category', [
-                'name' => 'Test Category',
-                'slug' => 'test-category',
-            ])
-            ->assertStatus(403);
+        $httpClient = $this->actingAs($userWithoutPermission, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-status-category', [
+            'name' => 'Test Category',
+            'slug' => 'test-category',
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-status-category', [
+        $httpResponse = $this->postJson('/test-status-category', [
             'name' => 'Test Category',
             'slug' => 'test-category',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -245,9 +268,18 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('statuses.categories.fields.name'), $attributes['name']);
-        $this->assertEquals(__('statuses.categories.fields.slug'), $attributes['slug']);
-        $this->assertEquals(__('statuses.categories.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('statuses.categories.fields.name'),
+            $attributes['name'],
+        );
+        $this->assertEquals(
+            __('statuses.categories.fields.slug'),
+            $attributes['slug'],
+        );
+        $this->assertEquals(
+            __('statuses.categories.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]

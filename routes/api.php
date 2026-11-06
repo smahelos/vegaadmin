@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\InvoiceController;
@@ -19,68 +21,109 @@ use Illuminate\Support\Facades\Route;
 */
 
 // Admin API endpoints - require authentication and backpack API access
-Route::middleware(['api.require.backpack', 'refresh.backpack.session'])
-    ->prefix('admin')
-    ->name('api.admin.')
-    ->group(function (): void {
-        Route::get('/user', [UserController::class, 'getUsersAdmin'])->name('users');
-        Route::get('/user/search', [UserController::class, 'searchUsersAdmin'])->name('users.search');
-        Route::get('/user/{id}', [UserController::class, 'getUserAdmin'])->whereNumber('id')->name('user');
-        Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice'])->whereNumber('id')->name('invoice');
-        Route::get('/invoice', [InvoiceController::class, 'getInvoice'])->name('invoice.query');
-    });
+$registrar = Route::middleware(['api.require.backpack', 'refresh.backpack.session']);
+$registrar->prefix('admin');
+$registrar->name('api.admin.');
+$registrar->group(
+    function (): void {
+        $route = Route::get('/user', [UserController::class, 'getUsersAdmin']);
+        $route->name('users');
+        $route = Route::get('/user/search', [UserController::class, 'searchUsersAdmin']);
+        $route->name('users.search');
+        $route = Route::get('/user/{id}', [UserController::class, 'getUserAdmin']);
+        $route->whereNumber('id');
+        $route->name('user');
+        $route = Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice']);
+        $route->whereNumber('id');
+        $route->name('invoice');
+        $route = Route::get('/invoice', [InvoiceController::class, 'getInvoice']);
+        $route->name('invoice.query');
+    },
+);
 
 // Frontend API endpoints - require authentication and frontend API access
-Route::middleware(['api.require.frontend', 'refresh.frontend.session'])
-    ->name('api.')
-    ->group(function (): void {
+$registrar = Route::middleware(['api.require.frontend', 'refresh.frontend.session']);
+$registrar->name('api.');
+$registrar->group(
+    function (): void {
         // Invoices
-        Route::get('/invoice', [InvoiceController::class, 'getInvoice'])->name('invoice.query');
-        Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice'])->whereNumber('id')->name('invoice');
+        $route = Route::get('/invoice', [InvoiceController::class, 'getInvoice']);
+        $route->name('invoice.query');
+        $route = Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice']);
+        $route->whereNumber('id');
+        $route->name('invoice');
 
         // UELS
-        Route::get('/uels', [UELSController::class, 'getUELS'])->name('uels');
-        Route::get('/uels/{id}', [UELSController::class, 'getUELSById'])->name('uels.id');
+        $route = Route::get('/uels', [UELSController::class, 'getUELS']);
+        $route->name('uels');
+        $route = Route::get('/uels/{id}', [UELSController::class, 'getUELSById']);
+        $route->name('uels.id');
 
         // UELS (Universal Entity Limit System) API endpoints
-        Route::get('/uels/{entity}/data', [UELSController::class, 'getEntityData'])->name('uels.entity-data');
-        Route::get('/uels/all-entities', [UELSController::class, 'getAllEntitiesData'])->name('uels.all-entities');
+        $route = Route::get('/uels/{entity}/data', [UELSController::class, 'getEntityData']);
+        $route->name('uels.entity-data');
+        $route = Route::get('/uels/all-entities', [UELSController::class, 'getAllEntitiesData']);
+        $route->name('uels.all-entities');
 
         // Dashboard charts
-        Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue'])->name('statistics.monthly-revenue');
-        Route::get('/statistics/customer-revenue', [StatisticsController::class, 'customerRevenue'])->name('statistics.customer-revenue');
-        Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus'])->name('statistics.invoice-status');
-        Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods'])->name('statistics.payment-methods');
-        Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses'])->name('statistics.revenue-expenses');
-    });
+        $route = Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue']);
+        $route->name('statistics.monthly-revenue');
+        $route = Route::get('/statistics/customer-revenue', [StatisticsController::class, 'customerRevenue']);
+        $route->name('statistics.customer-revenue');
+        $route = Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus']);
+        $route->name('statistics.invoice-status');
+        $route = Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods']);
+        $route->name('statistics.payment-methods');
+        $route = Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses']);
+        $route->name('statistics.revenue-expenses');
+    },
+);
 
 // Public API endpoints - no authentication required (rate limited)
-Route::middleware('throttle:60,1')
-    ->name('api.')
-    ->group(function (): void {
+$registrar = Route::middleware('throttle:60,1');
+$registrar->name('api.');
+$registrar->group(
+    function (): void {
         // Countries and currencies
-        Route::get('/countries', [CountryController::class, 'getCountries'])->name('countries');
-        Route::get('/countries/{code}', [CountryController::class, 'getCountry'])->name('country');
-        Route::get('/currencies/common', [CurrencyController::class, 'getCommonCurrencies'])->name('currencies.common');
-        Route::get('/currencies/all', [CurrencyController::class, 'getAllCurrencies'])->name('currencies.all');
-        Route::get('/currencies/exchange-rate', [CurrencyController::class, 'getExchangeRate'])->name('exchange-rate');
-        Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency'])->name('convert-currency');
+        $route = Route::get('/countries', [CountryController::class, 'getCountries']);
+        $route->name('countries');
+        $route = Route::get('/countries/{code}', [CountryController::class, 'getCountry']);
+        $route->name('country');
+        $route = Route::get('/currencies/common', [CurrencyController::class, 'getCommonCurrencies']);
+        $route->name('currencies.common');
+        $route = Route::get('/currencies/all', [CurrencyController::class, 'getAllCurrencies']);
+        $route->name('currencies.all');
+        $route = Route::get('/currencies/exchange-rate', [CurrencyController::class, 'getExchangeRate']);
+        $route->name('exchange-rate');
+        $route = Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency']);
+        $route->name('convert-currency');
 
         // UELS - Universal Entity Limit System
-        Route::middleware('auth:web')->group(function (): void {
-            Route::get('/uels/{entity}', [UELSController::class, 'getEntityData'])->name('uels.entity');
-            Route::get('/uels', [UELSController::class, 'getAllEntitiesData'])->name('uels.all');
-        });
-    });
+        $registrar = Route::middleware('auth:web');
+        $registrar->group(
+            function (): void {
+                $route = Route::get('/uels/{entity}', [UELSController::class, 'getEntityData']);
+                $route->name('uels.entity');
+                $route = Route::get('/uels', [UELSController::class, 'getAllEntitiesData']);
+                $route->name('uels.all');
+            },
+        );
+    },
+);
 
 // Session control API endpoints; the session comes from statefulApi() in bootstrap/app.php
-Route::name('api.')
-    ->group(function (): void {
-        Route::get('/auth-check', [SessionController::class, 'checkAuth'])->name('auth-check');
-        Route::post('/session-refresh', [SessionController::class, 'refreshSession'])->name('session-refresh');
-    });
+$registrar = Route::name('api.');
+$registrar->group(
+    function (): void {
+        $route = Route::get('/auth-check', [SessionController::class, 'checkAuth']);
+        $route->name('auth-check');
+        $route = Route::post('/session-refresh', [SessionController::class, 'refreshSession']);
+        $route->name('session-refresh');
+    },
+);
 
 // Sanctum route for authenticated users (if needed)
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+$registrar = Route::middleware('auth:sanctum');
+$registrar->get('/user', function (Request $request) {
     return $request->user();
 });

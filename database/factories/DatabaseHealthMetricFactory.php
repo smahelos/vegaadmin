@@ -53,6 +53,7 @@ class DatabaseHealthMetricFactory extends Factory
             'warning',
             'critical',
         ];
+        $optional = $this->faker->optional();
 
         return [
             'metric_name' => $this->faker->randomElement($metricNames),
@@ -63,7 +64,7 @@ class DatabaseHealthMetricFactory extends Factory
             ),
             'metric_unit' => $this->faker->randomElement($units),
             'status' => $this->faker->randomElement($statuses),
-            'recommendation' => $this->faker->optional()->sentence(),
+            'recommendation' => $optional->sentence(),
             'measured_at' => $this->faker->dateTimeBetween('-7 days', 'now'),
         ];
     }
@@ -73,10 +74,12 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function good(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'good',
-            'recommendation' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'good',
+                'recommendation' => null,
+            ],
+        );
     }
 
     /**
@@ -84,10 +87,12 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function warning(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'warning',
-            'recommendation' => $this->faker->sentence(),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'warning',
+                'recommendation' => $this->faker->sentence(),
+            ],
+        );
     }
 
     /**
@@ -95,10 +100,12 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function critical(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'critical',
-            'recommendation' => 'Immediate action required: ' . $this->faker->sentence(),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'critical',
+                'recommendation' => 'Immediate action required: ' . $this->faker->sentence(),
+            ],
+        );
     }
 
     /**
@@ -106,15 +113,17 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function databaseSize(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_name' => 'database_size',
-            'metric_unit' => 'GB',
-            'metric_value' => $this->faker->randomFloat(
-                2,
-                0.1,
-                50,
-            ),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_name' => 'database_size',
+                'metric_unit' => 'GB',
+                'metric_value' => $this->faker->randomFloat(
+                    2,
+                    0.1,
+                    50,
+                ),
+            ],
+        );
     }
 
     /**
@@ -122,15 +131,17 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function queryPerformance(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_name' => 'query_performance',
-            'metric_unit' => 'ms',
-            'metric_value' => $this->faker->randomFloat(
-                2,
-                1,
-                5000,
-            ),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_name' => 'query_performance',
+                'metric_unit' => 'ms',
+                'metric_value' => $this->faker->randomFloat(
+                    2,
+                    1,
+                    5000,
+                ),
+            ],
+        );
     }
 
     /**
@@ -138,11 +149,13 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function connectionCount(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'metric_name' => 'connection_count',
-            'metric_unit' => 'count',
-            'metric_value' => $this->faker->numberBetween(1, 100),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'metric_name' => 'connection_count',
+                'metric_unit' => 'count',
+                'metric_value' => $this->faker->numberBetween(1, 100),
+            ],
+        );
     }
 
     /**
@@ -150,9 +163,11 @@ class DatabaseHealthMetricFactory extends Factory
      */
     public function recent(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'measured_at' => $this->faker->dateTimeBetween('-24 hours', 'now'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'measured_at' => $this->faker->dateTimeBetween('-24 hours', 'now'),
+            ],
+        );
     }
 
     /**

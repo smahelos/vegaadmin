@@ -27,11 +27,13 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
 
         $this->service = app(UniversalLimitService::class);
 
-        $this->user = User::create([
-            'name' => 'Limit User ' . uniqid(),
-            'email' => 'limit_' . uniqid() . '@example.com',
-            'password' => bcrypt('password'),
-        ]);
+        $this->user = User::create(
+            [
+                'name' => 'Limit User ' . uniqid(),
+                'email' => 'limit_' . uniqid() . '@example.com',
+                'password' => bcrypt('password'),
+            ],
+        );
 
         // Create layered permissions with progressively higher limits
         $permissions = [
@@ -47,38 +49,47 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
         }
 
         // Create limits for each permission across different periods
-        EntityLimit::factory()->create([
-            'permission_name' => 'frontend.can_create_edit_invoice_basic',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'daily',
-            'limit_value' => 5,
-            'is_active' => true,
-        ]);
-        EntityLimit::factory()->create([
-            'permission_name' => 'frontend.can_create_edit_invoice_plus',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 20,
-            'is_active' => true,
-        ]);
-        EntityLimit::factory()->create([
-            'permission_name' => 'frontend.can_create_edit_invoice_pro',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'yearly',
-            'limit_value' => 100,
-            'is_active' => true,
-        ]);
-        EntityLimit::factory()->create([
-            'permission_name' => 'frontend.can_create_edit_invoice_ultra',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'lifetime',
-            'limit_value' => 1000,
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice_basic',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'daily',
+                'limit_value' => 5,
+                'is_active' => true,
+            ],
+        );
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice_plus',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 20,
+                'is_active' => true,
+            ],
+        );
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice_pro',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'yearly',
+                'limit_value' => 100,
+                'is_active' => true,
+            ],
+        );
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice_ultra',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'lifetime',
+                'limit_value' => 1000,
+                'is_active' => true,
+            ],
+        );
     }
 
     #[Test]
@@ -111,14 +122,23 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
     public function record_usage_without_period_uses_best_period(): void
     {
         // Call recordUsage with null periodType to trigger automatic best period determination
-        $this->assertTrue($this->service->recordUsage($this->user->id, 'invoice', 'count', null, 'web', 3));
+        $this->assertTrue(
+            $this->service->recordUsage(
+                $this->user->id,
+                'invoice',
+                'count',
+                null,
+                'web',
+                3,
+            ),
+        );
 
         // Usage should be recorded under lifetime period (best period)
-        $usage = EntityLimitUsage::where('user_id', $this->user->id)
-            ->where('entity_type', 'invoice')
-            ->where('metric_type', 'count')
-            ->where('period_type', 'lifetime')
-            ->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $this->user->id);
+        $entityLimitUsageQuery->where('entity_type', 'invoice');
+        $entityLimitUsageQuery->where('metric_type', 'count');
+        $entityLimitUsageQuery->where('period_type', 'lifetime');
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage, 'Usage record for lifetime period should exist');
         $this->assertEquals(3, (int) $usage->current_value);
@@ -161,8 +181,14 @@ class UniversalLimitServiceBestPeriodFeatureTest extends TestCase
         $this->assertEquals(1000, $info['limits']['count']['lifetime']['limit']);
 
         $this->assertEquals(2, $info['limits']['count']['daily']['usage']['current_usage']);
-        $this->assertEquals(4, $info['limits']['count']['monthly']['usage']['current_usage']);
+        $this->assertEquals(
+            4,
+            $info['limits']['count']['monthly']['usage']['current_usage'],
+        );
         $this->assertEquals(0, $info['limits']['count']['yearly']['usage']['current_usage']);
-        $this->assertEquals(0, $info['limits']['count']['lifetime']['usage']['current_usage']);
+        $this->assertEquals(
+            0,
+            $info['limits']['count']['lifetime']['usage']['current_usage'],
+        );
     }
 }

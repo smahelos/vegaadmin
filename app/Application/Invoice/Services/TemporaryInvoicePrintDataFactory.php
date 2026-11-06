@@ -37,15 +37,21 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
         }
 
         $products = $this->products->fromValidated($invoiceData['invoice-products']);
-        $items = array_map(fn (InvoiceProductWriteData $product): PrintableInvoiceItemDTO => new PrintableInvoiceItemDTO(
-            name: $product->name,
-            quantity: (float) $product->quantity,
-            unit: $product->unit,
-            price: $product->price,
-            taxRate: (float) $product->taxRate,
-            lineTotal: $product->total(),
-        ), $products);
-        $totals = InvoiceTotals::fromProducts(Currency::from($currency), $products);
+        $items = array_map(
+            fn (InvoiceProductWriteData $product): PrintableInvoiceItemDTO => new PrintableInvoiceItemDTO(
+                name: $product->name,
+                quantity: (float) $product->quantity,
+                unit: $product->unit,
+                price: $product->price,
+                taxRate: (float) $product->taxRate,
+                lineTotal: $product->total(),
+            ),
+            $products,
+        );
+        $totals = InvoiceTotals::fromProducts(
+            Currency::from($currency),
+            $products,
+        );
 
         /** @var DocumentPartyDTO $supplier */
         $supplier = $invoiceData['supplier'];
@@ -74,14 +80,16 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             variableSymbol: $invoiceData['invoice_vs'] ?? null,
             constantSymbol: $invoiceData['invoice_ks'] ?? null,
             specificSymbol: $invoiceData['invoice_ss'] ?? null,
-            paymentMethod: $this->paymentMethods->findById(PaymentMethodId::fromInt((int) $invoiceData['payment_method_id']))?->code,
+            paymentMethod: $this->paymentMethods->findById(
+                PaymentMethodId::fromInt((int) $invoiceData['payment_method_id']),
+            )?->code,
             notes: $invoiceData['invoice_text'] ?? null,
         );
     }
 
     private function toImmutable(?string $d): ?DateTimeImmutable
     {
-        if (! $d) {
+        if (!$d) {
             return null;
         }
         try {

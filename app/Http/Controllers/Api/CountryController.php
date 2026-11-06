@@ -62,10 +62,14 @@ class CountryController extends Controller
                 ],
             ];
 
-            return response()->json($fallback);
+            $responseFactory = response();
+
+            return $responseFactory->json($fallback);
         }
 
-        return response()->json($countries);
+        $responseFactory = response();
+
+        return $responseFactory->json($countries);
     }
 
     /**
@@ -75,10 +79,12 @@ class CountryController extends Controller
     {
         $country = $this->countryService->getCountry($code);
 
-        if (! $country) {
+        if (!$country) {
             abort(404, 'Country not found');
         }
 
-        return response()->json($country);
+        $responseFactory = response();
+
+        return $responseFactory->json($country);
     }
 }

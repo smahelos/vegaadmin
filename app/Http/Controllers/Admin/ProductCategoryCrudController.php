@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
@@ -12,7 +14,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class ProductCategoryCrudController extends CrudController
+final class ProductCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
@@ -26,7 +28,9 @@ class ProductCategoryCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(ProductCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/product-category');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/product-category',
+        );
         CRUD::setEntityNameStrings(
             __('products.categories.entity.singular'),
             __('products.categories.entity.plural'),
@@ -38,11 +42,26 @@ class ProductCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('products.categories.fields.name'));
-        CRUD::column('slug')->label(__('products.categories.fields.slug'));
-        CRUD::column('description')->label(__('products.categories.fields.description'));
-        CRUD::column('created_at')->label(__('products.categories.fields.created_at'));
-        CRUD::column('updated_at')->label(__('products.categories.fields.updated_at'));
+        $column = CRUD::column('name');
+        $column->label(
+            __('products.categories.fields.name'),
+        );
+        $column = CRUD::column('slug');
+        $column->label(
+            __('products.categories.fields.slug'),
+        );
+        $column = CRUD::column('description');
+        $column->label(
+            __('products.categories.fields.description'),
+        );
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('products.categories.fields.created_at'),
+        );
+        $column = CRUD::column('updated_at');
+        $column->label(
+            __('products.categories.fields.updated_at'),
+        );
     }
 
     /**
@@ -52,13 +71,22 @@ class ProductCategoryCrudController extends CrudController
     {
         CRUD::setValidation(ProductCategoryRequest::class);
 
-        CRUD::field('name')->label(__('products.categories.fields.name'));
-        CRUD::field('slug')
-            ->label(__('products.categories.fields.slug'))
-            ->hint(__('products.categories.hints.slug'));
-        CRUD::field('description')
-            ->type('textarea')
-            ->label(__('products.categories.fields.description'));
+        $field = CRUD::field('name');
+        $field->label(
+            __('products.categories.fields.name'),
+        );
+        $field = CRUD::field('slug');
+        $field->label(
+            __('products.categories.fields.slug'),
+        );
+        $field->hint(
+            __('products.categories.hints.slug'),
+        );
+        $field = CRUD::field('description');
+        $field->type('textarea');
+        $field->label(
+            __('products.categories.fields.description'),
+        );
     }
 
     /**

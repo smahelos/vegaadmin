@@ -94,16 +94,22 @@ final class DocumentPartyPicker extends Component
         $this->customer->country = 'CZ';
         $this->supplier->country = 'CZ';
 
-        if (! $guest) {
-            $invoiceId === null
-                ? $this->startNew(
+        if (!$guest) {
+            if ($invoiceId === null) {
+                $this->startNew(
                     $businesses,
                     $accounts,
                     $contacts,
                     $businessId,
                     $contactId,
-                )
-                : $this->startFromInvoice($invoices->getById(InvoiceId::fromInt($invoiceId), $this->userId())->parties, $invoiceId);
+                );
+            } else {
+                $invoice = $invoices->getById(
+                    InvoiceId::fromInt($invoiceId),
+                    $this->userId(),
+                );
+                $this->startFromInvoice($invoice->parties, $invoiceId);
+            }
         }
 
         $this->fillFromOldInput();
@@ -113,9 +119,16 @@ final class DocumentPartyPicker extends Component
     public function updatedBusinessId(BankAccountApplicationService $accounts): void
     {
         $this->reloadBusiness = false;
-        $this->bankAccountId = $this->businessId === null
-            ? null
-            : $accounts->findDefaultId($this->userId(), AccountOwner::business(BusinessId::fromInt($this->businessId)))?->value;
+        if ($this->businessId === null) {
+            $this->bankAccountId = null;
+        } else {
+            $this->bankAccountId = $accounts->findDefaultId(
+                $this->userId(),
+                AccountOwner::business(
+                    BusinessId::fromInt($this->businessId),
+                ),
+            )?->value;
+        }
     }
 
     public function updatedCustomerCompanyNumber(): void
@@ -138,9 +151,15 @@ final class DocumentPartyPicker extends Component
 
     public function selectContact(ContactApplicationService $contacts, int $contactId): void
     {
-        $contact = $contacts->get($this->userId(), ContactId::fromInt($contactId));
+        $contact = $contacts->get(
+            $this->userId(),
+            ContactId::fromInt($contactId),
+        );
         if ($contact->isArchived()) {
-            $this->addError('contactId', __('parties.validation.reference_archived'));
+            $this->addError(
+                'contactId',
+                __('parties.validation.reference_archived'),
+            );
 
             return;
         }
@@ -154,14 +173,22 @@ final class DocumentPartyPicker extends Component
      */
     public function linkContact(ContactApplicationService $contacts, int $contactId): void
     {
-        $contact = $contacts->get($this->userId(), ContactId::fromInt($contactId));
+        $contact = $contacts->get(
+            $this->userId(),
+            ContactId::fromInt($contactId),
+        );
         $this->useContact($contact);
     }
 
     public function reloadContact(ContactApplicationService $contacts): void
     {
         if ($this->contactId !== null) {
-            $this->customer->fillFromProfile($contacts->get($this->userId(), ContactId::fromInt($this->contactId))->profile);
+            $this->customer->fillFromProfile(
+                $contacts->get(
+                    $this->userId(),
+                    ContactId::fromInt($this->contactId),
+                )->profile,
+            );
         }
     }
 
@@ -187,35 +214,74 @@ final class DocumentPartyPicker extends Component
         InvoiceListingApplicationServiceInterface $invoices,
     ): View {
         if ($this->guest) {
-            return view('livewire.party.document-party-picker', [
-                'countries' => $this->countryOptions(),
-                'banks' => $this->bankOptions($this->account->country),
-            ]);
+            return view(
+                'livewire.party.document-party-picker',
+                [
+                    'countries' => $this->countryOptions(),
+                    'banks' => $this->bankOptions($this->account->country),
+                ],
+            );
         }
 
         $userId = $this->userId();
-        $stored = $this->invoiceId === null
-            ? null
-            : $invoices->getById(InvoiceId::fromInt($this->invoiceId), $userId)->parties;
-        $business = $this->businessId === null ? null : $businesses->get($userId, BusinessId::fromInt($this->businessId));
-        $contact = $this->contactId === null ? null : $contacts->get($userId, ContactId::fromInt($this->contactId));
-        $businessAccounts = $business === null ? [] : $accounts->listForOwner($userId, AccountOwner::business($business->id));
+        if ($this->invoiceId === null) {
+            $stored = null;
+        } else {
+            $invoice = $invoices->getById(
+                InvoiceId::fromInt($this->invoiceId),
+                $userId,
+            );
+            $stored = $invoice->parties;
+        }
 
-        return view('livewire.party.document-party-picker', [
-            'countries' => $this->countryOptions(),
-            'businesses' => $this->businessOptions($businesses->listActive($userId), $business),
-            'business' => $business,
-            'supplierPreview' => $this->supplierPreview($business, $stored),
-            'supplierLogo' => $this->keepsStoredBusiness($stored) ? $stored?->supplierLogo : $business?->logo,
-            'businessChanged' => $this->businessChanged($business, $stored),
-            'accounts' => $this->accountOptions($businessAccounts, $stored),
-            'accountPreview' => $this->accountPreview($businessAccounts, $stored),
-            'contact' => $contact,
-            'contactSearched' => $this->searchTerm() !== null,
-            'contactResults' => $this->contactResults($contacts),
-            'existingContact' => $this->existingContact($contacts),
-            'canSaveToContacts' => $this->userCan('frontend.can_create_contact'),
-        ]);
+        if ($this->businessId === null) {
+            $business = null;
+        } else {
+            $business = $businesses->get(
+                $userId,
+                BusinessId::fromInt($this->businessId),
+            );
+        }
+
+        if ($this->contactId === null) {
+            $contact = null;
+        } else {
+            $contact = $contacts->get(
+                $userId,
+                ContactId::fromInt($this->contactId),
+            );
+        }
+
+        if ($business === null) {
+            $businessAccounts = [];
+        } else {
+            $businessAccounts = $accounts->listForOwner(
+                $userId,
+                AccountOwner::business($business->id),
+            );
+        }
+
+        return view(
+            'livewire.party.document-party-picker',
+            [
+                'countries' => $this->countryOptions(),
+                'businesses' => $this->businessOptions(
+                    $businesses->listActive($userId),
+                    $business,
+                ),
+                'business' => $business,
+                'supplierPreview' => $this->supplierPreview($business, $stored),
+                'supplierLogo' => $this->keepsStoredBusiness($stored) ? $stored?->supplierLogo : $business?->logo,
+                'businessChanged' => $this->businessChanged($business, $stored),
+                'accounts' => $this->accountOptions($businessAccounts, $stored),
+                'accountPreview' => $this->accountPreview($businessAccounts, $stored),
+                'contact' => $contact,
+                'contactSearched' => $this->searchTerm() !== null,
+                'contactResults' => $this->contactResults($contacts),
+                'existingContact' => $this->existingContact($contacts),
+                'canSaveToContacts' => $this->userCan('frontend.can_create_contact'),
+            ],
+        );
     }
 
     private function startNew(
@@ -228,7 +294,10 @@ final class DocumentPartyPicker extends Component
         $business = $businessId === null ? $businesses->findDefaultId($this->userId()) : BusinessId::fromInt($businessId);
         if ($business !== null) {
             $this->businessId = $businesses->get($this->userId(), $business)->id->value;
-            $this->bankAccountId = $accounts->findDefaultId($this->userId(), AccountOwner::business($business))?->value;
+            $this->bankAccountId = $accounts->findDefaultId(
+                $this->userId(),
+                AccountOwner::business($business),
+            )?->value;
         }
 
         if ($contactId !== null) {
@@ -262,7 +331,7 @@ final class DocumentPartyPicker extends Component
             return;
         }
 
-        if (! $this->guest) {
+        if (!$this->guest) {
             $this->businessId = $this->oldId('business_id');
             $this->bankAccountId = $this->oldId('bank_account_id');
             $this->contactId = $this->oldId('contact_id');
@@ -279,7 +348,10 @@ final class DocumentPartyPicker extends Component
 
         if ($this->guest) {
             foreach (BankAccountInput::FIELDS as $field) {
-                $this->account->{Str::camel($field)} = (string) old('account_' . $field, $this->account->{Str::camel($field)});
+                $this->account->{Str::camel($field)} = (string) old(
+                    'account_' . $field,
+                    $this->account->{Str::camel($field)},
+                );
             }
         }
     }
@@ -297,11 +369,12 @@ final class DocumentPartyPicker extends Component
     private function showRequestErrors(): void
     {
         $errors = session('errors');
-        if (! $errors instanceof ViewErrorBag) {
+        if (!$errors instanceof ViewErrorBag) {
             return;
         }
 
-        foreach ($errors->getBag('default')->messages() as $key => $messages) {
+        $bag = $errors->getBag('default');
+        foreach ($bag->messages() as $key => $messages) {
             $property = $this->propertyOf($key);
             if ($property !== null) {
                 $this->addError($property, $messages[0]);
@@ -311,23 +384,32 @@ final class DocumentPartyPicker extends Component
 
     private function propertyOf(string $key): ?string
     {
-        foreach ([
-            'business_id' => 'businessId',
-            'bank_account_id' => 'bankAccountId',
-            'contact_id' => 'contactId',
-        ] as $requestKey => $property) {
+        foreach (
+            [
+                'business_id' => 'businessId',
+                'bank_account_id' => 'bankAccountId',
+                'contact_id' => 'contactId',
+            ] as $requestKey => $property
+        ) {
             if ($key === $requestKey) {
                 return $property;
             }
         }
 
-        foreach ([
-            'customer',
-            'supplier',
-            'account',
-        ] as $form) {
+        foreach (
+            [
+                'customer',
+                'supplier',
+                'account',
+            ] as $form
+        ) {
             if (str_starts_with($key, $form . '_')) {
-                return $form . '.' . Str::camel(substr($key, strlen($form) + 1));
+                return $form . '.' . Str::camel(
+                    substr(
+                        $key,
+                        strlen($form) + 1,
+                    ),
+                );
             }
         }
 
@@ -375,7 +457,7 @@ final class DocumentPartyPicker extends Component
     private function keepsStoredBusiness(?DocumentParties $stored): bool
     {
         return $stored !== null &&
-            ! $this->reloadBusiness &&
+            !$this->reloadBusiness &&
             $stored->businessId->value === $this->businessId;
     }
 
@@ -391,14 +473,12 @@ final class DocumentPartyPicker extends Component
         $options = [];
         foreach ($accounts as $account) {
             $isStored = $storedId !== null && $account->id->equals($storedId);
-            if ($account->isArchived() && ! $isStored) {
+            if ($account->isArchived() && !$isStored) {
                 continue;
             }
 
             $label = $account->label ?? $account->account->formattedIban();
-            $options[$account->id->value] = $account->isArchived()
-                ? $label . ' (' . __('parties.statuses.archived') . ')'
-                : $label;
+            $options[$account->id->value] = $account->isArchived() ? $label . ' (' . __('parties.statuses.archived') . ')' : $label;
         }
 
         return $options;
@@ -415,7 +495,11 @@ final class DocumentPartyPicker extends Component
             return null;
         }
 
-        if ($stored !== null && $this->keepsStoredBusiness($stored) && $stored->bankAccountId?->value === $this->bankAccountId) {
+        if (
+            $stored !== null
+            && $this->keepsStoredBusiness($stored)
+            && $stored->bankAccountId?->value === $this->bankAccountId
+        ) {
             return $stored->account;
         }
 
@@ -438,7 +522,7 @@ final class DocumentPartyPicker extends Component
             return [];
         }
 
-        return $contacts->search(
+        $results = $contacts->search(
             $this->userId(),
             new PartySearch(
                 $term,
@@ -447,7 +531,9 @@ final class DocumentPartyPicker extends Component
                 true,
             ),
             new PageRequest(1, self::CONTACT_RESULTS),
-        )->items();
+        );
+
+        return $results->items();
     }
 
     /**
@@ -466,24 +552,27 @@ final class DocumentPartyPicker extends Component
      */
     private function existingContact(ContactApplicationService $contacts): ?DuplicatePartyDTO
     {
-        if (! $this->saveToContacts || $this->contactId !== null || trim($this->customer->companyNumber) === '') {
+        if (!$this->saveToContacts || $this->contactId !== null || trim($this->customer->companyNumber) === '') {
             return null;
         }
 
         try {
-            $profile = DocumentPartyInput::party(
+            $party = DocumentPartyInput::party(
                 $this->prefixed('customer_', $this->customer->input()),
                 'customer',
-            )->toProfile();
+            );
+            $profile = $party->toProfile();
         } catch (InvalidRegistrationNumberException|InvalidAddressException) {
             return null;
         }
 
-        foreach ($contacts->findDuplicates(
-            $this->userId(),
-            $profile,
-            null,
-        ) as $duplicate) {
+        foreach (
+            $contacts->findDuplicates(
+                $this->userId(),
+                $profile,
+                null,
+            ) as $duplicate
+        ) {
             if ($duplicate->reason->isBlocking()) {
                 return $duplicate;
             }

@@ -8,6 +8,7 @@ use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Testing\PendingCommand;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -37,7 +38,8 @@ abstract class TestCase extends BaseTestCase
         $this->withoutMiddleware(SetLocale::class);
 
         // Reset Spatie\Permission cached permissions to avoid memory bloat across long test runs
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $permissionRegistrar = app(PermissionRegistrar::class);
+        $permissionRegistrar->forgetCachedPermissions();
     }
 
     /**
@@ -48,16 +50,38 @@ abstract class TestCase extends BaseTestCase
     protected function tearDown(): void
     {
         // A test that already failed keeps its own message, even when it lost the transaction on the way
-        $failed = $this->status()->isFailure() || $this->status()->isError();
-        $leftTransaction = ! $failed
-            && isset($this->app)
-            && ! $this->app->make('db')->connection()->getPdo()->inTransaction();
+        $status = $this->status();
+        $failed = $status->isFailure() || $status->isError();
+        $leftTransaction = false;
+        if (!$failed && isset($this->app)) {
+            $database = $this->app->make('db');
+            $connection = $database->connection();
+            $pdo = $connection->getPdo();
+            $leftTransaction = !$pdo->inTransaction();
+        }
 
         parent::tearDown();
 
-        if ($leftTransaction && ! $this->implicitCommitAllowed) {
-            $this->fail('The test ended outside the RefreshDatabase transaction, so the next test would migrate and seed again');
+        if ($leftTransaction && !$this->implicitCommitAllowed) {
+            $this->fail(
+                'The test ended outside the RefreshDatabase transaction, so the next test would migrate and seed again',
+            );
         }
+    }
+
+    /**
+     * The command runs at the explicit run(), not when a variable holding it goes out of scope.
+     *
+     * @param  array<string, mixed>  $parameters
+     */
+    protected function pendingCommand(string $command, array $parameters = []): PendingCommand
+    {
+        return new PendingCommand(
+            $this,
+            $this->app,
+            $command,
+            $parameters,
+        );
     }
 
     /**
@@ -74,10 +98,14 @@ abstract class TestCase extends BaseTestCase
      */
     protected function beforeRefreshingDatabase(): void
     {
-        $database = (string) config('database.connections.' . config('database.default') . '.database');
+        $database = (string) config(
+            'database.connections.' . config('database.default') . '.database',
+        );
 
         if (preg_match('/_testing(_test_\d+)?$/', $database) !== 1) {
-            throw new RuntimeException('Tests run only against a *_testing database, not "' . $database . '"');
+            throw new RuntimeException(
+                'Tests run only against a *_testing database, not "' . $database . '"',
+            );
         }
     }
 }

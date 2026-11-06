@@ -18,20 +18,36 @@ final class ObsoletePartyPermissionsTest extends TestCase
     {
         $migration = $this->migration();
         $migration->down();
-        $owner = User::factory()->create();
-        $owner->givePermissionTo(Permission::findByName('can_view_client', 'backpack'));
-        $custom = Permission::create(['name' => 'custom_party_report', 'guard_name' => 'backpack']);
-        Role::findByName('backend_user', 'backpack')->givePermissionTo($custom);
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $owner->givePermissionTo(
+            Permission::findByName('can_view_client', 'backpack'),
+        );
+        $custom = Permission::create(
+            ['name' => 'custom_party_report', 'guard_name' => 'backpack'],
+        );
+        $role = Role::findByName('backend_user', 'backpack');
+        $role->givePermissionTo($custom);
 
         $migration->up();
         $migration->up();
 
         $this->assertDatabaseMissing('permissions', ['name' => 'can_view_client', 'guard_name' => 'backpack']);
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.suppliers', 'guard_name' => 'web']);
-        $this->assertSame([], $owner->fresh()->permissions->all());
-        $this->assertTrue(Role::findByName('backend_user', 'backpack')->hasPermissionTo($custom));
-        $this->assertTrue(Role::findByName('admin', 'backpack')->hasPermissionTo('can_view_contact', 'backpack'));
-        $this->assertTrue(Role::findByName('frontend_user', 'web')->hasPermissionTo('frontend.can_create_business', 'web'));
+        $freshOwner = $owner->fresh();
+        $this->assertSame([], $freshOwner->permissions->all());
+        $role = Role::findByName('backend_user', 'backpack');
+        $this->assertTrue(
+            $role->hasPermissionTo($custom),
+        );
+        $role = Role::findByName('admin', 'backpack');
+        $this->assertTrue(
+            $role->hasPermissionTo('can_view_contact', 'backpack'),
+        );
+        $role = Role::findByName('frontend_user', 'web');
+        $this->assertTrue(
+            $role->hasPermissionTo('frontend.can_create_business', 'web'),
+        );
     }
 
     #[Test]
@@ -41,15 +57,26 @@ final class ObsoletePartyPermissionsTest extends TestCase
         $migration->down();
         $migration->down();
 
-        $this->assertTrue(Role::findByName('admin', 'backpack')->hasPermissionTo('can_view_client', 'backpack'));
-        $this->assertTrue(Role::findByName('frontend_user', 'web')->hasPermissionTo('frontend.api.clients', 'web'));
-        $this->assertTrue(Role::findByName('frontend_user_plus', 'web')->hasPermissionTo('frontend.can_delete_supplier', 'web'));
+        $role = Role::findByName('admin', 'backpack');
+        $this->assertTrue(
+            $role->hasPermissionTo('can_view_client', 'backpack'),
+        );
+        $role = Role::findByName('frontend_user', 'web');
+        $this->assertTrue(
+            $role->hasPermissionTo('frontend.api.clients', 'web'),
+        );
+        $role = Role::findByName('frontend_user_plus', 'web');
+        $this->assertTrue(
+            $role->hasPermissionTo('frontend.can_delete_supplier', 'web'),
+        );
         $migration->up();
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.clients', 'guard_name' => 'web']);
     }
 
     private function migration(): Migration
     {
-        return require database_path('migrations/2026_10_30_000001_remove_obsolete_party_permissions.php');
+        return require database_path(
+            'migrations/2026_10_30_000001_remove_obsolete_party_permissions.php',
+        );
     }
 }

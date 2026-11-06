@@ -28,7 +28,8 @@ class AdminListFiltersTest extends TestCase
     public function select2_filter_renders_its_values_and_marks_the_active_one(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $owner = User::factory()->create(['name' => 'Owner ' . uniqid()]);
+        $userFactory = User::factory();
+        $owner = $userFactory->create(['name' => 'Owner ' . uniqid()]);
 
         $response = $this->get('/admin/business?user_id=' . $owner->id);
 
@@ -36,25 +37,33 @@ class AdminListFiltersTest extends TestCase
         $response->assertSee('data-select2-filter="user_id"', false);
         // the filters navbar only wires a filter that names its init function
         $response->assertSee('filter-init-function="billexInitSelect2Filter"', false);
-        $response->assertSee('data-placeholder="' . __('admin.general.select') . '"', false);
-        $response->assertSee('<option value="' . $owner->id . '" selected>' . $owner->name . '</option>', false);
+        $response->assertSee(
+            'data-placeholder="' . __('admin.general.select') . '"',
+            false,
+        );
+        $response->assertSee(
+            '<option value="' . $owner->id . '" selected>' . $owner->name . '</option>',
+            false,
+        );
     }
 
     #[Test]
     public function select2_filter_value_limits_the_search(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $owner = User::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
-        Business::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $owner->id]);
+        $businessFactory->create();
 
-        $this->postJson('/admin/business/search?user_id=' . $owner->id, [
+        $httpResponse = $this->postJson('/admin/business/search?user_id=' . $owner->id, [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonPath('recordsFiltered', 1);
+        ]);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 
     #[Test]
@@ -67,23 +76,27 @@ class AdminListFiltersTest extends TestCase
         $response->assertOk();
         $response->assertSee('data-simple-filter="is_active"', false);
         $response->assertSee('filter-init-function="billexInitSimpleFilter"', false);
-        $this->assertMatchesRegularExpression('/filter-name="is_active"\s+filter-type="simple"\s+class="nav-item active"/', $response->getContent());
+        $this->assertMatchesRegularExpression(
+            '/filter-name="is_active"\s+filter-type="simple"\s+class="nav-item active"/',
+            $response->getContent(),
+        );
     }
 
     #[Test]
     public function simple_filter_limits_the_search(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        Product::factory()->create(['is_active' => true]);
-        Product::factory()->create(['is_active' => false]);
+        $productFactory = Product::factory();
+        $productFactory->create(['is_active' => true]);
+        $productFactory->create(['is_active' => false]);
 
-        $this->postJson('/admin/product/search?is_active=1', [
+        $httpResponse = $this->postJson('/admin/product/search?is_active=1', [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonPath('recordsTotal', 2)
-            ->assertJsonPath('recordsFiltered', 1);
+        ]);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('recordsTotal', 2);
+        $httpResponse->assertJsonPath('recordsFiltered', 1);
     }
 }

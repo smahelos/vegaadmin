@@ -25,147 +25,161 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         parent::setUp();
 
         // Minimal stubs bound into container for predictable behavior.
-        $this->app->bind(SubscriptionPaymentServiceInterface::class, function () {
-            return new class implements SubscriptionPaymentServiceInterface
-            {
-                public array $state = [];
-
-                public function processSubscriptionPayment(
-                    int $subscriptionId,
-                    string $gateway,
-                    array $paymentData,
-                ): array {
-                    $payment = Payment::create([
-                        'subscription_id' => $subscriptionId,
-                        'amount' => Subscription::find($subscriptionId)->subscriptionPlan->price,
-                        'currency' => Subscription::find($subscriptionId)->subscriptionPlan->currency,
-                        'gateway' => $gateway,
-                        'status' => 'pending',
-                        'gateway_payment_id' => 'GW123',
-                        'transaction_data' => json_encode($paymentData),
-                    ]);
-                    $this->state['payment_id'] = $payment->id;
-
-                    return [
-                        'success' => true,
-                        'payment_id' => $payment->id,
-                        'redirect_url' => 'https://example.test/pay/' . $payment->id,
-                        'status' => 'pending',
-                    ];
-                }
-
-                public function handlePaymentCallback(string $gateway, array $callbackData): array
+        $this->app->bind(
+            SubscriptionPaymentServiceInterface::class,
+            function () {
+                return new class implements SubscriptionPaymentServiceInterface
                 {
-                    $payment = Payment::find($callbackData['order_id']);
-                    if ($payment) {
-                        $payment->update(['status' => 'completed']);
+                    public array $state = [];
+
+                    public function processSubscriptionPayment(
+                        int $subscriptionId,
+                        string $gateway,
+                        array $paymentData,
+                    ): array {
+                        $payment = Payment::create(
+                            [
+                                'subscription_id' => $subscriptionId,
+                                'amount' => Subscription::find($subscriptionId)->subscriptionPlan->price,
+                                'currency' => Subscription::find($subscriptionId)->subscriptionPlan->currency,
+                                'gateway' => $gateway,
+                                'status' => 'pending',
+                                'gateway_payment_id' => 'GW123',
+                                'transaction_data' => json_encode($paymentData),
+                            ],
+                        );
+                        $this->state['payment_id'] = $payment->id;
 
                         return [
                             'success' => true,
                             'payment_id' => $payment->id,
-                            'status' => 'completed',
+                            'redirect_url' => 'https://example.test/pay/' . $payment->id,
+                            'status' => 'pending',
                         ];
                     }
 
-                    return ['success' => false, 'error' => 'Payment not found'];
-                }
+                    public function handlePaymentCallback(string $gateway, array $callbackData): array
+                    {
+                        $payment = Payment::find($callbackData['order_id']);
+                        if ($payment) {
+                            $payment->update(['status' => 'completed']);
 
-                public function verifySubscriptionPayment(int $paymentId): array
+                            return [
+                                'success' => true,
+                                'payment_id' => $payment->id,
+                                'status' => 'completed',
+                            ];
+                        }
+
+                        return ['success' => false, 'error' => 'Payment not found'];
+                    }
+
+                    public function verifySubscriptionPayment(int $paymentId): array
+                    {
+                        $payment = Payment::find($paymentId);
+
+                        return ['success' => true, 'status' => $payment->status];
+                    }
+
+                    public function refundSubscriptionPayment(int $paymentId, ?float $amount = null): array
+                    {
+                        $payment = Payment::find($paymentId);
+                        $amount = $amount ?? $payment->amount;
+                        $payment->update(
+                            ['status' => $amount < $payment->amount ? 'partially_refunded' : 'refunded'],
+                        );
+
+                        return [
+                            'success' => true,
+                            'payment_id' => $payment->id,
+                            'refunded_amount' => $amount,
+                            'currency' => $payment->currency,
+                        ];
+                    }
+
+                    public function cancelSubscriptionPayment(int $subscriptionId): bool
+                    {
+                        return true;
+                    }
+
+                    public function getSupportedGateways(): array
+                    {
+                        return ['stub'];
+                    }
+
+                    public function getGateway(string $gateway): ?PaymentGatewayInterface
+                    {
+                        return null;
+                    }
+
+                    public function getAvailableGateways(): array
+                    {
+                        return [['name' => 'stub']];
+                    }
+
+                    public function supportsRecurringPayments(string $gateway): bool
+                    {
+                        return true;
+                    }
+
+                    public function getPaymentStatus(int $paymentId): array
+                    {
+                        $p = Payment::find($paymentId);
+
+                        return [
+                            'success' => (bool) $p,
+                            'payment_id' => $paymentId,
+                            'status' => $p?->status,
+                        ];
+                    }
+
+                    public function inspectPayment(int $paymentId): array
+                    {
+                        return ['success' => true];
+                    }
+                };
+            },
+        );
+        $this->app->bind(
+            QrPaymentServiceInterface::class,
+            function () {
+                return new class implements QrPaymentServiceInterface
                 {
-                    $payment = Payment::find($paymentId);
+                    public function generateQrCodeBase64(QrPaymentDTO $payload): ?string
+                    {
+                        return null;
+                    }
 
-                    return ['success' => true, 'status' => $payment->status];
-                }
-
-                public function refundSubscriptionPayment(int $paymentId, ?float $amount = null): array
-                {
-                    $payment = Payment::find($paymentId);
-                    $amount = $amount ?? $payment->amount;
-                    $payment->update(['status' => $amount < $payment->amount ? 'partially_refunded' : 'refunded']);
-
-                    return [
-                        'success' => true,
-                        'payment_id' => $payment->id,
-                        'refunded_amount' => $amount,
-                        'currency' => $payment->currency,
-                    ];
-                }
-
-                public function cancelSubscriptionPayment(int $subscriptionId): bool
-                {
-                    return true;
-                }
-
-                public function getSupportedGateways(): array
-                {
-                    return ['stub'];
-                }
-
-                public function getGateway(string $gateway): ?PaymentGatewayInterface
-                {
-                    return null;
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [['name' => 'stub']];
-                }
-
-                public function supportsRecurringPayments(string $gateway): bool
-                {
-                    return true;
-                }
-
-                public function getPaymentStatus(int $paymentId): array
-                {
-                    $p = Payment::find($paymentId);
-
-                    return [
-                        'success' => (bool) $p,
-                        'payment_id' => $paymentId,
-                        'status' => $p?->status,
-                    ];
-                }
-
-                public function inspectPayment(int $paymentId): array
-                {
-                    return ['success' => true];
-                }
-            };
-        });
-        $this->app->bind(QrPaymentServiceInterface::class, function () {
-            return new class implements QrPaymentServiceInterface
-            {
-                public function generateQrCodeBase64(QrPaymentDTO $payload): ?string
-                {
-                    return null;
-                }
-
-                public function hasRequiredPaymentInfo(QrPaymentDTO $payload): bool
-                {
-                    return false;
-                }
-            };
-        });
+                    public function hasRequiredPaymentInfo(QrPaymentDTO $payload): bool
+                    {
+                        return false;
+                    }
+                };
+            },
+        );
 
         $this->appService = $this->app->make(PaymentApplicationServiceInterface::class);
     }
 
     private function createSubscription(): Subscription
     {
-        $user = User::factory()->create();
-        $plan = SubscriptionPlan::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'price' => 100.00,
             'currency' => 'CZK',
         ]);
 
-        return Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'pending',
-            'amount' => $plan->price,
-            'currency' => $plan->currency,
-        ]);
+        return Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => $plan->price,
+                'currency' => $plan->currency,
+            ],
+        );
     }
 
     #[Test]
@@ -176,11 +190,14 @@ class PaymentApplicationServiceFeatureTest extends TestCase
         $this->assertTrue($res->success);
         $this->assertNotEmpty($res->paymentId);
         $this->assertStringContainsString('/pay/', $res->redirectUrl);
-        $this->assertDatabaseHas('payments', [
-            'id' => $res->paymentId,
-            'subscription_id' => $subscription->id,
-            'status' => 'pending',
-        ]);
+        $this->assertDatabaseHas(
+            'payments',
+            [
+                'id' => $res->paymentId,
+                'subscription_id' => $subscription->id,
+                'status' => 'pending',
+            ],
+        );
     }
 
     #[Test]
@@ -191,15 +208,21 @@ class PaymentApplicationServiceFeatureTest extends TestCase
 
         $this->appService->initiateSubscription($subscription, 'stub');
 
-        $log->shouldHaveReceived('info')
-            ->with('usecase.start', Mockery::on(
+        $verification = $log->shouldHaveReceived('info');
+        $verification = $verification->with(
+            'usecase.start',
+            Mockery::on(
                 fn (array $context): bool => $context['use_case'] === 'initiate_subscription'
                     && $context['subscription_id'] === $subscription->id,
-            ))
-            ->once();
-        $log->shouldHaveReceived('info')
-            ->with('usecase.success', Mockery::on(fn (array $context): bool => isset($context['duration_ms'])))
-            ->once();
+            ),
+        );
+        $verification->once();
+        $verification = $log->shouldHaveReceived('info');
+        $verification = $verification->with(
+            'usecase.success',
+            Mockery::on(fn (array $context): bool => isset($context['duration_ms'])),
+        );
+        $verification->once();
     }
 
     #[Test]

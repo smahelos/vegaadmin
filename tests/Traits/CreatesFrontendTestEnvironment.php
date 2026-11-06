@@ -37,10 +37,12 @@ trait CreatesFrontendTestEnvironment
         ]);
 
         // Create unauthorized admin role (without entity view permissions)
-        $unauthorizedRole = Role::firstOrCreate([
-            'name' => 'unauthorized_admin',
-            'guard_name' => 'backpack',
-        ]);
+        $unauthorizedRole = Role::firstOrCreate(
+            [
+                'name' => 'unauthorized_admin',
+                'guard_name' => 'backpack',
+            ],
+        );
 
         // Ensure frontend_user role exists
         $frontendUserRole = Role::firstOrCreate([
@@ -49,62 +51,73 @@ trait CreatesFrontendTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $frontendPermissions = Permission::where('guard_name', PermissionCatalog::WEB)->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::WEB])->get();
+        $permissionQuery = Permission::where('guard_name', PermissionCatalog::WEB);
+        $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::WEB]);
+        $frontendPermissions = $permissionQuery->get();
         $adminRole->syncPermissions($frontendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (! isset($this->adminUser)) {
-            $this->adminUser = User::factory()->create([
-                'name' => 'Admin User',
-                'email' => 'admin@example.com',
-            ]);
+        $userFactory = User::factory();
+        if (!isset($this->adminUser)) {
+            $this->adminUser = $userFactory->create(
+                [
+                    'name' => 'Admin User',
+                    'email' => 'admin@example.com',
+                ],
+            );
         }
         $this->adminUser->assignRole($adminRole);
 
         // Give admin role all permissions
-        $backendPermissions = Permission::where('guard_name', PermissionCatalog::BACKPACK)->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK])->get();
+        $permissionQuery = Permission::where('guard_name', PermissionCatalog::BACKPACK);
+        $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK]);
+        $backendPermissions = $permissionQuery->get();
         $backendAdminRole->syncPermissions($backendPermissions);
 
         // Create admin user with admin role (if not already set)
-        if (! isset($this->backendAdminUser)) {
-            $this->backendAdminUser = User::factory()->create([
-                'name' => 'Backend Admin User',
-                'email' => 'backend.admin@example.com',
-            ]);
+        if (!isset($this->backendAdminUser)) {
+            $this->backendAdminUser = $userFactory->create(
+                [
+                    'name' => 'Backend Admin User',
+                    'email' => 'backend.admin@example.com',
+                ],
+            );
         }
         $this->backendAdminUser->assignRole($backendAdminRole);
 
         // Give unauthorized admin role basic permissions
-        $basicBackpackPermissions = Permission::where('guard_name', 'backpack')
-            ->whereIn('name', ['backpack.access', 'backpack.api.access'])
-            ->get();
+        $permissionQuery = Permission::where('guard_name', 'backpack');
+        $permissionQuery->whereIn('name', ['backpack.access', 'backpack.api.access']);
+        $basicBackpackPermissions = $permissionQuery->get();
         $unauthorizedRole->syncPermissions($basicBackpackPermissions);
 
         // Create unauthorized admin user with admin role (if not already set)
-        if (! isset($this->unauthorizedAdmin)) {
-            $this->unauthorizedAdmin = User::factory()->create([
-                'name' => 'Unauthorized Admin',
-                'email' => 'unauthorized@example.com',
-            ]);
+        if (!isset($this->unauthorizedAdmin)) {
+            $this->unauthorizedAdmin = $userFactory->create(
+                [
+                    'name' => 'Unauthorized Admin',
+                    'email' => 'unauthorized@example.com',
+                ],
+            );
         }
         $this->unauthorizedAdmin->assignRole($unauthorizedRole);
 
         // Create regular user with limited role (if not already set)
-        if (! isset($this->user)) {
-            $this->user = User::factory()->create();
+        if (!isset($this->user)) {
+            $this->user = $userFactory->create();
         }
         $this->user->assignRole($frontendUserRole);
         // Give frontend_user role minimal API permissions
+        $permissionQuery = Permission::where('guard_name', 'web');
+        $permissionQuery->whereIn('name', ['frontend.api.access', 'frontend.can_create_edit_invoice']);
         $frontendUserRole->syncPermissions(
-            Permission::where('guard_name', 'web')
-                ->whereIn('name', ['frontend.api.access', 'frontend.can_create_edit_invoice'])
-                ->get(),
+            $permissionQuery->get(),
         );
 
         // Get frontend.api.access permission if it exists
-        $frontendApiAccessPermission = Permission::where('name', 'frontend.api.access')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.api.access');
+        $permissionQuery->where('guard_name', 'web');
+        $frontendApiAccessPermission = $permissionQuery->first();
         if ($frontendApiAccessPermission) {
             $this->user->givePermissionTo($frontendApiAccessPermission);
         }

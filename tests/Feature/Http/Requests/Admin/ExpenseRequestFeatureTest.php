@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\ExpenseRequest;
+use App\Models\Contact;
 use App\Models\Expense;
+use Illuminate\Http\UploadedFile;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsExpenseInput;
@@ -51,7 +54,36 @@ final class ExpenseRequestFeatureTest extends TestCase
     public function rejects_invalid_document_input(string $field, mixed $value): void
     {
         [$business] = $this->issuerOf($this->adminUser);
-        $this->post('/admin/expense', $this->expenseInput($business, [$field => $value]))->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
+        $httpResponse = $this->post(
+            '/admin/expense',
+            $this->expenseInput($business, [$field => $value]),
+        );
+        $httpResponse->assertSessionHasErrors($field === 'attachments' ? 'attachments.0' : $field);
+    }
+
+    #[Test]
+    public function an_expense_with_a_contact_ignores_an_uploaded_supplier_logo(): void
+    {
+        [$business] = $this->issuerOf($this->adminUser);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $fileFactory = UploadedFile::fake();
+        $request = ExpenseRequest::create(
+            '/admin/expense',
+            'POST',
+            $this->expenseInput($business, ['contact_id' => $contact->id]),
+            [],
+            ['supplier_logo' => $fileFactory->image('logo.png')],
+        );
+        $request->setContainer($this->app);
+        $request->setRedirector(
+            app('redirect'),
+        );
+        $request->validateResolved();
+
+        $writeData = $request->toWriteData();
+
+        $this->assertNull($writeData->supplierLogo);
     }
 
     #[Test]
@@ -59,19 +91,25 @@ final class ExpenseRequestFeatureTest extends TestCase
     {
         [$business] = $this->issuerOf($this->adminUser);
         $data = $this->expenseInput($business);
-        $this->post('/admin/expense', $data)->assertSessionHasNoErrors();
-        $this->assertDatabaseHas('expenses', [
-            'reference_number' => $data['reference_number'],
-            'bank_account_id' => null,
-            'account_number' => null,
-        ]);
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $this->assertDatabaseHas(
+            'expenses',
+            [
+                'reference_number' => $data['reference_number'],
+                'bank_account_id' => null,
+                'account_number' => null,
+            ],
+        );
     }
 
     #[Test]
     public function updating_requires_the_complete_document(): void
     {
-        $expense = Expense::factory()->create(['user_id' => $this->adminUser->id]);
-        $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed'])->assertSessionHasErrors([
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(['user_id' => $this->adminUser->id]);
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed']);
+        $httpResponse->assertSessionHasErrors([
             'business_id',
             'user_id',
             'supplier_name',

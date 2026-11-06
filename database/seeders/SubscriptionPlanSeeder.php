@@ -78,8 +78,10 @@ class SubscriptionPlanSeeder extends Seeder
             );
 
             // Sync features for this plan
-            $featureIds = SubscriptionPlanFeature::whereIn('slug', $featureSlugs)->pluck('id');
-            $plan->features()->sync($featureIds);
+            $featureQuery = SubscriptionPlanFeature::whereIn('slug', $featureSlugs);
+            $featureIds = $featureQuery->pluck('id');
+            $features = $plan->features();
+            $features->sync($featureIds);
         }
     }
 

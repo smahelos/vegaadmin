@@ -16,12 +16,19 @@ final class InvoiceObserverFeatureTest extends TestCase
     #[Test]
     public function changing_the_invoice_text_keeps_the_items(): void
     {
-        $invoice = Invoice::factory()->create(['invoice_text' => null]);
-        InvoiceProduct::factory()->count(2)->create(['invoice_id' => $invoice->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['invoice_text' => null]);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory = $invoiceProductFactory->count(2);
+        $invoiceProductFactory->create(['invoice_id' => $invoice->id]);
 
         $invoice->update(['invoice_text' => 'Děkujeme za spolupráci']);
 
-        $this->assertSame(2, InvoiceProduct::where('invoice_id', $invoice->id)->count());
+        $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
+        $this->assertSame(
+            2,
+            $invoiceProductQuery->count(),
+        );
     }
 
     #[Test]
@@ -29,7 +36,8 @@ final class InvoiceObserverFeatureTest extends TestCase
     {
         Event::fake([UserDataChanged::class]);
 
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
 
         Event::assertDispatched(
             UserDataChanged::class,
@@ -40,7 +48,8 @@ final class InvoiceObserverFeatureTest extends TestCase
     #[Test]
     public function changing_the_amount_publishes_user_data_changed(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         Event::fake([UserDataChanged::class]);
 
         $invoice->update(['payment_amount' => 4321]);
@@ -51,7 +60,8 @@ final class InvoiceObserverFeatureTest extends TestCase
     #[Test]
     public function changing_only_the_invoice_text_publishes_nothing(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         Event::fake([UserDataChanged::class]);
 
         $invoice->update(['invoice_text' => 'Poznámka']);

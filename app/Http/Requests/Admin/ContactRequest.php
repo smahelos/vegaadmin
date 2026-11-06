@@ -18,7 +18,9 @@ final class ContactRequest extends FormRequest
     {
         $permission = $this->isMethod('POST') ? 'can_create_contact' : 'can_update_contact';
 
-        return backpack_user()?->can($permission) === true;
+        $user = backpack_user();
+
+        return $user?->can($permission) === true;
     }
 
     /**

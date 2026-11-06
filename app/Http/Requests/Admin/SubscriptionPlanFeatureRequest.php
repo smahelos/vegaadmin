@@ -12,7 +12,9 @@ class SubscriptionPlanFeatureRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return backpack_user() && backpack_user()->hasPermissionTo('can_create_edit_subscription_plan_feature', 'backpack');
+        $user = backpack_user();
+
+        return $user?->hasPermissionTo('can_create_edit_subscription_plan_feature', 'backpack') === true;
     }
 
     /**
@@ -21,7 +23,9 @@ class SubscriptionPlanFeatureRequest extends FormRequest
     public function rules(): array
     {
         // Resolve current model ID (works for both implicit model binding and manual id parameter)
-        $currentId = optional($this->route('subscription_plan_feature'))->id
+        $currentId = optional(
+            $this->route('subscription_plan_feature'),
+        )->id
             ?? $this->route('id')
             ?? $this->id;
 
@@ -54,10 +58,12 @@ class SubscriptionPlanFeatureRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Generate slug if not provided and name present
-        if (empty($this->slug) && ! empty($this->name)) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+        if (empty($this->slug) && !empty($this->name)) {
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 }

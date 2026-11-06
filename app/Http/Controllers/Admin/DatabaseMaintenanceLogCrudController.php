@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Models\DatabaseMaintenanceLog;
@@ -11,7 +13,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 /**
  * Database Maintenance Log CRUD Controller
  */
-class DatabaseMaintenanceLogCrudController extends CrudController
+final class DatabaseMaintenanceLogCrudController extends CrudController
 {
     use ListOperation;
     use ShowOperation;
@@ -22,7 +24,9 @@ class DatabaseMaintenanceLogCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(DatabaseMaintenanceLog::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/database-maintenance-log');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/database-maintenance-log',
+        );
         CRUD::setEntityNameStrings(
             __('admin/database.maintenance_logs.entity.singular'),
             __('admin/database.maintenance_logs.entity.plural'),
@@ -41,40 +45,55 @@ class DatabaseMaintenanceLogCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('task_type')
-            ->label(__('admin/database.maintenance_logs.fields.task_type'))
-            ->type('text');
+        $column = CRUD::column('task_type');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.task_type'),
+        );
+        $column->type('text');
 
-        CRUD::column('table_name')
-            ->label(__('admin/database.maintenance_logs.fields.table_name'))
-            ->type('text');
+        $column = CRUD::column('table_name');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.table_name'),
+        );
+        $column->type('text');
 
-        CRUD::column('status')
-            ->label(__('admin/database.maintenance_logs.fields.status'))
-            ->type('badge')
-            ->options([
+        $column = CRUD::column('status');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.status'),
+        );
+        $column->type('badge');
+        $column->options(
+            [
                 'pending' => 'secondary',
                 'running' => 'warning',
                 'completed' => 'success',
                 'failed' => 'danger',
-            ]);
+            ],
+        );
 
-        CRUD::column('started_at')
-            ->label(__('admin/database.maintenance_logs.fields.started_at'))
-            ->type('datetime');
+        $column = CRUD::column('started_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.started_at'),
+        );
+        $column->type('datetime');
 
-        CRUD::column('completed_at')
-            ->label(__('admin/database.maintenance_logs.fields.completed_at'))
-            ->type('datetime');
+        $column = CRUD::column('completed_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.completed_at'),
+        );
+        $column->type('datetime');
 
         // Calculate duration from timestamps
-        CRUD::column('duration')
-            ->label(__('admin/database.maintenance_logs.fields.duration'))
-            ->type('closure')
-            ->function(function ($entry) {
+        $column = CRUD::column('duration');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.duration'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
                 if ($entry->started_at && $entry->completed_at) {
-                    $start = strtotime($entry->started_at);
-                    $end = strtotime($entry->completed_at);
+                    $start = $entry->started_at->getTimestamp();
+                    $end = $entry->completed_at->getTimestamp();
                     $duration = $end - $start;
 
                     if ($duration < 60) {
@@ -88,12 +107,15 @@ class DatabaseMaintenanceLogCrudController extends CrudController
                 }
 
                 return $entry->status === 'running' ? __('admin/database.maintenance_logs.labels.running') : '-';
-            });
+            },
+        );
 
-        CRUD::column('description')
-            ->label(__('admin/database.maintenance_logs.fields.description'))
-            ->type('text')
-            ->limit(100);
+        $column = CRUD::column('description');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.description'),
+        );
+        $column->type('text');
+        $column->limit(100);
     }
 
     /**
@@ -101,44 +123,61 @@ class DatabaseMaintenanceLogCrudController extends CrudController
      */
     protected function setupShowOperation(): void
     {
-        CRUD::column('task_type')
-            ->label(__('admin/database.maintenance_logs.fields.task_type'))
-            ->type('text');
+        $column = CRUD::column('task_type');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.task_type'),
+        );
+        $column->type('text');
 
-        CRUD::column('table_name')
-            ->label(__('admin/database.maintenance_logs.fields.table_name'))
-            ->type('text');
+        $column = CRUD::column('table_name');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.table_name'),
+        );
+        $column->type('text');
 
-        CRUD::column('status')
-            ->label(__('admin/database.maintenance_logs.fields.status'))
-            ->type('badge')
-            ->options([
+        $column = CRUD::column('status');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.status'),
+        );
+        $column->type('badge');
+        $column->options(
+            [
                 'pending' => 'secondary',
                 'running' => 'warning',
                 'completed' => 'success',
                 'failed' => 'danger',
-            ]);
+            ],
+        );
 
-        CRUD::column('description')
-            ->label(__('admin/database.maintenance_logs.fields.description'))
-            ->type('textarea');
+        $column = CRUD::column('description');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.description'),
+        );
+        $column->type('textarea');
 
-        CRUD::column('started_at')
-            ->label(__('admin/database.maintenance_logs.fields.started_at'))
-            ->type('datetime');
+        $column = CRUD::column('started_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.started_at'),
+        );
+        $column->type('datetime');
 
-        CRUD::column('completed_at')
-            ->label(__('admin/database.maintenance_logs.fields.completed_at'))
-            ->type('datetime');
+        $column = CRUD::column('completed_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.completed_at'),
+        );
+        $column->type('datetime');
 
         // Calculate and display duration
-        CRUD::column('duration')
-            ->label(__('admin/database.maintenance_logs.fields.duration'))
-            ->type('closure')
-            ->function(function ($entry) {
+        $column = CRUD::column('duration');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.duration'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
                 if ($entry->started_at && $entry->completed_at) {
-                    $start = strtotime($entry->started_at);
-                    $end = strtotime($entry->completed_at);
+                    $start = $entry->started_at->getTimestamp();
+                    $end = $entry->completed_at->getTimestamp();
                     $duration = $end - $start;
 
                     if ($duration < 60) {
@@ -156,14 +195,22 @@ class DatabaseMaintenanceLogCrudController extends CrudController
                     }
                 }
 
-                return $entry->status === 'running' ? __('admin/database.maintenance_logs.labels.running') : __('admin/database.maintenance_logs.labels.not_available');
-            });
+                if ($entry->status === 'running') {
+                    return __('admin/database.maintenance_logs.labels.running');
+                }
+
+                return __('admin/database.maintenance_logs.labels.not_available');
+            },
+        );
 
         // Display results as formatted JSON
-        CRUD::column('results')
-            ->label(__('admin/database.maintenance_logs.fields.results'))
-            ->type('closure')
-            ->function(function ($entry) {
+        $column = CRUD::column('results');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.results'),
+        );
+        $column->type('closure');
+        $column->function(
+            function ($entry) {
                 if (empty($entry->results)) {
                     return '<span class="text-muted">' . __('admin/database.maintenance_logs.labels.no_results') . '</span>';
                 }
@@ -171,22 +218,27 @@ class DatabaseMaintenanceLogCrudController extends CrudController
                 // Decode JSON if it's a string
                 $results = is_string($entry->results) ? json_decode($entry->results, true) : $entry->results;
 
-                if (! $results) {
+                if (!$results) {
                     return '<pre class="text-muted">' . htmlspecialchars($entry->results) . '</pre>';
                 }
 
                 // Format based on task type
                 return $this->formatTaskResults($entry->task_type, $results);
-            })
-            ->escaped(false); // Allow HTML for formatting
+            },
+        );
+        $column->escaped(false); // Allow HTML for formatting
 
-        CRUD::column('created_at')
-            ->label(__('admin/database.maintenance_logs.fields.created_at'))
-            ->type('datetime');
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.created_at'),
+        );
+        $column->type('datetime');
 
-        CRUD::column('updated_at')
-            ->label(__('admin/database.maintenance_logs.fields.updated_at'))
-            ->type('datetime');
+        $column = CRUD::column('updated_at');
+        $column->label(
+            __('admin/database.maintenance_logs.fields.updated_at'),
+        );
+        $column->type('datetime');
     }
 
     /**
@@ -235,7 +287,9 @@ class DatabaseMaintenanceLogCrudController extends CrudController
         // Optimization process
         if (isset($results['optimize']) && is_array($results['optimize'])) {
             $html .= '<div class="mb-3">';
-            $html .= '<h6 class="text-info">' . __('admin/database.maintenance_logs.labels.optimization_process') . '</h6>';
+            $html .= '<h6 class="text-info">' . __(
+                'admin/database.maintenance_logs.labels.optimization_process',
+            ) . '</h6>';
             $html .= '<div class="table-responsive">';
             $html .= '<table class="table table-sm table-striped">';
             $html .= '<thead><tr><th>' . __('admin/database.maintenance_logs.labels.operation') . '</th><th>' . __('admin/database.maintenance_logs.labels.message_type') . '</th><th>' . __('admin/database.maintenance_logs.labels.message') . '</th></tr></thead>';
@@ -324,7 +378,13 @@ class DatabaseMaintenanceLogCrudController extends CrudController
             $html .= '<div class="row">';
             foreach ($results['metrics'] as $metric => $value) {
                 $html .= '<div class="col-md-6 mb-2">';
-                $html .= '<strong>' . ucfirst(str_replace('_', ' ', $metric)) . ':</strong> ' . $value;
+                $html .= '<strong>' . ucfirst(
+                    str_replace(
+                        '_',
+                        ' ',
+                        $metric,
+                    ),
+                ) . ':</strong> ' . $value;
                 $html .= '</div>';
             }
             $html .= '</div>';

@@ -26,12 +26,19 @@ class PageRequestFeatureTest extends TestCase
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
-        $this->category = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $this->category = $pageCategoryFactory->create();
         $this->request = new PageRequest;
 
-        Route::post('/admin/test-page-validation', function (PageRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware(['web', 'auth:backpack']);
+        $route = Route::post(
+            '/admin/test-page-validation',
+            function (PageRequest $request) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware(['web', 'auth:backpack']);
     }
 
     #[Test]
@@ -63,31 +70,39 @@ class PageRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/admin/test-page-validation', []);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name']);
     }
 
     #[Test]
     public function validation_fails_when_slug_too_long(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Test Page',
-            'slug_cs' => str_repeat('a', 256),
-        ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['slug.cs']);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Test Page',
+                'slug_cs' => str_repeat('a', 256),
+            ],
+        );
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['slug.cs']);
     }
 
     #[Test]
     public function validation_passes_with_dates_and_order(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Test Page',
-            'slug_cs' => 'test-page',
-            'publishing_start' => '2024-01-01 10:00:00',
-            'publishing_end' => '2024-01-02 10:00:00',
-            'sort_order' => 0,
-        ]);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Test Page',
+                'slug_cs' => 'test-page',
+                'publishing_start' => '2024-01-01 10:00:00',
+                'publishing_end' => '2024-01-02 10:00:00',
+                'sort_order' => 0,
+            ],
+        );
         $response->assertStatus(200);
     }
 
@@ -95,51 +110,66 @@ class PageRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_date_sequence(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Test Page',
-            'slug_cs' => 'test-page',
-            'publishing_start' => '2024-01-02 10:00:00',
-            'publishing_end' => '2024-01-01 10:00:00',
-        ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['publishing_end']);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Test Page',
+                'slug_cs' => 'test-page',
+                'publishing_start' => '2024-01-02 10:00:00',
+                'publishing_end' => '2024-01-01 10:00:00',
+            ],
+        );
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['publishing_end']);
     }
 
     #[Test]
     public function validation_fails_when_name_exceeds_max_length(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => str_repeat('a', 256),
-            'slug_cs' => 'valid-slug',
-        ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name.cs']);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => str_repeat('a', 256),
+                'slug_cs' => 'valid-slug',
+            ],
+        );
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name.cs']);
     }
 
     #[Test]
     public function validation_fails_when_sort_order_negative(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Name',
-            'slug_cs' => 'name',
-            'sort_order' => -1,
-        ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['sort_order']);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Name',
+                'slug_cs' => 'name',
+                'sort_order' => -1,
+            ],
+        );
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['sort_order']);
     }
 
     #[Test]
     public function validation_passes_with_optional_fields(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Name',
-            'slug_cs' => 'name',
-            'description_cs' => 'Desc',
-            'content_cs' => '<p>Content</p>',
-            'meta_title_cs' => 'Meta',
-            'published' => true,
-            'sort_order' => 5,
-        ]);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Name',
+                'slug_cs' => 'name',
+                'description_cs' => 'Desc',
+                'content_cs' => '<p>Content</p>',
+                'meta_title_cs' => 'Meta',
+                'published' => true,
+                'sort_order' => 5,
+            ],
+        );
         $response->assertStatus(200);
     }
 
@@ -147,19 +177,24 @@ class PageRequestFeatureTest extends TestCase
     public function validation_passes_with_valid_boolean_values_for_published(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        foreach ([
-            '1',
-            '0',
-            1,
-            0,
-            true,
-            false,
-        ] as $value) {
-            $response = $this->postJson('/admin/test-page-validation', [
-                'name_cs' => 'Name ' . uniqid(),
-                'slug_cs' => 'slug-' . uniqid(),
-                'published' => $value,
-            ]);
+        foreach (
+            [
+                '1',
+                '0',
+                1,
+                0,
+                true,
+                false,
+            ] as $value
+        ) {
+            $response = $this->postJson(
+                '/admin/test-page-validation',
+                [
+                    'name_cs' => 'Name ' . uniqid(),
+                    'slug_cs' => 'slug-' . uniqid(),
+                    'published' => $value,
+                ],
+            );
             $response->assertStatus(200);
         }
     }
@@ -168,24 +203,32 @@ class PageRequestFeatureTest extends TestCase
     public function validation_fails_when_category_id_invalid(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Name',
-            'slug_cs' => 'slug',
-            'category_id' => 999999,
-        ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['category_id']);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Name',
+                'slug_cs' => 'slug',
+                'category_id' => 999999,
+            ],
+        );
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['category_id']);
     }
 
     #[Test]
     public function validation_passes_with_valid_category(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = PageCategory::factory()->create();
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => 'Name',
-            'slug_cs' => 'slug',
-            'category_id' => $category->id,
-        ]);
+        $pageCategoryFactory = PageCategory::factory();
+        $category = $pageCategoryFactory->create();
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => 'Name',
+                'slug_cs' => 'slug',
+                'category_id' => $category->id,
+            ],
+        );
         $response->assertStatus(200);
     }
 
@@ -193,9 +236,15 @@ class PageRequestFeatureTest extends TestCase
     public function prepare_for_validation_transforms_multilingual_data_correctly(): void
     {
         // Define route locally to capture transformed output
-        Route::post('/admin/test-page-transform', function (PageRequest $request) {
-            return response()->json($request->all());
-        })->middleware(['web', 'auth:backpack']);
+        $route = Route::post(
+            '/admin/test-page-transform',
+            function (PageRequest $request) {
+                $responseFactory = response();
+
+                return $responseFactory->json($request->all());
+            },
+        );
+        $route->middleware(['web', 'auth:backpack']);
         $this->actingAs($this->adminUser, 'backpack');
         $payload = [
             'name_cs' => 'Nazev',
@@ -204,9 +253,9 @@ class PageRequestFeatureTest extends TestCase
             'slug_en' => 'name',
         ];
         $response = $this->postJson('/admin/test-page-transform', $payload);
-        $response->assertStatus(200)
-            ->assertJsonMissing(['name_cs', 'name_en'])
-            ->assertJsonStructure(['name' => ['cs', 'en'], 'slug' => ['cs', 'en']]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse = $assertionResponse->assertJsonMissing(['name_cs', 'name_en']);
+        $assertionResponse->assertJsonStructure(['name' => ['cs', 'en'], 'slug' => ['cs', 'en']]);
     }
 
     #[Test]
@@ -217,19 +266,26 @@ class PageRequestFeatureTest extends TestCase
             'name_cs' => '',
             'slug_cs' => '',
         ]);
-        $response->assertStatus(422)->assertJsonValidationErrors(['name', 'slug']);
+        $assertionResponse = $response->assertStatus(422);
+        $assertionResponse->assertJsonValidationErrors(['name', 'slug']);
     }
 
     #[Test]
     public function validation_error_names_the_field_and_its_locale(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $response = $this->postJson('/admin/test-page-validation', [
-            'name_cs' => str_repeat('a', 256),
-            'slug_cs' => 'valid-slug',
-        ]);
+        $response = $this->postJson(
+            '/admin/test-page-validation',
+            [
+                'name_cs' => str_repeat('a', 256),
+                'slug_cs' => 'valid-slug',
+            ],
+        );
         $response->assertStatus(422);
-        $this->assertStringContainsString(__('pages.fields.name') . ' (CS)', $response->json('errors')['name.cs'][0]);
+        $this->assertStringContainsString(
+            __('pages.fields.name') . ' (CS)',
+            $response->json('errors')['name.cs'][0],
+        );
     }
 
     #[Test]
@@ -241,7 +297,10 @@ class PageRequestFeatureTest extends TestCase
             'slug_cs' => 'Neplatný klíč',
         ]);
         $response->assertStatus(422);
-        $this->assertSame([__('pages.validation.slug_format')], $response->json('errors')['slug.cs']);
+        $this->assertSame(
+            [__('pages.validation.slug_format')],
+            $response->json('errors')['slug.cs'],
+        );
     }
 
     #[Test]
@@ -250,6 +309,9 @@ class PageRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/admin/test-page-validation', ['slug_cs' => 'slug']);
         $response->assertStatus(422);
-        $this->assertContains(__('pages.validation.at_least_one_locale'), $response->json('errors')['name']);
+        $this->assertContains(
+            __('pages.validation.at_least_one_locale'),
+            $response->json('errors')['name'],
+        );
     }
 }

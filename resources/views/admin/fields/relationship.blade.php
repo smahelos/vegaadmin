@@ -6,15 +6,20 @@
 @php
     $multiple = $crud->guessIfFieldHasMultipleFromRelationType($field['relation_type'] ?? 'BelongsTo');
 
-    if (! isset($field['allows_null'])) {
+    if (!isset($field['allows_null'])) {
         if (empty($field['entity'])) {
             // no relation method found: the field name is the foreign key column itself
             $field['allows_null'] = $crud->model::isColumnNullable($field['name']);
         } else {
-            $relation = (new ($crud->getRelationModel($field['entity'], -1)))->{\Illuminate\Support\Str::afterLast($field['entity'], '.')}();
-            $field['allows_null'] = $multiple
-                || ($relation instanceof \Illuminate\Database\Eloquent\Relations\BelongsTo
-                    && $relation->getParent()::isColumnNullable($relation->getForeignKeyName()));
+            $relatedModelClass = $crud->getRelationModel($field['entity'], -1);
+            $relatedModel = new $relatedModelClass();
+            $relationMethod = \Illuminate\Support\Str::afterLast($field['entity'], '.');
+            $relation = $relatedModel->{$relationMethod}();
+            $field['allows_null'] = $multiple;
+            if (!$multiple && $relation instanceof \Illuminate\Database\Eloquent\Relations\BelongsTo) {
+                $parent = $relation->getParent();
+                $field['allows_null'] = $parent::isColumnNullable($relation->getForeignKeyName());
+            }
         }
     }
 

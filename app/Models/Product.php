@@ -45,18 +45,20 @@ class Product extends Model
     {
         parent::boot();
 
-        static::saving(function (self $model): void {
-            // If this product is set as default, unset default status for other products
-            if ($model->is_default) {
-                self::where('user_id', $model->user_id)
-                    ->where(
+        static::saving(
+            function (self $model): void {
+                // If this product is set as default, unset default status for other products
+                if ($model->is_default) {
+                    $query = self::where('user_id', $model->user_id);
+                    $query->where(
                         'id',
                         '!=',
                         $model->id,
-                    )
-                    ->update(['is_default' => false]);
-            }
-        });
+                    );
+                    $query->update(['is_default' => false]);
+                }
+            },
+        );
     }
 
     /**
@@ -81,8 +83,9 @@ class Product extends Model
      */
     public function invoices(): BelongsToMany
     {
-        return $this->belongsToMany(Invoice::class, 'invoice_products')
-            ->withPivot([
+        $relation = $this->belongsToMany(Invoice::class, 'invoice_products');
+        $relation->withPivot(
+            [
                 'name',
                 'quantity',
                 'price',
@@ -94,8 +97,11 @@ class Product extends Model
                 'tax_rate',
                 'tax_amount',
                 'total_price',
-            ])
-            ->withTimestamps();
+            ],
+        );
+        $relation->withTimestamps();
+
+        return $relation;
     }
 
     /**
@@ -127,7 +133,9 @@ class Product extends Model
      */
     public function getInvoiceCountAttribute(): int
     {
-        return $this->invoices()->count();
+        $invoices = $this->invoices();
+
+        return $invoices->count();
     }
 
     /**
@@ -162,8 +170,10 @@ class Product extends Model
      */
     public function getImageThumbUrl(): ?string
     {
-        if (! empty($this->image)) {
-            return Storage::disk('public')->path($this->image);
+        if (!empty($this->image)) {
+            $disk = Storage::disk('public');
+
+            return $disk->path($this->image);
         }
 
         return null;

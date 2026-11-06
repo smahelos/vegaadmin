@@ -14,7 +14,9 @@ class StatusRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage statuses
-        return backpack_user()->can('can_create_edit_status');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_status') === true;
     }
 
     /**
@@ -65,9 +67,11 @@ class StatusRequest extends FormRequest
     {
         // Generate slug if not provided
         if (empty($this->slug)) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 }

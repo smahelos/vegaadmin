@@ -37,7 +37,10 @@ final class BusinessDetail extends Component
     public function mount(BusinessApplicationService $businesses, int $businessId): void
     {
         $this->requirePermission('frontend.can_view_business');
-        $businesses->get($this->userId(), BusinessId::fromInt($businessId));
+        $businesses->get(
+            $this->userId(),
+            BusinessId::fromInt($businessId),
+        );
         $this->businessId = $businessId;
     }
 
@@ -116,17 +119,20 @@ final class BusinessDetail extends Component
         $defaultId = $businesses->findDefaultId($userId);
         $newDefaultOptions = [];
         foreach ($businesses->listActive($userId) as $other) {
-            if (! $other->id->equals($business->id)) {
+            if (!$other->id->equals($business->id)) {
                 $newDefaultOptions[$other->id->value] = $other->profile->name;
             }
         }
 
-        return view('livewire.party.business-detail', [
-            'business' => $business,
-            'isDefault' => $defaultId !== null && $defaultId->equals($business->id),
-            'newDefaultOptions' => $newDefaultOptions,
-            'countries' => $this->countryOptions(),
-        ]);
+        return view(
+            'livewire.party.business-detail',
+            [
+                'business' => $business,
+                'isDefault' => $defaultId !== null && $defaultId->equals($business->id),
+                'newDefaultOptions' => $newDefaultOptions,
+                'countries' => $this->countryOptions(),
+            ],
+        );
     }
 
     private function currentId(): BusinessId

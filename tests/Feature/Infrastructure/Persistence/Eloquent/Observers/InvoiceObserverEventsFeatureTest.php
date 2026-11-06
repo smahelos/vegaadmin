@@ -21,7 +21,8 @@ class InvoiceObserverEventsFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]
@@ -29,25 +30,34 @@ class InvoiceObserverEventsFeatureTest extends TestCase
     {
         Event::fake([UserDataChanged::class]);
 
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_amount' => 100,
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_amount' => 100,
+            ],
+        );
 
         // Observer triggers on model event automatically
-        Event::assertDispatched(UserDataChanged::class, function ($event) use ($invoice) {
-            return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
-        });
+        Event::assertDispatched(
+            UserDataChanged::class,
+            function ($event) use ($invoice) {
+                return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
+            },
+        );
     }
 
     #[Test]
     public function updated_dispatches_event_only_when_watched_fields_dirty(): void
     {
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_amount' => 100,
-            'due_in' => 14,
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_amount' => 100,
+                'due_in' => 14,
+            ],
+        );
 
         // Case 1: update non-watched field (invoice_text) should NOT dispatch
         Event::fake([UserDataChanged::class]);
@@ -59,15 +69,19 @@ class InvoiceObserverEventsFeatureTest extends TestCase
         Event::fake([UserDataChanged::class]);
         $invoice->payment_amount = 150; // dirty field watched by observer
         $invoice->save();
-        Event::assertDispatched(UserDataChanged::class, function ($event) use ($invoice) {
-            return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
-        });
+        Event::assertDispatched(
+            UserDataChanged::class,
+            function ($event) use ($invoice) {
+                return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
+            },
+        );
     }
 
     #[Test]
     public function deleted_dispatches_user_data_changed_event(): void
     {
-        $invoice = Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create([
             'user_id' => $this->user->id,
             'payment_amount' => 50,
         ]);
@@ -75,8 +89,11 @@ class InvoiceObserverEventsFeatureTest extends TestCase
         Event::fake([UserDataChanged::class]);
         $invoice->delete();
 
-        Event::assertDispatched(UserDataChanged::class, function ($event) use ($invoice) {
-            return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
-        });
+        Event::assertDispatched(
+            UserDataChanged::class,
+            function ($event) use ($invoice) {
+                return $event->userId === $invoice->user_id && $event->changeType === 'invoice';
+            },
+        );
     }
 }

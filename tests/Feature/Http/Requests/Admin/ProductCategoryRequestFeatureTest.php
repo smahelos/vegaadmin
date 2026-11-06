@@ -34,27 +34,43 @@ class ProductCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        ProductCategory::factory()->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create();
         $this->limitService = app(UniversalLimitService::class);
 
         // Provide generous limit for default tests
-        EntityLimit::factory()->create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product_category',
-            'limit_value' => 100,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product_category',
+                'limit_value' => 100,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'is_active' => true,
+            ],
+        );
 
         // Define test routes
-        Route::post('/test-product-category', function (ProductCategoryRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-product-category',
+            function (ProductCategoryRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-product-category/{id}', function (ProductCategoryRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-product-category/{id}',
+            function (ProductCategoryRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -93,7 +109,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -107,7 +124,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -121,7 +139,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -136,13 +155,15 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
+        $productCategoryFactory = ProductCategory::factory();
+        $existingCategory = $productCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Valid Name',
@@ -153,13 +174,15 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $existingCategory = ProductCategory::factory()->create(['slug' => 'existing-slug']);
+        $productCategoryFactory = ProductCategory::factory();
+        $existingCategory = $productCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Name',
@@ -249,22 +272,24 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $this->actingAs($this->adminUser, 'backpack')
-            ->postJson('/test-product-category', [
-                'name' => 'Test Category',
-            ])
-            ->assertStatus(200);
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->postJson('/test-product-category', [
+            'name' => 'Test Category',
+        ]);
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_authenticated_user_without_permission(): void
     {
-        $userNoPerm = User::factory()->create();
+        $userFactory = User::factory();
+        $userNoPerm = $userFactory->create();
         $this->actingAs($userNoPerm, 'backpack');
 
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'No Perm Category',
-        ])->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -273,11 +298,13 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->revokeUnlimitedAccess('product_category');
         $this->actingAs($this->adminUser, 'backpack');
         // Strict limit 1
-        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
+        $entityLimitQuery->update(['limit_value' => 1]);
 
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'First Cat',
-        ])->assertStatus(200);
+        ]);
+        $httpResponse->assertStatus(200);
 
         // Manually record usage so second authorize fails
         $this->limitService->recordUsage(
@@ -306,7 +333,8 @@ class ProductCategoryRequestFeatureTest extends TestCase
     public function category_update_bypasses_limit_checks(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        EntityLimit::where('entity_type', 'product_category')->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
+        $entityLimitQuery->update(['limit_value' => 0]);
         $this->limitService->recordUsage(
             $this->adminUser->id,
             'product_category',
@@ -331,10 +359,10 @@ class ProductCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->postJson('/test-product-category', [
+        $httpResponse = $this->postJson('/test-product-category', [
             'name' => 'Test Category',
-        ])
-            ->assertStatus(403);
+        ]);
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -348,9 +376,18 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('products.categories.fields.name'), $attributes['name']);
-        $this->assertEquals(__('products.categories.fields.slug'), $attributes['slug']);
-        $this->assertEquals(__('products.categories.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('products.categories.fields.name'),
+            $attributes['name'],
+        );
+        $this->assertEquals(
+            __('products.categories.fields.slug'),
+            $attributes['slug'],
+        );
+        $this->assertEquals(
+            __('products.categories.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]

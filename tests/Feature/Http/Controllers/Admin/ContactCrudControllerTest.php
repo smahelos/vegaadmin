@@ -22,14 +22,20 @@ final class ContactCrudControllerTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->admin = User::factory()->create();
-        $this->admin->assignRole(Role::findByName('admin', 'backpack'));
+        $userFactory = User::factory();
+        $this->admin = $userFactory->create();
+        $this->admin->assignRole(
+            Role::findByName('admin', 'backpack'),
+        );
     }
 
     #[Test]
     public function a_guest_is_sent_to_the_admin_login(): void
     {
-        $this->get('/admin/contact')->assertRedirect(route('backpack.auth.login'));
+        $httpResponse = $this->get('/admin/contact');
+        $httpResponse->assertRedirect(
+            route('backpack.auth.login'),
+        );
     }
 
     #[Test]
@@ -37,17 +43,22 @@ final class ContactCrudControllerTest extends TestCase
     {
         $owner = $this->frontendUser();
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/contact', [
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/contact',
+            [
                 'user_id' => $owner->id,
                 'name' => 'Admin Kontakt',
                 'contact_person' => 'Eva',
                 'country' => 'CZ',
                 '_save_action' => 'save_and_back',
-            ])
-            ->assertRedirect();
+            ],
+        );
+        $httpResponse->assertRedirect();
 
-        $contact = Contact::query()->where('user_id', $owner->id)->sole();
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $owner->id);
+        $contact = $contactQuery->sole();
         $this->assertSame('Eva', $contact->contact_person);
     }
 
@@ -57,42 +68,57 @@ final class ContactCrudControllerTest extends TestCase
         $owner = $this->frontendUser();
         $this->limitActive('contact', 0);
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post('/admin/contact', [
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            '/admin/contact',
+            [
                 'user_id' => $owner->id,
                 'name' => 'Nad limit',
                 'country' => 'CZ',
-            ])
-            ->assertRedirect();
+            ],
+        );
+        $httpResponse->assertRedirect();
 
-        $this->assertSame(0, Contact::query()->where('user_id', $owner->id)->count());
+        $contactQuery = Contact::query();
+        $contactQuery->where('user_id', $owner->id);
+        $this->assertSame(
+            0,
+            $contactQuery->count(),
+        );
     }
 
     #[Test]
     public function archives_and_restores_a_contact(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->frontendUser()->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->frontendUser()->id]);
 
-        $this->actingAs($this->admin, 'backpack')
-            ->post(route('admin.contacts.archive', ['id' => $contact->id]))
-            ->assertRedirect();
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.contacts.archive', ['id' => $contact->id]),
+        );
+        $httpResponse->assertRedirect();
         $this->assertNotNull($contact->fresh()?->archived_at);
 
-        $this->post(route('admin.contacts.restore', ['id' => $contact->id]))->assertRedirect();
+        $httpResponse = $this->post(
+            route('admin.contacts.restore', ['id' => $contact->id]),
+        );
+        $httpResponse->assertRedirect();
         $this->assertNull($contact->fresh()?->archived_at);
     }
 
     #[Test]
     public function updating_needs_the_permission(): void
     {
-        $contact = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create();
         $backendUser = $this->backendUser('can_view_contact');
 
-        $this->actingAs($backendUser, 'backpack')
-            ->put('/admin/contact/' . $contact->id, [
-                'id' => $contact->id,
-                'name' => 'Změna',
-            ])
-            ->assertForbidden();
+        $httpClient = $this->actingAs($backendUser, 'backpack');
+        $httpResponse = $httpClient->put('/admin/contact/' . $contact->id, [
+            'id' => $contact->id,
+            'name' => 'Změna',
+        ]);
+        $httpResponse->assertForbidden();
     }
 }

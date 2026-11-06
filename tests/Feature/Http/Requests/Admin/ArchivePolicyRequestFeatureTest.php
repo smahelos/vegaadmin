@@ -30,13 +30,25 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define test routes
-        Route::post('/test-archive-policy', function (ArchivePolicyRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-archive-policy',
+            function (ArchivePolicyRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-archive-policy/{id}', function (ArchivePolicyRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-archive-policy/{id}',
+            function (ArchivePolicyRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -79,9 +91,10 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make([], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('table_name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
-        $this->assertArrayHasKey('date_column', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('table_name', $errors->toArray());
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
+        $this->assertArrayHasKey('date_column', $errors->toArray());
     }
 
     #[Test]
@@ -97,7 +110,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('table_name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('table_name', $errors->toArray());
     }
 
     #[Test]
@@ -113,7 +127,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('date_column', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('date_column', $errors->toArray());
     }
 
     #[Test]
@@ -129,7 +144,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -145,7 +161,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -161,7 +178,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('retention_months', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('retention_months', $errors->toArray());
     }
 
     #[Test]
@@ -178,7 +196,8 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('description', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('description', $errors->toArray());
     }
 
     #[Test]
@@ -246,26 +265,32 @@ class ArchivePolicyRequestFeatureTest extends TestCase
     public function authorization_passes_for_authenticated_user(): void
     {
         // Need a user with can_configure_system permission (adminUser)
-        $this->actingAs($this->adminUser, 'backpack')
-            ->withoutMiddleware()
-            ->postJson('/test-archive-policy', [
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->withoutMiddleware();
+        $httpResponse = $httpClient->postJson(
+            '/test-archive-policy',
+            [
                 'table_name' => 'test_table',
                 'retention_months' => 12,
                 'date_column' => 'created_at',
-            ])
-            ->assertStatus(200);
+            ],
+        );
+        $httpResponse->assertStatus(200);
     }
 
     #[Test]
     public function authorization_fails_for_unauthenticated_user(): void
     {
-        $this->withoutMiddleware()
-            ->postJson('/test-archive-policy', [
+        $httpClient = $this->withoutMiddleware();
+        $httpResponse = $httpClient->postJson(
+            '/test-archive-policy',
+            [
                 'table_name' => 'test_table',
                 'retention_months' => 12,
                 'date_column' => 'created_at',
-            ])
-            ->assertStatus(403);
+            ],
+        );
+        $httpResponse->assertStatus(403);
     }
 
     #[Test]
@@ -281,11 +306,26 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $this->assertArrayHasKey('description', $attributes);
 
         // Check that translations are being called
-        $this->assertEquals(__('admin/database.archive_policies.fields.table_name'), $attributes['table_name']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.retention_months'), $attributes['retention_months']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.date_column'), $attributes['date_column']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.is_active'), $attributes['is_active']);
-        $this->assertEquals(__('admin/database.archive_policies.fields.description'), $attributes['description']);
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.table_name'),
+            $attributes['table_name'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.retention_months'),
+            $attributes['retention_months'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.date_column'),
+            $attributes['date_column'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.is_active'),
+            $attributes['is_active'],
+        );
+        $this->assertEquals(
+            __('admin/database.archive_policies.fields.description'),
+            $attributes['description'],
+        );
     }
 
     #[Test]
@@ -299,9 +339,11 @@ class ArchivePolicyRequestFeatureTest extends TestCase
             $request->attributes(),
         );
 
+        $fieldLabel = __('admin/database.archive_policies.fields.retention_months');
+        $errors = $validator->errors();
         $this->assertStringContainsString(
-            __('admin/database.archive_policies.fields.retention_months'),
-            $validator->errors()->first('retention_months'),
+            $fieldLabel,
+            $errors->first('retention_months'),
         );
     }
 }

@@ -20,16 +20,21 @@ final class RegisterControllerTest extends TestCase
     #[Test]
     public function a_guest_opens_the_registration_form(): void
     {
-        $this->get(route('frontend.register'))
-            ->assertOk()
-            ->assertSeeLivewire('user.registration-form');
+        $response = $this->get(
+            route('frontend.register'),
+        );
+        $response->assertOk();
+        $response->assertSeeLivewire('user.registration-form');
     }
 
     #[Test]
     public function a_signed_in_user_is_sent_away_from_the_registration(): void
     {
-        $this->actingAs(User::factory()->create())
-            ->get(route('frontend.register'))
-            ->assertRedirect();
+        $userFactory = User::factory();
+        $httpClient = $this->actingAs($userFactory->create());
+        $httpResponse = $httpClient->get(
+            route('frontend.register'),
+        );
+        $httpResponse->assertRedirect();
     }
 }

@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\PerformanceMetric;
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class CleanPerformanceMetrics extends Command
 {
@@ -34,17 +36,21 @@ class CleanPerformanceMetrics extends Command
         $dryRun = $this->option('dry-run');
 
         $this->info('Starting performance metrics cleanup...');
-        $this->info("Type: {$type}, Days to keep: {$days}, Dry run: " . ($dryRun ? 'Yes' : 'No'));
+        $this->info(
+            "Type: {$type}, Days to keep: {$days}, Dry run: " . ($dryRun ? 'Yes' : 'No'),
+        );
 
         try {
             $deletedCount = 0;
 
             switch ($type) {
                 case 'old':
+                    $cutoffDate = CarbonImmutable::now();
+                    $cutoffDate = $cutoffDate->subDays($days);
                     $query = PerformanceMetric::where(
                         'measured_at',
                         '<',
-                        now()->subDays($days),
+                        $cutoffDate,
                     );
                     break;
 
@@ -56,7 +62,7 @@ class CleanPerformanceMetrics extends Command
                     return $this->cleanDuplicates($dryRun);
 
                 case 'all':
-                    if (! $this->confirm('Are you sure you want to delete ALL performance metrics?')) {
+                    if (!$this->confirm('Are you sure you want to delete ALL performance metrics?')) {
                         $this->warn('Operation cancelled.');
 
                         return 1;
@@ -75,7 +81,8 @@ class CleanPerformanceMetrics extends Command
                 $this->info("Would delete {$count} metrics");
 
                 // Show sample of what would be deleted
-                $sample = $query->limit(5)->get([
+                $query->limit(5);
+                $sample = $query->get([
                     'id',
                     'metric_type',
                     'measured_at',
@@ -109,10 +116,13 @@ class CleanPerformanceMetrics extends Command
         $this->info('Cleaning duplicate metrics...');
 
         // Get duplicates grouped by type and date
-        $duplicates = PerformanceMetric::selectRaw('metric_type, DATE(measured_at) as date, COUNT(*) as count')
-            ->groupBy('metric_type', \DB::raw('DATE(measured_at)'))
-            ->havingRaw('COUNT(*) > 1')
-            ->get();
+        $query = PerformanceMetric::selectRaw('metric_type, DATE(measured_at) as date, COUNT(*) as count');
+        $query->groupBy(
+            'metric_type',
+            DB::raw('DATE(measured_at)'),
+        );
+        $query->havingRaw('COUNT(*) > 1');
+        $duplicates = $query->get();
 
         if ($duplicates->isEmpty()) {
             $this->info('No duplicates found.');
@@ -126,24 +136,27 @@ class CleanPerformanceMetrics extends Command
 
         foreach ($duplicates as $duplicate) {
             // Get all metrics for this type/date
-            $metrics = PerformanceMetric::where('metric_type', $duplicate->metric_type)
-                ->whereDate('measured_at', $duplicate->date)
-                ->orderBy('measured_at', 'desc')
-                ->get();
+            $query = PerformanceMetric::where('metric_type', $duplicate->metric_type);
+            $query->whereDate('measured_at', $duplicate->date);
+            $query->orderBy('measured_at', 'desc');
+            $metrics = $query->get();
 
             // Keep the latest one, delete the rest
             $toDelete = $metrics->skip(1);
 
             if ($dryRun) {
-                $this->line("Would delete {$toDelete->count()} duplicates for {$duplicate->metric_type} on {$duplicate->date}");
+                $this->line(
+                    "Would delete {$toDelete->count()} duplicates for {$duplicate->metric_type} on {$duplicate->date}",
+                );
             } else {
                 $deletedIds = $toDelete->pluck('id');
-                PerformanceMetric::whereIn('id', $deletedIds)->delete();
+                $query = PerformanceMetric::whereIn('id', $deletedIds);
+                $query->delete();
                 $totalDeleted += $toDelete->count();
             }
         }
 
-        if (! $dryRun) {
+        if (!$dryRun) {
             $this->info("Deleted {$totalDeleted} duplicate metrics");
         }
 

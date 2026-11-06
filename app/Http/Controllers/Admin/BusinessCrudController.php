@@ -55,13 +55,18 @@ final class BusinessCrudController extends CrudController
             $logos,
             null,
             fn (?string $logo): BusinessDTO => $businesses->create(
-                UserId::fromInt((int) $request->validated('user_id')),
+                UserId::fromInt(
+                    (int) $request->validated('user_id'),
+                ),
                 new BusinessWriteData($request->profile(), $logo),
                 null,
             ),
         );
 
-        Alert::success(__('backpack::crud.insert_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.insert_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($business->id->value);
@@ -82,7 +87,10 @@ final class BusinessCrudController extends CrudController
             ),
         );
 
-        Alert::success(__('backpack::crud.update_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.update_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -93,33 +101,60 @@ final class BusinessCrudController extends CrudController
         BusinessApplicationService $businesses,
         int $id,
     ): RedirectResponse {
-        abort_unless(backpack_user()?->can('can_archive_business') === true, 403);
-        $entry = Business::query()->findOrFail($id);
+        $user = backpack_user();
+        abort_unless(
+            $user?->can('can_archive_business') === true,
+            403,
+        );
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
         $businesses->archive(
             $this->ownerOf($entry),
             BusinessId::fromInt($entry->id),
             $request->replacement(),
         );
 
-        return $this->redirectWithSuccess(__('businesses.messages.archived'));
+        return $this->redirectWithSuccess(
+            __('businesses.messages.archived'),
+        );
     }
 
     public function restore(BusinessApplicationService $businesses, int $id): RedirectResponse
     {
-        abort_unless(backpack_user()?->can('can_restore_business') === true, 403);
-        $entry = Business::query()->findOrFail($id);
-        $businesses->restore($this->ownerOf($entry), BusinessId::fromInt($entry->id));
+        $user = backpack_user();
+        abort_unless(
+            $user?->can('can_restore_business') === true,
+            403,
+        );
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
+        $businesses->restore(
+            $this->ownerOf($entry),
+            BusinessId::fromInt($entry->id),
+        );
 
-        return $this->redirectWithSuccess(__('businesses.messages.restored'));
+        return $this->redirectWithSuccess(
+            __('businesses.messages.restored'),
+        );
     }
 
     public function setDefault(BusinessApplicationService $businesses, int $id): RedirectResponse
     {
-        abort_unless(backpack_user()?->can('can_set_default_business') === true, 403);
-        $entry = Business::query()->findOrFail($id);
-        $businesses->setDefault($this->ownerOf($entry), BusinessId::fromInt($entry->id));
+        $user = backpack_user();
+        abort_unless(
+            $user?->can('can_set_default_business') === true,
+            403,
+        );
+        $businessQuery = Business::query();
+        $entry = $businessQuery->findOrFail($id);
+        $businesses->setDefault(
+            $this->ownerOf($entry),
+            BusinessId::fromInt($entry->id),
+        );
 
-        return $this->redirectWithSuccess(__('businesses.messages.default_changed'));
+        return $this->redirectWithSuccess(
+            __('businesses.messages.default_changed'),
+        );
     }
 
     protected function setupListOperation(): void
@@ -137,14 +172,28 @@ final class BusinessCrudController extends CrudController
     protected function setupShowOperation(): void
     {
         $this->setupPartyList('business');
-        CRUD::column('short_name')->label(__('parties.fields.short_name'));
-        CRUD::column('vat_number')->label(__('parties.fields.vat_number'));
-        CRUD::column('phone')->label(__('parties.fields.phone'));
-        CRUD::column('note')->label(__('parties.fields.note'));
-        CRUD::column('logo')
-            ->label(__('parties.fields.logo'))
-            ->type('image')
-            ->disk('public');
+        $column = CRUD::column('short_name');
+        $column->label(
+            __('parties.fields.short_name'),
+        );
+        $column = CRUD::column('vat_number');
+        $column->label(
+            __('parties.fields.vat_number'),
+        );
+        $column = CRUD::column('phone');
+        $column->label(
+            __('parties.fields.phone'),
+        );
+        $column = CRUD::column('note');
+        $column->label(
+            __('parties.fields.note'),
+        );
+        $column = CRUD::column('logo');
+        $column->label(
+            __('parties.fields.logo'),
+        );
+        $column->type('image');
+        $column->disk('public');
     }
 
     protected function setupCreateOperation(): void

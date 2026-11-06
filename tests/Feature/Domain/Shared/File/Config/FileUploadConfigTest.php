@@ -13,7 +13,8 @@ final class FileUploadConfigTest extends TestCase
     #[Test]
     public function default_context_returns_configured_defaults(): void
     {
-        $context = app(FileUploadConfig::class)->forContext();
+        $fileUploadConfig = app(FileUploadConfig::class);
+        $context = $fileUploadConfig->forContext();
 
         $this->assertGreaterThan(0, $context->getMaxKb());
         $this->assertContains('jpg', $context->getAllowedExtensions());
@@ -23,7 +24,8 @@ final class FileUploadConfigTest extends TestCase
     #[Test]
     public function specific_context_overrides_defaults(): void
     {
-        $context = app(FileUploadConfig::class)->forContext('invoice_logo');
+        $fileUploadConfig = app(FileUploadConfig::class);
+        $context = $fileUploadConfig->forContext('invoice_logo');
 
         $this->assertSame(2048, $context->getMaxKb());
         $this->assertContains('png', $context->getAllowedExtensions());
@@ -36,7 +38,12 @@ final class FileUploadConfigTest extends TestCase
     {
         $config = app(FileUploadConfig::class);
 
-        $this->assertSame($config->forContext()->getMaxKb(), $config->forContext('non_existing_x')->getMaxKb());
+        $defaultContext = $config->forContext();
+        $unknownContext = $config->forContext('non_existing_x');
+        $this->assertSame(
+            $defaultContext->getMaxKb(),
+            $unknownContext->getMaxKb(),
+        );
     }
 
     #[Test]
@@ -44,7 +51,11 @@ final class FileUploadConfigTest extends TestCase
     {
         $config = app(FileUploadConfig::class);
 
-        $this->assertTrue($config->forContext('invoice_logo')->isHashDeduplicationEnabled());
-        $this->assertFalse($config->forContext()->isHashDeduplicationEnabled());
+        $invoiceLogoContext = $config->forContext('invoice_logo');
+        $this->assertTrue(
+            $invoiceLogoContext->isHashDeduplicationEnabled(),
+        );
+        $defaultContext = $config->forContext();
+        $this->assertFalse($defaultContext->isHashDeduplicationEnabled());
     }
 }

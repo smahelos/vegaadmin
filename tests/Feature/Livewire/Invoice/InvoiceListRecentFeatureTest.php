@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -19,7 +20,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]
@@ -35,13 +37,15 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_displays_user_invoices_only(): void
     {
-        $otherUser = User::factory()->create();
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
-        $userInvoice = Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $userInvoice = $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 
-        $otherUserInvoice = Invoice::factory()->create([
+        $otherUserInvoice = $invoiceFactory->create([
             'user_id' => $otherUser->id,
         ]);
 
@@ -74,7 +78,8 @@ class InvoiceListRecentFeatureTest extends TestCase
         $component->assertStatus(200);
 
         // Test behavior when not authenticated (Auth::id() returns null)
-        auth()->logout();
+        $auth = auth();
+        $auth->logout();
 
         $component = Livewire::test(InvoiceListRecent::class);
         $invoices = $component->viewData('invoices');
@@ -96,7 +101,8 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_passes_correct_data_to_view(): void
     {
-        Invoice::factory()->create([
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 
@@ -112,14 +118,19 @@ class InvoiceListRecentFeatureTest extends TestCase
     #[Test]
     public function component_eager_loads_relationships(): void
     {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail();
-        $paymentStatus = Status::factory()->create();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
+        $statusFactory = Status::factory();
+        $paymentStatus = $statusFactory->create();
 
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'payment_method_id' => $paymentMethod->id,
-            'payment_status_id' => $paymentStatus->id,
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'payment_method_id' => $paymentMethod->id,
+                'payment_status_id' => $paymentStatus->id,
+            ],
+        );
 
         $this->actingAs($this->user);
 
@@ -128,22 +139,32 @@ class InvoiceListRecentFeatureTest extends TestCase
 
         // Check that relationships are loaded
         $invoice = $invoices->first();
-        $this->assertTrue($invoice->relationLoaded('paymentMethod'));
-        $this->assertTrue($invoice->relationLoaded('paymentStatus'));
+        $this->assertTrue(
+            $invoice->relationLoaded('paymentMethod'),
+        );
+        $this->assertTrue(
+            $invoice->relationLoaded('paymentStatus'),
+        );
     }
 
     #[Test]
     public function component_defaults_to_descending_created_at_order(): void
     {
-        $oldInvoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'created_at' => now()->subDays(2),
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $oldInvoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'created_at' => $now->subDays(2),
+            ],
+        );
 
-        $newInvoice = Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'created_at' => now()->subDay(),
-        ]);
+        $newInvoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'created_at' => $now->subDay(),
+            ],
+        );
 
         $this->actingAs($this->user);
 
@@ -158,7 +179,9 @@ class InvoiceListRecentFeatureTest extends TestCase
     public function component_limits_to_5_invoices_per_page(): void
     {
         // Create 7 invoices
-        Invoice::factory()->count(7)->create([
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->count(7);
+        $invoiceFactory->create([
             'user_id' => $this->user->id,
         ]);
 

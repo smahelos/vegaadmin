@@ -35,7 +35,8 @@ class TaxFormFieldsFeatureTest extends TestCase
         $this->assertCount(4, $fields);
 
         // Check name field
-        $nameField = collect($fields)->firstWhere('name', 'name');
+        $fieldList = collect($fields);
+        $nameField = $fieldList->firstWhere('name', 'name');
         $this->assertNotNull($nameField);
         $this->assertEquals('text', $nameField['type']);
         $this->assertTrue($nameField['required']);
@@ -43,20 +44,20 @@ class TaxFormFieldsFeatureTest extends TestCase
         $this->assertArrayHasKey('hint', $nameField);
 
         // Check rate field
-        $rateField = collect($fields)->firstWhere('name', 'rate');
+        $rateField = $fieldList->firstWhere('name', 'rate');
         $this->assertNotNull($rateField);
         $this->assertEquals('number', $rateField['type']);
         $this->assertTrue($rateField['required']);
         $this->assertEquals(0, $rateField['default']);
 
         // Check slug field
-        $slugField = collect($fields)->firstWhere('name', 'slug');
+        $slugField = $fieldList->firstWhere('name', 'slug');
         $this->assertNotNull($slugField);
         $this->assertEquals('text', $slugField['type']);
         $this->assertTrue($slugField['required']);
 
         // Check description field
-        $descriptionField = collect($fields)->firstWhere('name', 'description');
+        $descriptionField = $fieldList->firstWhere('name', 'description');
         $this->assertNotNull($descriptionField);
         $this->assertEquals('textarea', $descriptionField['type']);
         $this->assertFalse($descriptionField['required']);
@@ -83,7 +84,9 @@ class TaxFormFieldsFeatureTest extends TestCase
     public function get_tax_fields_field_names_are_correct(): void
     {
         $fields = $this->traitInstance->callGetTaxFields();
-        $fieldNames = collect($fields)->pluck('name')->toArray();
+        $collection = collect($fields);
+        $values = $collection->pluck('name');
+        $fieldNames = $values->toArray();
 
         $expectedFields = [
             'name',
@@ -100,8 +103,13 @@ class TaxFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
-        $requiredFields = collect($fields)->where('required', true)->pluck('name')->toArray();
-        $optionalFields = collect($fields)->where('required', false)->pluck('name')->toArray();
+        $fieldList = collect($fields);
+        $matches = $fieldList->where('required', true);
+        $values = $matches->pluck('name');
+        $requiredFields = $values->toArray();
+        $matches = $fieldList->where('required', false);
+        $values = $matches->pluck('name');
+        $optionalFields = $values->toArray();
 
         $this->assertContains('name', $requiredFields);
         $this->assertContains('rate', $requiredFields);
@@ -115,7 +123,9 @@ class TaxFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
-        $fieldTypes = collect($fields)->pluck('type', 'name')->toArray();
+        $collection = collect($fields);
+        $values = $collection->pluck('type', 'name');
+        $fieldTypes = $values->toArray();
 
         $this->assertEquals('text', $fieldTypes['name']);
         $this->assertEquals('number', $fieldTypes['rate']);
@@ -128,7 +138,8 @@ class TaxFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
-        $rateField = collect($fields)->firstWhere('name', 'rate');
+        $collection = collect($fields);
+        $rateField = $collection->firstWhere('name', 'rate');
         $this->assertEquals(0, $rateField['default']);
     }
 
@@ -169,7 +180,8 @@ class TaxFormFieldsFeatureTest extends TestCase
     {
         $fields = $this->traitInstance->callGetTaxFields();
 
-        $rateField = collect($fields)->firstWhere('name', 'rate');
+        $collection = collect($fields);
+        $rateField = $collection->firstWhere('name', 'rate');
 
         // Rate field should be number type for proper validation
         $this->assertEquals('number', $rateField['type']);

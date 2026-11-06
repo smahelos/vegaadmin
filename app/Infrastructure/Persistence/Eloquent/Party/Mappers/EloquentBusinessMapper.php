@@ -23,9 +23,7 @@ final class EloquentBusinessMapper
             userId: UserId::fromInt($business->user_id),
             profile: EloquentPartyProfileMapper::toProfile($business),
             logo: $business->logo,
-            defaultBankAccountId: $business->default_bank_account_id === null
-                ? null
-                : BankAccountId::fromInt($business->default_bank_account_id),
+            defaultBankAccountId: $business->default_bank_account_id === null ? null : BankAccountId::fromInt($business->default_bank_account_id),
             archived: $business->archived_at,
         );
     }

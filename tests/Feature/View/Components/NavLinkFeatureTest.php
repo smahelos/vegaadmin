@@ -294,7 +294,10 @@ class NavLinkFeatureTest extends TestCase
     public function component_handles_special_navigation_patterns(): void
     {
         // Test logout link (typically javascript or form submission)
-        $logoutComponent = new NavLink('javascript:document.getElementById("logout-form").submit();', false);
+        $logoutComponent = new NavLink(
+            'javascript:document.getElementById("logout-form").submit();',
+            false,
+        );
         $logoutView = $logoutComponent->render();
         $this->assertInstanceOf(View::class, $logoutView);
 

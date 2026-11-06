@@ -27,7 +27,8 @@ class UserServiceTest extends TestCase
     #[Test]
     public function updates_user_password(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // updatePassword expects plain string
         $newPassword = 'NewSecurePassword123';
 
@@ -46,7 +47,8 @@ class UserServiceTest extends TestCase
     #[Test]
     public function updates_user_profile(): void
     {
-        $user = User::factory()->create([
+        $userFactory = User::factory();
+        $user = $userFactory->create([
             'name' => 'Original Name',
         ]);
 
@@ -64,7 +66,8 @@ class UserServiceTest extends TestCase
     #[Test]
     public function finds_user_by_id(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $foundUser = $this->userService->findUserById($user->id);
 
@@ -77,6 +80,8 @@ class UserServiceTest extends TestCase
     public function returns_null_for_non_existent_user_id(): void
     {
         // Service returns null when user not found; assert null instead of expecting exception
-        $this->assertNull($this->userService->findUserById(999999));
+        $this->assertNull(
+            $this->userService->findUserById(999999),
+        );
     }
 }

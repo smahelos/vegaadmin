@@ -29,21 +29,34 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
 
     protected function shouldMarkMethodAsUsed(ReflectionMethod $method): ?VirtualUsageData
     {
-        $isAppMethod = $method->isPublic() && str_starts_with($method->getDeclaringClass()->getName(), 'App\\');
+        $isAppMethod = false;
+        if ($method->isPublic()) {
+            $declaringClass = $method->getDeclaringClass();
+            $isAppMethod = str_starts_with($declaringClass->getName(), 'App\\');
+        }
 
-        return $isAppMethod && isset($this->calledNames()[$method->getName()])
-            ? VirtualUsageData::withNote('Called by a Blade template')
-            : null;
+        if ($isAppMethod && isset($this->calledNames()[$method->getName()])) {
+            return VirtualUsageData::withNote('Called by a Blade template');
+        }
+
+        return null;
     }
 
     protected function shouldMarkPropertyAsRead(ReflectionProperty $property): ?VirtualUsageData
     {
-        $isAppProperty = $property->isPublic() && str_starts_with($property->getDeclaringClass()->getName(), 'App\\');
+        $isAppProperty = false;
+        if ($property->isPublic()) {
+            $declaringClass = $property->getDeclaringClass();
+            $isAppProperty = str_starts_with($declaringClass->getName(), 'App\\');
+        }
+
         if ($this->readNames === null) {
             $this->readNames = [];
-            $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::VIEWS_PATH));
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator(self::VIEWS_PATH),
+            );
             foreach ($files as $file) {
-                if (! str_ends_with($file->getFilename(), '.blade.php')) {
+                if (!str_ends_with($file->getFilename(), '.blade.php')) {
                     continue;
                 }
                 preg_match_all(
@@ -57,8 +70,11 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
             }
         }
 
-        return $isAppProperty && isset($this->readNames[$property->getName()])
-            ? VirtualUsageData::withNote('Read by a Blade template') : null;
+        if ($isAppProperty && isset($this->readNames[$property->getName()])) {
+            return VirtualUsageData::withNote('Read by a Blade template');
+        }
+
+        return null;
     }
 
     /**
@@ -71,11 +87,13 @@ final class BladeTemplateUsageProvider extends ReflectionBasedMemberUsageProvide
         }
 
         $this->calledNames = [];
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(self::VIEWS_PATH));
+        $files = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator(self::VIEWS_PATH),
+        );
 
         /** @var SplFileInfo $file */
         foreach ($files as $file) {
-            if (! str_ends_with($file->getFilename(), '.blade.php')) {
+            if (!str_ends_with($file->getFilename(), '.blade.php')) {
                 continue;
             }
 

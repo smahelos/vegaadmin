@@ -29,8 +29,7 @@
         @if(!empty($entry) && !empty($entry->{$field['name']}))
         @php
         $filePath = $entry->{$field['name']};
-        $fileUrl = method_exists($entry, 'getFileUrl') ? $entry->getFileUrl($field['name']) : asset('storage/' .
-        $filePath);
+        $fileUrl = method_exists($entry, 'getFileUrl') ? $entry->getFileUrl($field['name']) : asset('storage/' . $filePath);
         $thumbnailUrl = method_exists($entry, 'getImageThumbUrl') ? $entry->getImageThumbUrl($field['name']) : $fileUrl;
         @endphp
 

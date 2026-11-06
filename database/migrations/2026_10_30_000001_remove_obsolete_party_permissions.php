@@ -64,26 +64,39 @@ return new class extends Migration
 
     public function up(): void
     {
-        DB::transaction(function (): void {
-            Permission::where('guard_name', 'backpack')->whereIn('name', self::BACKPACK_PERMISSIONS)->delete();
-            Permission::where('guard_name', 'web')->whereIn('name', self::WEB_PERMISSIONS)->delete();
-        });
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        DB::transaction(
+            function (): void {
+                $permissions = Permission::where('guard_name', 'backpack');
+                $permissions->whereIn('name', self::BACKPACK_PERMISSIONS);
+                $permissions->delete();
+                $permissions = Permission::where('guard_name', 'web');
+                $permissions->whereIn('name', self::WEB_PERMISSIONS);
+                $permissions->delete();
+            },
+        );
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->forgetCachedPermissions();
     }
 
     public function down(): void
     {
-        DB::transaction(function (): void {
-            foreach (self::BACKPACK_PERMISSIONS as $name) {
-                Permission::findOrCreate($name, 'backpack');
-            }
-            foreach (self::WEB_PERMISSIONS as $name) {
-                Permission::findOrCreate($name, 'web');
-            }
-            Role::findOrCreate('admin', 'backpack')->givePermissionTo(self::BACKPACK_PERMISSIONS);
-            Role::findOrCreate('frontend_user', 'web')->givePermissionTo(self::BASIC_DEFAULTS);
-            Role::findOrCreate('frontend_user_plus', 'web')->givePermissionTo(self::PLUS_DEFAULTS);
-        });
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        DB::transaction(
+            function (): void {
+                foreach (self::BACKPACK_PERMISSIONS as $name) {
+                    Permission::findOrCreate($name, 'backpack');
+                }
+                foreach (self::WEB_PERMISSIONS as $name) {
+                    Permission::findOrCreate($name, 'web');
+                }
+                $role = Role::findOrCreate('admin', 'backpack');
+                $role->givePermissionTo(self::BACKPACK_PERMISSIONS);
+                $role = Role::findOrCreate('frontend_user', 'web');
+                $role->givePermissionTo(self::BASIC_DEFAULTS);
+                $role = Role::findOrCreate('frontend_user_plus', 'web');
+                $role->givePermissionTo(self::PLUS_DEFAULTS);
+            },
+        );
+        $registrar = app(PermissionRegistrar::class);
+        $registrar->forgetCachedPermissions();
     }
 };

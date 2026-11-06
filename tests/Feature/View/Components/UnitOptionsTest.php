@@ -14,11 +14,15 @@ final class UnitOptionsTest extends TestCase
     #[Test]
     public function lists_every_unit_with_its_translated_label(): void
     {
-        app()->setLocale('cs');
+        $application = app();
+        $application->setLocale('cs');
 
         $view = $this->component(UnitOptions::class);
 
-        $this->assertSame(count(Unit::cases()), substr_count((string) $view, '<option '));
+        $this->assertSame(
+            count(Unit::cases()),
+            substr_count((string) $view, '<option '),
+        );
         $view->assertSeeInOrder(['value="cubic_meters"', '>m³</option>'], false);
         $view->assertSeeInOrder(['value="hours"', '>hodin</option>'], false);
     }
@@ -26,8 +30,8 @@ final class UnitOptionsTest extends TestCase
     #[Test]
     public function preselects_pieces_by_default(): void
     {
-        $this->component(UnitOptions::class)
-            ->assertSee('<option value="pieces" selected>', false);
+        $view = $this->component(UnitOptions::class);
+        $view->assertSee('<option value="pieces" selected>', false);
     }
 
     #[Test]

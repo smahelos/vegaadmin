@@ -1,4 +1,5 @@
-@if ($entry->archived_at === null && $entry->user?->default_business_id !== $entry->getKey() && backpack_user()->can('can_set_default_business'))
+@php($user = backpack_user())
+@if ($entry->archived_at === null && $entry->user?->default_business_id !== $entry->getKey() && $user->can('can_set_default_business'))
     <form method="POST" action="{{ route('admin.businesses.set-default', ['id' => $entry->getKey()]) }}" class="d-inline">
         @csrf
         <button type="submit" class="btn btn-sm btn-link" title="{{ __('businesses.actions.make_default') }}">

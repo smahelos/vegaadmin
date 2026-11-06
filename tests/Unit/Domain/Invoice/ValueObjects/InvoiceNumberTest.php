@@ -56,7 +56,10 @@ final class InvoiceNumberTest extends TestCase
     {
         $invoiceNumber = InvoiceNumber::generateNext();
 
-        $this->assertEquals((int) date('Y'), $invoiceNumber->getYear());
+        $this->assertEquals(
+            (int) date('Y'),
+            $invoiceNumber->getYear(),
+        );
         $this->assertEquals(1, $invoiceNumber->getSequence());
     }
 
@@ -67,9 +70,15 @@ final class InvoiceNumberTest extends TestCase
         $number2 = new InvoiceNumber('20250002');
         $number3 = new InvoiceNumber('20240999');
 
-        $this->assertTrue($number2->isGreaterThan($number1));
-        $this->assertTrue($number1->isGreaterThan($number3));
-        $this->assertFalse($number1->isGreaterThan($number2));
+        $this->assertTrue(
+            $number2->isGreaterThan($number1),
+        );
+        $this->assertTrue(
+            $number1->isGreaterThan($number3),
+        );
+        $this->assertFalse(
+            $number1->isGreaterThan($number2),
+        );
     }
 
     #[Test]
@@ -141,7 +150,11 @@ final class InvoiceNumberTest extends TestCase
         $longer = new InvoiceNumber('202510000');
 
         $this->assertSame(2025, $longer->getYear());
-        $this->assertTrue($longer->isGreaterThan(new InvoiceNumber('20259999')));
+        $this->assertTrue(
+            $longer->isGreaterThan(
+                new InvoiceNumber('20259999'),
+            ),
+        );
     }
 
     #[Test]
@@ -159,7 +172,9 @@ final class InvoiceNumberTest extends TestCase
         $currentYear = (int) date('Y');
 
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage("Invoice number sequence for year {$currentYear} is exhausted");
+        $this->expectExceptionMessage(
+            "Invoice number sequence for year {$currentYear} is exhausted",
+        );
 
         InvoiceNumber::generateNext($currentYear . '999999');
     }

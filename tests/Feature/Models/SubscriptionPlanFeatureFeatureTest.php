@@ -15,26 +15,32 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
         parent::setUp();
 
         // The scopes below read the whole table; start without the seeded plan features
-        SubscriptionPlanFeature::query()->delete();
+        $subscriptionPlanFeatureQuery = SubscriptionPlanFeature::query();
+        $subscriptionPlanFeatureQuery->delete();
     }
 
     #[Test]
     public function subscription_plan_feature_can_be_created_with_factory(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $this->assertInstanceOf(SubscriptionPlanFeature::class, $feature);
-        $this->assertDatabaseHas('subscription_plan_features', [
-            'id' => $feature->id,
-            'name' => $feature->name,
-            'slug' => $feature->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plan_features',
+            [
+                'id' => $feature->id,
+                'name' => $feature->name,
+                'slug' => $feature->slug,
+            ],
+        );
     }
 
     #[Test]
     public function subscription_plans_relationship_works_correctly(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
 
         $relationship = $feature->subscriptionPlans();
 
@@ -44,21 +50,29 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function feature_can_be_attached_to_subscription_plans(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
-        $plan1 = SubscriptionPlan::factory()->create();
-        $plan2 = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan1 = $subscriptionPlanFactory->create();
+        $plan2 = $subscriptionPlanFactory->create();
 
-        $feature->subscriptionPlans()->attach([$plan1->id, $plan2->id]);
+        $featurePlans = $feature->subscriptionPlans();
+        $featurePlans->attach([$plan1->id, $plan2->id]);
 
-        $this->assertEquals(2, $feature->subscriptionPlans()->count());
-        $this->assertTrue($feature->subscriptionPlans->contains($plan1));
-        $this->assertTrue($feature->subscriptionPlans->contains($plan2));
+        $this->assertEquals(2, $featurePlans->count());
+        $this->assertTrue(
+            $feature->subscriptionPlans->contains($plan1),
+        );
+        $this->assertTrue(
+            $feature->subscriptionPlans->contains($plan2),
+        );
     }
 
     #[Test]
     public function generate_slug_creates_unique_slug(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create(['name' => 'Test Feature Name']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create(['name' => 'Test Feature Name']);
 
         $slug = $feature->generateSlug('Test Feature Name');
 
@@ -69,7 +83,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function generate_slug_handles_duplicate_names(): void
     {
-        SubscriptionPlanFeature::factory()->create(['slug' => 'test-feature']);
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $subscriptionPlanFeatureFactory->create(['slug' => 'test-feature']);
 
         $feature = new SubscriptionPlanFeature;
         $slug = $feature->generateSlug('Test Feature');
@@ -82,7 +97,8 @@ class SubscriptionPlanFeatureFeatureTest extends TestCase
     #[Test]
     public function feature_can_be_soft_deleted(): void
     {
-        $feature = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature = $subscriptionPlanFeatureFactory->create();
         $featureId = $feature->id;
 
         $feature->delete();

@@ -35,7 +35,7 @@
                     @foreach($category->pages as $page)
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 hover:shadow-md transition duration-200">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                            <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                                 class="hover:text-purple-600 dark:hover:text-purple-400 flex items-start">
                                 <i class="fas fa-file-alt text-purple-600 dark:text-purple-400 mr-2 mt-1 text-sm"></i>
                                 {{ $page->getName() }}
@@ -64,7 +64,7 @@
                             @foreach($page->children as $childPage)
                             @if($childPage->is_currently_published)
                             <div class="mb-2">
-                                <a href="{{ route('frontend.pages.show', ['slug' => $childPage->slug, 'locale' => app()->getLocale()]) }}"
+                                <a href="{{ route('frontend.pages.show', ['slug' => $childPage->slug, 'locale' => App::getLocale()]) }}"
                                     class="text-sm text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 flex items-center">
                                     <i class="fas fa-chevron-right mr-2 text-xs"></i>
                                     {{ $childPage->name }}
@@ -98,7 +98,7 @@
 
 <!-- Back to Homepage -->
 <div class="flex flex-wrap gap-4 justify-center mb-10 pt-10 border-t border-gray-200 dark:border-gray-700">
-    <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+    <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
         class="inline-flex items-center text-gray-600 dark:text-gray-300 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 hover:dark:bg-gray-700 font-medium rounded-sm transition-colors duration-200">
         <svg class="mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd"

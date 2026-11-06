@@ -61,9 +61,11 @@ final class BankAccountFactory extends Factory
      */
     public function ownedBy(Business|Contact $owner): static
     {
-        return $this->state(fn (): array => [
-            'business_id' => $owner instanceof Business ? $owner->id : null,
-            'contact_id' => $owner instanceof Contact ? $owner->id : null,
-        ]);
+        return $this->state(
+            fn (): array => [
+                'business_id' => $owner instanceof Business ? $owner->id : null,
+                'contact_id' => $owner instanceof Contact ? $owner->id : null,
+            ],
+        );
     }
 }

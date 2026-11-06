@@ -47,23 +47,34 @@ class UserService implements UserServiceInterface
 
     public function findUserById(int $id): ?UserDTO
     {
-        return $this->userReadRepository->findUserById(UserId::fromInt($id));
+        return $this->userReadRepository->findUserById(
+            UserId::fromInt($id),
+        );
     }
 
     public function create(array $data): UserDTO
     {
-        return $this->transactionBoundary->transaction(fn () => $this->userWriteRepository->create(UserWriteData::fromArray($data)),
+        return $this->transactionBoundary->transaction(
+            fn () => $this->userWriteRepository->create(
+                UserWriteData::fromArray($data),
+            ),
         );
     }
 
     public function updateProfile(int $userId, array $data): bool
     {
-        return $this->userWriteRepository->updateProfile(UserId::fromInt($userId), UserWriteData::fromArray($data));
+        return $this->userWriteRepository->updateProfile(
+            UserId::fromInt($userId),
+            UserWriteData::fromArray($data),
+        );
     }
 
     public function updatePassword(int $userId, string $password): bool
     {
-        return $this->userWriteRepository->updatePassword(UserId::fromInt($userId), UserPassword::fromPlainText($password));
+        return $this->userWriteRepository->updatePassword(
+            UserId::fromInt($userId),
+            UserPassword::fromPlainText($password),
+        );
     }
 
     /** {@inheritDoc} */

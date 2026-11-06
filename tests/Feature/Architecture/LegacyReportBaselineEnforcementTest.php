@@ -15,8 +15,14 @@ class LegacyReportBaselineEnforcementTest extends TestCase
     public function legacy_report_baseline_exists_and_has_expected_structure(): void
     {
         $path = base_path('architecture/baselines/legacy_report_latest.json');
-        $this->assertFileExists($path, 'Missing legacy_report_latest.json baseline. Generate via: docker exec INVOICE-php-fpm php artisan ddd:legacy-report --json --write-baseline and commit.');
-        $json = json_decode(file_get_contents($path), true);
+        $this->assertFileExists(
+            $path,
+            'Missing legacy_report_latest.json baseline. Generate via: docker exec INVOICE-php-fpm php artisan ddd:legacy-report --json --write-baseline and commit.',
+        );
+        $json = json_decode(
+            file_get_contents($path),
+            true,
+        );
         $this->assertIsArray($json, 'Invalid JSON structure in legacy_report_latest.json');
         $this->assertArrayHasKey(
             'counts',

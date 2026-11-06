@@ -39,19 +39,25 @@ final class DocumentPartyConstraintTest extends TestCase
     #[DataProvider('documents')]
     public function a_document_refers_only_to_a_business_and_contact_of_its_user(string $model): void
     {
-        $document = $model::factory()->create();
-        $ownContact = Contact::factory()->create(['user_id' => $document->user_id]);
+        $modelFactory = $model::factory();
+        $document = $modelFactory->create();
+        $contactFactory = Contact::factory();
+        $ownContact = $contactFactory->create(['user_id' => $document->user_id]);
 
-        $document->forceFill(['contact_id' => $ownContact->id])->save();
+        $document->forceFill(['contact_id' => $ownContact->id]);
+        $document->save();
 
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $this->assertChangeRefused(
             $document,
-            ['business_id' => Business::factory()->create()->id],
+            ['business_id' => $business->id],
             1452,
         );
+        $contact = $contactFactory->create();
         $this->assertChangeRefused(
             $document,
-            ['contact_id' => Contact::factory()->create()->id],
+            ['contact_id' => $contact->id],
             1452,
         );
         $this->assertDatabaseHas($document->getTable(), ['id' => $document->id, 'contact_id' => $ownContact->id]);
@@ -60,21 +66,32 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_invoice_account_belongs_to_the_invoice_business(): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
         $business = Business::findOrFail($invoice->business_id);
-        $ownAccount = BankAccount::factory()->ownedBy($business)->create();
-        $otherBusiness = Business::factory()->create(['user_id' => $invoice->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $ownAccount = $ownedFactory->create();
+        $businessFactory = Business::factory();
+        $otherBusiness = $businessFactory->create(['user_id' => $invoice->user_id]);
 
-        $invoice->forceFill(['bank_account_id' => $ownAccount->id])->save();
+        $invoice->forceFill(['bank_account_id' => $ownAccount->id]);
+        $invoice->save();
 
+        $ownedFactory = $bankAccountFactory->ownedBy($otherBusiness);
+        $otherAccount = $ownedFactory->create();
         $this->assertChangeRefused(
             $invoice,
-            ['bank_account_id' => BankAccount::factory()->ownedBy($otherBusiness)->create()->id],
+            ['bank_account_id' => $otherAccount->id],
             1452,
         );
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $otherAccount = $ownedFactory->create();
         $this->assertChangeRefused(
             $invoice,
-            ['bank_account_id' => BankAccount::factory()->ownedBy(Contact::factory()->create(['user_id' => $invoice->user_id]))->create()->id],
+            ['bank_account_id' => $otherAccount->id],
             1452,
         );
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'bank_account_id' => $ownAccount->id]);
@@ -83,21 +100,33 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_expense_account_belongs_to_the_expense_contact(): void
     {
-        $expense = Expense::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $expense->user_id]);
-        $ownAccount = BankAccount::factory()->ownedBy($contact)->create();
-        $otherContact = Contact::factory()->create(['user_id' => $expense->user_id]);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $expense->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $ownAccount = $ownedFactory->create();
+        $otherContact = $contactFactory->create(['user_id' => $expense->user_id]);
 
-        $expense->forceFill(['contact_id' => $contact->id, 'bank_account_id' => $ownAccount->id])->save();
+        $expense->forceFill(
+            ['contact_id' => $contact->id, 'bank_account_id' => $ownAccount->id],
+        );
+        $expense->save();
 
+        $ownedFactory = $bankAccountFactory->ownedBy($otherContact);
+        $otherAccount = $ownedFactory->create();
         $this->assertChangeRefused(
             $expense,
-            ['bank_account_id' => BankAccount::factory()->ownedBy($otherContact)->create()->id],
+            ['bank_account_id' => $otherAccount->id],
             1452,
         );
+        $business = Business::findOrFail($expense->business_id);
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $otherAccount = $ownedFactory->create();
         $this->assertChangeRefused(
             $expense,
-            ['bank_account_id' => BankAccount::factory()->ownedBy(Business::findOrFail($expense->business_id))->create()->id],
+            ['bank_account_id' => $otherAccount->id],
             1452,
         );
         $this->assertDatabaseHas('expenses', ['id' => $expense->id, 'bank_account_id' => $ownAccount->id]);
@@ -109,8 +138,14 @@ final class DocumentPartyConstraintTest extends TestCase
     #[Test]
     public function an_expense_without_a_contact_has_no_account_reference(): void
     {
-        $expense = Expense::factory()->create();
-        $account = BankAccount::factory()->ownedBy(Contact::factory()->create(['user_id' => $expense->user_id]))->create();
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create();
+        $bankAccountFactory = BankAccount::factory();
+        $contactFactory = Contact::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy(
+            $contactFactory->create(['user_id' => $expense->user_id]),
+        );
+        $account = $bankAccountFactory->create();
 
         $this->assertChangeRefused(
             $expense,
@@ -127,7 +162,13 @@ final class DocumentPartyConstraintTest extends TestCase
         array $attributes,
         int $mysqlErrorCode,
     ): void {
-        $this->assertRefused(fn () => $document->forceFill($attributes)->save(), $mysqlErrorCode);
+        $this->assertRefused(
+            function () use ($document, $attributes): void {
+                $document->forceFill($attributes);
+                $document->save();
+            },
+            $mysqlErrorCode,
+        );
         $document->refresh();
     }
 }

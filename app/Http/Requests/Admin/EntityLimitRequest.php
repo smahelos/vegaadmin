@@ -14,7 +14,9 @@ class EntityLimitRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow system configuration access
-        return backpack_auth()->check() && backpack_auth()->user()->can('can_configure_system');
+        $user = backpack_user();
+
+        return $user?->can('can_configure_system') === true;
     }
 
     /**
@@ -29,12 +31,15 @@ class EntityLimitRequest extends FormRequest
         // Get the current entity limit ID for updates
         $id = $this->get('id') ?? $this->route('id') ?? $this->route('entity_limit');
 
+        $permissionUnique = Rule::unique('entity_limits', 'permission_name');
+        $permissionUnique->ignore($id);
+
         return [
             'permission_name' => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('entity_limits', 'permission_name')->ignore($id),
+                $permissionUnique,
             ],
             'entity_type' => 'required|in:' . implode(',', $entityTypes),
             'metric_type' => 'required|in:' . implode(',', $metricTypes),

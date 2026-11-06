@@ -37,7 +37,9 @@ final class ProductNameTest extends TestCase
     public function too_long_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new ProductName(str_repeat('A', 256));
+        new ProductName(
+            str_repeat('A', 256),
+        );
     }
 
     #[Test]

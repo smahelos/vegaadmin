@@ -215,9 +215,21 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
             {
                 // Simplified period ranges for testing
                 return match ($periodType) {
-                    'daily' => [new DateTimeImmutable($reference->format('Y-m-d 00:00:00')), new DateTimeImmutable($reference->format('Y-m-d 23:59:59'))],
-                    'monthly' => [new DateTimeImmutable($reference->format('Y-m-01 00:00:00')), new DateTimeImmutable($reference->format('Y-m-t 23:59:59'))],
-                    'yearly' => [new DateTimeImmutable($reference->format('Y-01-01 00:00:00')), new DateTimeImmutable($reference->format('Y-12-31 23:59:59'))],
+                    'daily' => [new DateTimeImmutable(
+                        $reference->format('Y-m-d 00:00:00'),
+                    ), new DateTimeImmutable(
+                        $reference->format('Y-m-d 23:59:59'),
+                    )],
+                    'monthly' => [new DateTimeImmutable(
+                        $reference->format('Y-m-01 00:00:00'),
+                    ), new DateTimeImmutable(
+                        $reference->format('Y-m-t 23:59:59'),
+                    )],
+                    'yearly' => [new DateTimeImmutable(
+                        $reference->format('Y-01-01 00:00:00'),
+                    ), new DateTimeImmutable(
+                        $reference->format('Y-12-31 23:59:59'),
+                    )],
                     'lifetime' => [new DateTimeImmutable('1970-01-01 00:00:00'), new DateTimeImmutable('2100-12-31 23:59:59')],
                     default => throw new \InvalidArgumentException("Unsupported period type: $periodType"),
                 };
@@ -246,17 +258,20 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
     #[Test]
     public function guard_parameter_is_string_not_numeric_when_recording_usage(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // Create permission for web guard (service logic operates on default user guard)
         Permission::firstOrCreate(['name' => 'can_create_edit_invoice', 'guard_name' => 'web']);
         $user->givePermissionTo('can_create_edit_invoice');
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'daily',
-            'limit_value' => 10,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'daily',
+                'limit_value' => 10,
+            ],
+        );
 
         // Generic recordUsage replaces specialized recordInvoiceCreation
         $this->service->recordUsage(
@@ -276,6 +291,9 @@ class UniversalLimitServiceGuardFeatureTest extends TestCase
             1,
         );
         $this->assertTrue($result, 'Recording usage with string guard should succeed');
-        $this->assertFalse(is_numeric('web'), 'Guard "web" should not be numeric');
+        $this->assertFalse(
+            is_numeric('web'),
+            'Guard "web" should not be numeric',
+        );
     }
 }

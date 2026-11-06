@@ -20,13 +20,17 @@ final class AuthenticateSessionFeatureTest extends TestCase
     #[Test]
     public function admin_stays_logged_in_after_login(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole(Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK));
+        $userFactory = User::factory();
+        $admin = $userFactory->create();
+        $admin->assignRole(
+            Role::findByName(PermissionCatalog::ADMIN_ROLE, PermissionCatalog::BACKPACK),
+        );
 
-        $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password'])
-            ->assertRedirect();
+        $httpResponse = $this->post('/admin/login', ['email' => $admin->email, 'password' => 'password']);
+        $httpResponse->assertRedirect();
 
-        $this->get('/admin/dashboard')->assertOk();
+        $httpResponse = $this->get('/admin/dashboard');
+        $httpResponse->assertOk();
         $this->assertAuthenticatedAs($admin, PermissionCatalog::BACKPACK);
     }
 }

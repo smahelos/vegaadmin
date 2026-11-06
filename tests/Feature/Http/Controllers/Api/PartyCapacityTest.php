@@ -15,57 +15,85 @@ final class PartyCapacityTest extends TestCase
     #[Test]
     public function party_capacity_counts_only_the_owners_active_records(): void
     {
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole('frontend_user');
-        Contact::factory()->count(3)->create(['user_id' => $owner->id]);
-        Contact::factory()->archived()->create(['user_id' => $owner->id]);
-        Contact::factory()->create();
-        Business::factory()->create(['user_id' => $owner->id]);
-        Business::factory()->archived()->create(['user_id' => $owner->id]);
-        Business::factory()->create();
+        $contactFactory = Contact::factory();
+        $batchFactory = $contactFactory->count(3);
+        $batchFactory->create(['user_id' => $owner->id]);
+        $archivedContactFactory = $contactFactory->archived();
+        $archivedContactFactory->create(['user_id' => $owner->id]);
+        $contactFactory->create();
+        $businessFactory = Business::factory();
+        $businessFactory->create(['user_id' => $owner->id]);
+        $archivedBusinessFactory = $businessFactory->archived();
+        $archivedBusinessFactory->create(['user_id' => $owner->id]);
+        $businessFactory->create();
 
         $this->actingAs($owner, 'web');
-        $this->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('current_usage', 3)->assertJsonPath('limit', 16)
-            ->assertJsonPath('remaining_count', 13)->assertJsonPath('best_stats_period', 'lifetime');
-        $this->getJson('/api/uels/business/data')->assertOk()
-            ->assertJsonPath('current_usage', 1)->assertJsonPath('limit', 10)
-            ->assertJsonPath('remaining_count', 9);
-        $this->getJson('/api/uels')->assertOk()
-            ->assertJsonPath('entities.contact.current_usage', 3)
-            ->assertJsonPath('entities.business.current_usage', 1)
-            ->assertJsonMissingPath('entities.client')->assertJsonMissingPath('entities.supplier');
+        $httpResponse = $this->getJson('/api/uels/contact/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('current_usage', 3);
+        $httpResponse = $httpResponse->assertJsonPath('limit', 16);
+        $httpResponse = $httpResponse->assertJsonPath('remaining_count', 13);
+        $httpResponse->assertJsonPath('best_stats_period', 'lifetime');
+        $httpResponse = $this->getJson('/api/uels/business/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('current_usage', 1);
+        $httpResponse = $httpResponse->assertJsonPath('limit', 10);
+        $httpResponse->assertJsonPath('remaining_count', 9);
+        $httpResponse = $this->getJson('/api/uels');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('entities.contact.current_usage', 3);
+        $httpResponse = $httpResponse->assertJsonPath('entities.business.current_usage', 1);
+        $httpResponse = $httpResponse->assertJsonMissingPath('entities.client');
+        $httpResponse->assertJsonMissingPath('entities.supplier');
     }
 
     #[Test]
     public function full_capacity_is_reported_instead_of_unlimited_access(): void
     {
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole('frontend_user');
-        Contact::factory()->count(16)->create(['user_id' => $owner->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory = $contactFactory->count(16);
+        $contactFactory->create(['user_id' => $owner->id]);
 
-        $this->actingAs($owner, 'web')->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('current_usage', 16)->assertJsonPath('limit', 16)
-            ->assertJsonPath('remaining_count', 0)->assertJsonPath('is_at_limit', true);
+        $httpClient = $this->actingAs($owner, 'web');
+        $httpResponse = $httpClient->getJson('/api/uels/contact/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('current_usage', 16);
+        $httpResponse = $httpResponse->assertJsonPath('limit', 16);
+        $httpResponse = $httpResponse->assertJsonPath('remaining_count', 0);
+        $httpResponse->assertJsonPath('is_at_limit', true);
     }
 
     #[Test]
     public function capacity_requires_authentication_and_a_configured_limit(): void
     {
-        $this->getJson('/api/uels/contact/data')->assertUnauthorized();
-        $owner = User::factory()->create();
+        $httpResponse = $this->getJson('/api/uels/contact/data');
+        $httpResponse->assertUnauthorized();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->givePermissionTo('frontend.api.access');
-        $this->actingAs($owner, 'web')->getJson('/api/uels/contact/data')->assertOk()
-            ->assertJsonPath('limit', 0)->assertJsonPath('status', 'no_permission');
+        $httpClient = $this->actingAs($owner, 'web');
+        $httpResponse = $httpClient->getJson('/api/uels/contact/data');
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertJsonPath('limit', 0);
+        $httpResponse->assertJsonPath('status', 'no_permission');
     }
 
     #[Test]
     public function obsolete_entity_names_are_rejected(): void
     {
-        $owner = User::factory()->create();
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
         $owner->assignRole('frontend_user');
         $this->actingAs($owner, 'web');
-        $this->getJson('/api/uels/client/data')->assertStatus(400);
-        $this->getJson('/api/uels/supplier/data')->assertStatus(400);
+        $httpResponse = $this->getJson('/api/uels/client/data');
+        $httpResponse->assertStatus(400);
+        $httpResponse = $this->getJson('/api/uels/supplier/data');
+        $httpResponse->assertStatus(400);
     }
 }

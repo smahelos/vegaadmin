@@ -29,9 +29,9 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
             'frontend.can_create_business',
         ];
         foreach ($permissions as $permissionName) {
-            $permission = Permission::where('name', $permissionName)
-                ->where('guard_name', 'web')
-                ->first();
+            $permissionQuery = Permission::where('name', $permissionName);
+            $permissionQuery->where('guard_name', 'web');
+            $permission = $permissionQuery->first();
             if ($permission) {
                 $this->user->givePermissionTo($permission);
             }
@@ -44,21 +44,23 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // New creation should fail
         $newRequest = new InvoiceRequest;
         $newRequest->setMethod('POST');
-        $newRequest->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $newRequest->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->expectException(EntityLimitExceededException::class);
         $newRequest->authorize();
@@ -70,21 +72,23 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // But update should succeed even with 0 limit
         $updateRequest = new InvoiceRequest;
         $updateRequest->setMethod('PUT');
-        $updateRequest->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return 'existing-invoice-id';
-            }]; // Update
-        });
+        $updateRequest->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return 'existing-invoice-id';
+                }]; // Update
+            },
+        );
 
         $this->assertTrue($updateRequest->authorize());
     }
@@ -93,25 +97,29 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
     public function unlimited_access_bypasses_all_limits(): void
     {
         // Create a user with unlimited access
-        $unlimitedPermission = Permission::firstOrCreate(['name' => 'can_create_invoice_unlimited', 'guard_name' => 'backpack']);
+        $unlimitedPermission = Permission::firstOrCreate(
+            ['name' => 'can_create_invoice_unlimited', 'guard_name' => 'backpack'],
+        );
         $this->user->givePermissionTo($unlimitedPermission);
         $this->actingAs($this->user);
 
         // Set up a strict limit (0 new invoices allowed)
-        EntityLimit::factory()
-            ->forEntity('invoice')
-            ->countLimit(0)
-            ->monthly()
-            ->active()
-            ->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $limitFactory = $entityLimitFactory->forEntity('invoice');
+        $limitFactory = $limitFactory->countLimit(0);
+        $limitFactory = $limitFactory->monthly();
+        $limitFactory = $limitFactory->active();
+        $limitFactory->create();
 
         // Should succeed despite limit due to unlimited access
         $request = new InvoiceRequest;
-        $request->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $request->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->assertTrue($request->authorize());
     }
@@ -123,11 +131,13 @@ class UniversalEntityLimitSystemIntegrationTest extends TestCase
 
         // No limits configured - should always allow
         $request = new InvoiceRequest;
-        $request->setRouteResolver(function () {
-            return (object) ['parameter' => function ($name) {
-                return null;
-            }]; // New creation
-        });
+        $request->setRouteResolver(
+            function () {
+                return (object) ['parameter' => function ($name) {
+                    return null;
+                }]; // New creation
+            },
+        );
 
         $this->assertTrue($request->authorize());
     }

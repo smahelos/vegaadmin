@@ -4,7 +4,7 @@
 --}}
 @php
     $isActive = $filter->isActive();
-    $locale = app()->getLocale();
+    $locale = App::getLocale();
 @endphp
 
 <li filter-name="{{ $filter->name }}"

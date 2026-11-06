@@ -21,13 +21,19 @@ final class EloquentInvoiceListMapper
 {
     public static function toDTO(Invoice $invoice): InvoiceListDTO
     {
+        if ($invoice->issue_date === null || $invoice->due_in === null) {
+            $dueDate = null;
+        } else {
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($invoice->issue_date->toDateTimeImmutable(), $invoice->due_in);
+        }
+
         return new InvoiceListDTO(
             id: InvoiceId::fromInt($invoice->id),
             contactId: $invoice->contact_id === null ? null : ContactId::fromInt($invoice->contact_id),
             number: $invoice->invoice_vs,
             customerName: $invoice->customer_name,
             amount: Money::fromString((string) $invoice->payment_amount, $invoice->payment_currency),
-            dueDate: $invoice->issue_date === null || $invoice->due_in === null ? null : InvoiceDueDate::fromIssueDateAndDays($invoice->issue_date->toDateTimeImmutable(), $invoice->due_in),
+            dueDate: $dueDate,
             status: InvoiceStatus::tryFrom($invoice->paymentStatus?->slug ?? ''),
             paymentMethod: PaymentMethodCode::tryFrom($invoice->paymentMethod?->slug ?? ''),
             statusColor: $invoice->paymentStatus?->color ?: 'gray',

@@ -44,31 +44,44 @@ class UIServiceProvider extends ServiceProvider
     {
         try {
             // Set default language for all URLs
-            $locale = Session::get('locale', config('app.locale'));
+            $locale = Session::get(
+                'locale',
+                config('app.locale'),
+            );
 
             // Verify that locale is valid
-            if (! in_array($locale, config('app.available_locales', [
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ]))) {
+            if (
+                !in_array(
+                    $locale,
+                    config('app.available_locales', [
+                        'cs',
+                        'en',
+                        'de',
+                        'sk',
+                    ]),
+                )
+            ) {
                 $locale = config('app.fallback_locale', 'cs');
             }
 
             URL::defaults(['lang' => $locale]);
 
             // Share available languages with views
-            View::share('availableLocales', config('app.available_locales', [
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ]));
+            View::share(
+                'availableLocales',
+                config('app.available_locales', [
+                    'cs',
+                    'en',
+                    'de',
+                    'sk',
+                ]),
+            );
             View::share('currentLocale', $locale);
         } catch (\Exception $e) {
             // Log errors but continue execution
-            Log::error('Error initializing locale handling in UIServiceProvider: ' . $e->getMessage());
+            Log::error(
+                'Error initializing locale handling in UIServiceProvider: ' . $e->getMessage(),
+            );
         }
     }
 
@@ -78,9 +91,12 @@ class UIServiceProvider extends ServiceProvider
     private function registerBladeDirectives(): void
     {
         // Create custom directive for language switcher
-        Blade::directive('languageSwitch', function () {
-            return '<?php echo view("components.language-switcher")->render(); ?>';
-        });
+        Blade::directive(
+            'languageSwitch',
+            function () {
+                return '<?php echo view("components.language-switcher")->render(); ?>';
+            },
+        );
 
         // Additional UI-related Blade directives can be added here
     }

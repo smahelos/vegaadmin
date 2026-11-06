@@ -16,7 +16,9 @@ final class StatisticsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user('web')?->can('frontend.api.statistics') ?? false;
+        $user = $this->user('web');
+
+        return $user?->can('frontend.api.statistics') === true;
     }
 
     /**
@@ -56,12 +58,16 @@ final class StatisticsRequest extends FormRequest
 
     public function userId(): UserId
     {
-        return UserId::fromInt($this->user('web')->id);
+        return UserId::fromInt(
+            $this->user('web')->id,
+        );
     }
 
     public function filter(): StatisticsFilter
     {
-        $period = StatisticsPeriod::tryFrom((string) $this->validated('time_range')) ?? StatisticsPeriod::YEAR;
+        $period = StatisticsPeriod::tryFrom(
+            (string) $this->validated('time_range'),
+        ) ?? StatisticsPeriod::YEAR;
         $contactIds = array_map(
             static fn (int|string $id): ContactId => ContactId::fromInt((int) $id),
             $this->validated('contacts') ?? [],

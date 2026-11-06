@@ -37,7 +37,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_subscriptions_relationship(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $this->assertInstanceOf(HasMany::class, $plan->subscriptions());
     }
@@ -45,7 +46,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_features_relationship(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $this->assertInstanceOf(BelongsToMany::class, $plan->features());
     }
@@ -53,36 +55,50 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_can_attach_and_detach_features(): void
     {
-        $plan = SubscriptionPlan::factory()->create();
-        $feature1 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 1']);
-        $feature2 = SubscriptionPlanFeature::factory()->create(['name' => 'Feature 2']);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 1']);
+        $feature2 = $subscriptionPlanFeatureFactory->create(['name' => 'Feature 2']);
 
         // Attach features to plan
-        $plan->features()->attach([$feature1->id, $feature2->id]);
+        $planFeatures = $plan->features();
+        $planFeatures->attach([$feature1->id, $feature2->id]);
 
-        $this->assertEquals(2, $plan->features()->count());
-        $this->assertTrue($plan->features->contains($feature1));
-        $this->assertTrue($plan->features->contains($feature2));
+        $this->assertEquals(2, $planFeatures->count());
+        $this->assertTrue(
+            $plan->features->contains($feature1),
+        );
+        $this->assertTrue(
+            $plan->features->contains($feature2),
+        );
 
         // Detach one feature
-        $plan->features()->detach($feature1->id);
+        $planFeatures->detach($feature1->id);
 
         $plan->refresh();
-        $this->assertEquals(1, $plan->features()->count());
-        $this->assertFalse($plan->features->contains($feature1));
-        $this->assertTrue($plan->features->contains($feature2));
+        $this->assertEquals(1, $planFeatures->count());
+        $this->assertFalse(
+            $plan->features->contains($feature1),
+        );
+        $this->assertTrue(
+            $plan->features->contains($feature2),
+        );
     }
 
     #[Test]
     public function subscription_plan_active_scope_returns_only_active_plans(): void
     {
         // The scope reads the whole table; start without the seeded plans
-        SubscriptionPlan::query()->delete();
+        $subscriptionPlanQuery = SubscriptionPlan::query();
+        $subscriptionPlanQuery->delete();
 
-        SubscriptionPlan::factory()->create(['is_active' => true]);
-        SubscriptionPlan::factory()->create(['is_active' => false]);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlanFactory->create(['is_active' => true]);
+        $subscriptionPlanFactory->create(['is_active' => false]);
 
-        $activePlans = SubscriptionPlan::active()->get();
+        $planQuery = SubscriptionPlan::active();
+        $activePlans = $planQuery->get();
 
         $this->assertCount(1, $activePlans);
         $this->assertTrue($activePlans->first()->is_active);
@@ -91,8 +107,10 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_has_trial_period_returns_correct_boolean(): void
     {
-        $planWithTrial = SubscriptionPlan::factory()->create(['trial_days' => 14]);
-        $planWithoutTrial = SubscriptionPlan::factory()->withoutTrial()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $planWithTrial = $subscriptionPlanFactory->create(['trial_days' => 14]);
+        $withoutTrialFactory = $subscriptionPlanFactory->withoutTrial();
+        $planWithoutTrial = $withoutTrialFactory->create();
 
         $this->assertTrue($planWithTrial->hasTrialPeriod());
         $this->assertFalse($planWithoutTrial->hasTrialPeriod());
@@ -101,7 +119,8 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_formatted_price_includes_currency(): void
     {
-        $plan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'price' => 29.99,
             'currency' => 'EUR',
         ]);
@@ -116,12 +135,15 @@ class SubscriptionPlanFeatureTest extends TestCase
     #[Test]
     public function subscription_plan_casts_attributes_correctly(): void
     {
-        $plan = SubscriptionPlan::factory()->create([
-            'price' => '29.99',
-            'is_active' => '1',
-            'trial_days' => '14',
-            'billing_interval' => '1',
-        ]);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
+            [
+                'price' => '29.99',
+                'is_active' => '1',
+                'trial_days' => '14',
+                'billing_interval' => '1',
+            ],
+        );
 
         // Test that Laravel's casts work correctly
         $this->assertIsString($plan->price); // decimal cast returns string

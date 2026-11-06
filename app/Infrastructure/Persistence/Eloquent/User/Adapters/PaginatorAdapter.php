@@ -11,13 +11,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
  */
 class PaginatorAdapter
 {
-    /**
-     * @param  array{path?: string, query?: array<string,mixed>}  $options
-     */
-    public static function toLengthAwarePaginator(PaginatedResult $result, array $options = []): LengthAwarePaginator
+    public static function toLengthAwarePaginator(PaginatedResult $result): LengthAwarePaginator
     {
-        $path = $options['path'] ?? url()->current();
-        $query = $options['query'] ?? request()->query();
+        $urlGenerator = url();
+        $path = $urlGenerator->current();
+        $request = request();
+        $query = $request->query();
 
         return new LengthAwarePaginator(
             items: $result->items(),

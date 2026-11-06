@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Architecture;
 
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +15,7 @@ use Tests\TestCase;
  *  - db_facade_calls must NOT increase.
  *  - new_model_insts may increase by at most 2 absolute (allow small refactors) but should be avoided.
  */
-class ControllerThinnessEnforcementTest extends TestCase
+final class ControllerThinnessEnforcementTest extends TestCase
 {
     private array $baseline;
 
@@ -21,7 +23,10 @@ class ControllerThinnessEnforcementTest extends TestCase
     {
         parent::setUp();
         $path = base_path('architecture/baselines/controller_thinness_baseline.json');
-        $this->assertFileExists($path, 'Committed controller thinness baseline missing. Generate with: php artisan ddd:controller-thinness:baseline --save and copy storage/app/metrics/controller_thinness_baseline.json to architecture/baselines.');
+        $this->assertFileExists(
+            $path,
+            'Committed controller thinness baseline missing. Generate with: php artisan ddd:controller-thinness:baseline --save and copy storage/app/metrics/controller_thinness_baseline.json to architecture/baselines.',
+        );
         $json = json_decode(
             file_get_contents($path),
             true,
@@ -39,7 +44,7 @@ class ControllerThinnessEnforcementTest extends TestCase
 
         $violations = [];
         foreach ($current as $controller => $metrics) {
-            if (! isset($this->baseline[$controller])) {
+            if (!isset($this->baseline[$controller])) {
                 // New controller: allow but ensure starting point has no direct DB usage beyond acceptable
                 if ($metrics['eloquent_static_calls'] > 0 || $metrics['db_facade_calls'] > 0) {
                     $violations[] = "$controller: new controller introduces direct DB usage (eloquent_static_calls={$metrics['eloquent_static_calls']}, db_facade_calls={$metrics['db_facade_calls']})";
@@ -50,7 +55,10 @@ class ControllerThinnessEnforcementTest extends TestCase
             $base = $this->baseline[$controller];
 
             // LOC tolerance
-            $locLimit = min((int) ceil($base['loc'] * 1.15), $base['loc'] + 30);
+            $locLimit = min(
+                (int) ceil($base['loc'] * 1.15),
+                $base['loc'] + 30,
+            );
             if ($metrics['loc'] > $locLimit) {
                 $violations[] = "$controller: LOC {$metrics['loc']} exceeds limit $locLimit (baseline {$base['loc']})";
             }
@@ -68,8 +76,10 @@ class ControllerThinnessEnforcementTest extends TestCase
             }
         }
 
-        if (! empty($violations)) {
-            $this->fail("Controller thinness regressions detected:\n" . implode("\n", $violations));
+        if (!empty($violations)) {
+            $this->fail(
+                "Controller thinness regressions detected:\n" . implode("\n", $violations),
+            );
         }
         $this->assertTrue(true); // Passed
     }
@@ -77,7 +87,9 @@ class ControllerThinnessEnforcementTest extends TestCase
     private function analyzeControllers(): array
     {
         $dir = app_path('Http/Controllers');
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+        $rii = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir),
+        );
         $files = [];
         foreach ($rii as $file) {
             if ($file->isDir()) {
@@ -104,7 +116,15 @@ class ControllerThinnessEnforcementTest extends TestCase
 
     private function analyzeContent(string $content): array
     {
-        $lines = array_values(array_filter(array_map('rtrim', explode("\n", $content)), fn ($l) => $l !== ''));
+        $lines = array_values(
+            array_filter(
+                array_map(
+                    'rtrim',
+                    explode("\n", $content),
+                ),
+                fn ($l) => $l !== '',
+            ),
+        );
         $loc = count($lines);
         $eloquentStatic = 0;
         $methods = [
@@ -126,17 +146,49 @@ class ControllerThinnessEnforcementTest extends TestCase
         ];
         $model = $this->modelReferencePattern($content);
         foreach ($methods as $m) {
-            if (preg_match_all(
-                '/' . $model . '::' . $m . '\s*\(/',
-                $content,
-                $mm,
-            )) {
+            if (
+                preg_match_all(
+                    '/' . $model . '::' . $m . '\s*\(/',
+                    $content,
+                    $mm,
+                )
+            ) {
                 $eloquentStatic += count($mm[0]);
             }
         }
-        $newModel = preg_match_all('/new\s+' . $model . '\s*\(/', $content, $mm) ? count($mm[0]) : 0;
-        $dbFacade = preg_match_all('/DB::[A-Za-z_]+\s*\(/', $content, $mm) ? count($mm[0]) : 0;
-        $publicMethods = preg_match_all('/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/', $content, $mm) ? count($mm[0]) : 0;
+        if (
+            preg_match_all(
+                '/new\s+' . $model . '\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $newModel = count($mm[0]);
+        } else {
+            $newModel = 0;
+        }
+        if (
+            preg_match_all(
+                '/DB::[A-Za-z_]+\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $dbFacade = count($mm[0]);
+        } else {
+            $dbFacade = 0;
+        }
+        if (
+            preg_match_all(
+                '/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
+            $publicMethods = count($mm[0]);
+        } else {
+            $publicMethods = 0;
+        }
 
         return [
             'loc' => $loc,
@@ -154,17 +206,22 @@ class ControllerThinnessEnforcementTest extends TestCase
     {
         $pattern = '\\\\?App\\\\Models\\\\[A-Za-z0-9_]+';
 
-        if (preg_match_all(
-            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
-            $content,
-            $imports,
-            PREG_SET_ORDER,
-        )) {
+        if (
+            preg_match_all(
+                '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
+                $content,
+                $imports,
+                PREG_SET_ORDER,
+            )
+        ) {
             $names = array_map(
                 fn (array $import): string => $import[2] ?? $import[1],
                 $imports,
             );
-            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode('|', array_unique($names)) . ')';
+            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode(
+                '|',
+                array_unique($names),
+            ) . ')';
         }
 
         return '(?:' . $pattern . ')';

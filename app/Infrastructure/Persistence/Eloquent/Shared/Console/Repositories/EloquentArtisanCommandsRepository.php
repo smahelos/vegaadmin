@@ -21,11 +21,13 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
         $allCommands = Artisan::all();
         ksort($allCommands);
         foreach ($allCommands as $name => $command) {
-            if (substr(
-                $name,
-                0,
-                1,
-            ) === '_') {
+            if (
+                substr(
+                    $name,
+                    0,
+                    1,
+                ) === '_'
+            ) {
                 continue; // Skip internal underscore-prefixed commands
             }
             $description = $command->getDescription();
@@ -44,28 +46,33 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
     {
         $query = ArtisanCommand::where('is_active', true);
         if ($categorySlug !== null) {
-            $category = ArtisanCommandCategory::where('slug', $categorySlug)
-                ->where('is_active', true)
-                ->first();
-            if (! $category) {
+            $categoryQuery = ArtisanCommandCategory::where('slug', $categorySlug);
+            $categoryQuery->where('is_active', true);
+            $category = $categoryQuery->first();
+            if (!$category) {
                 return [];
             }
             $query->where('category_id', $category->id);
         }
-        $commands = $query->orderBy('sort_order')->orderBy('name')->get();
+        $query->orderBy('sort_order');
+        $query->orderBy('name');
+        $commands = $query->get();
         $result = [];
         foreach ($commands as $command) {
             $result[$command->command] = $command->name . ' - ' . $command->description;
         }
         if ($withoutCategory) {
             $allCommands = $this->getAllCommands();
-            $categorizedCommands = ArtisanCommand::pluck('command')->toArray();
+            $categorizedCommands = ArtisanCommand::pluck('command');
+            $categorizedCommands = $categorizedCommands->toArray();
             foreach ($allCommands as $command => $description) {
-                if (! in_array(
-                    $command,
-                    $categorizedCommands,
-                    true,
-                )) {
+                if (
+                    !in_array(
+                        $command,
+                        $categorizedCommands,
+                        true,
+                    )
+                ) {
                     $result[$command] = $description;
                 }
             }
@@ -82,7 +89,8 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
         if ($onlyActive) {
             $query->where('is_active', true);
         }
-        $categories = $query->orderBy('name')->get();
+        $query->orderBy('name');
+        $categories = $query->get();
         $result = [];
         foreach ($categories as $category) {
             $result[$category->slug] = $category->name;
@@ -98,11 +106,13 @@ class EloquentArtisanCommandsRepository implements ArtisanCommandsRepositoryInte
         $allCommands = Artisan::all();
         ksort($allCommands);
         foreach ($allCommands as $name => $command) {
-            if (substr(
-                $name,
-                0,
-                1,
-            ) === '_') {
+            if (
+                substr(
+                    $name,
+                    0,
+                    1,
+                ) === '_'
+            ) {
                 continue;
             }
             $commands[$name] = [

@@ -13,14 +13,6 @@ use PHPUnit\Framework\TestCase;
 final class MoneyTest extends TestCase
 {
     #[Test]
-    public function can_create_from_float(): void
-    {
-        $m = Money::fromFloat(123.45, 'USD');
-        $this->assertSame('123.45', $m->getAmount());
-        $this->assertSame('USD', $m->getCurrency());
-    }
-
-    #[Test]
     public function can_create_from_string(): void
     {
         $m = Money::fromString('0010.5000', 'EUR');
@@ -39,14 +31,14 @@ final class MoneyTest extends TestCase
     public function invalid_currency_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromFloat(10, 'EURO');
+        Money::fromString('10', 'EURO');
     }
 
     #[Test]
     public function negative_amount_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromFloat(-5, 'USD');
+        Money::fromString('-5', 'USD');
     }
 
     #[Test]
@@ -100,7 +92,9 @@ final class MoneyTest extends TestCase
         $sum = $a->add($b); // 11.0 -> normalized to 11
         $this->assertSame('11', $sum->getAmount());
 
-        $diff = $sum->subtract(Money::fromString('0.50', 'CZK')); // 10.5
+        $diff = $sum->subtract(
+            Money::fromString('0.50', 'CZK'),
+        ); // 10.5
         $this->assertSame('10.5', $diff->getAmount());
     }
 
@@ -110,8 +104,12 @@ final class MoneyTest extends TestCase
         $a = Money::fromString('10.50', 'USD');
         $b = Money::fromString('10.5', 'USD');
         $c = Money::fromString('10.50', 'EUR');
-        $this->assertTrue($a->equals($b));
-        $this->assertFalse($a->equals($c));
+        $this->assertTrue(
+            $a->equals($b),
+        );
+        $this->assertFalse(
+            $a->equals($c),
+        );
     }
 
     #[Test]
@@ -271,7 +269,8 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_decimal_quantity_keeps_the_cents(): void
     {
-        $line = Money::fromString('249.30', 'CZK')->multiplyBy('1.5');
+        $money = Money::fromString('249.30', 'CZK');
+        $line = $money->multiplyBy('1.5');
 
         $this->assertSame('373.95', $line->getAmount());
         $this->assertSame('CZK', $line->getCurrency());
@@ -281,29 +280,57 @@ final class MoneyTest extends TestCase
     public function multiply_by_tax_share_rounds_half_up_to_cents(): void
     {
         // 0.25 * 0.21 = 0.0525 -> 0.05; 0.10 * 0.21 = 0.021 -> 0.02; 0.50 * 0.21 = 0.105 -> 0.11
-        $this->assertSame('0.05', Money::fromString('0.25', 'CZK')->multiplyBy('0.21')->getAmount());
-        $this->assertSame('0.02', Money::fromString('0.10', 'CZK')->multiplyBy('0.21')->getAmount());
-        $this->assertSame('0.11', Money::fromString('0.50', 'CZK')->multiplyBy('0.21')->getAmount());
+        $money = Money::fromString('0.25', 'CZK');
+        $money = $money->multiplyBy('0.21');
+        $this->assertSame(
+            '0.05',
+            $money->getAmount(),
+        );
+        $money = Money::fromString('0.10', 'CZK');
+        $money = $money->multiplyBy('0.21');
+        $this->assertSame(
+            '0.02',
+            $money->getAmount(),
+        );
+        $money = Money::fromString('0.50', 'CZK');
+        $money = $money->multiplyBy('0.21');
+        $this->assertSame(
+            '0.11',
+            $money->getAmount(),
+        );
     }
 
     #[Test]
     public function multiply_by_zero_is_zero(): void
     {
-        $this->assertSame('0', Money::fromString('100', 'EUR')->multiplyBy('0')->getAmount());
-        $this->assertSame('0', Money::fromString('0', 'EUR')->multiplyBy('1.5')->getAmount());
+        $money = Money::fromString('100', 'EUR');
+        $money = $money->multiplyBy('0');
+        $this->assertSame(
+            '0',
+            $money->getAmount(),
+        );
+        $money = Money::fromString('0', 'EUR');
+        $money = $money->multiplyBy('1.5');
+        $this->assertSame(
+            '0',
+            $money->getAmount(),
+        );
     }
 
     #[Test]
     public function multiply_by_rejects_a_negative_or_malformed_factor(): void
     {
-        foreach ([
-            '-1',
-            '1,5',
-            '',
-            '1e3',
-        ] as $factor) {
+        foreach (
+            [
+                '-1',
+                '1,5',
+                '',
+                '1e3',
+            ] as $factor
+        ) {
             try {
-                Money::fromString('10', 'CZK')->multiplyBy($factor);
+                $money = Money::fromString('10', 'CZK');
+                $money->multiplyBy($factor);
                 $this->fail('Accepted factor ' . $factor);
             } catch (InvalidArgumentException) {
                 $this->addToAssertionCount(1);
@@ -315,8 +342,13 @@ final class MoneyTest extends TestCase
     public function convert_same_currency_returns_self_amount(): void
     {
         $m = Money::fromString('10.50', 'EUR');
-        $copy = $m->convertTo('EUR', $this->exchangeAt(null));
-        $this->assertTrue($m->equals($copy));
+        $copy = $m->convertTo(
+            'EUR',
+            $this->exchangeAt(null),
+        );
+        $this->assertTrue(
+            $m->equals($copy),
+        );
     }
 
     #[Test]
@@ -376,7 +408,11 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('0', 'EUR');
         $exchange = $this->exchangeAt(0.000000001);
-        $this->assertSame('0', $m->convertTo('USD', $exchange)->getAmount());
+        $converted = $m->convertTo('USD', $exchange);
+        $this->assertSame(
+            '0',
+            $converted->getAmount(),
+        );
     }
 
     #[Test]

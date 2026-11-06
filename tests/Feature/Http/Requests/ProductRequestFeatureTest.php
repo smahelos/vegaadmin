@@ -35,21 +35,26 @@ class ProductRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        $permission = Permission::where('name', 'frontend.can_create_edit_product')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
 
         // Create regular user with limited role
-        if (! $this->user) {
-            $this->user = User::factory()->create([
-                'email' => $this->faker->unique()->safeEmail,
-                'name' => $this->faker->name,
-            ]);
+        if (!$this->user) {
+            $userFactory = User::factory();
+            $this->user = $userFactory->create(
+                [
+                    'email' => $this->faker->unique()->safeEmail,
+                    'name' => $this->faker->name,
+                ],
+            );
         } else {
-            $this->user->update([
-                'email' => $this->faker->unique()->safeEmail,
-                'name' => $this->faker->name,
-            ]);
+            $this->user->update(
+                [
+                    'email' => $this->faker->unique()->safeEmail,
+                    'name' => $this->faker->name,
+                ],
+            );
         }
         $this->user->givePermissionTo($permission);
 
@@ -84,14 +89,18 @@ class ProductRequestFeatureTest extends TestCase
      */
     private function createTax(): Tax
     {
-        return Tax::factory()->create([
-            'name' => $this->faker->word,
-            'rate' => $this->faker->randomFloat(
-                2,
-                0,
-                30,
-            ),
-        ]);
+        $taxFactory = Tax::factory();
+
+        return $taxFactory->create(
+            [
+                'name' => $this->faker->word,
+                'rate' => $this->faker->randomFloat(
+                    2,
+                    0,
+                    30,
+                ),
+            ],
+        );
     }
 
     /**
@@ -99,7 +108,9 @@ class ProductRequestFeatureTest extends TestCase
      */
     private function createProductCategory(): ProductCategory
     {
-        return ProductCategory::factory()->create([
+        $productCategoryFactory = ProductCategory::factory();
+
+        return $productCategoryFactory->create([
             'name' => $this->faker->word,
         ]);
     }
@@ -111,7 +122,8 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($this->validProductData, $request->rules());
 
         $this->assertFalse($validator->fails());
-        $this->assertEmpty($validator->errors()->all());
+        $errors = $validator->errors();
+        $this->assertEmpty($errors->all());
     }
 
     #[Test]
@@ -135,7 +147,10 @@ class ProductRequestFeatureTest extends TestCase
         $method->invoke($productRequest);
 
         // Check that slug was generated
-        $this->assertEquals('test-product-name', $productRequest->input('slug'));
+        $this->assertEquals(
+            'test-product-name',
+            $productRequest->input('slug'),
+        );
     }
 
     #[Test]
@@ -155,7 +170,11 @@ class ProductRequestFeatureTest extends TestCase
             $validator = Validator::make($data, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} is missing");
-            $this->assertTrue($validator->errors()->has($field), "Should have error for missing {$field}");
+            $errors = $validator->errors();
+            $this->assertTrue(
+                $errors->has($field),
+                "Should have error for missing {$field}",
+            );
         }
     }
 
@@ -177,7 +196,10 @@ class ProductRequestFeatureTest extends TestCase
             $validator = Validator::make($data, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail for invalid price: {$invalidPrice}");
-            $this->assertTrue($validator->errors()->has('price'));
+            $errors = $validator->errors();
+            $this->assertTrue(
+                $errors->has('price'),
+            );
         }
     }
 
@@ -199,8 +221,14 @@ class ProductRequestFeatureTest extends TestCase
             $request = new ProductRequest;
             $validator = Validator::make($data, $request->rules());
 
-            $this->assertTrue($validator->fails(), "Validation should fail for invalid currency: {$invalidCurrency}");
-            $this->assertTrue($validator->errors()->has('currency'));
+            $this->assertTrue(
+                $validator->fails(),
+                "Validation should fail for invalid currency: {$invalidCurrency}",
+            );
+            $errors = $validator->errors();
+            $this->assertTrue(
+                $errors->has('currency'),
+            );
         }
     }
 
@@ -220,7 +248,10 @@ class ProductRequestFeatureTest extends TestCase
             $request = new ProductRequest;
             $validator = Validator::make($data, $request->rules());
 
-            $this->assertFalse($validator->fails(), "Validation should pass for valid currency: {$validCurrency}");
+            $this->assertFalse(
+                $validator->fails(),
+                "Validation should pass for valid currency: {$validCurrency}",
+            );
         }
     }
 
@@ -240,7 +271,10 @@ class ProductRequestFeatureTest extends TestCase
             $validator = Validator::make($data, $request->rules());
 
             $this->assertTrue($validator->fails(), "Validation should fail when {$field} exceeds max length");
-            $this->assertTrue($validator->errors()->has($field));
+            $errors = $validator->errors();
+            $this->assertTrue(
+                $errors->has($field),
+            );
         }
     }
 
@@ -254,7 +288,10 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('name'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('name'),
+        );
     }
 
     #[Test]
@@ -275,7 +312,10 @@ class ProductRequestFeatureTest extends TestCase
             $request = new ProductRequest;
             $validator = Validator::make($data, $request->rules());
 
-            $this->assertFalse($validator->fails(), "Validation should pass when nullable field {$field} is null");
+            $this->assertFalse(
+                $validator->fails(),
+                "Validation should pass when nullable field {$field} is null",
+            );
         }
     }
 
@@ -299,8 +339,14 @@ class ProductRequestFeatureTest extends TestCase
                 $request = new ProductRequest;
                 $validator = Validator::make($data, $request->rules());
 
-                $this->assertTrue($validator->fails(), "Validation should fail for invalid boolean in {$field}: " . json_encode($invalidBoolean));
-                $this->assertTrue($validator->errors()->has($field));
+                $this->assertTrue(
+                    $validator->fails(),
+                    "Validation should fail for invalid boolean in {$field}: " . json_encode($invalidBoolean),
+                );
+                $errors = $validator->errors();
+                $this->assertTrue(
+                    $errors->has($field),
+                );
             }
         }
     }
@@ -326,7 +372,10 @@ class ProductRequestFeatureTest extends TestCase
                 $request = new ProductRequest;
                 $validator = Validator::make($data, $request->rules());
 
-                $this->assertFalse($validator->fails(), "Validation should pass for valid boolean in {$field}: " . json_encode($validBoolean));
+                $this->assertFalse(
+                    $validator->fails(),
+                    "Validation should pass for valid boolean in {$field}: " . json_encode($validBoolean),
+                );
             }
         }
     }
@@ -342,7 +391,10 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('tax_id'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('tax_id'),
+        );
 
         // Test invalid category_id
         $data = $this->validProductData;
@@ -351,7 +403,10 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertTrue($validator->errors()->has('category_id'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('category_id'),
+        );
     }
 
     #[Test]
@@ -360,7 +415,13 @@ class ProductRequestFeatureTest extends TestCase
         Storage::fake('public');
 
         // Test valid image
-        $validImage = UploadedFile::fake()->image('product.jpg', 100, 100)->size(1000);
+        $fileFactory = UploadedFile::fake();
+        $fakeFile = $fileFactory->image(
+            'product.jpg',
+            100,
+            100,
+        );
+        $validImage = $fakeFile->size(1000);
         $data = $this->validProductData;
         $data['image'] = $validImage;
 
@@ -370,22 +431,33 @@ class ProductRequestFeatureTest extends TestCase
         $this->assertFalse($validator->fails(), 'Validation should pass with valid image');
 
         // Test image too large
-        $largeImage = UploadedFile::fake()->image('large.jpg', 1000, 1000)->size(3000); // > 2048 KB
+        $largeFile = $fileFactory->image(
+            'large.jpg',
+            1000,
+            1000,
+        );
+        $largeImage = $largeFile->size(3000); // > 2048 KB
         $data['image'] = $largeImage;
 
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with large image');
-        $this->assertTrue($validator->errors()->has('image'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('image'),
+        );
 
         // Test non-image file
-        $textFile = UploadedFile::fake()->create('document.txt', 100);
+        $textFile = $fileFactory->create('document.txt', 100);
         $data['image'] = $textFile;
 
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with non-image file');
-        $this->assertTrue($validator->errors()->has('image'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('image'),
+        );
     }
 
     #[Test]
@@ -421,10 +493,13 @@ class ProductRequestFeatureTest extends TestCase
     public function slug_uniqueness_validation(): void
     {
         // Create a product of the user with a specific slug
-        Product::factory()->create([
-            'slug' => 'existing-slug',
-            'user_id' => $this->user->id,
-        ]);
+        $productFactory = Product::factory();
+        $productFactory->create(
+            [
+                'slug' => 'existing-slug',
+                'user_id' => $this->user->id,
+            ],
+        );
 
         // Try to create another product of the same user with the same slug
         $data = $this->validProductData;
@@ -435,7 +510,10 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $request->rules());
 
         $this->assertTrue($validator->fails(), 'Validation should fail with duplicate slug');
-        $this->assertTrue($validator->errors()->has('slug'));
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('slug'),
+        );
     }
 
     #[Test]

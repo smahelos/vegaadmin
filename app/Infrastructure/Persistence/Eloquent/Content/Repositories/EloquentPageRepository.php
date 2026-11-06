@@ -7,6 +7,7 @@ use App\Application\Content\Contracts\PageWriteRepositoryInterface;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Eloquent implementation of Page read/write repositories.
@@ -16,7 +17,9 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
     public function findHomepageBySlugs(array $preferredSlugs, string $locale): ?Page
     {
         foreach ($preferredSlugs as $slug) {
-            $homepage = Page::published()->whereJsonContains("slug->{$locale}", $slug)->first();
+            $query = Page::published();
+            $query->whereJsonContains("slug->{$locale}", $slug);
+            $homepage = $query->first();
             if ($homepage) {
                 return $homepage;
             }
@@ -27,28 +30,37 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
 
     public function firstPublished(): ?Page
     {
-        return Page::published()->orderBy('sort_order')->orderBy('created_at')->first();
+        $query = Page::published();
+        $query->orderBy('sort_order');
+        $query->orderBy('created_at');
+
+        return $query->first();
     }
 
     public function findPublishedBySlug(string $slug, string $locale): ?Page
     {
-        return Page::published()
-            ->whereJsonContains("slug->{$locale}", $slug)
-            ->with([
-                'category',
-                'parent',
-                'children',
-            ])
-            ->first();
+        $query = Page::published();
+        $query->whereJsonContains("slug->{$locale}", $slug);
+        $query->with([
+            'category',
+            'parent',
+            'children',
+        ]);
+
+        return $query->first();
     }
 
     public function findPublishedById(int $id): ?Page
     {
-        return Page::published()->where('id', $id)->with([
+        $query = Page::published();
+        $query->where('id', $id);
+        $query->with([
             'category',
             'parent',
             'children',
-        ])->first();
+        ]);
+
+        return $query->first();
     }
 
     public function findPublishedBySlugInLocales(
@@ -60,11 +72,14 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
             if ($skipLocale !== null && $searchLocale === $skipLocale) {
                 continue;
             }
-            $page = Page::published()->whereJsonContains("slug->{$searchLocale}", $slug)->with([
+            $query = Page::published();
+            $query->whereJsonContains("slug->{$searchLocale}", $slug);
+            $query->with([
                 'category',
                 'parent',
                 'children',
-            ])->first();
+            ]);
+            $page = $query->first();
             if ($page) {
                 return $page;
             }
@@ -75,39 +90,61 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
 
     public function getRootNavigationPages(): Collection
     {
-        return Page::published()
-            ->rootPages()
-            ->with(['children' => function ($q): void {
-                $q->published()->orderBy('sort_order');
-            }])
-            ->orderBy('sort_order')
-            ->get();
+        $query = Page::published();
+        $query = $query->rootPages();
+        $query->with(
+            ['children' => function ($q): void {
+                $q = $q->published();
+                $q->orderBy('sort_order');
+            }],
+        );
+        $query->orderBy('sort_order');
+
+        return $query->get();
     }
 
     public function getPublishedByCategory(int $categoryId): Collection
     {
-        return Page::published()->byCategory($categoryId)->orderBy('sort_order')->get();
+        $query = Page::published();
+        $query = $query->byCategory($categoryId);
+        $query->orderBy('sort_order');
+
+        return $query->get();
     }
 
     public function findAnyById(int $id): ?Page
     {
-        return Page::where('id', $id)->first();
+        $query = Page::where('id', $id);
+
+        return $query->first();
     }
 
     public function getCategoriesWithPublishedPages(): Collection
     {
-        return PageCategory::whereHas('pages', fn ($q) => $q->published())
-            ->with(['pages' => fn ($q) => $q->published()->orderBy('sort_order')])
-            ->get();
+        $query = PageCategory::whereHas('pages', fn ($q) => $q->published());
+        $query->with(
+            ['pages' => function (HasMany $q): void {
+                $q = $q->published();
+                $q->orderBy('sort_order');
+            }],
+        );
+
+        return $query->get();
     }
 
     public function searchPublished(string $keyword, string $locale): Collection
     {
-        return Page::published()->where(function ($q) use ($keyword, $locale): void {
-            $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-                ->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"])
-                ->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
-        })->orderBy('sort_order')->get();
+        $query = Page::published();
+        $query->where(
+            function ($q) use ($keyword, $locale): void {
+                $q->whereRaw("JSON_EXTRACT(name, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
+                $q->orWhereRaw("JSON_EXTRACT(description, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
+                $q->orWhereRaw("JSON_EXTRACT(content, '$.\"{$locale}\"') LIKE ?", ["%{$keyword}%"]);
+            },
+        );
+        $query->orderBy('sort_order');
+
+        return $query->get();
     }
 
     public function getRelatedByCategory(
@@ -115,26 +152,34 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
         int $excludePageId,
         int $limit,
     ): Collection {
-        return Page::published()
-            ->byCategory($categoryId)
-            ->where(
-                'id',
-                '!=',
-                $excludePageId,
-            )
-            ->orderBy('sort_order')
-            ->limit($limit)
-            ->get();
+        $query = Page::published();
+        $query = $query->byCategory($categoryId);
+        $query->where(
+            'id',
+            '!=',
+            $excludePageId,
+        );
+        $query->orderBy('sort_order');
+        $query->limit($limit);
+
+        return $query->get();
     }
 
     public function getAllPublishedWithCategory(): Collection
     {
-        return Page::published()->with(['category'])->orderBy('sort_order')->orderBy('name')->get();
+        $query = Page::published();
+        $query->with(['category']);
+        $query->orderBy('sort_order');
+        $query->orderBy('name');
+
+        return $query->get();
     }
 
     public function findCategoryBySlug(string $slug, string $locale): ?PageCategory
     {
-        return PageCategory::whereJsonContains("slug->{$locale}", $slug)->first();
+        $query = PageCategory::whereJsonContains("slug->{$locale}", $slug);
+
+        return $query->first();
     }
 
     // public function updateById(int $id, array $attributes): bool

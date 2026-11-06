@@ -23,7 +23,7 @@ class PageApplicationService implements PageApplicationServiceInterface
      */
     private function resolvePublishedModelByDto(?PageDTO $dto): ?Page
     {
-        if (! $dto) {
+        if (!$dto) {
             return null;
         }
 
@@ -91,7 +91,10 @@ class PageApplicationService implements PageApplicationServiceInterface
     // we simply delegate to the model repo, as NO business logic is needed
     public function searchPages(string $keyword, ?string $locale = null): Collection
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
 
         return $this->pages->searchPublished($keyword, $locale);
     }
@@ -107,7 +110,7 @@ class PageApplicationService implements PageApplicationServiceInterface
     // we simply delegate to the model repo, as NO business logic is needed
     public function getRelatedPages(Page $page, int $limit = 5): Collection
     {
-        if (! $page->category_id) {
+        if (!$page->category_id) {
             return new Collection;
         }
 
@@ -129,7 +132,10 @@ class PageApplicationService implements PageApplicationServiceInterface
     // we simply delegate to the model repo, as NO business logic is needed
     public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
 
         return $this->pages->findCategoryBySlug($slug, $locale);
     }

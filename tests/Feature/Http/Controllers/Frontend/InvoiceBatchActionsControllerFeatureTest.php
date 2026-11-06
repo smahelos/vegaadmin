@@ -16,8 +16,11 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
+        Permission::firstOrCreate(
+            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+        );
         $this->user->givePermissionTo('frontend.can_create_edit_invoice');
         // Fake permissive limits using only generic methods (specialized removed in refactor)
         $fakeLimit = new class implements UniversalLimitServiceInterface
@@ -96,11 +99,19 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_template_and_mark_paid_success(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
-            'template' => 'modern',
-            'mark_paid' => true,
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $application = app();
+        $response = $this->post(
+            route(
+                'frontend.invoice.batch-actions',
+                ['locale' => $application->getLocale(), 'id' => $invoice->id],
+            ),
+            [
+                'template' => 'modern',
+                'mark_paid' => true,
+            ],
+        );
         $response->assertRedirect();
         $response->assertSessionHas('success');
     }
@@ -109,10 +120,18 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_invalid_template(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
-            'template' => 'invalid-template',
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $application = app();
+        $response = $this->post(
+            route(
+                'frontend.invoice.batch-actions',
+                ['locale' => $application->getLocale(), 'id' => $invoice->id],
+            ),
+            [
+                'template' => 'invalid-template',
+            ],
+        );
         $response->assertSessionHasErrors('template');
     }
 
@@ -120,10 +139,18 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
     public function batch_actions_rejects_unknown_status(): void
     {
         $this->actingAs($this->user);
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $response = $this->post(route('frontend.invoice.batch-actions', ['locale' => app()->getLocale(), 'id' => $invoice->id]), [
-            'status' => 'overdue',
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $application = app();
+        $response = $this->post(
+            route(
+                'frontend.invoice.batch-actions',
+                ['locale' => $application->getLocale(), 'id' => $invoice->id],
+            ),
+            [
+                'status' => 'overdue',
+            ],
+        );
         $response->assertSessionHasErrors('status');
     }
 }

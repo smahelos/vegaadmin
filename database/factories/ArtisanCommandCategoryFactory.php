@@ -27,10 +27,11 @@ class ArtisanCommandCategoryFactory extends Factory
     public function definition(): array
     {
         $name = $this->faker->words(2, true);
+        $unique = $this->faker->unique();
 
         return [
             'name' => $name,
-            'slug' => $this->faker->unique()->slug(),
+            'slug' => $unique->slug(),
             'description' => $this->faker->sentence(),
             'is_active' => $this->faker->boolean(85), // 85% chance of being active
         ];
@@ -61,9 +62,11 @@ class ArtisanCommandCategoryFactory extends Factory
      */
     public function withName(string $name): static
     {
-        return $this->state(fn (array $attributes) => [
-            'name' => $name,
-            'slug' => Str::slug($name),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'name' => $name,
+                'slug' => Str::slug($name),
+            ],
+        );
     }
 }

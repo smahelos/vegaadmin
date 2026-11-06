@@ -17,42 +17,59 @@ class EloquentProductMapper
      */
     public function toDto(Product $model): ProductDTO
     {
-        $tax = ($model->relationLoaded('tax') && $model->tax)
-            ? [
+        if ($model->relationLoaded('tax') && $model->tax) {
+            $tax = [
                 'id' => $model->tax->getAttribute('id'),
                 'name' => $model->tax->getAttribute('name'),
                 'rate' => $model->tax->getAttribute('rate'),
-            ]
-            : null;
-        $category = ($model->relationLoaded('category') && $model->category)
-            ? ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')]
-            : null;
+            ];
+        } else {
+            $tax = null;
+        }
+        if ($model->relationLoaded('category') && $model->category) {
+            $category = ['id' => $model->category->getAttribute('id'), 'name' => $model->category->getAttribute('name')];
+        } else {
+            $category = null;
+        }
 
         $currency = $model->getAttribute('currency') ?: 'CZK';
         $priceRaw = $model->getAttribute('price');
-        $priceMoney = $priceRaw !== null
-            ? Money::fromString((string) $priceRaw, strtoupper($currency))
-            : null;
+        if ($priceRaw !== null) {
+            $priceMoney = Money::fromString(
+                (string) $priceRaw,
+                strtoupper($currency),
+            );
+        } else {
+            $priceMoney = null;
+        }
 
-        return ProductDTO::fromArray([
-            'id' => $model->getAttribute('id'),
-            'name' => $model->getAttribute('name'),
-            'slug' => $model->getAttribute('slug'),
-            'image' => $model->getAttribute('image'),
-            'description' => $model->getAttribute('description'),
-            'price' => $priceMoney,
-            'tax_id' => $model->getAttribute('tax_id'),
-            'currency' => $model->getAttribute('currency'),
-            'unit' => $model->getAttribute('unit'),
-            'tax' => $tax,
-            'invoices' => $model->relationLoaded('invoices') ? $model->invoices->pluck('id')->all() : [],
-            'category_id' => $model->getAttribute('category_id'),
-            'category' => $category,
-            'is_default' => $model->getAttribute('is_default'),
-            'is_active' => $model->getAttribute('is_active'),
-            'user_id' => $model->getAttribute('user_id'),
-            'created_at' => $model->getAttribute('created_at'),
-            'updated_at' => $model->getAttribute('updated_at'),
-        ]);
+        $invoiceIds = [];
+        if ($model->relationLoaded('invoices')) {
+            $invoiceIds = $model->invoices->pluck('id');
+            $invoiceIds = $invoiceIds->all();
+        }
+
+        return ProductDTO::fromArray(
+            [
+                'id' => $model->getAttribute('id'),
+                'name' => $model->getAttribute('name'),
+                'slug' => $model->getAttribute('slug'),
+                'image' => $model->getAttribute('image'),
+                'description' => $model->getAttribute('description'),
+                'price' => $priceMoney,
+                'tax_id' => $model->getAttribute('tax_id'),
+                'currency' => $model->getAttribute('currency'),
+                'unit' => $model->getAttribute('unit'),
+                'tax' => $tax,
+                'invoices' => $invoiceIds,
+                'category_id' => $model->getAttribute('category_id'),
+                'category' => $category,
+                'is_default' => $model->getAttribute('is_default'),
+                'is_active' => $model->getAttribute('is_active'),
+                'user_id' => $model->getAttribute('user_id'),
+                'created_at' => $model->getAttribute('created_at'),
+                'updated_at' => $model->getAttribute('updated_at'),
+            ],
+        );
     }
 }

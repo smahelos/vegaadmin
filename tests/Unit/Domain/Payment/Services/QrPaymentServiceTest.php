@@ -55,7 +55,12 @@ final class QrPaymentServiceTest extends TestCase
         $this->assertStringStartsWith('data:image/png;base64,', $result);
 
         // Decode the base64 content to verify it contains the expected QR string
-        $qrContent = base64_decode(substr($result, strlen('data:image/png;base64,')));
+        $qrContent = base64_decode(
+            substr(
+                $result,
+                strlen('data:image/png;base64,'),
+            ),
+        );
         $this->assertStringContainsString('SPD*1.0', $qrContent);
         $this->assertStringContainsString('X-VS:20250001', $qrContent);
     }
@@ -80,7 +85,12 @@ final class QrPaymentServiceTest extends TestCase
         $this->assertIsString($result);
         $this->assertStringStartsWith('data:image/png;base64,', $result);
 
-        $qrContent = base64_decode(substr($result, strlen('data:image/png;base64,')));
+        $qrContent = base64_decode(
+            substr(
+                $result,
+                strlen('data:image/png;base64,'),
+            ),
+        );
         $this->assertStringContainsString('BCD', $qrContent);
         $this->assertStringContainsString('DE44500105175407324931', $qrContent);
     }

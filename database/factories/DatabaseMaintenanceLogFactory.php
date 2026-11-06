@@ -39,18 +39,21 @@ class DatabaseMaintenanceLogFactory extends Factory
         ];
 
         $startedAt = $this->faker->dateTimeBetween('-1 month', 'now');
-        $completedAt = $this->faker->optional(0.8)->dateTimeBetween($startedAt, 'now');
+        $optional = $this->faker->optional(0.8);
+        $completedAt = $optional->dateTimeBetween($startedAt, 'now');
 
         return [
             'task_type' => $this->faker->randomElement($taskTypes),
-            'table_name' => $this->faker->randomElement([
-                'users',
-                'invoices',
-                'businesses',
-                'contacts',
-                'products',
-                'expenses',
-            ]),
+            'table_name' => $this->faker->randomElement(
+                [
+                    'users',
+                    'invoices',
+                    'businesses',
+                    'contacts',
+                    'products',
+                    'expenses',
+                ],
+            ),
             'status' => $this->faker->randomElement($statuses),
             'description' => $this->faker->sentence(),
             'results' => [
@@ -72,11 +75,13 @@ class DatabaseMaintenanceLogFactory extends Factory
      */
     public function pending(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'pending',
-            'started_at' => null,
-            'completed_at' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'pending',
+                'started_at' => null,
+                'completed_at' => null,
+            ],
+        );
     }
 
     /**
@@ -84,11 +89,13 @@ class DatabaseMaintenanceLogFactory extends Factory
      */
     public function running(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'status' => 'running',
-            'started_at' => $this->faker->dateTimeBetween('-1 hour', 'now'),
-            'completed_at' => null,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'running',
+                'started_at' => $this->faker->dateTimeBetween('-1 hour', 'now'),
+                'completed_at' => null,
+            ],
+        );
     }
 
     /**
@@ -98,11 +105,13 @@ class DatabaseMaintenanceLogFactory extends Factory
     {
         $startedAt = $this->faker->dateTimeBetween('-1 day', '-1 hour');
 
-        return $this->state(fn (array $attributes) => [
-            'status' => 'completed',
-            'started_at' => $startedAt,
-            'completed_at' => $this->faker->dateTimeBetween($startedAt, 'now'),
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'completed',
+                'started_at' => $startedAt,
+                'completed_at' => $this->faker->dateTimeBetween($startedAt, 'now'),
+            ],
+        );
     }
 
     /**
@@ -112,14 +121,16 @@ class DatabaseMaintenanceLogFactory extends Factory
     {
         $startedAt = $this->faker->dateTimeBetween('-1 day', '-1 hour');
 
-        return $this->state(fn (array $attributes) => [
-            'status' => 'failed',
-            'started_at' => $startedAt,
-            'completed_at' => $this->faker->dateTimeBetween($startedAt, 'now'),
-            'results' => [
-                'error_message' => $this->faker->sentence(),
-                'error_code' => $this->faker->numberBetween(1000, 9999),
+        return $this->state(
+            fn (array $attributes) => [
+                'status' => 'failed',
+                'started_at' => $startedAt,
+                'completed_at' => $this->faker->dateTimeBetween($startedAt, 'now'),
+                'results' => [
+                    'error_message' => $this->faker->sentence(),
+                    'error_code' => $this->faker->numberBetween(1000, 9999),
+                ],
             ],
-        ]);
+        );
     }
 }

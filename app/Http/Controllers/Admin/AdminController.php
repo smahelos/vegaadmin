@@ -12,6 +12,7 @@ use App\Models\Subscription;
 use App\Models\User;
 use App\Models\UserActivitySummary;
 use Backpack\CRUD\app\Http\Controllers\AdminController as BackpackAdminController;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
@@ -31,7 +32,10 @@ final class AdminController extends BackpackAdminController
         // Get user activity statistics
         $userActivityStats = $this->getUserActivityStats();
 
-        return view(backpack_view('dashboard'), compact('dashboardStats', 'userActivityStats'));
+        return view(
+            backpack_view('dashboard'),
+            compact('dashboardStats', 'userActivityStats'),
+        );
     }
 
     /**
@@ -41,35 +45,42 @@ final class AdminController extends BackpackAdminController
     {
         try {
             $totalInvoices = Invoice::count();
-            $totalContacts = Contact::whereNull('archived_at')->count();
-            $totalBusinesses = Business::whereNull('archived_at')->count();
+            $query = Contact::whereNull('archived_at');
+            $totalContacts = $query->count();
+            $query = Business::whereNull('archived_at');
+            $totalBusinesses = $query->count();
             $totalProducts = Product::count();
             $totalUsers = User::count();
 
             // Recent activity (last 30 days)
-            $recentInvoices = Invoice::where(
+            $now = CarbonImmutable::now();
+            $query = Invoice::where(
                 'created_at',
                 '>=',
-                now()->subDays(30),
-            )->count();
-            $recentContacts = Contact::whereNull('archived_at')->where(
+                $now->subDays(30),
+            );
+            $recentInvoices = $query->count();
+            $query = Contact::whereNull('archived_at');
+            $query->where(
                 'created_at',
                 '>=',
-                now()->subDays(30),
-            )->count();
+                $now->subDays(30),
+            );
+            $recentContacts = $query->count();
 
             // Revenue statistics
             $totalRevenue = Invoice::sum('payment_amount');
-            $monthlyRevenue = Invoice::whereMonth('created_at', now()->month)
-                ->whereYear('created_at', now()->year)
-                ->sum('payment_amount');
+            $query = Invoice::whereMonth('created_at', $now->month);
+            $query->whereYear('created_at', $now->year);
+            $monthlyRevenue = $query->sum('payment_amount');
 
             // Subscriptions statistics
-            $subscriptions = Subscription::where(
+            $query = Subscription::where(
                 'status',
                 '=',
                 'active',
-            )->count();
+            );
+            $subscriptions = $query->count();
 
             return [
                 'total_invoices' => $totalInvoices,
@@ -109,38 +120,45 @@ final class AdminController extends BackpackAdminController
     {
         try {
             $totalUsers = UserActivitySummary::count();
-            $activeUsers = UserActivitySummary::where(
+            $query = UserActivitySummary::where(
                 'invoices_last_30_days',
                 '>',
                 0,
-            )->count();
-            $highActivityUsers = UserActivitySummary::where(
+            );
+            $activeUsers = $query->count();
+            $query = UserActivitySummary::where(
                 'invoices_last_30_days',
                 '>=',
                 20,
-            )->count();
-            $inactiveUsers = UserActivitySummary::where('invoices_last_30_days', 0)->count();
+            );
+            $highActivityUsers = $query->count();
+            $query = UserActivitySummary::where('invoices_last_30_days', 0);
+            $inactiveUsers = $query->count();
 
             // Get most active users in last 30 days
-            $mostActiveUsers = UserActivitySummary::where(
+            $query = UserActivitySummary::where(
                 'invoices_last_30_days',
                 '>',
                 0,
-            )
-                ->orderBy('invoices_last_30_days', 'desc')
-                ->limit(5)
-                ->get();
+            );
+            $query->orderBy('invoices_last_30_days', 'desc');
+            $query->limit(5);
+            $mostActiveUsers = $query->get();
 
             // Calculate activity distribution
+            $highQuery = UserActivitySummary::where(
+                'invoices_last_30_days',
+                '>=',
+                20,
+            );
+            $mediumQuery = UserActivitySummary::whereBetween('invoices_last_30_days', [5, 19]);
+            $lowQuery = UserActivitySummary::whereBetween('invoices_last_30_days', [1, 4]);
+            $inactiveQuery = UserActivitySummary::where('invoices_last_30_days', 0);
             $activityDistribution = [
-                'high' => UserActivitySummary::where(
-                    'invoices_last_30_days',
-                    '>=',
-                    20,
-                )->count(),
-                'medium' => UserActivitySummary::whereBetween('invoices_last_30_days', [5, 19])->count(),
-                'low' => UserActivitySummary::whereBetween('invoices_last_30_days', [1, 4])->count(),
-                'inactive' => UserActivitySummary::where('invoices_last_30_days', 0)->count(),
+                'high' => $highQuery->count(),
+                'medium' => $mediumQuery->count(),
+                'low' => $lowQuery->count(),
+                'inactive' => $inactiveQuery->count(),
             ];
 
             return [

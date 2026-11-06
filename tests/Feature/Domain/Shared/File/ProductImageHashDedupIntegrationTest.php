@@ -15,8 +15,10 @@ class ProductImageHashDedupIntegrationTest extends TestCase
     public function product_image_dedup_reuses_file(): void
     {
         Storage::fake('public');
-        $product = Product::factory()->create();
-        $file1 = UploadedFile::fake()->image(
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
+        $fileFactory = UploadedFile::fake();
+        $file1 = $fileFactory->image(
             'p1.png',
             220,
             220,
@@ -40,7 +42,8 @@ class ProductImageHashDedupIntegrationTest extends TestCase
         $path2 = $product->image;
 
         $this->assertSame($path1, $path2);
-        $record = FileHash::where('path', $path1)->first();
+        $fileHashQuery = FileHash::where('path', $path1);
+        $record = $fileHashQuery->first();
         $this->assertNotNull($record);
         $this->assertGreaterThanOrEqual(2, $record->ref_count);
     }

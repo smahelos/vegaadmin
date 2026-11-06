@@ -17,15 +17,22 @@ final class UserActivitySummaryFeatureTest extends TestCase
     #[Test]
     public function the_summary_counts_businesses_and_contacts_including_the_archive_and_one_off_invoices(): void
     {
-        $user = User::factory()->create();
-        $business = Business::factory()->create(['user_id' => $user->id]);
-        Business::factory()->archived()->create(['user_id' => $user->id]);
-        Contact::factory()->create(['user_id' => $user->id]);
-        Contact::factory()->archived()->create(['user_id' => $user->id]);
-        Invoice::factory()->create(['user_id' => $user->id, 'business_id' => $business->id]);
-        Contact::factory()->create();
-        Business::factory()->create();
-        $summary = UserActivitySummary::where('user_id', $user->id)->sole();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id]);
+        $archivedBusinessFactory = $businessFactory->archived();
+        $archivedBusinessFactory->create(['user_id' => $user->id]);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $user->id]);
+        $archivedContactFactory = $contactFactory->archived();
+        $archivedContactFactory->create(['user_id' => $user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'business_id' => $business->id]);
+        $contactFactory->create();
+        $businessFactory->create();
+        $userActivitySummaryQuery = UserActivitySummary::where('user_id', $user->id);
+        $summary = $userActivitySummaryQuery->sole();
 
         $this->assertSame($user->id, $summary->user->id);
         $this->assertSame(2, $summary->total_contacts);

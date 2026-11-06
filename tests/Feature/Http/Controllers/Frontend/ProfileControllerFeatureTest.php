@@ -20,7 +20,9 @@ class ProfileControllerFeatureTest extends TestCase
         parent::setUp();
         $this->setUpFrontendTestEnvironment();
         // Ensure user has necessary permission (frontend.can_create_edit_user) for UserRequest authorize
-        $perm = Permission::where('name', 'frontend.can_create_edit_user')->where('guard_name', 'web')->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_user');
+        $permissionQuery->where('guard_name', 'web');
+        $perm = $permissionQuery->first();
         if ($perm) {
             $this->user->givePermissionTo($perm);
         }
@@ -29,7 +31,9 @@ class ProfileControllerFeatureTest extends TestCase
     #[Test]
     public function edit_requires_authentication(): void
     {
-        $response = $this->get(route('frontend.profile.edit', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.profile.edit', ['locale' => 'cs']),
+        );
         $response->assertRedirect('/login');
     }
 
@@ -37,7 +41,9 @@ class ProfileControllerFeatureTest extends TestCase
     public function edit_displays_profile_form(): void
     {
         $this->actingAs($this->user, 'web');
-        $response = $this->get(route('frontend.profile.edit', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.profile.edit', ['locale' => 'cs']),
+        );
         $response->assertStatus(200);
         $response->assertViewIs('frontend.profile.edit');
         $response->assertViewHasAll([
@@ -59,14 +65,14 @@ class ProfileControllerFeatureTest extends TestCase
             'zip' => '12345',
             'country' => 'CZ',
         ];
-        $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), $payload);
+        $response = $this->put(
+            route('frontend.profile.update', ['locale' => 'cs']),
+            $payload,
+        );
 
-        // Debug: check for errors
-        if ($response->getSession()->has('errors')) {
-            dump('Session errors:', $response->getSession()->get('errors')->all());
-        }
-
-        $response->assertRedirect(route('frontend.profile.edit', ['locale' => 'cs']));
+        $response->assertRedirect(
+            route('frontend.profile.edit', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('success');
         $this->assertDatabaseHas('users', ['id' => $this->user->id, 'name' => 'Updated Name']);
     }
@@ -79,7 +85,10 @@ class ProfileControllerFeatureTest extends TestCase
             'name' => '',
             'email' => 'bad-email',
         ];
-        $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), $payload);
+        $response = $this->put(
+            route('frontend.profile.update', ['locale' => 'cs']),
+            $payload,
+        );
         // Profile form obsahuje len name a email fields, address fields nie sú required
         $response->assertSessionHasErrors(['name', 'email']);
     }
@@ -97,8 +106,13 @@ class ProfileControllerFeatureTest extends TestCase
             'password' => 'NewPassw0rd!',
             'password_confirmation' => 'NewPassw0rd!',
         ];
-        $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
-        $response->assertRedirect(route('frontend.profile.edit', ['locale' => 'cs']));
+        $response = $this->put(
+            route('frontend.profile.update.password', ['locale' => 'cs']),
+            $payload,
+        );
+        $response->assertRedirect(
+            route('frontend.profile.edit', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('success');
     }
 
@@ -114,7 +128,10 @@ class ProfileControllerFeatureTest extends TestCase
             'password' => 'AnotherPass123',
             'password_confirmation' => 'AnotherPass123',
         ];
-        $response = $this->put(route('frontend.profile.update.password', ['locale' => 'cs']), $payload);
+        $response = $this->put(
+            route('frontend.profile.update.password', ['locale' => 'cs']),
+            $payload,
+        );
         $response->assertSessionHasErrors(['current_password']);
     }
 
@@ -124,12 +141,15 @@ class ProfileControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
         $originalHash = $this->user->fresh()->password;
 
-        $this->put(route('frontend.profile.update', ['locale' => 'cs']), [
-            'name' => 'Updated Name',
-            'email' => $this->user->email,
-            'password' => 'new-password-123',
-            'password_confirmation' => 'new-password-123',
-        ]);
+        $this->put(
+            route('frontend.profile.update', ['locale' => 'cs']),
+            [
+                'name' => 'Updated Name',
+                'email' => $this->user->email,
+                'password' => 'new-password-123',
+                'password_confirmation' => 'new-password-123',
+            ],
+        );
 
         $this->assertSame($originalHash, $this->user->fresh()->password);
     }
@@ -138,16 +158,26 @@ class ProfileControllerFeatureTest extends TestCase
     public function failed_profile_update_does_not_show_the_exception_to_the_user(): void
     {
         $this->actingAs($this->user, 'web');
-        $this->mock(UserWriteRepositoryInterface::class)
-            ->shouldReceive('updateProfile')
-            ->andThrow(new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'));
+        $userWriteRepository = $this->mock(UserWriteRepositoryInterface::class);
+        $expectation = $userWriteRepository->shouldReceive('updateProfile');
+        $expectation->andThrow(
+            new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'),
+        );
 
-        $response = $this->put(route('frontend.profile.update', ['locale' => 'cs']), [
-            'name' => 'Updated Name',
-            'email' => $this->user->email,
-        ]);
+        $response = $this->put(
+            route('frontend.profile.update', ['locale' => 'cs']),
+            [
+                'name' => 'Updated Name',
+                'email' => $this->user->email,
+            ],
+        );
 
-        $errors = $response->getSession()->get('errors')->all();
-        $this->assertSame([__('users.messages.profile_update_failed')], $errors);
+        $session = $response->getSession();
+        $errorBag = $session->get('errors');
+        $errors = $errorBag->all();
+        $this->assertSame(
+            [__('users.messages.profile_update_failed')],
+            $errors,
+        );
     }
 }

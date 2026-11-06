@@ -16,10 +16,14 @@ class SessionController extends Controller
     public function checkAuth(Request $request): JsonResponse
     {
         if (Auth::check()) {
-            return response()->json(['status' => 'authenticated']);
+            $responseFactory = response();
+
+            return $responseFactory->json(['status' => 'authenticated']);
         }
 
-        return response()->json(['status' => 'unauthenticated'], 401);
+        $responseFactory = response();
+
+        return $responseFactory->json(['status' => 'unauthenticated'], 401);
     }
 
     /**
@@ -29,6 +33,8 @@ class SessionController extends Controller
     {
         Session::migrate(true);
 
-        return response()->json(['status' => 'session_refreshed']);
+        $responseFactory = response();
+
+        return $responseFactory->json(['status' => 'session_refreshed']);
     }
 }

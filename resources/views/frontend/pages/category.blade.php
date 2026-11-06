@@ -11,7 +11,7 @@
             <nav class="mb-4" aria-label="{{ __('pages.breadcrumbs') }}">
                 <ol class="flex items-center space-x-1 text-sm text-gray-500 dark:text-gray-400">
                     <li>
-                        <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
                             class="hover:text-purple-600 dark:hover:text-purple-400">
                             {{ __('pages.homepage') }}
                         </a>
@@ -48,7 +48,7 @@
                 @endif
                 <div class="p-6">
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                             class="hover:text-purple-600 dark:hover:text-purple-400">
                             {{ $page->getName() }}
                         </a>
@@ -65,7 +65,7 @@
                             {{ $page->created_at->format('d.m.Y') }}
                         </div>
 
-                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.pages.show', ['slug' => $page->getSlug(), 'locale' => App::getLocale()]) }}"
                             class="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                             {{ __('pages.read_more') }}
                             <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -102,7 +102,7 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                 @foreach($navigationPages as $navPage)
                 @if($navPage->category && $navPage->category->id !== $category->id)
-                <a href="{{ route('frontend.pages.category', ['categoryId' => $navPage->category->id, 'locale' => app()->getLocale()]) }}"
+                <a href="{{ route('frontend.pages.category', ['categoryId' => $navPage->category->id, 'locale' => App::getLocale()]) }}"
                     class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition duration-200">
                     <div class="text-purple-600 dark:text-purple-400 mb-2">
                         <i class="fas fa-folder text-2xl"></i>
@@ -119,7 +119,7 @@
 
         <!-- Back to Homepage -->
         <div class="text-center mt-8">
-            <a href="{{ route('home', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('home', ['locale' => App::getLocale()]) }}"
                 class="inline-flex items-center text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-medium">
                 <svg class="mr-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path fill-rule="evenodd"

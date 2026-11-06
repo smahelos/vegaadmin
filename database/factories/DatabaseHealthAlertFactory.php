@@ -24,14 +24,18 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function definition(): array
     {
+        $optional = $this->faker->optional(0.7);
+
         return [
-            'alert_type' => $this->faker->randomElement([
-                'memory',
-                'disk',
-                'cpu',
-                'connections',
-                'slow_queries',
-            ]),
+            'alert_type' => $this->faker->randomElement(
+                [
+                    'memory',
+                    'disk',
+                    'cpu',
+                    'connections',
+                    'slow_queries',
+                ],
+            ),
             'severity' => $this->faker->randomElement([
                 'info',
                 'warning',
@@ -57,7 +61,7 @@ class DatabaseHealthAlertFactory extends Factory
                 ]),
             ],
             'resolved' => $this->faker->boolean(),
-            'resolved_at' => $this->faker->optional(0.7)->dateTimeBetween('-30 days'),
+            'resolved_at' => $optional->dateTimeBetween('-30 days'),
         ];
     }
 
@@ -66,26 +70,28 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function critical(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'severity' => 'critical',
-                'resolved' => false,
-                'resolved_at' => null,
-                'metric_data' => [
-                    'value' => $this->faker->randomFloat(
-                        2,
-                        80,
-                        100,
-                    ),
-                    'threshold' => $this->faker->randomFloat(
-                        2,
-                        50,
-                        80,
-                    ),
-                    'unit' => '%',
-                ],
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'severity' => 'critical',
+                    'resolved' => false,
+                    'resolved_at' => null,
+                    'metric_data' => [
+                        'value' => $this->faker->randomFloat(
+                            2,
+                            80,
+                            100,
+                        ),
+                        'threshold' => $this->faker->randomFloat(
+                            2,
+                            50,
+                            80,
+                        ),
+                        'unit' => '%',
+                    ],
+                ];
+            },
+        );
     }
 
     /**
@@ -93,24 +99,26 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function warning(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'severity' => 'warning',
-                'metric_data' => [
-                    'value' => $this->faker->randomFloat(
-                        2,
-                        60,
-                        80,
-                    ),
-                    'threshold' => $this->faker->randomFloat(
-                        2,
-                        50,
-                        70,
-                    ),
-                    'unit' => '%',
-                ],
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'severity' => 'warning',
+                    'metric_data' => [
+                        'value' => $this->faker->randomFloat(
+                            2,
+                            60,
+                            80,
+                        ),
+                        'threshold' => $this->faker->randomFloat(
+                            2,
+                            50,
+                            70,
+                        ),
+                        'unit' => '%',
+                    ],
+                ];
+            },
+        );
     }
 
     /**
@@ -118,25 +126,27 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function info(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'severity' => 'info',
-                'resolved' => $this->faker->boolean(80), // 80% chance of being resolved
-                'metric_data' => [
-                    'value' => $this->faker->randomFloat(
-                        2,
-                        30,
-                        60,
-                    ),
-                    'threshold' => $this->faker->randomFloat(
-                        2,
-                        40,
-                        70,
-                    ),
-                    'unit' => '%',
-                ],
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'severity' => 'info',
+                    'resolved' => $this->faker->boolean(80), // 80% chance of being resolved
+                    'metric_data' => [
+                        'value' => $this->faker->randomFloat(
+                            2,
+                            30,
+                            60,
+                        ),
+                        'threshold' => $this->faker->randomFloat(
+                            2,
+                            40,
+                            70,
+                        ),
+                        'unit' => '%',
+                    ],
+                ];
+            },
+        );
     }
 
     /**
@@ -144,12 +154,14 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function unresolved(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'resolved' => false,
-                'resolved_at' => null,
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'resolved' => false,
+                    'resolved_at' => null,
+                ];
+            },
+        );
     }
 
     /**
@@ -157,12 +169,14 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function resolved(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'resolved' => true,
-                'resolved_at' => $this->faker->dateTimeBetween('-30 days'),
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'resolved' => true,
+                    'resolved_at' => $this->faker->dateTimeBetween('-30 days'),
+                ];
+            },
+        );
     }
 
     /**
@@ -170,21 +184,23 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function memory(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'alert_type' => 'memory',
-                'message' => 'High memory usage detected',
-                'metric_data' => [
-                    'value' => $this->faker->randomFloat(
-                        2,
-                        70,
-                        95,
-                    ),
-                    'threshold' => 80,
-                    'unit' => '%',
-                ],
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'alert_type' => 'memory',
+                    'message' => 'High memory usage detected',
+                    'metric_data' => [
+                        'value' => $this->faker->randomFloat(
+                            2,
+                            70,
+                            95,
+                        ),
+                        'threshold' => 80,
+                        'unit' => '%',
+                    ],
+                ];
+            },
+        );
     }
 
     /**
@@ -192,20 +208,22 @@ class DatabaseHealthAlertFactory extends Factory
      */
     public function disk(): Factory
     {
-        return $this->state(function (array $attributes) {
-            return [
-                'alert_type' => 'disk',
-                'message' => 'High disk usage detected',
-                'metric_data' => [
-                    'value' => $this->faker->randomFloat(
-                        2,
-                        70,
-                        95,
-                    ),
-                    'threshold' => 85,
-                    'unit' => '%',
-                ],
-            ];
-        });
+        return $this->state(
+            function (array $attributes) {
+                return [
+                    'alert_type' => 'disk',
+                    'message' => 'High disk usage detected',
+                    'metric_data' => [
+                        'value' => $this->faker->randomFloat(
+                            2,
+                            70,
+                            95,
+                        ),
+                        'threshold' => 85,
+                        'unit' => '%',
+                    ],
+                ];
+            },
+        );
     }
 }

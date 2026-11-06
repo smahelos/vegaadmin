@@ -18,7 +18,10 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
 {
     public function findByIdForUser(ExpenseId $id, UserId $userId): ?ExpenseDTO
     {
-        $expense = Expense::query()->whereKey($id->value)->where('user_id', $userId->toInt())->first();
+        $query = Expense::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $userId->toInt());
+        $expense = $query->first();
 
         return $expense === null ? null : EloquentExpenseMapper::toDTO($expense);
     }
@@ -29,7 +32,16 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
         DocumentParties $parties,
         array $attachments,
     ): ExpenseDTO {
-        return EloquentExpenseMapper::toDTO(Expense::create(EloquentExpenseMapper::toAttributes($userId, $data, $parties, $attachments)));
+        return EloquentExpenseMapper::toDTO(
+            Expense::create(
+                EloquentExpenseMapper::toAttributes(
+                    $userId,
+                    $data,
+                    $parties,
+                    $attachments,
+                ),
+            ),
+        );
     }
 
     public function update(
@@ -39,8 +51,19 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
         DocumentParties $parties,
         array $attachments,
     ): ExpenseDTO {
-        $expense = Expense::query()->whereKey($id->value)->where('user_id', $userId->toInt())->firstOrFail();
-        $expense->fill(EloquentExpenseMapper::toAttributes($userId, $data, $parties, $attachments))->save();
+        $query = Expense::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $userId->toInt());
+        $expense = $query->firstOrFail();
+        $expense->fill(
+            EloquentExpenseMapper::toAttributes(
+                $userId,
+                $data,
+                $parties,
+                $attachments,
+            ),
+        );
+        $expense->save();
 
         return EloquentExpenseMapper::toDTO($expense);
     }

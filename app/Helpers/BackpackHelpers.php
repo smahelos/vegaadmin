@@ -5,7 +5,7 @@ use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Support\Facades\Auth;
 
-if (! function_exists('backpack_auth')) {
+if (!function_exists('backpack_auth')) {
     /**
      * Resolve the configured Backpack auth guard instance.
      */
@@ -15,7 +15,7 @@ if (! function_exists('backpack_auth')) {
     }
 }
 
-if (! function_exists('backpack_guard_name')) {
+if (!function_exists('backpack_guard_name')) {
     /**
      * Determine the guard name used for Backpack (falls back to auth default if unset).
      */
@@ -25,7 +25,7 @@ if (! function_exists('backpack_guard_name')) {
     }
 }
 
-if (! function_exists('backpack_user')) {
+if (!function_exists('backpack_user')) {
     /**
      * Retrieve the currently authenticated Backpack user model.
      *
@@ -33,11 +33,13 @@ if (! function_exists('backpack_user')) {
      */
     function backpack_user(): ?User
     {
-        return backpack_auth()->user();
+        $auth = backpack_auth();
+
+        return $auth->user();
     }
 }
 
-if (! function_exists('backpack_url')) {
+if (!function_exists('backpack_url')) {
     /**
      * Build a URL under the Backpack route prefix.
      *
@@ -56,7 +58,7 @@ if (! function_exists('backpack_url')) {
     }
 }
 
-if (! function_exists('backpack_pro')) {
+if (!function_exists('backpack_pro')) {
     /**
      * Indicate whether Backpack Pro (or extended feature set) is enabled.
      * Placeholder always returns true; adjust when feature gating is introduced.

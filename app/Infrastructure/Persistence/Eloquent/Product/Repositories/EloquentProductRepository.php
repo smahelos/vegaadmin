@@ -20,11 +20,13 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function findByIdAny(int $id): ?Product
     {
-        return Product::with([
+        $query = Product::with([
             'category',
             'tax',
             'invoices',
-        ])->find($id);
+        ]);
+
+        return $query->find($id);
     }
 
     /**
@@ -32,16 +34,16 @@ class EloquentProductRepository implements ProductRepositoryInterface
      */
     public function findByIdForUserInt(int $id, int $userId): ?Product
     {
-        $product = Product::where('id', $id)
-            ->where('user_id', $userId)
-            ->with([
-                'category',
-                'tax',
-                'invoices',
-            ])
-            ->first();
+        $query = Product::where('id', $id);
+        $query->where('user_id', $userId);
+        $query->with([
+            'category',
+            'tax',
+            'invoices',
+        ]);
+        $product = $query->first();
 
-        if (! $product) {
+        if (!$product) {
             throw new ModelNotFoundException('Product not found for user.');
         }
 
@@ -50,7 +52,9 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function getUserProductCountInt(int $userId): int
     {
-        return Product::where('user_id', $userId)->count();
+        $query = Product::where('user_id', $userId);
+
+        return $query->count();
     }
 
     public function updateById(int $id, array $data): Product
@@ -63,6 +67,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function deleteById(int $id): void
     {
-        Product::where('id', $id)->delete();
+        $query = Product::where('id', $id);
+        $query->delete();
     }
 }

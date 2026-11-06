@@ -34,16 +34,29 @@ class StatusRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
 
-        $this->statusCategory = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $this->statusCategory = $statusCategoryFactory->create();
 
         // Define test routes
-        Route::post('/test-status', function (StatusRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-status',
+            function (StatusRequest $request) {
+                $responseFactory = response();
 
-        Route::put('/test-status/{id}', function (StatusRequest $request, $id) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
+
+        $route = Route::put(
+            '/test-status/{id}',
+            function (StatusRequest $request, $id) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     /**
@@ -158,10 +171,13 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create existing status
-        $existingStatus = Status::factory()->create([
-            'slug' => 'existing-slug',
-            'category_id' => $this->statusCategory->id,
-        ]);
+        $statusFactory = Status::factory();
+        $existingStatus = $statusFactory->create(
+            [
+                'slug' => 'existing-slug',
+                'category_id' => $this->statusCategory->id,
+            ],
+        );
 
         $invalidData = [
             'name' => 'Test Status',
@@ -183,10 +199,13 @@ class StatusRequestFeatureTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $status = Status::factory()->create([
-            'slug' => 'test-slug',
-            'category_id' => $this->statusCategory->id,
-        ]);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(
+            [
+                'slug' => 'test-slug',
+                'category_id' => $this->statusCategory->id,
+            ],
+        );
 
         $updateData = [
             'name' => 'Updated Status Name',
@@ -226,7 +245,8 @@ class StatusRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create user without admin permissions
-        $unauthorizedUser = User::factory()->create();
+        $userFactory = User::factory();
+        $unauthorizedUser = $userFactory->create();
         $this->actingAs($unauthorizedUser, 'backpack');
 
         $validData = [
@@ -330,9 +350,15 @@ class StatusRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Temporary route to capture generated slug
-        Route::post('/test-status-slug', function (StatusRequest $request) {
-            return response()->json(['slug' => $request->slug]);
-        })->middleware('web');
+        $route = Route::post(
+            '/test-status-slug',
+            function (StatusRequest $request) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['slug' => $request->slug]);
+            },
+        );
+        $route->middleware('web');
 
         $data = [
             'name' => 'My Custom Status Name',
@@ -343,6 +369,9 @@ class StatusRequestFeatureTest extends TestCase
         $response = $this->postJson('/test-status-slug', $data);
         $response->assertStatus(200);
         $expected = Str::slug($data['name']);
-        $this->assertEquals($expected, $response->json('slug'));
+        $this->assertEquals(
+            $expected,
+            $response->json('slug'),
+        );
     }
 }

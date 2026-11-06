@@ -24,18 +24,24 @@ class ArchivePolicyFactory extends Factory
      */
     public function definition(): array
     {
+        $faker = fake();
+        $unique = $faker->unique();
+        $optional = $faker->optional(0.6);
+
         return [
-            'table_name' => 'test_table_' . fake()->unique()->randomNumber(6),
-            'retention_months' => fake()->numberBetween(12, 84), // 1-7 years
-            'date_column' => fake()->randomElement([
-                'created_at',
-                'updated_at',
-                'deleted_at',
-                'archived_at',
-            ]),
-            'enabled' => fake()->boolean(80), // 80% chance of being enabled
-            'last_archived_at' => fake()->optional(0.6)->dateTimeBetween('-1 year', 'now'),
-            'records_archived' => fake()->numberBetween(0, 10000),
+            'table_name' => 'test_table_' . $unique->randomNumber(6),
+            'retention_months' => $faker->numberBetween(12, 84), // 1-7 years
+            'date_column' => $faker->randomElement(
+                [
+                    'created_at',
+                    'updated_at',
+                    'deleted_at',
+                    'archived_at',
+                ],
+            ),
+            'enabled' => $faker->boolean(80), // 80% chance of being enabled
+            'last_archived_at' => $optional->dateTimeBetween('-1 year', 'now'),
+            'records_archived' => $faker->numberBetween(0, 10000),
         ];
     }
 
@@ -64,10 +70,12 @@ class ArchivePolicyFactory extends Factory
      */
     public function neverRun(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'last_archived_at' => null,
-            'records_archived' => 0,
-        ]);
+        return $this->state(
+            fn (array $attributes) => [
+                'last_archived_at' => null,
+                'records_archived' => 0,
+            ],
+        );
     }
 
     /**
@@ -75,9 +83,15 @@ class ArchivePolicyFactory extends Factory
      */
     public function recentlyRun(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'last_archived_at' => fake()->dateTimeBetween('-1 week', 'now'),
-            'records_archived' => fake()->numberBetween(100, 5000),
-        ]);
+        return $this->state(
+            function (): array {
+                $faker = fake();
+
+                return [
+                    'last_archived_at' => $faker->dateTimeBetween('-1 week', 'now'),
+                    'records_archived' => $faker->numberBetween(100, 5000),
+                ];
+            },
+        );
     }
 }

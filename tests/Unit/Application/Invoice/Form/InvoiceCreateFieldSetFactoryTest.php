@@ -21,7 +21,13 @@ final class InvoiceCreateFieldSetFactoryTest extends TestCase
         );
 
         $fields = $set->toArray();
-        $this->assertGreaterThan(5, count($fields));
-        $this->assertContains('invoice_vs', array_column($fields, 'name'));
+        $this->assertGreaterThan(
+            5,
+            count($fields),
+        );
+        $this->assertContains(
+            'invoice_vs',
+            array_column($fields, 'name'),
+        );
     }
 }

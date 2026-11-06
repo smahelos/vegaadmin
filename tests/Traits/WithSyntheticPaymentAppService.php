@@ -20,34 +20,37 @@ trait WithSyntheticPaymentAppService
                 'supports_recurring' => false,
             ],
         ];
-        $this->app->bind(PaymentApplicationServiceInterface::class, function () use ($gateways) {
-            return new class($gateways) implements PaymentApplicationServiceInterface
-            {
-                public function __construct(private array $gateways) {}
-
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
+        $this->app->bind(
+            PaymentApplicationServiceInterface::class,
+            function () use ($gateways) {
+                return new class($gateways) implements PaymentApplicationServiceInterface
                 {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
-                }
+                    public function __construct(private array $gateways) {}
 
-                public function getAvailableGateways(): array
-                {
-                    return $this->gateways;
-                }
+                    public function initiateSubscription(
+                        Subscription $subscription,
+                        string $gateway,
+                        array $data = [],
+                    ): SubscriptionPaymentResultDTO {
+                        return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
+                    }
 
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return false;
-                }
-            };
-        });
+                    public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
+                    {
+                        return SubscriptionPaymentResultDTO::fromArray(['success' => false]);
+                    }
+
+                    public function getAvailableGateways(): array
+                    {
+                        return $this->gateways;
+                    }
+
+                    public function cancelSubscription(Subscription $subscription): bool
+                    {
+                        return false;
+                    }
+                };
+            },
+        );
     }
 }

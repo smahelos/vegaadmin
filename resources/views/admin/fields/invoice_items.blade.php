@@ -6,7 +6,7 @@
      data-error="{{ __('invoices.items.error') }}"
      data-empty="{{ __('invoices.items.empty_catalog') }}"
      data-owner-changed="{{ __('invoices.items.owner_changed') }}"
-     data-locale="{{ app()->getLocale() }}">
+     data-locale="{{ App::getLocale() }}">
     <h3 class="mb-2">{{ $field['label'] }}</h3>
     <p class="text-muted">{{ __('invoices.items.hint') }}</p>
     <input type="hidden" name="invoice-products" value="{{ json_encode($field['items']) }}">

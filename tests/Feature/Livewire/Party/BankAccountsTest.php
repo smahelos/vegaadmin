@@ -34,17 +34,20 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function the_first_account_of_a_contact_becomes_its_default(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'contact', 'ownerId' => $contact->id])
-            ->call('add')
-            ->set('account.country', 'AT')
-            ->set('account.iban', 'AT61 1904 3002 3457 3201')
-            ->call('save')
-            ->assertHasNoErrors()
-            ->assertSet('editing', false);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'contact', 'ownerId' => $contact->id]);
+        $component->call('add');
+        $component->set('account.country', 'AT');
+        $component->set('account.iban', 'AT61 1904 3002 3457 3201');
+        $component->call('save');
+        $component->assertHasNoErrors();
+        $component->assertSet('editing', false);
 
-        $account = BankAccount::query()->where('contact_id', $contact->id)->sole();
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('contact_id', $contact->id);
+        $account = $bankAccountQuery->sole();
         $this->assertSame('AT611904300234573201', $account->iban);
         $this->assertSame($account->id, $contact->fresh()?->default_bank_account_id);
     }
@@ -52,48 +55,62 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function refuses_an_invalid_iban(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('add')
-            ->set('account.iban', 'CZ0000000000000000000000')
-            ->call('save')
-            ->assertHasErrors(['account.iban']);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('add');
+        $component->set('account.iban', 'CZ0000000000000000000000');
+        $component->call('save');
+        $component->assertHasErrors(['account.iban']);
 
-        $this->assertSame(0, BankAccount::query()->where('business_id', $business->id)->count());
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id);
+        $this->assertSame(
+            0,
+            $bankAccountQuery->count(),
+        );
     }
 
     #[Test]
     public function a_bank_code_must_be_an_active_bank_of_the_country(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('add')
-            ->set('account.number', '2001234561')
-            ->set('account.bankCode', '9999')
-            ->call('save')
-            ->assertHasErrors(['account.bankCode']);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('add');
+        $component->set('account.number', '2001234561');
+        $component->set('account.bankCode', '9999');
+        $component->call('save');
+        $component->assertHasErrors(['account.bankCode']);
     }
 
     #[Test]
     public function archiving_the_default_account_asks_for_a_replacement(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $default = BankAccount::factory()->ownedBy($business)->create();
-        $other = BankAccount::factory()->ownedBy($business)->create([
-            'number' => '1234567899',
-            'bank_code' => '0100',
-            'iban' => 'CZ9501000000001234567899',
-        ]);
-        $business->forceFill(['default_bank_account_id' => $default->id])->save();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $default = $ownedFactory->create();
+        $other = $ownedFactory->create(
+            [
+                'number' => '1234567899',
+                'bank_code' => '0100',
+                'iban' => 'CZ9501000000001234567899',
+            ],
+        );
+        $business->forceFill(['default_bank_account_id' => $default->id]);
+        $business->save();
 
-        $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('archive', $default->id)
-            ->assertSet('archivingId', $default->id);
+        $accounts = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $accounts->call('archive', $default->id);
+        $accounts->assertSet('archivingId', $default->id);
         $this->assertNull($default->fresh()?->archived_at);
 
-        $accounts->set('newDefault', (string) $other->id)->call('archive', $default->id);
+        $accounts->set('newDefault', (string) $other->id);
+        $accounts->call('archive', $default->id);
         $this->assertNotNull($default->fresh()?->archived_at);
         $this->assertSame($other->id, $business->fresh()?->default_bank_account_id);
     }
@@ -101,26 +118,31 @@ final class BankAccountsTest extends TestCase
     #[Test]
     public function another_users_account_cannot_be_edited(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $foreign = BankAccount::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $foreign = $bankAccountFactory->create();
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->call('edit', $foreign->id);
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->call('edit', $foreign->id);
     }
 
     #[Test]
     public function changing_accounts_needs_the_owners_update_permission(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo('frontend.can_view_business');
 
-        Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id])
-            ->assertDontSee(__('parties.bank_accounts.actions.add'))
-            ->call('add')
-            ->assertForbidden();
+        $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
+        $component->assertDontSee(
+            __('parties.bank_accounts.actions.add'),
+        );
+        $component->call('add');
+        $component->assertForbidden();
     }
 
     /** @return iterable<string, array{string, string, string}> */
@@ -128,12 +150,14 @@ final class BankAccountsTest extends TestCase
     {
         foreach (['business', 'contact'] as $context) {
             foreach (['business', 'contact'] as $target) {
-                foreach ([
-                    'edit',
-                    'archive',
-                    'restore',
-                    'makeDefault',
-                ] as $action) {
+                foreach (
+                    [
+                        'edit',
+                        'archive',
+                        'restore',
+                        'makeDefault',
+                    ] as $action
+                ) {
                     yield $context . '-' . $target . '-' . $action => [
                         $context,
                         $target,
@@ -152,15 +176,21 @@ final class BankAccountsTest extends TestCase
         string $action,
     ): void {
         $this->user->removeRole('frontend_user');
-        $this->user->givePermissionTo([
-            'frontend.can_view_' . $context,
-            'frontend.can_update_' . $context,
-        ]);
+        $this->user->givePermissionTo(
+            [
+                'frontend.can_view_' . $context,
+                'frontend.can_update_' . $context,
+            ],
+        );
         $model = $context === 'business' ? Business::class : Contact::class;
-        $owner = $model::factory()->create(['user_id' => $this->user->id]);
+        $modelFactory = $model::factory();
+        $owner = $modelFactory->create(['user_id' => $this->user->id]);
         $targetModel = $target === 'business' ? Business::class : Contact::class;
-        $otherOwner = $targetModel::factory()->create(['user_id' => $this->user->id]);
-        $account = BankAccount::factory()->ownedBy($otherOwner)->create([
+        $targetModelFactory = $targetModel::factory();
+        $otherOwner = $targetModelFactory->create(['user_id' => $this->user->id]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($otherOwner);
+        $account = $bankAccountFactory->create([
             'archived_at' => $action === 'restore' ? now() : null,
         ]);
 

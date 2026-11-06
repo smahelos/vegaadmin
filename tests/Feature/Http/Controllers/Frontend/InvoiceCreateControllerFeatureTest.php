@@ -16,31 +16,36 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_can_access_invoice_create_page_and_view_has_expected_keys(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         Auth::login($user);
 
         $response = $this->get('/cs/invoice/create');
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.invoices.create');
-        $response->assertViewHasAll([
-            'paymentMethods',
-            'invoiceProducts',
-            'statuses',
-            'taxRates',
-            'suggestedNumber',
-            'limitsData',
-            'fields',
-            'contactId',
-            'businessId',
-        ]);
+        $response->assertViewHasAll(
+            [
+                'paymentMethods',
+                'invoiceProducts',
+                'statuses',
+                'taxRates',
+                'suggestedNumber',
+                'limitsData',
+                'fields',
+                'contactId',
+                'businessId',
+            ],
+        );
     }
 
     #[Test]
     public function create_form_preselects_the_bank_transfer(): void
     {
-        Auth::login(User::factory()->create());
-        $bankTransferId = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id;
+        $userFactory = User::factory();
+        Auth::login($userFactory->create());
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $bankTransferId = $paymentMethodQuery->firstOrFail()->id;
 
         $response = $this->get('/cs/invoice/create');
 

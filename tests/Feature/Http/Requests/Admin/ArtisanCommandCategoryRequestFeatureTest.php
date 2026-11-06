@@ -46,8 +46,9 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -62,7 +63,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -77,13 +79,15 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -94,13 +98,15 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['slug' => 'existing-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Category',
@@ -118,8 +124,9 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
     #[Test]
     public function update_fails_with_slug_of_another_category(): void
     {
-        ArtisanCommandCategory::factory()->create(['slug' => 'taken-slug']);
-        $category = ArtisanCommandCategory::factory()->create(['slug' => 'own-slug']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory->create(['slug' => 'taken-slug']);
+        $category = $artisanCommandCategoryFactory->create(['slug' => 'own-slug']);
 
         $request = ArtisanCommandCategoryRequest::create(
             '/',
@@ -129,7 +136,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make(['name' => 'Updated Category', 'slug' => 'taken-slug'], $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -174,7 +182,8 @@ class ArtisanCommandCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]

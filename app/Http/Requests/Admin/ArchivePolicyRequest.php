@@ -12,7 +12,9 @@ class ArchivePolicyRequest extends FormRequest
     public function authorize(): bool
     {
         // Only authenticated backpack users with system configuration permission
-        return backpack_auth()->check() && backpack_auth()->user()->can('can_configure_system');
+        $user = backpack_user();
+
+        return $user?->can('can_configure_system') === true;
     }
 
     /**

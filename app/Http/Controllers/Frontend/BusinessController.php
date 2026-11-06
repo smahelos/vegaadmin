@@ -36,7 +36,10 @@ final class BusinessController extends Controller
         string $locale,
         int $business,
     ): View {
-        return view('frontend.businesses.show', ['businessId' => $this->owned($request, $business)]);
+        return view(
+            'frontend.businesses.show',
+            ['businessId' => $this->owned($request, $business)],
+        );
     }
 
     public function edit(
@@ -44,7 +47,10 @@ final class BusinessController extends Controller
         string $locale,
         int $business,
     ): View {
-        return view('frontend.businesses.edit', ['businessId' => $this->owned($request, $business)]);
+        return view(
+            'frontend.businesses.edit',
+            ['businessId' => $this->owned($request, $business)],
+        );
     }
 
     /**
@@ -52,6 +58,11 @@ final class BusinessController extends Controller
      */
     private function owned(Request $request, int $id): int
     {
-        return $this->businesses->get(UserId::fromInt((int) $request->user()?->getAuthIdentifier()), BusinessId::fromInt($id))->id->value;
+        $user = $request->user();
+
+        return $this->businesses->get(
+            UserId::fromInt((int) $user?->getAuthIdentifier()),
+            BusinessId::fromInt($id),
+        )->id->value;
     }
 }

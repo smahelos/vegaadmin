@@ -18,12 +18,17 @@ final class ContactList extends Component
     {
         $this->requirePermission('frontend.can_view_contact');
 
-        return view('livewire.party.contact-list', [
-            'contacts' => $this->paginator($contacts->search(
-                $this->userId(),
-                $this->partySearch(),
-                $this->pageRequest(),
-            )),
-        ]);
+        return view(
+            'livewire.party.contact-list',
+            [
+                'contacts' => $this->paginator(
+                    $contacts->search(
+                        $this->userId(),
+                        $this->partySearch(),
+                        $this->pageRequest(),
+                    ),
+                ),
+            ],
+        );
     }
 }

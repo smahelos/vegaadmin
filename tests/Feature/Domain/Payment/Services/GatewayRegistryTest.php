@@ -23,7 +23,10 @@ class GatewayRegistryTest extends TestCase
     {
         $fake = new FakePaymentGateway;
         $this->registry->register('fake', $fake);
-        $this->assertSame($fake, $this->registry->get('fake'));
+        $this->assertSame(
+            $fake,
+            $this->registry->get('fake'),
+        );
         $this->assertContains('fake', $this->registry->names());
     }
 }

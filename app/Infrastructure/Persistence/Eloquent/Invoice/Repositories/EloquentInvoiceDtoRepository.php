@@ -73,7 +73,9 @@ class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface,
 
     public function linkContact(InvoiceId $id, ContactId $contactId): void
     {
-        Invoice::query()->whereKey($id->getValue())->update(['contact_id' => $contactId->value]);
+        $query = Invoice::query();
+        $query->whereKey($id->getValue());
+        $query->update(['contact_id' => $contactId->value]);
     }
 
     public function findLastInvoiceNumber(UserId $userId, int $year): ?string

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Requests\Admin\StatusCategoryRequest;
@@ -18,7 +20,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  *
  * @property-read CrudPanel $crud
  */
-class StatusCategoryCrudController extends CrudController
+final class StatusCategoryCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
@@ -32,14 +34,17 @@ class StatusCategoryCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(StatusCategory::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/status-category');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/status-category',
+        );
         CRUD::setEntityNameStrings(
             __('statuses.categories.entity.singular'),
             __('statuses.categories.entity.plural'),
         );
 
         // Only allow access if user has permission to manage statuses
-        if (! backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')) {
+        $user = backpack_user();
+        if (!$user->hasPermissionTo('can_create_edit_status', 'backpack')) {
             CRUD::denyAccess([
                 'list',
                 'create',
@@ -54,35 +59,50 @@ class StatusCategoryCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('statuses.categories.fields.name'));
-        CRUD::column('slug')->label(__('statuses.categories.fields.slug'));
-        CRUD::column('description')->label(__('statuses.categories.fields.description'));
+        $column = CRUD::column('name');
+        $column->label(
+            __('statuses.categories.fields.name'),
+        );
+        $column = CRUD::column('slug');
+        $column->label(
+            __('statuses.categories.fields.slug'),
+        );
+        $column = CRUD::column('description');
+        $column->label(
+            __('statuses.categories.fields.description'),
+        );
 
         // Add a column showing the number of statuses in each category (counted in the list query)
         CRUD::addClause('withCount', 'statuses');
-        CRUD::addColumn([
-            'name' => 'statuses_count',
-            'label' => __('statuses.categories.fields.statuses_count'),
-            'type' => 'text',
-            'wrapper' => [
-                'href' => function (
-                    $crud,
-                    $column,
-                    $entry,
-                    $related_key,
-                ) {
-                    return backpack_url('status?category_id=' . $entry->getKey());
-                },
+        CRUD::addColumn(
+            [
+                'name' => 'statuses_count',
+                'label' => __('statuses.categories.fields.statuses_count'),
+                'type' => 'text',
+                'wrapper' => [
+                    'href' => function (
+                        $crud,
+                        $column,
+                        $entry,
+                        $related_key,
+                    ) {
+                        return backpack_url('status?category_id=' . $entry->getKey());
+                    },
+                ],
             ],
-        ]);
+        );
 
-        CRUD::column('created_at')
-            ->label(trans('admin.general.created_at'))
-            ->type('datetime');
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('admin.general.created_at'),
+        );
+        $column->type('datetime');
 
-        CRUD::column('updated_at')
-            ->label(trans('admin.general.updated_at'))
-            ->type('datetime');
+        $column = CRUD::column('updated_at');
+        $column->label(
+            __('admin.general.updated_at'),
+        );
+        $column->type('datetime');
     }
 
     /**
@@ -92,18 +112,26 @@ class StatusCategoryCrudController extends CrudController
     {
         CRUD::setValidation(StatusCategoryRequest::class);
 
-        CRUD::field('name')
-            ->label(__('statuses.categories.fields.name'))
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('name');
+        $field->label(
+            __('statuses.categories.fields.name'),
+        );
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
-        CRUD::field('slug')
-            ->label(__('statuses.categories.fields.slug'))
-            ->hint(__('statuses.categories.hints.slug'))
-            ->wrapper(['class' => 'form-group col-md-6']);
+        $field = CRUD::field('slug');
+        $field->label(
+            __('statuses.categories.fields.slug'),
+        );
+        $field->hint(
+            __('statuses.categories.hints.slug'),
+        );
+        $field->wrapper(['class' => 'form-group col-md-6']);
 
-        CRUD::field('description')
-            ->label(__('statuses.categories.fields.description'))
-            ->type('textarea');
+        $field = CRUD::field('description');
+        $field->label(
+            __('statuses.categories.fields.description'),
+        );
+        $field->type('textarea');
     }
 
     /**
@@ -121,15 +149,19 @@ class StatusCategoryCrudController extends CrudController
     {
         $this->setupListOperation();
 
-        CRUD::column('statuses')
-            ->type('relationship_table')
-            ->label(__('statuses.categories.fields.statuses'))
-            ->columns([
+        $column = CRUD::column('statuses');
+        $column->type('relationship_table');
+        $column->label(
+            __('statuses.categories.fields.statuses'),
+        );
+        $column->columns(
+            [
                 'name' => __('statuses.fields.name'),
                 'slug' => __('statuses.fields.slug'),
                 'color_preview' => __('statuses.fields.color'),
                 'is_active' => __('statuses.fields.is_active'),
-            ])
-            ->raw(['color_preview']);
+            ],
+        );
+        $column->raw(['color_preview']);
     }
 }

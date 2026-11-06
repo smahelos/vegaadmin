@@ -18,7 +18,9 @@ class EloquentPaymentMethodRepository
 
     public function getAllForDropdown(): array
     {
-        return PaymentMethod::pluck('slug', 'id')->toArray();
+        $methods = PaymentMethod::pluck('slug', 'id');
+
+        return $methods->toArray();
     }
 
     public function findById(int $id): ?PaymentMethod

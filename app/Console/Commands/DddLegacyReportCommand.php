@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 
@@ -41,8 +42,9 @@ class DddLegacyReportCommand extends Command
         $residuals = $this->scanResiduals();
         $neutralized = $this->scanNeutralizedTests($commentRatio);
 
+        $now = CarbonImmutable::now();
         $payload = [
-            'timestamp' => now()->toIso8601String(),
+            'timestamp' => $now->toIso8601String(),
             'residuals' => $residuals,
             'neutralized_tests' => $neutralized,
             'counts' => [
@@ -59,7 +61,7 @@ class DddLegacyReportCommand extends Command
             $this->line($json);
             if ($this->option('write-baseline')) {
                 $outDir = base_path('architecture/baselines');
-                if (! is_dir($outDir)) {
+                if (!is_dir($outDir)) {
                     @mkdir(
                         $outDir,
                         0777,
@@ -67,21 +69,28 @@ class DddLegacyReportCommand extends Command
                     );
                 }
                 file_put_contents($outDir . '/legacy_report_latest.json', $json);
-                $this->info('Legacy report baseline written to architecture/baselines/legacy_report_latest.json');
+                $this->info(
+                    'Legacy report baseline written to architecture/baselines/legacy_report_latest.json',
+                );
             }
         } else {
             $this->renderHuman($payload);
             if ($this->option('write-baseline')) {
                 $outDir = base_path('architecture/baselines');
-                if (! is_dir($outDir)) {
+                if (!is_dir($outDir)) {
                     @mkdir(
                         $outDir,
                         0777,
                         true,
                     );
                 }
-                file_put_contents($outDir . '/legacy_report_latest.json', json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-                $this->info('Legacy report baseline written to architecture/baselines/legacy_report_latest.json');
+                file_put_contents(
+                    $outDir . '/legacy_report_latest.json',
+                    json_encode($payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+                );
+                $this->info(
+                    'Legacy report baseline written to architecture/baselines/legacy_report_latest.json',
+                );
             }
         }
 
@@ -114,11 +123,13 @@ class DddLegacyReportCommand extends Command
             ];
             foreach ($this->files->files($legacyServices) as $file) {
                 $name = $file->getFilename();
-                if (! in_array(
-                    $name,
-                    $allow,
-                    true,
-                )) {
+                if (
+                    !in_array(
+                        $name,
+                        $allow,
+                        true,
+                    )
+                ) {
                     $residuals[] = [
                         'type' => 'legacy_service_file',
                         'path' => $file->getPathname(),
@@ -168,17 +179,21 @@ class DddLegacyReportCommand extends Command
     {
         $neutralized = [];
         $testRoot = base_path('tests');
-        if (! is_dir($testRoot)) {
+        if (!is_dir($testRoot)) {
             return $neutralized;
         }
 
-        $phpFiles = collect($this->files->allFiles($testRoot))
-            ->filter(fn ($f) => str_ends_with($f->getFilename(), 'Test.php'));
+        $phpFiles = collect(
+            $this->files->allFiles($testRoot),
+        );
+        $phpFiles = $phpFiles->filter(
+            fn ($f) => str_ends_with($f->getFilename(), 'Test.php'),
+        );
 
         foreach ($phpFiles as $file) {
             $contents = $file->getContents();
             $lines = preg_split('/\r?\n/', $contents);
-            if (! $lines) {
+            if (!$lines) {
                 continue;
             }
             $total = 0;
@@ -199,7 +214,12 @@ class DddLegacyReportCommand extends Command
                     continue;
                 }
                 $total++;
-                if (preg_match('/->assert|assertEquals|assertTrue|assertFalse|assertSame|assertCount|expect\(/', $trim)) {
+                if (
+                    preg_match(
+                        '/->assert|assertEquals|assertTrue|assertFalse|assertSame|assertCount|expect\(/',
+                        $trim,
+                    )
+                ) {
                     $assertions++;
                 }
             }
@@ -219,7 +239,9 @@ class DddLegacyReportCommand extends Command
     private function renderHuman(array $payload): void
     {
         $this->info('DDD Legacy Report @ ' . $payload['timestamp']);
-        $this->line('Residuals: ' . $payload['counts']['residuals'] . ' | Neutralized tests: ' . $payload['counts']['neutralized_tests']);
+        $this->line(
+            'Residuals: ' . $payload['counts']['residuals'] . ' | Neutralized tests: ' . $payload['counts']['neutralized_tests'],
+        );
         if ($payload['counts']['residuals'] > 0) {
             $this->warn('--- Residuals ---');
             foreach ($payload['residuals'] as $r) {
@@ -229,11 +251,15 @@ class DddLegacyReportCommand extends Command
         if ($payload['counts']['neutralized_tests'] > 0) {
             $this->warn('--- Neutralized Tests ---');
             foreach ($payload['neutralized_tests'] as $t) {
-                $this->line(" - {$t['path']} (comment_ratio={$t['comment_ratio']} lines={$t['lines']})");
+                $this->line(
+                    " - {$t['path']} (comment_ratio={$t['comment_ratio']} lines={$t['lines']})",
+                );
             }
         }
         if ($payload['counts']['residuals'] === 0 && $payload['counts']['neutralized_tests'] === 0) {
-            $this->info('No residual legacy artifacts or neutralized tests detected.');
+            $this->info(
+                'No residual legacy artifacts or neutralized tests detected.',
+            );
         }
     }
 }

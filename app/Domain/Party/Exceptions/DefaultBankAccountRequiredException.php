@@ -15,6 +15,8 @@ final class DefaultBankAccountRequiredException extends DomainException
 {
     public function __construct(BankAccountId $id)
     {
-        parent::__construct("Archiving the default bank account {$id->value} needs another active account as the default");
+        parent::__construct(
+            "Archiving the default bank account {$id->value} needs another active account as the default",
+        );
     }
 }

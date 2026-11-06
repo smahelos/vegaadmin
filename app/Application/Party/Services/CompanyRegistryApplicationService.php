@@ -25,7 +25,7 @@ final class CompanyRegistryApplicationService
      */
     public function findCompany(RegistrationNumber $number): ?RegisteredCompanyDTO
     {
-        if (! $number->isCzech()) {
+        if (!$number->isCzech()) {
             return null;
         }
 

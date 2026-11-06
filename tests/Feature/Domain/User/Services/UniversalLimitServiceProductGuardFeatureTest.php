@@ -174,7 +174,9 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
 
             public function userExists(int $userId): bool
             {
-                return User::where('id', $userId)->exists();
+                $userQuery = User::where('id', $userId);
+
+                return $userQuery->exists();
             }
         };
         $clock = new class implements ClockInterface
@@ -188,34 +190,49 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
         {
             public function getRange(string $periodType, \DateTimeImmutable $reference): array
             {
+                if ($periodType === 'monthly') {
+                    $firstDay = $reference->modify('first day of this month');
+                    $lastDay = $reference->modify('last day of this month');
+
+                    return [$firstDay->setTime(
+                        0,
+                        0,
+                        0,
+                    ), $lastDay->setTime(
+                        23,
+                        59,
+                        59,
+                    )];
+                }
+                if ($periodType === 'yearly') {
+                    $firstDay = $reference->setDate(
+                        (int) $reference->format('Y'),
+                        1,
+                        1,
+                    );
+                    $lastDay = $reference->setDate(
+                        (int) $reference->format('Y'),
+                        12,
+                        31,
+                    );
+
+                    return [$firstDay->setTime(
+                        0,
+                        0,
+                        0,
+                    ), $lastDay->setTime(
+                        23,
+                        59,
+                        59,
+                    )];
+                }
+
                 return match ($periodType) {
                     'daily' => [$reference->setTime(
                         0,
                         0,
                         0,
                     ), $reference->setTime(
-                        23,
-                        59,
-                        59,
-                    )],
-                    'monthly' => [$reference->modify('first day of this month')->setTime(0, 0, 0), $reference->modify('last day of this month')->setTime(
-                        23,
-                        59,
-                        59,
-                    )],
-                    'yearly' => [$reference->setDate(
-                        (int) $reference->format('Y'),
-                        1,
-                        1,
-                    )->setTime(
-                        0,
-                        0,
-                        0,
-                    ), $reference->setDate(
-                        (int) $reference->format('Y'),
-                        12,
-                        31,
-                    )->setTime(
                         23,
                         59,
                         59,
@@ -263,17 +280,20 @@ class UniversalLimitServiceProductGuardFeatureTest extends TestCase
     #[Test]
     public function product_guard_usage_records(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // Ensure permission for web guard
         Permission::firstOrCreate(['name' => 'can_create_edit_product', 'guard_name' => 'web']);
         $user->givePermissionTo('can_create_edit_product');
-        EntityLimit::create([
-            'permission_name' => 'can_create_edit_product',
-            'entity_type' => 'product',
-            'metric_type' => 'count',
-            'period_type' => 'daily',
-            'limit_value' => 10,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'can_create_edit_product',
+                'entity_type' => 'product',
+                'metric_type' => 'count',
+                'period_type' => 'daily',
+                'limit_value' => 10,
+            ],
+        );
 
         // Generic recordUsage replaces specialized recordProductCreation
         $this->service->recordUsage(

@@ -10,10 +10,10 @@
         <div class="flex flex-wrap items-center gap-2 md:gap-4">
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('contacts.actions.back_to_list')"
-                :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])" />
+                :href="route('frontend.contacts.index', ['locale' => App::getLocale()])" />
             @can('frontend.can_update_contact')
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
-                    :href="route('frontend.contacts.edit', ['locale' => app()->getLocale(), 'contact' => $contact->id->value])" />
+                    :href="route('frontend.contacts.edit', ['locale' => App::getLocale(), 'contact' => $contact->id->value])" />
             @endcan
             @if ($contact->isArchived())
                 @can('frontend.can_restore_contact')

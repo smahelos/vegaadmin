@@ -30,22 +30,40 @@ class TestMailhog extends Command
     public function handle(): int
     {
         $email = $this->option('to');
-        $recipients = array_values(array_filter(array_map('trim', explode(',', $email))));
+        $recipients = array_values(
+            array_filter(
+                array_map(
+                    'trim',
+                    explode(',', $email),
+                ),
+            ),
+        );
         $subject = $this->option('subject');
 
         $this->info('Sending test email to: ' . $email);
         $this->info('Subject: ' . $subject);
         $this->info('Current configuration:');
-        $this->info('MAIL_MAILER: ' . config('mail.default'));
-        $this->info('MAIL_HOST: ' . config('mail.mailers.smtp.host'));
-        $this->info('MAIL_PORT: ' . config('mail.mailers.smtp.port'));
+        $this->info(
+            'MAIL_MAILER: ' . config('mail.default'),
+        );
+        $this->info(
+            'MAIL_HOST: ' . config('mail.mailers.smtp.host'),
+        );
+        $this->info(
+            'MAIL_PORT: ' . config('mail.mailers.smtp.port'),
+        );
 
         try {
-            Mail::raw('Test email from VegaAdmin application at: ' . now(), function ($message) use ($recipients, $subject): void {
-                $message->to($recipients)
-                    ->subject($subject);
-            });
-            $this->info('Email sent successfully! Check Mailhog at: http://localhost:8025');
+            Mail::raw(
+                'Test email from VegaAdmin application at: ' . now(),
+                function ($message) use ($recipients, $subject): void {
+                    $message->to($recipients);
+                    $message->subject($subject);
+                },
+            );
+            $this->info(
+                'Email sent successfully! Check Mailhog at: http://localhost:8025',
+            );
 
             return 0;
         } catch (\Exception $e) {

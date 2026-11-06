@@ -1,9 +1,10 @@
 {{-- This file is used for menu items by any Backpack v6 theme --}}
+@php($user = backpack_user())
 <li class="nav-item"><a class="nav-link" href="{{ backpack_url('dashboard') }}"><i class="la la-home nav-icon"></i> {{
         trans('backpack::base.dashboard') }}</a></li>
 
 {{-- 1. User Management --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_user', 'backpack'))
+@if($user->hasPermissionTo('can_create_edit_user', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.user_management.title') }}" icon="la la-users text-primary">
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.users') }}" icon="la la-user"
         :link="backpack_url('user')" />
@@ -21,27 +22,27 @@
 @endif
 
 {{-- 2. Business Operations --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_invoice', 'backpack') ||
-backpack_user()->hasPermissionTo('can_view_business', 'backpack') ||
-backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
+@if($user->hasPermissionTo('can_create_edit_invoice', 'backpack') ||
+$user->hasPermissionTo('can_view_business', 'backpack') ||
+$user->hasPermissionTo('can_view_contact', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.business.title') }}" icon="la la-briefcase text-success">
-    @if(backpack_user()->hasPermissionTo('can_create_edit_invoice', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_invoice', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.business.invoicing') }}" />
     <x-backpack::menu-dropdown-item title="{{ __('invoices.entity.plural') }}" icon="la la-file-invoice"
         :link="backpack_url('invoice')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_view_business', 'backpack') ||
-    backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
+    @if($user->hasPermissionTo('can_view_business', 'backpack') ||
+    $user->hasPermissionTo('can_view_contact', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.business.partners') }}" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_view_business', 'backpack'))
+    @if($user->hasPermissionTo('can_view_business', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('businesses.entity.plural') }}" icon="la la-building"
         :link="backpack_url('business')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
+    @if($user->hasPermissionTo('can_view_contact', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('contacts.entity.plural') }}" icon="la la-address-book"
         :link="backpack_url('contact')" />
     @endif
@@ -49,41 +50,41 @@ backpack_user()->hasPermissionTo('can_view_contact', 'backpack'))
 @endif
 
 {{-- 3. Financial Management --}}
-@if(backpack_user()->hasPermissionTo('can_view_expense', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_expense', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_bank', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
+@if($user->hasPermissionTo('can_view_expense', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_expense', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_tax', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_bank', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.finance.title') }}" icon="la la-coins text-warning">
-    @if(backpack_user()->canAny(['can_view_expense', 'can_create_edit_expense']))
+    @if($user->canAny(['can_view_expense', 'can_create_edit_expense']))
     <x-backpack::menu-dropdown-header title="{{ __('admin.finance.expenses') }}" />
-    @if(backpack_user()->can('can_view_expense'))
+    @if($user->can('can_view_expense'))
     <x-backpack::menu-dropdown-item title="{{ __('expenses.entity.plural') }}" icon="la la-receipt"
         :link="backpack_url('expense')" />
     @endif
-    @if(backpack_user()->can('can_create_edit_expense'))
+    @if($user->can('can_create_edit_expense'))
     <x-backpack::menu-dropdown-item title="{{ __('expenses.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('expense-category')" />
     @endif
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack') ||
-    backpack_user()->hasPermissionTo('can_create_edit_bank', 'backpack') ||
-    backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_tax', 'backpack') ||
+    $user->hasPermissionTo('can_create_edit_bank', 'backpack') ||
+    $user->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.finance.settings') }}" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_tax', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_tax', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('taxes.entity.plural') }}" icon="la la-percentage"
         :link="backpack_url('tax')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_bank', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_bank', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('banks.entity.plural') }}" icon="la la-bank"
         :link="backpack_url('bank')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('payment_methods.entity.plural') }}"
         icon="la la-money-check-alt" :link="backpack_url('payment-method')" />
     @endif
@@ -91,7 +92,7 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 @endif
 
 {{-- 4. Inventory Management --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_product', 'backpack'))
+@if($user->hasPermissionTo('can_create_edit_product', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.inventory.title') }}" icon="la la-boxes text-info">
     <x-backpack::menu-dropdown-item title="{{ __('products.entity.plural') }}" icon="la la-box"
         :link="backpack_url('product')" />
@@ -101,12 +102,12 @@ backpack_user()->hasPermissionTo('can_create_edit_payment_method', 'backpack'))
 @endif
 
 {{-- 5. System Administration --}}
-@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack') &&
-(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_cron_task', 'backpack') ||
-backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
+@if($user->hasPermissionTo('can_configure_system', 'backpack') &&
+($user->hasPermissionTo('can_create_edit_command', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_cron_task', 'backpack') ||
+$user->hasPermissionTo('can_create_edit_status', 'backpack')))
 <x-backpack::menu-dropdown title="{{ __('admin.system_config.title') }}" icon="la la-cogs text-secondary">
-    @if(backpack_user()->hasPermissionTo('can_create_edit_command', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_command', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.system_admin.automation') }}" />
     <x-backpack::menu-dropdown-item title="{{ __('artisan_commands.entity.plural') }}" icon="la la-hammer"
         :link="backpack_url('artisan-command')" />
@@ -114,12 +115,12 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
         :link="backpack_url('artisan-command-category')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_cron_task', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_cron_task', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('cron_tasks.entity.plural') }}" icon="la la-calendar"
         :link="backpack_url('cron-task')" />
     @endif
 
-    @if(backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack'))
+    @if($user->hasPermissionTo('can_create_edit_status', 'backpack'))
     <x-backpack::menu-dropdown-header title="{{ __('admin.system_admin.statuses') }}" />
     <x-backpack::menu-dropdown-item title="{{ __('statuses.categories.entity.plural') }}" icon="la la-tags"
         :link="backpack_url('status-category')" />
@@ -130,7 +131,7 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 @endif
 
 {{-- 6. Database Management --}}
-@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
+@if($user->hasPermissionTo('can_configure_system', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin/database.menu.title') }}" icon="la la-database text-danger">
     <x-backpack::menu-dropdown-item title="{{ __('admin/database.dashboard.title') }}" icon="la la-tachometer-alt"
         :link="backpack_url('database-dashboard')" />
@@ -148,7 +149,7 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 @endif
 
 {{-- 7. Content Management --}}
-@if(backpack_user()->hasPermissionTo('can_create_edit_page', 'backpack'))
+@if($user->hasPermissionTo('can_create_edit_page', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.content.title') }}" icon="la la-paperclip  text-success">
     <x-backpack::menu-dropdown-item title="{{ __('pages.categories.entity.plural') }}" icon="la la-tags" :link="backpack_url('page-category')" />
     <x-backpack::menu-dropdown-item title="{{ __('pages.entity.plural') }}" icon="la la-paragraph" :link="backpack_url('page')" />
@@ -156,7 +157,7 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 @endif
 
 {{-- 8. Entity Limits Management (UELS) --}}
-@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
+@if($user->hasPermissionTo('can_configure_system', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.uels.title') }}" icon="la la-shield-alt text-purple">
     <x-backpack::menu-dropdown-item title="{{ __('admin.uels.dashboard') }}" icon="la la-tachometer-alt"
         :link="backpack_url('uels-dashboard')" />
@@ -172,7 +173,7 @@ backpack_user()->hasPermissionTo('can_create_edit_status', 'backpack')))
 @endif
 
 {{-- 9. System Configuration --}}
-@if(backpack_user()->hasPermissionTo('can_configure_system', 'backpack'))
+@if($user->hasPermissionTo('can_configure_system', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.cache.title') }}" icon="la la-cogs text-danger">
     @include('admin.inc.menu_post_item', [
         'title' => __('admin.cache.clear_cache'),

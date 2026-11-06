@@ -33,25 +33,28 @@ trait CreatesAdminTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $permissions = Permission::where('guard_name', PermissionCatalog::BACKPACK)->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK])->get();
+        $permissionQuery = Permission::where('guard_name', PermissionCatalog::BACKPACK);
+        $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK]);
+        $permissions = $permissionQuery->get();
         $adminRole->syncPermissions($permissions);
 
         // Create admin user with admin role (if not already set)
-        if (! isset($this->adminUser)) {
-            $this->adminUser = User::factory()->create();
+        $userFactory = User::factory();
+        if (!isset($this->adminUser)) {
+            $this->adminUser = $userFactory->create();
         }
         $this->adminUser->assignRole($adminRole);
 
         // Create regular user with limited role (if not already set)
-        if (! isset($this->regularUser)) {
-            $this->regularUser = User::factory()->create();
+        if (!isset($this->regularUser)) {
+            $this->regularUser = $userFactory->create();
         }
         $this->regularUser->assignRole($backendUserRole);
 
         // Get backpack.access permission if it exists
-        $backpackAccessPermission = Permission::where('name', 'backpack.access')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery->where('guard_name', 'backpack');
+        $backpackAccessPermission = $permissionQuery->first();
         if ($backpackAccessPermission) {
             $this->regularUser->givePermissionTo($backpackAccessPermission);
         }
@@ -63,6 +66,7 @@ trait CreatesAdminTestEnvironment
      */
     protected function revokeUnlimitedAccess(string $entityType): void
     {
-        Role::findByName('admin', 'backpack')->revokePermissionTo("can_create_{$entityType}_unlimited");
+        $role = Role::findByName('admin', 'backpack');
+        $role->revokePermissionTo("can_create_{$entityType}_unlimited");
     }
 }

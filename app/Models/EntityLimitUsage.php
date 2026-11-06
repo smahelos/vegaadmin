@@ -82,16 +82,18 @@ class EntityLimitUsage extends Model
     {
         $now = now();
 
-        return $query->where(
+        $query->where(
             'period_start',
             '<=',
             $now,
-        )
-            ->where(
-                'period_end',
-                '>=',
-                $now,
-            );
+        );
+        $query->where(
+            'period_end',
+            '>=',
+            $now,
+        );
+
+        return $query;
     }
 
     /**

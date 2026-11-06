@@ -55,9 +55,12 @@ class CheckMissingTranslationsFeatureTest extends TestCase
     #[Test]
     public function command_handles_non_existent_locale_gracefully(): void
     {
-        $exitCode = Artisan::call('translations:check', [
-            'locale' => 'zz',  // Valid format but non-existent locale
-        ]);
+        $exitCode = Artisan::call(
+            'translations:check',
+            [
+                'locale' => 'zz',  // Valid format but non-existent locale
+            ],
+        );
 
         $this->assertEquals(1, $exitCode);
 
@@ -68,10 +71,13 @@ class CheckMissingTranslationsFeatureTest extends TestCase
     #[Test]
     public function command_handles_non_existent_compare_locale_gracefully(): void
     {
-        $exitCode = Artisan::call('translations:check', [
-            'locale' => 'en',
-            '--compare' => 'zz',  // Valid format but non-existent locale
-        ]);
+        $exitCode = Artisan::call(
+            'translations:check',
+            [
+                'locale' => 'en',
+                '--compare' => 'zz',  // Valid format but non-existent locale
+            ],
+        );
 
         $this->assertEquals(1, $exitCode);
 
@@ -99,7 +105,14 @@ class CheckMissingTranslationsFeatureTest extends TestCase
     public function command_returns_proper_exit_codes(): void
     {
         // Test with existing locales
-        if (File::exists(lang_path('en')) && File::exists(lang_path('cs'))) {
+        if (
+            File::exists(
+                lang_path('en'),
+            )
+            && File::exists(
+                lang_path('cs'),
+            )
+        ) {
             $exitCode = Artisan::call('translations:check', [
                 'locale' => 'en',
                 '--compare' => 'cs',

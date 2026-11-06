@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\CarbonImmutable;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -32,7 +33,7 @@ class ControllerThinnessBaselineCommand extends Command
     public function handle(): int
     {
         $basePath = app_path('Http/Controllers');
-        if (! is_dir($basePath)) {
+        if (!is_dir($basePath)) {
             $this->error('Controllers path not found: ' . $basePath);
 
             return self::FAILURE;
@@ -48,12 +49,19 @@ class ControllerThinnessBaselineCommand extends Command
         }
 
         // Aggregate summary
+        $now = CarbonImmutable::now();
         $summary = [
             'total_controllers' => count($metrics),
-            'avg_loc' => $this->average(array_column($metrics, 'loc')),
-            'avg_eloquent_static_calls' => $this->average(array_column($metrics, 'eloquent_static_calls')),
-            'controllers_with_direct_db_calls' => count(array_filter($metrics, fn ($m) => $m['db_facade_calls'] > 0)),
-            'timestamp' => now()->toIso8601String(),
+            'avg_loc' => $this->average(
+                array_column($metrics, 'loc'),
+            ),
+            'avg_eloquent_static_calls' => $this->average(
+                array_column($metrics, 'eloquent_static_calls'),
+            ),
+            'controllers_with_direct_db_calls' => count(
+                array_filter($metrics, fn ($m) => $m['db_facade_calls'] > 0),
+            ),
+            'timestamp' => $now->toIso8601String(),
         ];
 
         $output = [
@@ -63,16 +71,38 @@ class ControllerThinnessBaselineCommand extends Command
 
         if ($this->option('save')) {
             $path = storage_path('app/metrics');
-            if (! is_dir($path)) {
+            if (!is_dir($path)) {
                 mkdir(
                     $path,
                     0777,
                     true,
                 );
             }
-            file_put_contents($path . '/controller_thinness_baseline.json', json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
-            $this->info('Baseline saved to storage/app/metrics/controller_thinness_baseline.json');
+            file_put_contents(
+                $path . '/controller_thinness_baseline.json',
+                json_encode($output, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES),
+            );
+            $this->info(
+                'Baseline saved to storage/app/metrics/controller_thinness_baseline.json',
+            );
         }
+
+        $rows = collect($metrics);
+        $rows = $rows->map(
+            function ($m, $k) {
+                return [
+                    $k,
+                    $m['loc'],
+                    $m['eloquent_static_calls'],
+                    $m['new_model_insts'],
+                    $m['db_facade_calls'],
+                    $m['constructor_domain_injections'],
+                    $m['public_method_count'],
+                ];
+            },
+        );
+        $rows = $rows->sortByDesc(fn ($row) => $row[2]);
+        $rows = $rows->values();
 
         $this->table(
             [
@@ -84,28 +114,24 @@ class ControllerThinnessBaselineCommand extends Command
                 'ConstructorDI',
                 'PublicMethods',
             ],
-            collect($metrics)->map(function ($m, $k) {
-                return [
-                    $k,
-                    $m['loc'],
-                    $m['eloquent_static_calls'],
-                    $m['new_model_insts'],
-                    $m['db_facade_calls'],
-                    $m['constructor_domain_injections'],
-                    $m['public_method_count'],
-                ];
-            })->sortByDesc(fn ($row) => $row[2])->values()->toArray(),
+            $rows->toArray(),
         );
 
-        $this->line('Summary: ' . json_encode($summary, JSON_UNESCAPED_SLASHES));
-        $this->line('TIP: Use this baseline to enforce max allowed direct Eloquent calls per controller.');
+        $this->line(
+            'Summary: ' . json_encode($summary, JSON_UNESCAPED_SLASHES),
+        );
+        $this->line(
+            'TIP: Use this baseline to enforce max allowed direct Eloquent calls per controller.',
+        );
 
         return self::SUCCESS;
     }
 
     private function gatherPhpFiles(string $dir): array
     {
-        $rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir));
+        $rii = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($dir),
+        );
         $files = [];
         foreach ($rii as $file) {
             if ($file->isDir()) {
@@ -122,7 +148,15 @@ class ControllerThinnessBaselineCommand extends Command
 
     private function analyzeController(string $content): array
     {
-        $lines = array_values(array_filter(array_map('rtrim', explode("\n", $content)), fn ($l) => $l !== ''));
+        $lines = array_values(
+            array_filter(
+                array_map(
+                    'rtrim',
+                    explode("\n", $content),
+                ),
+                fn ($l) => $l !== '',
+            ),
+        );
         $loc = count($lines);
 
         $model = $this->modelReferencePattern($content);
@@ -131,59 +165,71 @@ class ControllerThinnessBaselineCommand extends Command
         $eloquentStaticCalls = 0;
         foreach ($this->eloquentStaticMethods as $m) {
             $pattern = '/' . $model . '::' . $m . '\s*\(/';
-            if (preg_match_all(
-                $pattern,
-                $content,
-                $mm,
-            )) {
+            if (
+                preg_match_all(
+                    $pattern,
+                    $content,
+                    $mm,
+                )
+            ) {
                 $eloquentStaticCalls += count($mm[0]);
             }
         }
 
         // new Model instantiations
         $newModelInsts = 0;
-        if (preg_match_all(
-            '/new\s+' . $model . '\s*\(/',
-            $content,
-            $mm,
-        )) {
+        if (
+            preg_match_all(
+                '/new\s+' . $model . '\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
             $newModelInsts = count($mm[0]);
         }
 
         // DB facade calls
         $dbFacadeCalls = 0;
-        if (preg_match_all(
-            '/DB::[A-Za-z_]+\s*\(/',
-            $content,
-            $mm,
-        )) {
+        if (
+            preg_match_all(
+                '/DB::[A-Za-z_]+\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
             $dbFacadeCalls = count($mm[0]);
         }
 
         // Constructor domain injections (Contracts\*Interface type-hints)
         $constructorDomainInjections = 0;
-        if (preg_match(
-            '/function __construct\((.*?)\)\s*\{/',
-            $content,
-            $ctor,
-        )) {
+        if (
+            preg_match(
+                '/function __construct\((.*?)\)\s*\{/',
+                $content,
+                $ctor,
+            )
+        ) {
             $params = $ctor[1];
-            if (preg_match_all(
-                '/App\\\\Domain\\\\[A-Za-z0-9_\\\\]+\\\\Contracts\\\\[A-Za-z0-9_]+Interface/',
-                $params,
-                $pm,
-            )) {
+            if (
+                preg_match_all(
+                    '/App\\\\Domain\\\\[A-Za-z0-9_\\\\]+\\\\Contracts\\\\[A-Za-z0-9_]+Interface/',
+                    $params,
+                    $pm,
+                )
+            ) {
                 $constructorDomainInjections = count($pm[0]);
             }
         }
 
         // Public method count (excluding constructor)
         $publicMethodCount = 0;
-        if (preg_match_all(
-            '/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/',
-            $content,
-            $mm,
-        )) {
+        if (
+            preg_match_all(
+                '/public\s+function\s+(?!__construct)([A-Za-z0-9_]+)\s*\(/',
+                $content,
+                $mm,
+            )
+        ) {
             $publicMethodCount = count($mm[0]);
         }
 
@@ -205,17 +251,22 @@ class ControllerThinnessBaselineCommand extends Command
     {
         $pattern = '\\\\?App\\\\Models\\\\[A-Za-z0-9_]+';
 
-        if (preg_match_all(
-            '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
-            $content,
-            $imports,
-            PREG_SET_ORDER,
-        )) {
+        if (
+            preg_match_all(
+                '/^use\s+App\\\\Models\\\\([A-Za-z0-9_]+)(?:\s+as\s+([A-Za-z0-9_]+))?;/m',
+                $content,
+                $imports,
+                PREG_SET_ORDER,
+            )
+        ) {
             $names = array_map(
                 fn (array $import): string => $import[2] ?? $import[1],
                 $imports,
             );
-            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode('|', array_unique($names)) . ')';
+            $pattern .= '|(?<![A-Za-z0-9_\\\\])(?:' . implode(
+                '|',
+                array_unique($names),
+            ) . ')';
         }
 
         return '(?:' . $pattern . ')';
@@ -228,6 +279,9 @@ class ControllerThinnessBaselineCommand extends Command
             return 0.0;
         }
 
-        return round(array_sum($values) / count($values), 2);
+        return round(
+            array_sum($values) / count($values),
+            2,
+        );
     }
 }

@@ -18,7 +18,10 @@ trait ProvidesPartyOptions
      */
     protected function countryOptions(): array
     {
-        return app(CountryOptionsPresenter::class)->options(app()->getLocale());
+        $presenter = app(CountryOptionsPresenter::class);
+        $application = app();
+
+        return $presenter->options($application->getLocale());
     }
 
     /**
@@ -34,7 +37,8 @@ trait ProvidesPartyOptions
         }
 
         $options = [];
-        foreach (app(BankApplicationService::class)->listActive($country) as $bank) {
+        $banks = app(BankApplicationService::class);
+        foreach ($banks->listActive($country) as $bank) {
             if ($bank->code !== null) {
                 $options[$bank->code] = $bank->code . ' – ' . $bank->name;
             }

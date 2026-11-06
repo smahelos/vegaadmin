@@ -46,7 +46,10 @@ final readonly class InvoiceTotals
      */
     public function withLine(Money $base, Money $tax): self
     {
-        return new self($this->subtotal->add($base), $this->tax->add($tax));
+        return new self(
+            $this->subtotal->add($base),
+            $this->tax->add($tax),
+        );
     }
 
     public function total(): Money

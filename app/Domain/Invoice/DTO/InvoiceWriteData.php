@@ -27,9 +27,6 @@ class InvoiceWriteData
         public readonly ?string $note = null,
         // public readonly ?array $meta = null,
         public readonly ?int $user_id = null,
-        // Totals are optional on write; when provided they should be Money VO
-        public readonly ?Money $subtotal = null,
-        public readonly ?Money $total_tax = null,
         public readonly ?Money $total_amount = null,
         public readonly ?int $payment_method_id = null,
         public readonly ?string $invoice_text = null,
@@ -49,100 +46,6 @@ class InvoiceWriteData
             $currency = strtoupper($currency);
         }
 
-        // Helper to normalize string/float amount into canonical 2-decimal string
-        $normalizeAmount = function (string|float|int $amount): string {
-            return is_string($amount)
-                ? (function (string $s) {
-                    $s = str_replace(
-                        [' ', ','],
-                        ['', '.'],
-                        trim($s),
-                    );
-                    if (! preg_match('/^\d+(?:\.\d+)?$/', $s)) {
-                        return number_format(
-                            (float) $s,
-                            2,
-                            '.',
-                            '',
-                        );
-                    }
-                    if (str_contains($s, '.')) {
-                        [$i, $f] = explode(
-                            '.',
-                            $s,
-                            2,
-                        );
-                        $f = substr(
-                            $f,
-                            0,
-                            2,
-                        );
-
-                        return $i . '.' . str_pad(
-                            $f,
-                            2,
-                            '0',
-                            STR_PAD_RIGHT,
-                        );
-                    }
-
-                    return $s;
-                })($amount)
-                : number_format(
-                    (float) $amount,
-                    2,
-                    '.',
-                    '',
-                );
-        };
-
-        // Normalize Money inputs for totals from various shapes
-        $makeMoney = function ($value, ?string $fallbackCurrency) use ($normalizeAmount): ?Money {
-            if ($value instanceof Money) {
-                return $value;
-            }
-            if (is_array($value)) {
-                $amount = $value['amount'] ?? null;
-                $curr = $value['currency'] ?? $fallbackCurrency ?? null;
-                if ($amount !== null && is_string($curr)) {
-                    return Money::fromString($normalizeAmount($amount), strtoupper($curr));
-                }
-
-                return null;
-            }
-            if (is_string($value) || is_numeric($value)) {
-                $curr = $fallbackCurrency ?? 'CZK';
-
-                return Money::fromString($normalizeAmount($value), strtoupper($curr));
-            }
-
-            return null;
-        };
-
-        // Accept multiple input keys for totals
-        $subtotal = null;
-        if (array_key_exists('subtotal', $data)) {
-            $subtotal = $makeMoney($data['subtotal'], $currency);
-        } elseif (array_key_exists('subtotal_money', $data)) {
-            $subtotal = $makeMoney($data['subtotal_money'], $currency);
-        }
-
-        $totalTax = null;
-        if (array_key_exists('total_tax', $data)) {
-            $totalTax = $makeMoney($data['total_tax'], $currency);
-        } elseif (array_key_exists('total_tax_money', $data)) {
-            $totalTax = $makeMoney($data['total_tax_money'], $currency);
-        }
-
-        $totalAmount = null;
-        if (array_key_exists('total_amount', $data)) {
-            $totalAmount = $makeMoney($data['total_amount'], $currency);
-        } elseif (array_key_exists('payment_amount_money', $data)) {
-            $totalAmount = $makeMoney($data['payment_amount_money'], $currency);
-        } elseif (array_key_exists('payment_amount', $data)) {
-            $totalAmount = $makeMoney($data['payment_amount'], $currency);
-        }
-
         return new self(
             parties: $parties,
             number: $data['number'] ?? ($data['invoice_vs'] ?? null),
@@ -157,9 +60,7 @@ class InvoiceWriteData
             payment_reference: $data['payment_reference'] ?? ($data['invoice_ss'] ?? null),
             constant_code: $data['constant_code'] ?? ($data['invoice_ks'] ?? null),
             tax_point_date: $data['tax_point_date'] ?? null,
-            subtotal: $subtotal,
-            total_tax: $totalTax,
-            total_amount: $totalAmount,
+            total_amount: $data['total_amount'] ?? null,
             payment_method_id: isset($data['payment_method_id']) ? (int) $data['payment_method_id'] : null,
             invoice_text: $data['invoice_text'] ?? null,
             items: $data['items'] ?? [],

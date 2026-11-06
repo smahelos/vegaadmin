@@ -27,9 +27,9 @@ class ProductControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Create required permissions for 'web' guard
-        $permission = Permission::where('name', 'frontend.can_create_edit_product')
-            ->where('guard_name', 'web')
-            ->first();
+        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
+        $permissionQuery->where('guard_name', 'web');
+        $permission = $permissionQuery->first();
         $this->user->givePermissionTo($permission);
 
         $this->createProductEntityLimit();
@@ -42,15 +42,17 @@ class ProductControllerFeatureTest extends TestCase
      */
     private function createProductEntityLimit(): void
     {
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_product',
-            'entity_type' => 'product',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'description' => 'Product limit for frontend tests',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_product',
+                'entity_type' => 'product',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'description' => 'Product limit for frontend tests',
+                'is_active' => true,
+            ],
+        );
     }
 
     #[Test]
@@ -77,10 +79,15 @@ class ProductControllerFeatureTest extends TestCase
         ];
 
         // Act
-        $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $productData);
+        $response = $this->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $productData,
+        );
 
         // Assert
-        $response->assertRedirect(route('frontend.products', ['locale' => 'cs']));
+        $response->assertRedirect(
+            route('frontend.products', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('success');
 
         // Check usage after creation
@@ -95,10 +102,13 @@ class ProductControllerFeatureTest extends TestCase
         $this->assertEquals($initialUsage + 1, $newUsage);
 
         // Verify product was created
-        $this->assertDatabaseHas('products', [
-            'name' => $productData['name'],
-            'user_id' => $this->user->id,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'name' => $productData['name'],
+                'user_id' => $this->user->id,
+            ],
+        );
     }
 
     #[Test]
@@ -108,9 +118,12 @@ class ProductControllerFeatureTest extends TestCase
 
         // Ensure the limit is set to 1 for this test
         // we need to set limit to 1, so update data in database
-        EntityLimit::where([
-            'permission_name' => 'frontend.can_create_edit_product',
-        ])->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where(
+            [
+                'permission_name' => 'frontend.can_create_edit_product',
+            ],
+        );
+        $entityLimitQuery->update(['limit_value' => 1]);
 
         // First product creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -121,7 +134,8 @@ class ProductControllerFeatureTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $product1 = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->user->id]);
         $result = $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -152,7 +166,9 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $response = $this->get(route('frontend.products', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.products', ['locale' => 'cs']),
+        );
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.products.index');
@@ -161,7 +177,8 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function index_shows_the_product_limit_and_usage(): void
     {
-        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 2]);
+        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
+        $entityLimitQuery->update(['limit_value' => 2]);
         $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -169,19 +186,26 @@ class ProductControllerFeatureTest extends TestCase
             'monthly',
         );
 
-        $response = $this->actingAs($this->user, 'web')->get(route('frontend.products', ['locale' => 'cs']));
+        $httpClient = $this->actingAs($this->user, 'web');
+        $response = $httpClient->get(
+            route('frontend.products', ['locale' => 'cs']),
+        );
 
-        $response->assertViewHas('limitsData', [
-            'limit' => 2,
-            'current_usage' => 1,
-            'allowed' => true,
-        ]);
+        $response->assertViewHas(
+            'limitsData',
+            [
+                'limit' => 2,
+                'current_usage' => 1,
+                'allowed' => true,
+            ],
+        );
     }
 
     #[Test]
     public function index_does_not_allow_a_new_product_at_the_limit(): void
     {
-        EntityLimit::where('permission_name', 'frontend.can_create_edit_product')->update(['limit_value' => 1]);
+        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
+        $entityLimitQuery->update(['limit_value' => 1]);
         $this->limitService->recordUsage(
             $this->user->id,
             'product',
@@ -189,19 +213,27 @@ class ProductControllerFeatureTest extends TestCase
             'monthly',
         );
 
-        $response = $this->actingAs($this->user, 'web')->get(route('frontend.products', ['locale' => 'cs']));
+        $httpClient = $this->actingAs($this->user, 'web');
+        $response = $httpClient->get(
+            route('frontend.products', ['locale' => 'cs']),
+        );
 
-        $response->assertViewHas('limitsData', [
-            'limit' => 1,
-            'current_usage' => 1,
-            'allowed' => false,
-        ]);
+        $response->assertViewHas(
+            'limitsData',
+            [
+                'limit' => 1,
+                'current_usage' => 1,
+                'allowed' => false,
+            ],
+        );
     }
 
     #[Test]
     public function index_requires_authentication(): void
     {
-        $response = $this->get(route('frontend.products', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.products', ['locale' => 'cs']),
+        );
 
         $response->assertRedirect('/login');
     }
@@ -211,7 +243,9 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $response = $this->get(route('frontend.product.create', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.product.create', ['locale' => 'cs']),
+        );
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.products.create');
@@ -221,7 +255,9 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function create_requires_authentication(): void
     {
-        $response = $this->get(route('frontend.product.create', ['locale' => 'cs']));
+        $response = $this->get(
+            route('frontend.product.create', ['locale' => 'cs']),
+        );
 
         $response->assertRedirect('/login');
     }
@@ -237,7 +273,10 @@ class ProductControllerFeatureTest extends TestCase
             'unit' => 'pieces',
         ];
 
-        $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $productData);
+        $response = $this->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $productData,
+        );
 
         $response->assertRedirect('/login');
         $this->assertDatabaseMissing('products', ['name' => 'Test Product']);
@@ -253,7 +292,10 @@ class ProductControllerFeatureTest extends TestCase
             'description' => 'Test Description',
         ];
 
-        $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $invalidData);
+        $response = $this->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $invalidData,
+        );
 
         $response->assertSessionHasErrors(['name', 'price']);
     }
@@ -263,9 +305,12 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        EntityLimit::where([
-            'permission_name' => 'frontend.can_create_edit_product',
-        ])->update(['limit_value' => 0]);
+        $entityLimitQuery = EntityLimit::where(
+            [
+                'permission_name' => 'frontend.can_create_edit_product',
+            ],
+        );
+        $entityLimitQuery->update(['limit_value' => 0]);
 
         $productData = [
             'name' => 'Test Product ' . uniqid(),
@@ -275,7 +320,10 @@ class ProductControllerFeatureTest extends TestCase
             'unit' => 'pieces',
         ];
 
-        $response = $this->post(route('frontend.product.store', ['locale' => 'cs']), $productData);
+        $response = $this->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $productData,
+        );
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -287,9 +335,12 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
-        $response = $this->get(route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->get(
+            route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.products.show');
@@ -302,9 +353,12 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function show_requires_authentication(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
-        $response = $this->get(route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->get(
+            route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
         $response->assertRedirect('/login');
     }
@@ -314,10 +368,14 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $otherUser = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $otherUser->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $otherUser->id]);
 
-        $response = $this->get(route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->get(
+            route('frontend.product.show', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
         // Repository uses where('user_id', $user->id) which returns 404 when product doesn't belong to user
         // This is correct behavior - product doesn't exist "for this user"
@@ -330,18 +388,24 @@ class ProductControllerFeatureTest extends TestCase
         $this->actingAs($this->user, 'web');
 
         // Ensure user has the frontend_user role
-        if (! $this->user->hasRole('frontend_user')) {
+        if (!$this->user->hasRole('frontend_user')) {
             $this->user->assignRole('frontend_user');
         }
 
         // Create product with explicit state to override factory default
-        $product = Product::factory()->state([
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->state([
             'user_id' => $this->user->id,
-        ])->create();
+        ]);
+        $product = $productFactory->create();
 
-        $response = $this->delete(route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->delete(
+            route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
-        $response->assertRedirect(route('frontend.products', ['locale' => 'cs']));
+        $response->assertRedirect(
+            route('frontend.products', ['locale' => 'cs']),
+        );
         $response->assertSessionHas('success');
 
         // If redirect and success message worked, the controller method executed correctly
@@ -349,7 +413,10 @@ class ProductControllerFeatureTest extends TestCase
         $refreshedProduct = Product::find($product->id);
         if ($refreshedProduct) {
             // If product still exists, check if it was successfully processed
-            $this->assertTrue(true, 'Product deletion may use soft deletes or complex logic - test passes as controller executed successfully');
+            $this->assertTrue(
+                true,
+                'Product deletion may use soft deletes or complex logic - test passes as controller executed successfully',
+            );
         } else {
             // Product was hard deleted
             $this->assertNull($refreshedProduct);
@@ -359,9 +426,12 @@ class ProductControllerFeatureTest extends TestCase
     #[Test]
     public function destroy_requires_authentication(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
-        $response = $this->delete(route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->delete(
+            route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
         $response->assertRedirect('/login');
         $this->assertDatabaseHas('products', ['id' => $product->id]);
@@ -372,10 +442,14 @@ class ProductControllerFeatureTest extends TestCase
     {
         $this->actingAs($this->user, 'web');
 
-        $otherUser = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $otherUser->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $otherUser->id]);
 
-        $response = $this->delete(route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]));
+        $response = $this->delete(
+            route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
+        );
 
         // Since we use findByIdForUser(), user trying to delete other user's product will get 404
         // This is correct behavior - product doesn't exist "for this user"
@@ -389,40 +463,61 @@ class ProductControllerFeatureTest extends TestCase
     public function destroy_refuses_a_product_on_invoices_and_keeps_its_image(): void
     {
         Storage::fake('public');
-        Storage::disk('public')->put('products/kept.png', 'image');
-        $product = Product::factory()->create([
-            'user_id' => $this->user->id,
-            'image' => 'products/kept.png',
-        ]);
-        InvoiceProduct::factory()->create(['product_id' => $product->id]);
+        $disk = Storage::disk('public');
+        $disk->put('products/kept.png', 'image');
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'image' => 'products/kept.png',
+            ],
+        );
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(['product_id' => $product->id]);
 
-        $this->actingAs($this->user, 'web')
-            ->from(route('frontend.products', ['locale' => 'cs']))
-            ->delete(route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]))
-            ->assertRedirect(route('frontend.products', ['locale' => 'cs']))
-            ->assertSessionHas('error', __('products.messages.error_delete_invoices'));
+        $httpClient = $this->actingAs($this->user, 'web');
+        $httpClient = $httpClient->from(
+            route('frontend.products', ['locale' => 'cs']),
+        );
+        $httpResponse = $httpClient->delete(
+            route('frontend.product.destroy', ['locale' => 'cs', 'id' => $product->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect(
+            route('frontend.products', ['locale' => 'cs']),
+        );
+        $httpResponse->assertSessionHas(
+            'error',
+            __('products.messages.error_delete_invoices'),
+        );
 
         $this->assertDatabaseHas('products', ['id' => $product->id]);
-        Storage::disk('public')->assertExists('products/kept.png');
+        $disk->assertExists('products/kept.png');
     }
 
     #[Test]
     public function store_refuses_a_slug_the_user_already_has_but_accepts_another_users(): void
     {
-        $own = Product::factory()->create(['user_id' => $this->user->id]);
-        $foreign = Product::factory()->create();
+        $productFactory = Product::factory();
+        $own = $productFactory->create(['user_id' => $this->user->id]);
+        $foreign = $productFactory->create();
         $productData = [
             'name' => 'Product ' . uniqid(),
             'price' => 10,
             'currency' => 'CZK',
         ];
 
-        $this->actingAs($this->user, 'web')
-            ->post(route('frontend.product.store', ['locale' => 'cs']), [...$productData, 'slug' => $own->slug])
-            ->assertSessionHasErrors('slug');
+        $httpClient = $this->actingAs($this->user, 'web');
+        $httpResponse = $httpClient->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            [...$productData, 'slug' => $own->slug],
+        );
+        $httpResponse->assertSessionHasErrors('slug');
 
-        $this->post(route('frontend.product.store', ['locale' => 'cs']), [...$productData, 'slug' => $foreign->slug])
-            ->assertSessionHasNoErrors();
+        $httpResponse = $this->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            [...$productData, 'slug' => $foreign->slug],
+        );
+        $httpResponse->assertSessionHasNoErrors();
 
         $this->assertDatabaseHas('products', ['user_id' => $this->user->id, 'slug' => $foreign->slug]);
     }

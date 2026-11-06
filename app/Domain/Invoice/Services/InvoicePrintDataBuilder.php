@@ -37,8 +37,16 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         $items = [];
         foreach ($invoice->items as $item) {
             $currency = strtoupper($item['currency'] ?? ($invoice->currency ?? 'CZK'));
-            $price = ($item['price'] ?? null) instanceof Money ? $item['price'] : Money::fromString((string) ($item['price'] ?? '0'), $currency);
-            $lineTotal = ($item['total_price'] ?? null) instanceof Money ? $item['total_price'] : Money::fromString((string) ($item['total_price'] ?? '0'), $currency);
+            if (($item['price'] ?? null) instanceof Money) {
+                $price = $item['price'];
+            } else {
+                $price = Money::fromString((string) ($item['price'] ?? '0'), $currency);
+            }
+            if (($item['total_price'] ?? null) instanceof Money) {
+                $lineTotal = $item['total_price'];
+            } else {
+                $lineTotal = Money::fromString((string) ($item['total_price'] ?? '0'), $currency);
+            }
             $items[] = new PrintableInvoiceItemDTO(
                 name: (string) ($item['name'] ?? ''),
                 quantity: isset($item['quantity']) ? (float) $item['quantity'] : 1.0,
@@ -83,12 +91,14 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             return null;
         }
 
-        return $this->paymentMethods->findById(PaymentMethodId::fromInt($id))?->code;
+        return $this->paymentMethods->findById(
+            PaymentMethodId::fromInt($id),
+        )?->code;
     }
 
     private function toImmutableDate(?string $date): ?DateTimeImmutable
     {
-        if (! $date) {
+        if (!$date) {
             return null;
         }
         try {
@@ -100,7 +110,7 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
 
     private function dueDate(?DateTimeImmutable $issue, ?int $dueIn): ?InvoiceDueDate
     {
-        if (! $issue || $dueIn === null) {
+        if (!$issue || $dueIn === null) {
             return null;
         }
 

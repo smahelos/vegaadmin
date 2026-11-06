@@ -30,7 +30,7 @@
                 <div class="mt-2 text-sm text-green-600 dark:text-green-300">
                     <p>{{ __('subscriptions.labels.active_plan') }} <strong>{{ $userSubscription->subscriptionPlan->name
                             }}</strong></p>
-                    <a href="{{ route('subscriptions.my-subscription', ['locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('subscriptions.my-subscription', ['locale' => App::getLocale()]) }}"
                         class="font-medium underline dark:text-green-300 hover:text-green-600 dark:hover:text-green-200">
                         {{ __('subscriptions.titles.mine') }}
                     </a>
@@ -97,12 +97,12 @@
                         {{ __('subscriptions.titles.current_plan') }}
                     </button>
                     @elseif($userSubscription)
-                    <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => App::getLocale()]) }}"
                         class="w-full inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
                         {{ __('subscriptions.actions.upgrade') }}
                     </a>
                     @else
-                    <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('subscriptions.show', ['plan' => $plan, 'locale' => App::getLocale()]) }}"
                         class="w-full inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">
                         {{ __('subscriptions.actions.choose_plan') }}
                     </a>

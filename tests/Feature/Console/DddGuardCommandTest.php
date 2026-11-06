@@ -32,9 +32,10 @@ class DddGuardCommandTest extends TestCase
             }
         }
 
-        $this->artisan('ddd:guard')
-            ->expectsOutput('No DDD guard violations detected.')
-            ->assertExitCode(0);
+        $command = $this->pendingCommand('ddd:guard');
+        $command->expectsOutput('No DDD guard violations detected.');
+        $command->assertExitCode(0);
+        $command->run();
     }
 
     #[Test]
@@ -42,7 +43,7 @@ class DddGuardCommandTest extends TestCase
     {
         // Use process-specific directory to avoid conflicts in parallel test execution
         $servicesPath = base_path("app/Services_{$this->processId}");
-        if (! is_dir($servicesPath)) {
+        if (!is_dir($servicesPath)) {
             File::makeDirectory(
                 $servicesPath,
                 0755,
@@ -50,37 +51,49 @@ class DddGuardCommandTest extends TestCase
             );
         }
         $tempFile = $servicesPath . '/TemporaryNewService.php';
-        File::put($tempFile, "<?php\nnamespace App\\Services;\nclass TemporaryNewService {}\n");
+        File::put(
+            $tempFile,
+            "<?php\nnamespace App\\Services;\nclass TemporaryNewService {}\n",
+        );
 
         // Temporarily override config to use our process-specific path
         $originalConfig = config('ddd_guard.forbidden_paths');
         $originalDiPaths = config('ddd_guard.di_scan_paths');
 
-        $modifiedConfig = collect($originalConfig)->map(function ($path) use ($servicesPath) {
-            if (isset($path['path']) && $path['path'] === base_path('app/Services')) {
-                $path['path'] = $servicesPath;
-            }
+        $collection = collect($originalConfig);
+        $mapped = $collection->map(
+            function ($path) use ($servicesPath) {
+                if (isset($path['path']) && $path['path'] === base_path('app/Services')) {
+                    $path['path'] = $servicesPath;
+                }
 
-            return $path;
-        })->toArray();
+                return $path;
+            },
+        );
+        $modifiedConfig = $mapped->toArray();
 
         // Disable DI scanning to avoid conflicts with process-specific Controllers folders
-        config([
-            'ddd_guard.forbidden_paths' => $modifiedConfig,
-            'ddd_guard.di_enabled' => false,
-        ]);
+        config(
+            [
+                'ddd_guard.forbidden_paths' => $modifiedConfig,
+                'ddd_guard.di_enabled' => false,
+            ],
+        );
 
         try {
-            $this->artisan('ddd:guard')
-                ->expectsOutput('DDD guard violations:')
-                ->assertExitCode(1);
+            $command = $this->pendingCommand('ddd:guard');
+            $command->expectsOutput('DDD guard violations:');
+            $command->assertExitCode(1);
+            $command->run();
         } finally {
             // Restore original config
-            config([
-                'ddd_guard.forbidden_paths' => $originalConfig,
-                'ddd_guard.di_scan_paths' => $originalDiPaths,
-                'ddd_guard.di_enabled' => true,
-            ]);
+            config(
+                [
+                    'ddd_guard.forbidden_paths' => $originalConfig,
+                    'ddd_guard.di_scan_paths' => $originalDiPaths,
+                    'ddd_guard.di_enabled' => true,
+                ],
+            );
             File::delete($tempFile);
             File::deleteDirectory($servicesPath);
         }

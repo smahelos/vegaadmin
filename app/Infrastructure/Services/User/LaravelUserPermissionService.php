@@ -38,7 +38,7 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
             function () use ($userId, $guard) {
                 $user = User::find($userId);
 
-                if (! $user) {
+                if (!$user) {
                     Log::debug('UserPermissionService: User not found', [
                         'user_id' => $userId,
                         'guard' => $guard,
@@ -48,13 +48,19 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
                 }
 
                 $permissions = $user->getAllPermissions();
-                $permissionNames = $permissions->pluck('name')->unique()->values()->toArray();
+                $permissionNames = $permissions->pluck('name');
+                $permissionNames = $permissionNames->unique();
+                $permissionNames = $permissionNames->values();
+                $permissionNames = $permissionNames->toArray();
 
-                Log::debug('UserPermissionService: Retrieved user permissions', [
-                    'user_id' => $userId,
-                    'guard' => $guard,
-                    'permissions_count' => count($permissionNames),
-                ]);
+                Log::debug(
+                    'UserPermissionService: Retrieved user permissions',
+                    [
+                        'user_id' => $userId,
+                        'guard' => $guard,
+                        'permissions_count' => count($permissionNames),
+                    ],
+                );
 
                 return $permissionNames;
             },
@@ -66,7 +72,8 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
      */
     public function userExists(int $userId): bool
     {
-        $exists = User::where('id', $userId)->exists();
+        $query = User::where('id', $userId);
+        $exists = $query->exists();
 
         Log::debug('UserPermissionService: User existence check', [
             'user_id' => $userId,

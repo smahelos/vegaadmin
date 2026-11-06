@@ -22,9 +22,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-        $permission = Permission::where('name', 'can_create_edit_expense')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_expense');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
         $this->regularUser->givePermissionTo($permission);
     }
 
@@ -54,8 +54,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
@@ -70,7 +71,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
@@ -85,13 +87,15 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_duplicate_slug(): void
     {
-        ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $invalidData = [
             'name' => 'Test Category',
@@ -102,13 +106,15 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('slug', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('slug', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_same_slug_for_update(): void
     {
-        $category = ExpenseCategory::factory()->create(['slug' => 'existing-slug']);
+        $expenseCategoryFactory = ExpenseCategory::factory();
+        $category = $expenseCategoryFactory->create(['slug' => 'existing-slug']);
 
         $validData = [
             'name' => 'Updated Category',
@@ -150,7 +156,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]
@@ -181,7 +188,8 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
     public function authorization_fails_without_permission(): void
     {
         // Create user without permission for this specific test
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
         $this->actingAs($userWithoutPermission, 'backpack');
 
         $request = new ExpenseCategoryRequest;
@@ -230,6 +238,7 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('color', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('color', $errors->toArray());
     }
 }

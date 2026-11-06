@@ -34,7 +34,10 @@ class ProductController extends Controller
         $limitsData = $this->getProductsLimitStats();
 
         // we load grid by livewire ProductList component
-        return view('frontend.products.index', compact('limitsData'));
+        return view(
+            'frontend.products.index',
+            compact('limitsData'),
+        );
     }
 
     /**
@@ -50,12 +53,15 @@ class ProductController extends Controller
         // get current logged user's product limits
         $limitsData = $this->getProductsLimitStats();
 
-        return view('frontend.products.create', [
-            'productCategories' => $formData['product_categories'],
-            'taxRates' => $formData['tax_rates'],
-            'fields' => $fields,
-            'limitsData' => $limitsData,
-        ]);
+        return view(
+            'frontend.products.create',
+            [
+                'productCategories' => $formData['product_categories'],
+                'taxRates' => $formData['tax_rates'],
+                'fields' => $fields,
+                'limitsData' => $limitsData,
+            ],
+        );
     }
 
     /**
@@ -69,10 +75,15 @@ class ProductController extends Controller
         // Check entity limits before creation
         if ($user) {
             $canCreate = $this->limitService->canUserCreateEntity($user->id, 'product');
-            if (! $canCreate) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', trans('products.messages.limit_exceeded'));
+            if (!$canCreate) {
+                $redirector = redirect();
+                $redirect = $redirector->back();
+                $redirect->withInput();
+
+                return $redirect->with(
+                    'error',
+                    trans('products.messages.limit_exceeded'),
+                );
             }
         }
 
@@ -83,25 +94,41 @@ class ProductController extends Controller
 
         try {
             $product = $this->productService->createProduct($validatedData, $user->id);
-            $locale = $request->route('locale') ?? app()->getLocale();
+            $application = app();
+            $locale = $request->route('locale') ?? $application->getLocale();
 
-            return redirect()->route('frontend.products', ['locale' => $locale])
-                ->with('success', trans('products.messages.created'));
+            $redirector = redirect();
+            $redirect = $redirector->route('frontend.products', ['locale' => $locale]);
+
+            return $redirect->with(
+                'success',
+                trans('products.messages.created'),
+            );
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with('error', trans('products.messages.validation_failed'));
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withErrors($e->errors());
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                trans('products.messages.validation_failed'),
+            );
         } catch (\Throwable $e) {
             Log::error('Product creation failed', [
                 'userId' => Auth::id(),
                 'exception' => $e,
             ]);
 
-            return redirect()->back()
-                ->withInput()
-                ->with('error', __('products.messages.error_create'));
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                __('products.messages.error_create'),
+            );
         }
     }
 
@@ -120,7 +147,10 @@ class ProductController extends Controller
         // get current logged user's product limits
         $limitsData = $this->getProductsLimitStats($user);
 
-        return view('frontend.products.show', compact('product', 'limitsData'));
+        return view(
+            'frontend.products.show',
+            compact('product', 'limitsData'),
+        );
     }
 
     /**
@@ -142,13 +172,16 @@ class ProductController extends Controller
         // get current logged user's product limits
         $limitsData = $this->getProductsLimitStats($user);
 
-        return view('frontend.products.edit', [
-            'product' => $product,
-            'productCategories' => $formData['product_categories'],
-            'taxRates' => $formData['tax_rates'],
-            'fields' => $fields,
-            'limitsData' => $limitsData,
-        ]);
+        return view(
+            'frontend.products.edit',
+            [
+                'product' => $product,
+                'productCategories' => $formData['product_categories'],
+                'taxRates' => $formData['tax_rates'],
+                'fields' => $fields,
+                'limitsData' => $limitsData,
+            ],
+        );
     }
 
     /**
@@ -179,32 +212,54 @@ class ProductController extends Controller
                 $user->id,
             );
 
-            return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
-                ->with('success', trans('products.messages.updated'));
+            $redirector = redirect();
+            $application = app();
+            $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'success',
+                trans('products.messages.updated'),
+            );
 
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
-            Log::error('Product update failed', [
-                'product_id' => $id,
-                'user_id' => Auth::id(),
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ]);
+            Log::error(
+                'Product update failed',
+                [
+                    'product_id' => $id,
+                    'user_id' => Auth::id(),
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ],
+            );
 
-            return redirect()->back()
-                ->withErrors($e->errors())
-                ->withInput()
-                ->with('error', trans('products.messages.validation_failed'));
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withErrors($e->errors());
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                trans('products.messages.validation_failed'),
+            );
         } catch (\Throwable $e) {
-            Log::error('Product update failed', [
-                'productId' => $id,
-                'userId' => Auth::id(),
-                'exception' => $e,
-            ]);
+            Log::error(
+                'Product update failed',
+                [
+                    'productId' => $id,
+                    'userId' => Auth::id(),
+                    'exception' => $e,
+                ],
+            );
 
-            return redirect()->back()
-                ->withInput()
-                ->with('error', __('products.messages.error_update'));
+            $redirector = redirect();
+            $redirect = $redirector->back();
+            $redirect->withInput();
+
+            return $redirect->with(
+                'error',
+                __('products.messages.error_update'),
+            );
         }
     }
 
@@ -221,8 +276,14 @@ class ProductController extends Controller
         // Delete product using service
         $this->productService->deleteProduct($id, Auth::id());
 
-        return redirect()->route('frontend.products', ['locale' => app()->getLocale()])
-            ->with('success', trans('products.messages.deleted'));
+        $redirector = redirect();
+        $application = app();
+        $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
+
+        return $redirect->with(
+            'success',
+            trans('products.messages.deleted'),
+        );
     }
 
     /**

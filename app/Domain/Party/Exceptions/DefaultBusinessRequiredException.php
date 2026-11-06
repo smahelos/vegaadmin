@@ -14,6 +14,8 @@ final class DefaultBusinessRequiredException extends DomainException
 {
     public function __construct(BusinessId $id)
     {
-        parent::__construct("Archiving the default business {$id->value} needs another active business as the default");
+        parent::__construct(
+            "Archiving the default business {$id->value} needs another active business as the default",
+        );
     }
 }

@@ -35,7 +35,8 @@ final class PartyRecords
         UserId $userId,
         bool $forUpdate,
     ): int {
-        $query->where('user_id', $userId->toInt())->whereNull('archived_at');
+        $query->where('user_id', $userId->toInt());
+        $query->whereNull('archived_at');
         if ($forUpdate) {
             // The owner lock serializes activations; a locking read also sees commits after an earlier snapshot.
             $query->lockForUpdate();
@@ -55,14 +56,15 @@ final class PartyRecords
         UserId $userId,
         int $limit,
     ): array {
-        return $query
-            ->with('address')
-            ->where('user_id', $userId->toInt())
-            ->whereNull('archived_at')
-            ->orderByDesc('created_at')
-            ->orderByDesc('id')
-            ->limit($limit)
-            ->get()->all();
+        $query->with('address');
+        $query->where('user_id', $userId->toInt());
+        $query->whereNull('archived_at');
+        $query->orderByDesc('created_at');
+        $query->orderByDesc('id');
+        $query->limit($limit);
+        $parties = $query->get();
+
+        return $parties->all();
     }
 
     /**
@@ -81,10 +83,13 @@ final class PartyRecords
         ?Address $address,
     ): Business|Contact {
         try {
-            DB::transaction(function () use ($party, $attributes, $address): void {
-                $party->fill($attributes)->save();
-                $this->saveAddress($party, $address);
-            });
+            DB::transaction(
+                function () use ($party, $attributes, $address): void {
+                    $party->fill($attributes);
+                    $party->save();
+                    $this->saveAddress($party, $address);
+                },
+            );
         } catch (QueryException $e) {
             throw $this->duplicateOf($party, $e) ?? $e;
         }
@@ -106,24 +111,28 @@ final class PartyRecords
         UserId $userId,
         PartyProfile $profile,
     ): Builder {
-        return $query
-            ->with('address')
-            ->where('user_id', $userId->toInt())
-            ->where(function (Builder $match) use ($profile): void {
+        $query->with('address');
+        $query->where('user_id', $userId->toInt());
+        $query->where(
+            function (Builder $match) use ($profile): void {
                 $match->where('name', $profile->name);
 
                 if ($profile->registrationNumber !== null) {
-                    $match->orWhere(function (Builder $number) use ($profile): void {
-                        $number
-                            ->where('registration_country', $profile->registrationNumber?->country->value)
-                            ->where('company_number', $profile->registrationNumber?->number);
-                    });
+                    $match->orWhere(
+                        function (Builder $number) use ($profile): void {
+                            $number->where('registration_country', $profile->registrationNumber?->country->value);
+                            $number->where('company_number', $profile->registrationNumber?->number);
+                        },
+                    );
                 }
 
                 if ($profile->email !== null) {
                     $match->orWhere('email', $profile->email);
                 }
-            });
+            },
+        );
+
+        return $query;
     }
 
     /**
@@ -140,9 +149,8 @@ final class PartyRecords
         PartySearch $search,
         PageRequest $page,
     ): LengthAwarePaginator {
-        $query
-            ->with('address')
-            ->where('user_id', $userId->toInt());
+        $query->with('address');
+        $query->where('user_id', $userId->toInt());
 
         if ($search->archived) {
             $query->whereNotNull('archived_at');
@@ -153,30 +161,38 @@ final class PartyRecords
         $term = trim($search->term ?? '');
         if ($term !== '') {
             $pattern = '%' . addcslashes($term, '%_\\') . '%';
-            $query->where(function (Builder $match) use ($pattern): void {
-                $match
-                    ->where(
+            $query->where(
+                function (Builder $match) use ($pattern): void {
+                    $match->where(
                         'name',
                         'like',
                         $pattern,
-                    )
-                    ->orWhere(
+                    );
+                    $match->orWhere(
                         'short_name',
                         'like',
                         $pattern,
-                    )
-                    ->orWhere(
+                    );
+                    $match->orWhere(
                         'company_number',
                         'like',
                         $pattern,
-                    )
-                    ->orWhere(
+                    );
+                    $match->orWhere(
                         'email',
                         'like',
                         $pattern,
-                    )
-                    ->orWhereHas('address', fn (Builder $address): Builder => $address->where('city', 'like', $pattern));
-            });
+                    );
+                    $match->orWhereHas(
+                        'address',
+                        fn (Builder $address): Builder => $address->where(
+                            'city',
+                            'like',
+                            $pattern,
+                        ),
+                    );
+                },
+            );
         }
 
         $direction = $search->ascending ? 'asc' : 'desc';
@@ -186,15 +202,15 @@ final class PartyRecords
             $direction,
         );
 
-        return $query
-            ->orderBy('name')
-            ->orderBy('id')
-            ->paginate(
-                $page->perPage(),
-                ['*'],
-                'page',
-                $page->page(),
-            );
+        $query->orderBy('name');
+        $query->orderBy('id');
+
+        return $query->paginate(
+            $page->perPage(),
+            ['*'],
+            'page',
+            $page->page(),
+        );
     }
 
     /**
@@ -202,13 +218,17 @@ final class PartyRecords
      */
     private function saveAddress(Business|Contact $party, ?Address $address): void
     {
+        $relation = $party->address();
         if ($address === null) {
-            $party->address()->delete();
+            $relation->delete();
 
             return;
         }
 
-        $party->address()->updateOrCreate([], EloquentPartyProfileMapper::toAddressAttributes($address));
+        $relation->updateOrCreate(
+            [],
+            EloquentPartyProfileMapper::toAddressAttributes($address),
+        );
     }
 
     /**
@@ -220,12 +240,14 @@ final class PartyRecords
         string $direction,
     ): void {
         if ($sort === PartySort::CITY) {
-            $foreignKey = $query->getModel() instanceof Contact ? 'contact_id' : 'business_id';
+            $model = $query->getModel();
+            $foreignKey = $model instanceof Contact ? 'contact_id' : 'business_id';
+            $cityQuery = AddressModel::query();
+            $cityQuery->select('city');
+            $cityQuery->whereColumn($foreignKey, $model->getQualifiedKeyName());
+            $cityQuery->limit(1);
             $query->orderBy(
-                AddressModel::query()
-                    ->select('city')
-                    ->whereColumn($foreignKey, $query->getModel()->getQualifiedKeyName())
-                    ->limit(1),
+                $cityQuery,
                 $direction,
             );
 
@@ -244,14 +266,17 @@ final class PartyRecords
 
     private function duplicateOf(Business|Contact $party, QueryException $e): ?DuplicateCompanyNumberException
     {
-        if (($e->errorInfo[1] ?? null) !== self::DUPLICATE_KEY_ERROR || ! str_contains($e->getMessage(), 'czech_company_number')) {
+        if (
+            ($e->errorInfo[1] ?? null) !== self::DUPLICATE_KEY_ERROR
+            || !str_contains($e->getMessage(), 'czech_company_number')
+        ) {
             return null;
         }
 
-        $existing = $party::query()
-            ->where('user_id', $party->user_id)
-            ->where('czech_company_number', $party->company_number)
-            ->value('id');
+        $query = $party::query();
+        $query->where('user_id', $party->user_id);
+        $query->where('czech_company_number', $party->company_number);
+        $existing = $query->value('id');
         if ($existing === null) {
             return null;
         }

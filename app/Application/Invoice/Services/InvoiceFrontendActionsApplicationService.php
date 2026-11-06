@@ -46,23 +46,31 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
         try {
             // Find invoice and verify ownership
             $invoice = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
-            if (! $invoice) {
+            if (!$invoice) {
                 return InvoiceActionResult::failure('invoices.messages.not_found');
             }
 
             // Delegate to domain service
-            $ok = $this->invoiceService->setInvoiceTemplate(InvoiceId::fromInt($invoice->id), $template);
+            $ok = $this->invoiceService->setInvoiceTemplate(
+                InvoiceId::fromInt($invoice->id),
+                $template,
+            );
 
-            return $ok
-                ? InvoiceActionResult::success('invoices.messages.template_set')
-                : InvoiceActionResult::failure('invoices.messages.update_error');
+            if ($ok) {
+                return InvoiceActionResult::success('invoices.messages.template_set');
+            }
+
+            return InvoiceActionResult::failure('invoices.messages.update_error');
         } catch (\Throwable $e) {
-            Log::error('InvoiceFrontendActions setTemplate failed', [
-                'invoice_id' => $invoiceId,
-                'user_id' => $userId,
-                'template' => $template,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(
+                'InvoiceFrontendActions setTemplate failed',
+                [
+                    'invoice_id' => $invoiceId,
+                    'user_id' => $userId,
+                    'template' => $template,
+                    'error' => $e->getMessage(),
+                ],
+            );
 
             return InvoiceActionResult::failure('invoices.messages.update_error');
         }
@@ -89,12 +97,15 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
 
             return InvoiceActionResult::success(message: $messageKey);
         } catch (\Throwable $e) {
-            Log::error('InvoiceFrontendActions changeStatus failed', [
-                'invoice_id' => $invoiceId,
-                'user_id' => $userId,
-                'status' => $status->value,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(
+                'InvoiceFrontendActions changeStatus failed',
+                [
+                    'invoice_id' => $invoiceId,
+                    'user_id' => $userId,
+                    'status' => $status->value,
+                    'error' => $e->getMessage(),
+                ],
+            );
 
             return InvoiceActionResult::failure('invoices.messages.update_error');
         }
@@ -103,7 +114,9 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
     public function getLimitData(int $userId): InvoiceActionResult
     {
         try {
-            $data = $this->invoiceLimit->getLimitInfo(new UserId($userId));
+            $data = $this->invoiceLimit->getLimitInfo(
+                new UserId($userId),
+            );
 
             return InvoiceActionResult::success(data: $data);
         } catch (\Throwable $e) {
@@ -112,11 +125,14 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 'error' => $e->getMessage(),
             ]);
 
-            return InvoiceActionResult::failure('invoices.messages.limits_error', data: [
-                'limit' => 0,
-                'current_usage' => 0,
-                'allowed' => false,
-            ]);
+            return InvoiceActionResult::failure(
+                'invoices.messages.limits_error',
+                data: [
+                    'limit' => 0,
+                    'current_usage' => 0,
+                    'allowed' => false,
+                ],
+            );
         }
     }
 
@@ -167,7 +183,7 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
             return InvoiceActionResult::failure($primaryErrorKey, data: ['errors' => $errors, 'messages' => $messages]);
         }
         $invoice = null;
-        if ($actions->includeInvoice && ! empty($messages)) {
+        if ($actions->includeInvoice && !empty($messages)) {
             try {
                 // // Reuse existing read path: prepareShowData returns DTO; fetch invoice directly via API fetch for minimal overhead.
                 // $invoiceDTO = $this->invoiceListing->getById(
@@ -182,11 +198,14 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
                 $found = $this->invoiceReadRepository->findForUser($userId, $invoiceId);
                 $invoice = $found ?: null;
             } catch (\Throwable $e) {
-                Log::warning('InvoiceFrontendActions orchestrate includeInvoice fetch failed', [
-                    'invoice_id' => $invoiceId,
-                    'user_id' => $userId,
-                    'error' => $e->getMessage(),
-                ]);
+                Log::warning(
+                    'InvoiceFrontendActions orchestrate includeInvoice fetch failed',
+                    [
+                        'invoice_id' => $invoiceId,
+                        'user_id' => $userId,
+                        'error' => $e->getMessage(),
+                    ],
+                );
             }
         }
 

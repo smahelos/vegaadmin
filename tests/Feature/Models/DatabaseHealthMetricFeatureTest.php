@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Models\DatabaseHealthMetric;
 use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -22,13 +23,17 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function can_create_database_health_metric_with_factory(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
-        $this->assertDatabaseHas('database_health_metrics', [
-            'id' => $metric->id,
-            'metric_name' => $metric->metric_name,
-            'status' => $metric->status,
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            [
+                'id' => $metric->id,
+                'metric_name' => $metric->metric_name,
+                'status' => $metric->status,
+            ],
+        );
     }
 
     #[Test]
@@ -55,22 +60,29 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create([
-            'metric_value' => '123.4567',
-            'measured_at' => '2025-06-18 15:30:45',
-        ]);
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create(
+            [
+                'metric_value' => '123.4567',
+                'measured_at' => '2025-06-18 15:30:45',
+            ],
+        );
 
         $this->assertIsString($metric->metric_value); // Decimal cast returns string
         $this->assertEquals('123.4567', $metric->metric_value);
         $this->assertInstanceOf(Carbon::class, $metric->measured_at);
-        $this->assertEquals('2025-06-18 15:30:45', $metric->measured_at->format('Y-m-d H:i:s'));
+        $this->assertEquals(
+            '2025-06-18 15:30:45',
+            $metric->measured_at->format('Y-m-d H:i:s'),
+        );
     }
 
     #[Test]
     public function table_name_is_correct(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
         $this->assertEquals('database_health_metrics', $metric->getTable());
     }
@@ -80,37 +92,56 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     {
 
         // Create old metrics (older than 24 hours)
-        DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subDays(2),
-        ]);
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $now = CarbonImmutable::now();
+        $databaseHealthMetricFactory->create(
+            [
+                'measured_at' => $now->subDays(2),
+            ],
+        );
 
-        DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(30),
-        ]);
+        $databaseHealthMetricFactory->create(
+            [
+                'measured_at' => $now->subHours(30),
+            ],
+        );
 
         // Create recent metrics (within 24 hours)
-        $recentMetric1 = DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(12),
-        ]);
+        $recentMetric1 = $databaseHealthMetricFactory->create(
+            [
+                'measured_at' => $now->subHours(12),
+            ],
+        );
 
-        $recentMetric2 = DatabaseHealthMetric::factory()->create([
-            'measured_at' => now()->subHours(6),
-        ]);
+        $recentMetric2 = $databaseHealthMetricFactory->create(
+            [
+                'measured_at' => $now->subHours(6),
+            ],
+        );
 
-        $recentMetrics = DatabaseHealthMetric::recent()->get();
+        $metricQuery = DatabaseHealthMetric::recent();
+        $recentMetrics = $metricQuery->get();
 
         $this->assertCount(2, $recentMetrics);
-        $this->assertTrue($recentMetrics->contains($recentMetric1));
-        $this->assertTrue($recentMetrics->contains($recentMetric2));
+        $this->assertTrue(
+            $recentMetrics->contains($recentMetric1),
+        );
+        $this->assertTrue(
+            $recentMetrics->contains($recentMetric2),
+        );
     }
 
     #[Test]
     public function factory_states_work_correctly(): void
     {
 
-        $goodMetric = DatabaseHealthMetric::factory()->good()->create();
-        $warningMetric = DatabaseHealthMetric::factory()->warning()->create();
-        $criticalMetric = DatabaseHealthMetric::factory()->critical()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $goodFactory = $databaseHealthMetricFactory->good();
+        $goodMetric = $goodFactory->create();
+        $warningFactory = $databaseHealthMetricFactory->warning();
+        $warningMetric = $warningFactory->create();
+        $criticalFactory = $databaseHealthMetricFactory->critical();
+        $criticalMetric = $criticalFactory->create();
 
         $this->assertEquals('good', $goodMetric->status);
         $this->assertNull($goodMetric->recommendation);
@@ -127,9 +158,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_metric_specific_states_work(): void
     {
 
-        $databaseSizeMetric = DatabaseHealthMetric::factory()->databaseSize()->create();
-        $queryPerformanceMetric = DatabaseHealthMetric::factory()->queryPerformance()->create();
-        $connectionCountMetric = DatabaseHealthMetric::factory()->connectionCount()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $databaseSizeFactory = $databaseHealthMetricFactory->databaseSize();
+        $databaseSizeMetric = $databaseSizeFactory->create();
+        $queryPerformanceFactory = $databaseHealthMetricFactory->queryPerformance();
+        $queryPerformanceMetric = $queryPerformanceFactory->create();
+        $connectionCountFactory = $databaseHealthMetricFactory->connectionCount();
+        $connectionCountMetric = $connectionCountFactory->create();
 
         $this->assertEquals('database_size', $databaseSizeMetric->metric_name);
         $this->assertEquals('GB', $databaseSizeMetric->metric_unit);
@@ -145,17 +180,26 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function factory_recent_state_works(): void
     {
 
-        $recentMetric = DatabaseHealthMetric::factory()->recent()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $recentFactory = $databaseHealthMetricFactory->recent();
+        $recentMetric = $recentFactory->create();
 
-        $this->assertTrue($recentMetric->measured_at->isAfter(now()->subDay()));
-        $this->assertTrue($recentMetric->measured_at->isBefore(now()->addMinute()));
+        $now = CarbonImmutable::now();
+        $this->assertTrue(
+            $recentMetric->measured_at->isAfter($now->subDay()),
+        );
+        $this->assertTrue(
+            $recentMetric->measured_at->isBefore($now->addMinute()),
+        );
     }
 
     #[Test]
     public function factory_with_value_state_works(): void
     {
 
-        $specificValueMetric = DatabaseHealthMetric::factory()->withValue(99.99)->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $valuedFactory = $databaseHealthMetricFactory->withValue(99.99);
+        $specificValueMetric = $valuedFactory->create();
 
         $this->assertEquals('99.9900', $specificValueMetric->metric_value);
     }
@@ -164,7 +208,8 @@ class DatabaseHealthMetricFeatureTest extends TestCase
     public function can_update_database_health_metric(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
 
         $newData = [
             'status' => 'critical',
@@ -174,17 +219,21 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $metric->update($newData);
 
-        $this->assertDatabaseHas('database_health_metrics', array_merge(
-            ['id' => $metric->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            array_merge(
+                ['id' => $metric->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
     public function can_delete_database_health_metric(): void
     {
 
-        $metric = DatabaseHealthMetric::factory()->create();
+        $databaseHealthMetricFactory = DatabaseHealthMetric::factory();
+        $metric = $databaseHealthMetricFactory->create();
         $metricId = $metric->id;
 
         $metric->delete();
@@ -205,10 +254,13 @@ class DatabaseHealthMetricFeatureTest extends TestCase
 
         $metric = DatabaseHealthMetric::create($data);
 
-        $this->assertDatabaseHas('database_health_metrics', [
-            'metric_name' => $data['metric_name'],
-            'status' => $data['status'],
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_metrics',
+            [
+                'metric_name' => $data['metric_name'],
+                'status' => $data['status'],
+            ],
+        );
         $this->assertNull($metric->metric_unit);
         $this->assertNull($metric->recommendation);
     }

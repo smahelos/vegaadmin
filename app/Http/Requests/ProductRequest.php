@@ -26,10 +26,12 @@ class ProductRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         // Generate slug from name if not provided
-        if (! $this->filled('slug') && $this->filled('name')) {
-            $this->merge([
-                'slug' => Str::slug($this->name),
-            ]);
+        if (!$this->filled('slug') && $this->filled('name')) {
+            $this->merge(
+                [
+                    'slug' => Str::slug($this->name),
+                ],
+            );
         }
     }
 
@@ -111,11 +113,15 @@ class ProductRequest extends FormRequest
      */
     protected function failedValidation(Validator $validator): void
     {
-        throw new ValidationException($validator,
-            redirect()->back()
-                ->withErrors($validator->errors())
-                ->withInput()
-                ->with('error', trans('products.messages.validation_failed')),
+        $redirector = redirect();
+        $redirect = $redirector->back();
+        $redirect->withErrors($validator->errors());
+        $redirect->withInput();
+        $redirect->with(
+            'error',
+            __('products.messages.validation_failed'),
         );
+
+        throw new ValidationException($validator, $redirect);
     }
 }

@@ -20,9 +20,17 @@
     <arg name="parallel" value="8"/>
     <arg value="s"/>
 
-    <rule ref="SlevomatCodingStandard.Functions.RequireMultiLineCall">
+    <rule ref="PSR12.ControlStructures.BooleanOperatorPlacement">
         <properties>
-            <property name="minParametersCount" value="3"/>
+            <property name="allowOnly" value="first"/>
+        </properties>
+    </rule>
+
+    <rule ref="PSR12.ControlStructures.ControlStructureSpacing"/>
+
+    <rule ref="Generic.Formatting.SpaceAfterNot">
+        <properties>
+            <property name="spacing" value="0"/>
         </properties>
     </rule>
 
@@ -39,4 +47,9 @@
     </rule>
 
     <rule ref="./phpcs/Billex"/>
+
+    <!-- Larastan reads model columns only from a chained Blueprint statement (.claude/rules/php.md, Readability). -->
+    <rule ref="Billex.Functions.DisallowCallChaining">
+        <exclude-pattern>database/migrations/*</exclude-pattern>
+    </rule>
 </ruleset>

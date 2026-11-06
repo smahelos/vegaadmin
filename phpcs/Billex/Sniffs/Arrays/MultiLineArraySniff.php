@@ -56,11 +56,13 @@ final class MultiLineArraySniff extends AbstractArraySniff
         int $arrayEnd,
         array $indices,
     ): void {
-        if ($this->isDestructuring(
-            $file,
-            $arrayStart,
-            $arrayEnd,
-        )) {
+        if (
+            $this->isDestructuring(
+                $file,
+                $arrayStart,
+                $arrayEnd,
+            )
+        ) {
             return;
         }
 

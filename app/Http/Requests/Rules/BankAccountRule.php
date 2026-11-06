@@ -38,7 +38,8 @@ final class BankAccountRule implements ValidationRule
                 $this->swift,
             );
         } catch (InvalidBankAccountException $e) {
-            $fail('parties.bank_accounts.validation.' . $e->problem->value)->translate();
+            $message = $fail('parties.bank_accounts.validation.' . $e->problem->value);
+            $message->translate();
         }
     }
 }

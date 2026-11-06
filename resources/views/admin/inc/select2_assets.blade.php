@@ -4,7 +4,7 @@
     in the field's data-init-function attribute once per field (form_content.blade.php).
 --}}
 @php
-    $select2Locale = app()->getLocale();
+    $select2Locale = App::getLocale();
 @endphp
 
 @push('crud_fields_styles')

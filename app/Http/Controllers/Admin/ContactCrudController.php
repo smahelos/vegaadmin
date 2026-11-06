@@ -54,7 +54,9 @@ final class ContactCrudController extends CrudController
             $logos,
             null,
             fn (?string $logo): ContactDTO => $contacts->create(
-                UserId::fromInt((int) $request->validated('user_id')),
+                UserId::fromInt(
+                    (int) $request->validated('user_id'),
+                ),
                 new ContactWriteData(
                     $request->writeData()->profile,
                     $request->writeData()->contactPerson,
@@ -63,7 +65,10 @@ final class ContactCrudController extends CrudController
             ),
         );
 
-        Alert::success(__('backpack::crud.insert_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.insert_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($contact->id->value);
@@ -88,7 +93,10 @@ final class ContactCrudController extends CrudController
             ),
         );
 
-        Alert::success(__('backpack::crud.update_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.update_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -96,20 +104,40 @@ final class ContactCrudController extends CrudController
 
     public function archive(ContactApplicationService $contacts, int $id): RedirectResponse
     {
-        abort_unless(backpack_user()?->can('can_archive_contact') === true, 403);
-        $entry = Contact::query()->findOrFail($id);
-        $contacts->archive($this->ownerOf($entry), ContactId::fromInt($entry->id));
+        $user = backpack_user();
+        abort_unless(
+            $user?->can('can_archive_contact') === true,
+            403,
+        );
+        $contactQuery = Contact::query();
+        $entry = $contactQuery->findOrFail($id);
+        $contacts->archive(
+            $this->ownerOf($entry),
+            ContactId::fromInt($entry->id),
+        );
 
-        return $this->redirectWithSuccess(__('contacts.messages.archived'));
+        return $this->redirectWithSuccess(
+            __('contacts.messages.archived'),
+        );
     }
 
     public function restore(ContactApplicationService $contacts, int $id): RedirectResponse
     {
-        abort_unless(backpack_user()?->can('can_restore_contact') === true, 403);
-        $entry = Contact::query()->findOrFail($id);
-        $contacts->restore($this->ownerOf($entry), ContactId::fromInt($entry->id));
+        $user = backpack_user();
+        abort_unless(
+            $user?->can('can_restore_contact') === true,
+            403,
+        );
+        $contactQuery = Contact::query();
+        $entry = $contactQuery->findOrFail($id);
+        $contacts->restore(
+            $this->ownerOf($entry),
+            ContactId::fromInt($entry->id),
+        );
 
-        return $this->redirectWithSuccess(__('contacts.messages.restored'));
+        return $this->redirectWithSuccess(
+            __('contacts.messages.restored'),
+        );
     }
 
     protected function setupListOperation(): void
@@ -120,12 +148,32 @@ final class ContactCrudController extends CrudController
     protected function setupShowOperation(): void
     {
         $this->setupPartyList('contact');
-        CRUD::column('short_name')->label(__('parties.fields.short_name'));
-        CRUD::column('vat_number')->label(__('parties.fields.vat_number'));
-        CRUD::column('phone')->label(__('parties.fields.phone'));
-        CRUD::column('contact_person')->label(__('contacts.fields.contact_person'));
-        CRUD::column('note')->label(__('parties.fields.note'));
-        CRUD::column('logo')->label(__('parties.fields.logo'))->type('image')->disk('public');
+        $column = CRUD::column('short_name');
+        $column->label(
+            __('parties.fields.short_name'),
+        );
+        $column = CRUD::column('vat_number');
+        $column->label(
+            __('parties.fields.vat_number'),
+        );
+        $column = CRUD::column('phone');
+        $column->label(
+            __('parties.fields.phone'),
+        );
+        $column = CRUD::column('contact_person');
+        $column->label(
+            __('contacts.fields.contact_person'),
+        );
+        $column = CRUD::column('note');
+        $column->label(
+            __('parties.fields.note'),
+        );
+        $column = CRUD::column('logo');
+        $column->label(
+            __('parties.fields.logo'),
+        );
+        $column->type('image');
+        $column->disk('public');
     }
 
     protected function setupCreateOperation(): void
@@ -147,9 +195,11 @@ final class ContactCrudController extends CrudController
 
     private function addContactPersonField(): void
     {
-        CRUD::field('contact_person')
-            ->label(__('contacts.fields.contact_person'))
-            ->type('text');
+        $field = CRUD::field('contact_person');
+        $field->label(
+            __('contacts.fields.contact_person'),
+        );
+        $field->type('text');
     }
 
     private function validatedRequest(): ContactRequest

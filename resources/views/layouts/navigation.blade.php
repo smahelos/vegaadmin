@@ -1,3 +1,4 @@
+@php($user = Auth::user())
 <nav x-data="{ open: false }"
     class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
     <!-- Primary Navigation Menu -->
@@ -6,7 +7,7 @@
             <div class="flex items-center">
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
-                    <a href="{{ route('home', ['locale' => app()->getLocale()]) }}" class="flex items-center">
+                    <a href="{{ route('home', ['locale' => App::getLocale()]) }}" class="flex items-center">
                         <x-application-logo class="h-8 w-auto" />
                     </a>
                 </div>
@@ -14,48 +15,48 @@
                 <!-- Navigation Links -->
                 <div class="hidden lg:flex lg:items-center lg:ml-10 lg:space-x-8">
                     @auth
-                    <x-nav-link :href="route('frontend.dashboard', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.dashboard')">
+                    <x-nav-link :href="route('frontend.dashboard', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.dashboard')">
                         {{ __('general.navigation.dashboard') }}
                     </x-nav-link>
 
-                    <x-nav-link :href="route('frontend.invoices', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.invoice*')">
+                    <x-nav-link :href="route('frontend.invoices', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.invoice*')">
                         {{ __('general.navigation.invoices') }}
                     </x-nav-link>
 
                     @can('frontend.can_view_business')
-                    <x-nav-link :href="route('frontend.businesses.index', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.businesses.*')">
+                    <x-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-nav-link>
                     @endcan
 
                     @can('frontend.can_view_contact')
-                    <x-nav-link :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.contacts.*')">
+                    <x-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-nav-link>
                     @endcan
 
-                    @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
-                    <x-nav-link :href="route('frontend.products', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.product*')">
+                    @if($user->hasPermissionTo('frontend.can_create_edit_product'))
+                    <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.product*')">
                         {{ __('general.navigation.products') }}
                     </x-nav-link>
                     @endif
                     @endauth
 
                     {{-- <!-- Pages navigation (for all users) -->
-                    <x-nav-link :href="route('frontend.pages.index', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.pages*')">
+                    <x-nav-link :href="route('frontend.pages.index', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.pages*')">
                         {{ __('general.navigation.pages') }}
                     </x-nav-link> --}}
 
-                    @if(!Auth::user())
+                    @if(!$user)
                     <!-- Public pages link -->
-                    <x-nav-link :href="route('frontend.invoice.create.guest', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.invoice*')">
+                    <x-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.invoice*')">
                         {{ __('general.navigation.create_invoice') }}
                     </x-nav-link>
                     @endif
@@ -90,10 +91,10 @@
                         <button
                             class="flex items-center px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300 focus:outline-none focus:text-gray-900 dark:focus:text-white transition duration-150 ease-in-out cursor-pointer">
                             <div class="flex items-center">
-                                @if(Auth::user()->hasRole('frontend_user_plus'))
+                                @if($user->hasRole('frontend_user_plus'))
                                 <span class="text-indigo-600 font-semibold text-xs mr-2">PRO</span>
                                 @endif
-                                <span>{{ Auth::user()->name }}</span>
+                                <span>{{ $user->name }}</span>
                             </div>
                             <div class="ml-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg"
@@ -108,44 +109,44 @@
 
                     <x-slot name="content">
                         <!-- Profile Link -->
-                        <a href="{{ route('frontend.profile.edit', ['locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.profile.edit', ['locale' => App::getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                             {{ __('general.navigation.profile') }}
                         </a>
 
                         <!-- My Subscription Link -->
-                        <a href="{{ route('subscriptions.my-subscription', ['locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('subscriptions.my-subscription', ['locale' => App::getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                             {{ __('subscriptions.titles.mine') }}
                         </a>
 
                         <!-- Subscriptions Link -->
-                        <a href="{{ route('subscriptions.index', ['locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('subscriptions.index', ['locale' => App::getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                             {{ __('subscriptions.entity.plural') }}
                         </a>
 
                         <!-- Authentication -->
-                        <form method="POST" action="{{ route('frontend.logout', ['locale' => app()->getLocale()]) }}"
+                        <form method="POST" action="{{ route('frontend.logout', ['locale' => App::getLocale()]) }}"
                             class="min-w-50">
                             @csrf
-                            <x-dropdown-link :href="route('frontend.logout', ['locale' => app()->getLocale()])"
+                            <x-dropdown-link :href="route('frontend.logout', ['locale' => App::getLocale()])"
                                 class="cursor-pointer rounded-b-sm"
                                 onclick="event.preventDefault(); this.closest('form').submit();">
                                 {{ __('users.actions.logout') }}
                             </x-dropdown-link>
-                            <input type="hidden" name="locale" value="{{ app()->getLocale() }}">
+                            <input type="hidden" name="locale" value="{{ App::getLocale() }}">
                         </form>
                     </x-slot>
                 </x-dropdown>
                 @else
                 <!-- Auth Links -->
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('frontend.login', ['locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.login', ['locale' => App::getLocale()]) }}"
                         class="text-sm font-semibold text-gray-700 dark:text-gray-400 hover:text-[#490BF4] dark:hover:text-white transition-colors duration-200 px-3 py-2 rounded-sm border border-gray-300 dark:border-gray-700 hover:border-[#490BF4] dark:hover:border-gray-600">
                         {{ __('users.actions.login') }}
                     </a>
-                    <a href="{{ route('frontend.register', ['locale' => app()->getLocale()]) }}"
+                    <a href="{{ route('frontend.register', ['locale' => App::getLocale()]) }}"
                         class="text-sm font-semibold text-white hover:text-[#490BF4] bg-[#490BF4] hover:bg-gray-100 dark:hover:bg-gray-400 transition-colors duration-200 px-4 py-2 rounded-sm">
                         {{ __('users.actions.register') }}
                     </a>
@@ -174,50 +175,50 @@
         class="hidden lg:hidden border-t border-gray-100 dark:border-gray-700">
         <div class="pt-1 pb-1 space-y-1">
             @auth
-            <x-responsive-nav-link :href="route('frontend.dashboard', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.dashboard')">
+            <x-responsive-nav-link :href="route('frontend.dashboard', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('frontend.dashboard')">
                 {{ __('general.navigation.dashboard') }}
             </x-responsive-nav-link>
 
-            <x-responsive-nav-link :href="route('frontend.invoices', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+            <x-responsive-nav-link :href="route('frontend.invoices', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.invoices') }}
             </x-responsive-nav-link>
 
             @can('frontend.can_view_business')
-                    <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.businesses.*')">
+                    <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
             @can('frontend.can_view_contact')
-                    <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])"
-                        :active="request()->routeIs('frontend.contacts.*')">
+                    <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
+                        :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
-            @if(Auth::user()->hasPermissionTo('frontend.can_create_edit_product'))
-            <x-responsive-nav-link :href="route('frontend.products', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.product*')">
+            @if($user->hasPermissionTo('frontend.can_create_edit_product'))
+            <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('frontend.product*')">
                 {{ __('general.navigation.products') }}
             </x-responsive-nav-link>
             @endif
 
             <!-- Subscriptions navigation (mobile) -->
-            <x-responsive-nav-link :href="route('subscriptions.index', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('subscriptions*')">
+            <x-responsive-nav-link :href="route('subscriptions.index', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('subscriptions*')">
                 {{ __('subscriptions.entity.plural') }}
             </x-responsive-nav-link>
 
-            <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+            <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.create_invoice') }}
             </x-responsive-nav-link>
             @else
-            <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => app()->getLocale()])"
-                :active="request()->routeIs('frontend.invoice*')">
+            <x-responsive-nav-link :href="route('frontend.invoice.create.guest', ['locale' => App::getLocale()])"
+                :active="Request::routeIs('frontend.invoice*')">
                 {{ __('general.navigation.create_invoice') }}
             </x-responsive-nav-link>
             @endauth
@@ -228,23 +229,23 @@
         <div class="pt-1 pb-1 border-t border-gray-100 dark:border-gray-700">
             <div class="px-4 border-b-1 border-dashed border-gray-200 dark:border-gray-600 mb-2 pb-2">
                 <div class="font-medium text-base text-gray-800 dark:text-gray-300 flex items-center">
-                    @if(Auth::user()->hasRole('frontend_user_plus'))
+                    @if($user->hasRole('frontend_user_plus'))
                     <span class="text-indigo-600 dark:text-indigo-400 font-semibold text-xs mr-2">PRO</span>
                     @endif
-                    {{ Auth::user()->name }}
+                    {{ $user->name }}
                 </div>
-                <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ Auth::user()->email }}</div>
+                <div class="font-medium text-sm text-gray-500 dark:text-gray-400">{{ $user->email }}</div>
             </div>
 
             <div class="space-y-1">
-                <x-responsive-nav-link :href="route('frontend.profile.edit', ['locale' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.profile.edit', ['locale' => App::getLocale()])">
                     {{ __('general.navigation.profile') }}
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('frontend.logout', ['locale' => app()->getLocale()]) }}">
+                <form method="POST" action="{{ route('frontend.logout', ['locale' => App::getLocale()]) }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('frontend.logout', ['locale' => app()->getLocale()])"
+                    <x-responsive-nav-link :href="route('frontend.logout', ['locale' => App::getLocale()])"
                         onclick="event.preventDefault(); this.closest('form').submit();">
                         {{ __('users.actions.logout') }}
                     </x-responsive-nav-link>
@@ -254,11 +255,11 @@
         @else
         <div class="pt-1 pb-1 border-t border-gray-100 dark:border-gray-700">
             <div class="space-y-1">
-                <x-responsive-nav-link :href="route('frontend.login', ['locale' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.login', ['locale' => App::getLocale()])">
                     {{ __('users.actions.login') }}
                 </x-responsive-nav-link>
 
-                <x-responsive-nav-link :href="route('frontend.register', ['locale' => app()->getLocale()])">
+                <x-responsive-nav-link :href="route('frontend.register', ['locale' => App::getLocale()])">
                     {{ __('users.actions.register') }}
                 </x-responsive-nav-link>
             </div>

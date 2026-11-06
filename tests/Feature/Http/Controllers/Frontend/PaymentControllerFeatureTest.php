@@ -16,19 +16,28 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_handles_successful_payment(): void
     {
-        $subscription = Subscription::factory()->create();
-        $payment = Payment::factory()->create([
-            'subscription_id' => $subscription->id,
-            'gateway' => 'gopay',
-            'gateway_payment_id' => 'GP123456789',
-            'status' => 'pending',
-        ]);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create(
+            [
+                'subscription_id' => $subscription->id,
+                'gateway' => 'gopay',
+                'gateway_payment_id' => 'GP123456789',
+                'status' => 'pending',
+            ],
+        );
 
-        $response = $this->get(route('payment.return', [
-            'gateway' => 'gopay',
-            'id' => 'GP123456789',
-            'state' => 'PAID',
-        ]));
+        $response = $this->get(
+            route(
+                'payment.return',
+                [
+                    'gateway' => 'gopay',
+                    'id' => 'GP123456789',
+                    'state' => 'PAID',
+                ],
+            ),
+        );
 
         // NOTE: Since we don't have valid GoPay credentials,
         // this will likely redirect with an error message
@@ -39,19 +48,28 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_handles_failed_payment(): void
     {
-        $subscription = Subscription::factory()->create();
-        $payment = Payment::factory()->create([
-            'subscription_id' => $subscription->id,
-            'gateway' => 'gopay',
-            'gateway_payment_id' => 'GP123456789',
-            'status' => 'pending',
-        ]);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create(
+            [
+                'subscription_id' => $subscription->id,
+                'gateway' => 'gopay',
+                'gateway_payment_id' => 'GP123456789',
+                'status' => 'pending',
+            ],
+        );
 
-        $response = $this->get(route('payment.return', [
-            'gateway' => 'gopay',
-            'id' => 'GP123456789',
-            'state' => 'CANCELED',
-        ]));
+        $response = $this->get(
+            route(
+                'payment.return',
+                [
+                    'gateway' => 'gopay',
+                    'id' => 'GP123456789',
+                    'state' => 'CANCELED',
+                ],
+            ),
+        );
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
@@ -60,11 +78,14 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_accepts_post_requests(): void
     {
-        $response = $this->postJson(route('payment.notify'), [
-            'gateway' => 'gopay',
-            'id' => 'GP123456789',
-            'state' => 'PAID',
-        ]);
+        $response = $this->postJson(
+            route('payment.notify'),
+            [
+                'gateway' => 'gopay',
+                'id' => 'GP123456789',
+                'state' => 'PAID',
+            ],
+        );
 
         // NOTE: Since we don't have valid GoPay credentials,
         // this will likely return an error response
@@ -76,10 +97,13 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_returns_json_response(): void
     {
-        $response = $this->postJson(route('payment.notify'), [
-            'gateway' => 'gopay',
-            'payment_id' => 'GP123456789',
-        ]);
+        $response = $this->postJson(
+            route('payment.notify'),
+            [
+                'gateway' => 'gopay',
+                'payment_id' => 'GP123456789',
+            ],
+        );
 
         $response->assertHeader('content-type', 'application/json');
         $response->assertJsonStructure(['status']);
@@ -88,10 +112,12 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_defaults_to_gopay_gateway(): void
     {
-        $response = $this->get(route('payment.return', [
-            'id' => 'GP123456789',
-            'state' => 'PAID',
-        ]));
+        $response = $this->get(
+            route('payment.return', [
+                'id' => 'GP123456789',
+                'state' => 'PAID',
+            ]),
+        );
 
         // Should work even without explicit gateway parameter
         $response->assertRedirect();
@@ -100,11 +126,16 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_return_processes_request_data(): void
     {
-        $response = $this->get(route('payment.return', [
-            'gateway' => 'gopay',
-            'id' => 'GP123456789',
-            'state' => 'PAID',
-        ]));
+        $response = $this->get(
+            route(
+                'payment.return',
+                [
+                    'gateway' => 'gopay',
+                    'id' => 'GP123456789',
+                    'state' => 'PAID',
+                ],
+            ),
+        );
 
         // Should process the request and redirect
         $response->assertRedirect();
@@ -113,10 +144,13 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_handles_invalid_gateway(): void
     {
-        $response = $this->postJson(route('payment.notify'), [
-            'gateway' => 'invalid_gateway',
-            'payment_id' => 'GP123456789',
-        ]);
+        $response = $this->postJson(
+            route('payment.notify'),
+            [
+                'gateway' => 'invalid_gateway',
+                'payment_id' => 'GP123456789',
+            ],
+        );
 
         $response->assertStatus(200);
         $response->assertJson(['status' => 'error']);
@@ -157,10 +191,13 @@ class PaymentControllerFeatureTest extends TestCase
     #[Test]
     public function payment_notify_defaults_to_gopay_gateway(): void
     {
-        $response = $this->postJson(route('payment.notify'), [
-            'id' => 'GP123456789',
-            'state' => 'PAID',
-        ]);
+        $response = $this->postJson(
+            route('payment.notify'),
+            [
+                'id' => 'GP123456789',
+                'state' => 'PAID',
+            ],
+        );
 
         $response->assertStatus(200);
         $response->assertJsonStructure(['status']);

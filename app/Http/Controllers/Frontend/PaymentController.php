@@ -23,6 +23,7 @@ class PaymentController extends Controller
      */
     public function return(Request $request): RedirectResponse
     {
+        $application = app();
         $gateway = $request->get('gateway', 'gopay');
 
         Log::info('Payment return received', [
@@ -36,19 +37,39 @@ class PaymentController extends Controller
             $status = $result->status ?? 'unknown';
 
             if ($status === 'completed') {
-                return redirect()->route('subscriptions.my-subscription', ['locale' => app()->getLocale()])
-                    ->with('success', __('payments.messages.successful'));
+                $redirector = redirect();
+                $redirect = $redirector->route('subscriptions.my-subscription', ['locale' => $application->getLocale()]);
+
+                return $redirect->with(
+                    'success',
+                    __('payments.messages.successful'),
+                );
             } elseif ($status === 'failed') {
-                return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                    ->with('error', __('payments.messages.failed'));
+                $redirector = redirect();
+                $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+
+                return $redirect->with(
+                    'error',
+                    __('payments.messages.failed'),
+                );
             }
 
-            return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-                ->with('info', __('payments.messages.pending'));
+            $redirector = redirect();
+            $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'info',
+                __('payments.messages.pending'),
+            );
         }
 
-        return redirect()->route('subscriptions.index', ['locale' => app()->getLocale()])
-            ->with('error', __('payments.messages.error'));
+        $redirector = redirect();
+        $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+
+        return $redirect->with(
+            'error',
+            __('payments.messages.error'),
+        );
     }
 
     /**
@@ -66,9 +87,13 @@ class PaymentController extends Controller
         $result = $this->paymentApp->handleCallback($gateway, $request->all());
 
         if ($result->success) {
-            return response()->json(['status' => 'ok']);
+            $responseFactory = response();
+
+            return $responseFactory->json(['status' => 'ok']);
         }
 
-        return response()->json(['status' => 'error']);
+        $responseFactory = response();
+
+        return $responseFactory->json(['status' => 'error']);
     }
 }

@@ -26,9 +26,15 @@ class EloquentPageMapper
 
         return new PageDTO(
             id: (int) $model->id,
-            name: $toArray($model->getAttribute('name')),
-            slug: $toArray($model->getAttribute('slug')),
-            description: $toArray($model->getAttribute('description')),
+            name: $toArray(
+                $model->getAttribute('name'),
+            ),
+            slug: $toArray(
+                $model->getAttribute('slug'),
+            ),
+            description: $toArray(
+                $model->getAttribute('description'),
+            ),
             published: (bool) $model->getAttribute('published'),
             category: $category,
         );
@@ -46,9 +52,15 @@ class EloquentPageMapper
 
         return new PageCategoryDTO(
             id: (int) $model->id,
-            name: $toArray($model->getAttribute('name')),
-            slug: $toArray($model->getAttribute('slug')),
-            description: $toArray($model->getAttribute('description')),
+            name: $toArray(
+                $model->getAttribute('name'),
+            ),
+            slug: $toArray(
+                $model->getAttribute('slug'),
+            ),
+            description: $toArray(
+                $model->getAttribute('description'),
+            ),
         );
     }
 }

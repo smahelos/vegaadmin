@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Console\Commands;
 
 use App\Models\PerformanceMetric;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -27,26 +28,37 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     private function createTestMetrics(): void
     {
         // Create some old metrics (older than 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(5)->create([
-            'measured_at' => now()->subDays(100),
-            'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
-        ]);
+        $performanceMetricFactory = PerformanceMetric::factory();
+        $batchFactory = $performanceMetricFactory->count(5);
+        $now = CarbonImmutable::now();
+        $batchFactory->create(
+            [
+                'measured_at' => $now->subDays(100),
+                'metadata' => ['test_process' => $this->processId, 'category' => 'old'],
+            ],
+        );
 
         // Create some recent metrics (within 90 days) with process-specific identifiers
-        PerformanceMetric::factory()->count(3)->create([
-            'measured_at' => now()->subDays(30),
-            'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
-        ]);
+        $batchFactory = $performanceMetricFactory->count(3);
+        $batchFactory->create(
+            [
+                'measured_at' => $now->subDays(30),
+                'metadata' => ['test_process' => $this->processId, 'category' => 'recent'],
+            ],
+        );
 
         // Create some sample metrics (with generated metadata) with process-specific identifiers
-        PerformanceMetric::factory()->count(2)->create([
-            'metadata' => [
-                'generated' => true,
-                'type' => 'sample',
-                'test_process' => $this->processId,
-                'category' => 'sample',
+        $batchFactory = $performanceMetricFactory->count(2);
+        $batchFactory->create(
+            [
+                'metadata' => [
+                    'generated' => true,
+                    'type' => 'sample',
+                    'test_process' => $this->processId,
+                    'category' => 'sample',
+                ],
             ],
-        ]);
+        );
     }
 
     #[Test]
@@ -128,7 +140,8 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
         $this->assertStringContainsString('Dry run: Yes', $output);
 
         // Verify data is still there after dry run - count only our process-specific data
-        $processSpecificCount = PerformanceMetric::whereJsonContains('metadata->test_process', $this->processId)->count();
+        $performanceMetricQuery = PerformanceMetric::whereJsonContains('metadata->test_process', $this->processId);
+        $processSpecificCount = $performanceMetricQuery->count();
         $this->assertGreaterThan(0, $processSpecificCount);
     }
 
@@ -169,11 +182,14 @@ final class CleanPerformanceMetricsFeatureTest extends TestCase
     #[Test]
     public function command_shows_configuration_info(): void
     {
-        Artisan::call('db:clean-metrics', [
-            '--type' => 'old',
-            '--days' => 60,
-            '--dry-run' => true,
-        ]);
+        Artisan::call(
+            'db:clean-metrics',
+            [
+                '--type' => 'old',
+                '--days' => 60,
+                '--dry-run' => true,
+            ],
+        );
 
         $output = Artisan::output();
 

@@ -13,10 +13,10 @@
         <div class="flex flex-wrap items-center gap-2 md:gap-4">
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('businesses.actions.back_to_list')"
-                :href="route('frontend.businesses.index', ['locale' => app()->getLocale()])" />
+                :href="route('frontend.businesses.index', ['locale' => App::getLocale()])" />
             @can('frontend.can_update_business')
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
-                    :href="route('frontend.businesses.edit', ['locale' => app()->getLocale(), 'business' => $business->id->value])" />
+                    :href="route('frontend.businesses.edit', ['locale' => App::getLocale(), 'business' => $business->id->value])" />
             @endcan
             @if ($business->isArchived())
                 @can('frontend.can_restore_business')

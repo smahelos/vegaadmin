@@ -30,14 +30,17 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     public function invoice_logo_context_enforces_stricter_size_limit(): void
     {
         // invoice_logo max_kb = 2048 (config)
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'logo.png',
             2600,
             'image/png',
         ); // 600 KB exceeds 2048 KB
 
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.size_exceeded', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.size_exceeded', ['attribute' => ':attribute']),
+        );
 
         $this->service->handleFileUpload(
             $this->normalize($file),
@@ -53,7 +56,8 @@ class FileUploadContextLimitsFeatureTest extends TestCase
     public function attachment_context_allows_larger_size(): void
     {
         // attachment max_kb = 20480 (20 MB)
-        $file = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $file = $fileFactory->create(
             'big.pdf',
             15000,
             'application/pdf',
@@ -73,19 +77,25 @@ class FileUploadContextLimitsFeatureTest extends TestCase
         );
 
         $this->assertNotNull($path);
-        $this->assertTrue(Storage::disk('public')->exists($path));
+        $disk = Storage::disk('public');
+        $this->assertTrue(
+            $disk->exists($path),
+        );
     }
 
     #[Test]
     public function invoice_logo_allows_only_images(): void
     {
-        $pdf = UploadedFile::fake()->create(
+        $fileFactory = UploadedFile::fake();
+        $pdf = $fileFactory->create(
             'doc.pdf',
             100,
             'application/pdf',
         );
         $this->expectException(ValidationException::class);
-        $this->expectExceptionMessage(__('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']));
+        $this->expectExceptionMessage(
+            __('validation.file_upload.type_not_allowed', ['attribute' => ':attribute']),
+        );
         $this->service->handleFileUpload(
             $this->normalize($pdf),
             'invoice_logo',

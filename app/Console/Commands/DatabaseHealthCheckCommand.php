@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Console\Commands;
 
 use App\Models\DatabaseHealthAlert;
@@ -7,7 +9,7 @@ use App\Models\DatabaseHealthMetric;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
-class DatabaseHealthCheckCommand extends Command
+final class DatabaseHealthCheckCommand extends Command
 {
     /**
      * The name and signature of the console command.
@@ -39,7 +41,9 @@ class DatabaseHealthCheckCommand extends Command
         foreach ($metrics as $metric) {
             // Display metric
             $status = $this->getStatusIcon($metric['status']);
-            $this->line("  {$status} {$metric['name']}: {$metric['value']} {$metric['unit']} [{$metric['status']}]");
+            $this->line(
+                "  {$status} {$metric['name']}: {$metric['value']} {$metric['unit']} [{$metric['status']}]",
+            );
 
             if ($metric['recommendation']) {
                 $this->line("    💡 {$metric['recommendation']}");
@@ -47,14 +51,16 @@ class DatabaseHealthCheckCommand extends Command
 
             // Store in database if requested
             if ($store) {
-                DatabaseHealthMetric::create([
-                    'metric_name' => $metric['name'],
-                    'metric_value' => $metric['value'],
-                    'metric_unit' => $metric['unit'],
-                    'status' => $metric['status'],
-                    'recommendation' => $metric['recommendation'],
-                    'measured_at' => now(),
-                ]);
+                DatabaseHealthMetric::create(
+                    [
+                        'metric_name' => $metric['name'],
+                        'metric_value' => $metric['value'],
+                        'metric_unit' => $metric['unit'],
+                        'status' => $metric['status'],
+                        'recommendation' => $metric['recommendation'],
+                        'measured_at' => now(),
+                    ],
+                );
             }
 
             // Create alert if critical and alerts enabled
@@ -82,11 +88,18 @@ class DatabaseHealthCheckCommand extends Command
 
             if ($connectionStats && $maxConnections) {
                 $usage = round(($connectionStats->Value / $maxConnections->Value) * 100, 2);
+                if ($usage > 80) {
+                    $status = 'critical';
+                } elseif ($usage > 60) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'connection_usage',
                     'value' => $usage,
                     'unit' => '%',
-                    'status' => $usage > 80 ? 'critical' : ($usage > 60 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $usage > 80 ? 'Consider increasing max_connections or optimizing connection pooling' : null,
                 ];
             }
@@ -96,7 +109,10 @@ class DatabaseHealthCheckCommand extends Command
             $cacheInserts = DB::selectOne("SHOW STATUS LIKE 'Qcache_inserts'");
 
             if ($cacheHits && $cacheInserts && ($cacheHits->Value + $cacheInserts->Value) > 0) {
-                $hitRate = round(($cacheHits->Value / ($cacheHits->Value + $cacheInserts->Value)) * 100, 2);
+                $hitRate = round(
+                    ($cacheHits->Value / ($cacheHits->Value + $cacheInserts->Value)) * 100,
+                    2,
+                );
                 $metrics[] = [
                     'name' => 'query_cache_hit_rate',
                     'value' => $hitRate,
@@ -112,11 +128,18 @@ class DatabaseHealthCheckCommand extends Command
 
             if ($slowQueries && $uptime && $uptime->Value > 0) {
                 $slowPerMinute = round(($slowQueries->Value / $uptime->Value) * 60, 2);
+                if ($slowPerMinute > 5) {
+                    $status = 'critical';
+                } elseif ($slowPerMinute > 1) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'slow_queries_per_minute',
                     'value' => $slowPerMinute,
                     'unit' => 'queries/min',
-                    'status' => $slowPerMinute > 5 ? 'critical' : ($slowPerMinute > 1 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $slowPerMinute > 1 ? 'Review and optimize slow queries' : null,
                 ];
             }
@@ -126,7 +149,10 @@ class DatabaseHealthCheckCommand extends Command
             $bufferPoolFree = DB::selectOne("SHOW STATUS LIKE 'Innodb_buffer_pool_pages_free'");
 
             if ($bufferPoolSize && $bufferPoolFree && $bufferPoolSize->Value > 0) {
-                $usage = round((1 - ($bufferPoolFree->Value / $bufferPoolSize->Value)) * 100, 2);
+                $usage = round(
+                    (1 - ($bufferPoolFree->Value / $bufferPoolSize->Value)) * 100,
+                    2,
+                );
                 $metrics[] = [
                     'name' => 'innodb_buffer_pool_usage',
                     'value' => $usage,
@@ -140,13 +166,27 @@ class DatabaseHealthCheckCommand extends Command
             $tableLocksWaited = DB::selectOne("SHOW STATUS LIKE 'Table_locks_waited'");
             $tableLocksImmediate = DB::selectOne("SHOW STATUS LIKE 'Table_locks_immediate'");
 
-            if ($tableLocksWaited && $tableLocksImmediate && ($tableLocksWaited->Value + $tableLocksImmediate->Value) > 0) {
-                $waitRate = round(($tableLocksWaited->Value / ($tableLocksWaited->Value + $tableLocksImmediate->Value)) * 100, 2);
+            if (
+                $tableLocksWaited
+                && $tableLocksImmediate
+                && ($tableLocksWaited->Value + $tableLocksImmediate->Value) > 0
+            ) {
+                $waitRate = round(
+                    ($tableLocksWaited->Value / ($tableLocksWaited->Value + $tableLocksImmediate->Value)) * 100,
+                    2,
+                );
+                if ($waitRate > 10) {
+                    $status = 'critical';
+                } elseif ($waitRate > 5) {
+                    $status = 'warning';
+                } else {
+                    $status = 'good';
+                }
                 $metrics[] = [
                     'name' => 'table_locks_wait_rate',
                     'value' => $waitRate,
                     'unit' => '%',
-                    'status' => $waitRate > 10 ? 'critical' : ($waitRate > 5 ? 'warning' : 'good'),
+                    'status' => $status,
                     'recommendation' => $waitRate > 5 ? 'Consider optimizing table structure or using InnoDB instead of MyISAM' : null,
                 ];
             }
@@ -165,19 +205,21 @@ class DatabaseHealthCheckCommand extends Command
     {
         $severity = $metric['status'] === 'critical' ? 'critical' : 'warning';
 
-        DatabaseHealthAlert::create([
-            'alert_type' => $metric['name'],
-            'severity' => $severity,
-            'message' => "Database health metric '{$metric['name']}' is {$metric['status']}: {$metric['value']} {$metric['unit']}",
-            'metric_data' => [
-                'metric_name' => $metric['name'],
-                'metric_value' => $metric['value'],
-                'metric_unit' => $metric['unit'],
-                'status' => $metric['status'],
-                'recommendation' => $metric['recommendation'],
+        DatabaseHealthAlert::create(
+            [
+                'alert_type' => $metric['name'],
+                'severity' => $severity,
+                'message' => "Database health metric '{$metric['name']}' is {$metric['status']}: {$metric['value']} {$metric['unit']}",
+                'metric_data' => [
+                    'metric_name' => $metric['name'],
+                    'metric_value' => $metric['value'],
+                    'metric_unit' => $metric['unit'],
+                    'status' => $metric['status'],
+                    'recommendation' => $metric['recommendation'],
+                ],
+                'resolved' => false,
             ],
-            'resolved' => false,
-        ]);
+        );
     }
 
     /**

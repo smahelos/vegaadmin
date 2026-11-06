@@ -12,6 +12,7 @@ use App\Models\Business;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 /**
  * The input of the invoice form: a signed-in user selects a business and its account and enters the customer,
@@ -26,10 +27,15 @@ trait BuildsInvoiceInput
      */
     private function issuerOf(User $user): array
     {
-        $business = Business::factory()->create(['user_id' => $user->id]);
-        Address::factory()->create(['business_id' => $business->id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id]);
+        $addressFactory = Address::factory();
+        $addressFactory->create(['business_id' => $business->id]);
 
-        return [$business, BankAccount::factory()->ownedBy($business)->create()];
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+
+        return [$business, $ownedFactory->create()];
     }
 
     /**
@@ -86,12 +92,16 @@ trait BuildsInvoiceInput
      */
     private function invoiceDetailsInput(): array
     {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $now = CarbonImmutable::now();
+
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
-            'issue_date' => now()->toDateString(),
-            'tax_point_date' => now()->toDateString(),
+            'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
+            'payment_status_id' => $statusQuery->firstOrFail()->id,
+            'issue_date' => $now->toDateString(),
+            'tax_point_date' => $now->toDateString(),
             'due_in' => 14,
             'payment_currency' => 'CZK',
             'invoice-products' => json_encode([$this->invoiceItem()]),

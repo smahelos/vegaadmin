@@ -26,14 +26,14 @@ final class DocumentBusinessAssembler
     ): DocumentPartyDTO {
         $business = $this->businesses->findByIdForUser($businessId, $userId) ?? throw new BusinessNotFoundException($businessId);
         $sameBusiness = $stored?->businessId->equals($businessId) === true;
-        if ($business->isArchived() && ! $sameBusiness) {
+        if ($business->isArchived() && !$sameBusiness) {
             throw new ArchivedReferenceSelectedException($businessId);
         }
-        if ($sameBusiness && ! $reload) {
+        if ($sameBusiness && !$reload) {
             return $supplier ? $stored->supplier : $stored->customer;
         }
         $party = DocumentPartyDTO::fromProfile($business->profile);
-        if ($supplier && ! $party->hasCompleteAddress()) {
+        if ($supplier && !$party->hasCompleteAddress()) {
             throw new IncompleteBusinessAddressException($businessId);
         }
 

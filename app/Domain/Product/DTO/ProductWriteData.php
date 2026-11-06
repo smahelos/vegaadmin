@@ -46,14 +46,16 @@ class ProductWriteData
         if ($normPrice === null && isset($data['price_money']) && is_array($data['price_money'])) {
             $pm = $data['price_money'];
             if (isset($pm['amount'])) {
-                $normPrice = is_string($pm['amount'])
-                    ? self::normalizeAmountString($pm['amount'])
-                    : number_format(
+                if (is_string($pm['amount'])) {
+                    $normPrice = self::normalizeAmountString($pm['amount']);
+                } else {
+                    $normPrice = number_format(
                         (float) $pm['amount'],
                         2,
                         '.',
                         '',
                     );
+                }
             }
             if (isset($pm['currency']) && is_string($pm['currency'])) {
                 $normCurrency = strtoupper($pm['currency']);
@@ -62,29 +64,38 @@ class ProductWriteData
 
         // Case 3: amount+currency at top-level
         if ($normPrice === null && isset($data['amount'])) {
-            $normPrice = is_string($data['amount'])
-                ? self::normalizeAmountString($data['amount'])
-                : number_format(
+            if (is_string($data['amount'])) {
+                $normPrice = self::normalizeAmountString($data['amount']);
+            } else {
+                $normPrice = number_format(
                     (float) $data['amount'],
                     2,
                     '.',
                     '',
                 );
+            }
         }
-        if ($normCurrency === null && isset($data['amount']) && isset($data['currency']) && is_string($data['currency'])) {
+        if (
+            $normCurrency === null
+            && isset($data['amount'])
+            && isset($data['currency'])
+            && is_string($data['currency'])
+        ) {
             $normCurrency = strtoupper($data['currency']);
         }
 
         // Case 4: legacy price float/string + optional currency
-        if ($normPrice === null && isset($data['price']) && ! $data['price'] instanceof Money) {
-            $normPrice = is_string($data['price'])
-                ? self::normalizeAmountString($data['price'])
-                : number_format(
+        if ($normPrice === null && isset($data['price']) && !$data['price'] instanceof Money) {
+            if (is_string($data['price'])) {
+                $normPrice = self::normalizeAmountString($data['price']);
+            } else {
+                $normPrice = number_format(
                     (float) $data['price'],
                     2,
                     '.',
                     '',
                 );
+            }
         }
 
         // Final normalization: ensure currency uppercase if provided
@@ -118,7 +129,7 @@ class ProductWriteData
             ['', '.'],
             trim($amount),
         );
-        if (! preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
+        if (!preg_match('/^\d+(?:\.\d+)?$/', $amount)) {
             // Fallback - cast to float and format
             return number_format(
                 (float) $amount,
@@ -160,6 +171,9 @@ class ProductWriteData
         $properties = get_object_vars($this);
         $filtered = array_filter($properties, fn ($value) => $value !== null);
 
-        return array_map(fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value, $filtered);
+        return array_map(
+            fn (mixed $value): mixed => $value instanceof Unit ? $value->value : $value,
+            $filtered,
+        );
     }
 }

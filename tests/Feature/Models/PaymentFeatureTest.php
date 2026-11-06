@@ -13,7 +13,8 @@ class PaymentFeatureTest extends TestCase
     #[Test]
     public function payment_can_be_created_with_valid_data(): void
     {
-        $subscription = Subscription::factory()->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create();
 
         $paymentData = [
             'subscription_id' => $subscription->id,
@@ -38,7 +39,8 @@ class PaymentFeatureTest extends TestCase
     #[Test]
     public function payment_has_subscription_relationship(): void
     {
-        $payment = Payment::factory()->create();
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create();
 
         $this->assertInstanceOf(BelongsTo::class, $payment->subscription());
         $this->assertInstanceOf(Subscription::class, $payment->subscription);
@@ -47,10 +49,13 @@ class PaymentFeatureTest extends TestCase
     #[Test]
     public function payment_casts_attributes_correctly(): void
     {
-        $payment = Payment::factory()->create([
-            'amount' => '29.99',
-            'gateway_data' => ['key' => 'value'],
-        ]);
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create(
+            [
+                'amount' => '29.99',
+                'gateway_data' => ['key' => 'value'],
+            ],
+        );
 
         // Laravel's decimal cast returns a string, not float
         $this->assertIsString($payment->amount);

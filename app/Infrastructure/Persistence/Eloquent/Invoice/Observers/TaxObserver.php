@@ -10,21 +10,33 @@ class TaxObserver
 {
     public function created(Tax $tax): void
     {
-        $userId = auth()->id() ?? 0;
-        app(EventPublisherInterface::class)->publish(new FormDataChanged($userId, 'taxes'));
+        $auth = auth();
+        $userId = $auth->id() ?? 0;
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
+            new FormDataChanged($userId, 'taxes'),
+        );
     }
 
     public function updated(Tax $tax): void
     {
         if ($tax->isDirty(['name', 'rate'])) {
-            $userId = auth()->id() ?? 0;
-            app(EventPublisherInterface::class)->publish(new FormDataChanged($userId, 'taxes'));
+            $auth = auth();
+            $userId = $auth->id() ?? 0;
+            $publisher = app(EventPublisherInterface::class);
+            $publisher->publish(
+                new FormDataChanged($userId, 'taxes'),
+            );
         }
     }
 
     public function deleted(Tax $tax): void
     {
-        $userId = auth()->id() ?? 0;
-        app(EventPublisherInterface::class)->publish(new FormDataChanged($userId, 'taxes'));
+        $auth = auth();
+        $userId = $auth->id() ?? 0;
+        $publisher = app(EventPublisherInterface::class);
+        $publisher->publish(
+            new FormDataChanged($userId, 'taxes'),
+        );
     }
 }

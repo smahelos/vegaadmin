@@ -16,7 +16,7 @@ Business rules in plain PHP. Allowed dependencies: `architecture.md`.
 
 ## Money and VAT
 
-- Every amount is `Domain\Shared\Money\ValueObjects\Money`: decimal string amount plus currency, arithmetic through its methods with an explicit rounding strategy. Never `float` arithmetic on amounts; `Money::fromFloat()` only at a boundary that receives a float.
+- Every amount is `Domain\Shared\Money\ValueObjects\Money`: decimal string amount plus currency, arithmetic through its methods with an explicit rounding strategy. Never `float` arithmetic on amounts. An amount enters as a decimal string through `Money::fromString()`.
 - Currency codes come from the `Currency` enum.
 - VAT and totals are computed in the Domain (`Domain/Shared/Tax`, invoice services) from the line items, with one default tax rule for the whole app. Delivery and views only format `Money` through `MoneyFormatterInterface`.
 

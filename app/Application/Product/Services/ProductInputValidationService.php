@@ -36,7 +36,7 @@ class ProductInputValidationService
     private function validateRequiredFields(array $data, bool $isUpdate): void
     {
         // Name is required only on creation. On update, validate only if provided.
-        if (! $isUpdate) {
+        if (!$isUpdate) {
             if (empty($data['name'])) {
                 throw ValidationException::withMessages([
                     'name' => ['Product name is required.'],
@@ -51,16 +51,18 @@ class ProductInputValidationService
         }
 
         // Price is required only on creation. On update it can be omitted if not changing.
-        if (! $isUpdate) {
+        if (!$isUpdate) {
             $hasPrice = array_key_exists('price', $data) || array_key_exists('price_money', $data) || array_key_exists('amount', $data);
-            if (! $hasPrice) {
-                throw ValidationException::withMessages([
-                    'price' => ['Product price is required and must be non-negative.'],
-                ]);
+            if (!$hasPrice) {
+                throw ValidationException::withMessages(
+                    [
+                        'price' => ['Product price is required and must be non-negative.'],
+                    ],
+                );
             }
         }
 
-        if (! isset($data['user_id']) || ! is_numeric($data['user_id'])) {
+        if (!isset($data['user_id']) || !is_numeric($data['user_id'])) {
             throw ValidationException::withMessages([
                 'user_id' => ['User ID is required for product.'],
             ]);
@@ -73,17 +75,19 @@ class ProductInputValidationService
     private function validateDataTypes(array $data): void
     {
         // Accept price in multiple shapes; validate numerically after normalization
-        if (isset($data['price']) && ! is_numeric($data['price'])) {
+        if (isset($data['price']) && !is_numeric($data['price'])) {
             // allow non-numeric here (string like "10.50") and defer numeric check below
         }
 
-        if (isset($data['category_id']) && ! empty($data['category_id']) && ! is_numeric($data['category_id'])) {
-            throw ValidationException::withMessages([
-                'category_id' => ['Category ID must be a valid number.'],
-            ]);
+        if (isset($data['category_id']) && !empty($data['category_id']) && !is_numeric($data['category_id'])) {
+            throw ValidationException::withMessages(
+                [
+                    'category_id' => ['Category ID must be a valid number.'],
+                ],
+            );
         }
 
-        if (isset($data['tax_id']) && ! empty($data['tax_id']) && ! is_numeric($data['tax_id'])) {
+        if (isset($data['tax_id']) && !empty($data['tax_id']) && !is_numeric($data['tax_id'])) {
             throw ValidationException::withMessages([
                 'tax_id' => ['Tax ID must be a valid number.'],
             ]);
@@ -100,16 +104,20 @@ class ProductInputValidationService
     ): void {
         // Validate name length
         if (isset($data['name']) && strlen($data['name']) > 255) {
-            throw ValidationException::withMessages([
-                'name' => ['Product name must not exceed 255 characters.'],
-            ]);
+            throw ValidationException::withMessages(
+                [
+                    'name' => ['Product name must not exceed 255 characters.'],
+                ],
+            );
         }
 
         // Validate description length
         if (isset($data['description']) && strlen($data['description']) > 1000) {
-            throw ValidationException::withMessages([
-                'description' => ['Product description must not exceed 1000 characters.'],
-            ]);
+            throw ValidationException::withMessages(
+                [
+                    'description' => ['Product description must not exceed 1000 characters.'],
+                ],
+            );
         }
 
         // Validate price constraints
@@ -131,17 +139,21 @@ class ProductInputValidationService
                 ]);
             }
             if ($price > 999999.99) {
-                throw ValidationException::withMessages([
-                    'price' => ['Product price cannot exceed 999,999.99.'],
-                ]);
+                throw ValidationException::withMessages(
+                    [
+                        'price' => ['Product price cannot exceed 999,999.99.'],
+                    ],
+                );
             }
         }
 
         // Validate user ownership
         if (isset($data['user_id']) && (int) $data['user_id'] !== $userId) {
-            throw ValidationException::withMessages([
-                'user_id' => ['Product cannot be assigned to a different user.'],
-            ]);
+            throw ValidationException::withMessages(
+                [
+                    'user_id' => ['Product cannot be assigned to a different user.'],
+                ],
+            );
         }
     }
 }

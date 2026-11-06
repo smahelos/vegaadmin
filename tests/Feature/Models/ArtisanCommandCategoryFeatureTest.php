@@ -16,13 +16,17 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_artisan_command_category_with_factory(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
-        $this->assertDatabaseHas('artisan_command_categories', [
-            'id' => $category->id,
-            'name' => $category->name,
-            'slug' => $category->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_command_categories',
+            [
+                'id' => $category->id,
+                'name' => $category->name,
+                'slug' => $category->slug,
+            ],
+        );
     }
 
     #[Test]
@@ -45,7 +49,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $category = ArtisanCommandCategory::factory()->create([
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create([
             'is_active' => 1,
         ]);
 
@@ -56,10 +61,13 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function has_many_commands_relationship(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         // Create some commands in this category
-        $commands = ArtisanCommand::factory()->count(3)->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $artisanCommandFactory = $artisanCommandFactory->count(3);
+        $commands = $artisanCommandFactory->create([
             'category_id' => $category->id,
         ]);
 
@@ -87,19 +95,28 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function factory_creates_unique_slugs(): void
     {
-        $categories = ArtisanCommandCategory::factory()->count(5)->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory = $artisanCommandCategoryFactory->count(5);
+        $categories = $artisanCommandCategoryFactory->create();
 
-        $slugs = $categories->pluck('slug')->toArray();
+        $slugs = $categories->pluck('slug');
+        $slugs = $slugs->toArray();
         $uniqueSlugs = array_unique($slugs);
 
-        $this->assertEquals(count($slugs), count($uniqueSlugs));
+        $this->assertEquals(
+            count($slugs),
+            count($uniqueSlugs),
+        );
     }
 
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $activeCategory = ArtisanCommandCategory::factory()->active()->create();
-        $inactiveCategory = ArtisanCommandCategory::factory()->inactive()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $activeFactory = $artisanCommandCategoryFactory->active();
+        $activeCategory = $activeFactory->create();
+        $inactiveFactory = $artisanCommandCategoryFactory->inactive();
+        $inactiveCategory = $inactiveFactory->create();
 
         $this->assertTrue($activeCategory->is_active);
         $this->assertFalse($inactiveCategory->is_active);
@@ -108,7 +125,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_update_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $newData = [
             'name' => 'Updated Category',
@@ -118,16 +136,20 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
 
         $category->update($newData);
 
-        $this->assertDatabaseHas('artisan_command_categories', array_merge(
-            ['id' => $category->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'artisan_command_categories',
+            array_merge(
+                ['id' => $category->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
     public function can_delete_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
         $categoryId = $category->id;
 
         $category->delete();
@@ -138,8 +160,9 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function boolean_cast_works_with_is_active(): void
     {
-        $activeCategory = ArtisanCommandCategory::factory()->create(['is_active' => 1]);
-        $inactiveCategory = ArtisanCommandCategory::factory()->create(['is_active' => 0]);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $activeCategory = $artisanCommandCategoryFactory->create(['is_active' => 1]);
+        $inactiveCategory = $artisanCommandCategoryFactory->create(['is_active' => 0]);
 
         $this->assertTrue($activeCategory->is_active);
         $this->assertFalse($inactiveCategory->is_active);
@@ -150,30 +173,36 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_have_multiple_commands_in_category(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['name' => 'Database']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['name' => 'Database']);
 
-        $command1 = ArtisanCommand::factory()->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command1 = $artisanCommandFactory->create([
             'category_id' => $category->id,
             'name' => 'Migrate',
         ]);
 
-        $command2 = ArtisanCommand::factory()->create([
+        $command2 = $artisanCommandFactory->create([
             'category_id' => $category->id,
             'name' => 'Seed',
         ]);
 
         $this->assertCount(2, $category->commands);
-        $this->assertTrue($category->commands->contains($command1));
-        $this->assertTrue($category->commands->contains($command2));
+        $this->assertTrue(
+            $category->commands->contains($command1),
+        );
+        $this->assertTrue(
+            $category->commands->contains($command2),
+        );
     }
 
     #[Test]
     public function factory_with_name_state_works(): void
     {
         $categoryName = 'Custom Category Name';
-        $category = ArtisanCommandCategory::factory()
-            ->withName($categoryName)
-            ->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $namedFactory = $artisanCommandCategoryFactory->withName($categoryName);
+        $category = $namedFactory->create();
 
         $this->assertEquals($categoryName, $category->name);
         $this->assertEquals('custom-category-name', $category->slug);
@@ -182,16 +211,23 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function relationship_eager_loading_works(): void
     {
-        $categories = ArtisanCommandCategory::factory()->count(2)->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $artisanCommandCategoryFactory = $artisanCommandCategoryFactory->count(2);
+        $categories = $artisanCommandCategoryFactory->create();
 
         // Create commands for each category
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $batchFactory = $artisanCommandFactory->count(2);
         foreach ($categories as $category) {
-            ArtisanCommand::factory()->count(2)->create(['category_id' => $category->id]);
+            $batchFactory->create(['category_id' => $category->id]);
         }
 
-        $categoriesWithCommands = ArtisanCommandCategory::with('commands')
-            ->whereIn('id', $categories->pluck('id'))
-            ->get();
+        $artisanCommandCategoryQuery = ArtisanCommandCategory::with('commands');
+        $artisanCommandCategoryQuery->whereIn(
+            'id',
+            $categories->pluck('id'),
+        );
+        $categoriesWithCommands = $artisanCommandCategoryQuery->get();
 
         $this->assertCount(2, $categoriesWithCommands);
 
@@ -206,7 +242,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_category_without_description(): void
     {
-        $category = ArtisanCommandCategory::factory()->create(['description' => null]);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create(['description' => null]);
 
         $this->assertNull($category->description);
     }
@@ -214,7 +251,8 @@ class ArtisanCommandCategoryFeatureTest extends TestCase
     #[Test]
     public function slug_field_is_fillable_and_updatable(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
         $newSlug = 'new-custom-slug';
 
         $category->update(['slug' => $newSlug]);

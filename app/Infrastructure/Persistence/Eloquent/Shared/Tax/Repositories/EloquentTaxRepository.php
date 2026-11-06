@@ -12,16 +12,20 @@ class EloquentTaxRepository
 {
     public function getAllTaxesForSelect(): array
     {
-        return Tax::query()
-            ->orderBy('name')
-            ->get()
-            ->mapWithKeys(fn (Tax $tax) => [$tax->id => $tax->name])
-            ->toArray();
+        $query = Tax::query();
+        $query->orderBy('name');
+        $taxes = $query->get();
+        $taxes = $taxes->mapWithKeys(fn (Tax $tax) => [$tax->id => $tax->name]);
+
+        return $taxes->toArray();
     }
 
     public function getDphRatesForDropdown(): array
     {
-        return Tax::where('slug', 'dph')->pluck('rate', 'id')->toArray();
+        $query = Tax::where('slug', 'dph');
+        $rates = $query->pluck('rate', 'id');
+
+        return $rates->toArray();
     }
 
     public function create(array $data): Tax

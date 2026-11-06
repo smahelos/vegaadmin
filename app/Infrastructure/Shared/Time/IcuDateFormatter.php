@@ -46,7 +46,9 @@ final class IcuDateFormatter implements DateFormatterInterface
         );
         $formatted = $formatter->format($date);
         if ($formatted === false) {
-            throw new RuntimeException("Date formatting failed for locale {$locale}: " . $formatter->getErrorMessage());
+            throw new RuntimeException(
+                "Date formatting failed for locale {$locale}: " . $formatter->getErrorMessage(),
+            );
         }
 
         return $formatted;

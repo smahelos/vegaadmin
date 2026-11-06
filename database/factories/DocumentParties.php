@@ -14,7 +14,12 @@ trait DocumentParties
      */
     private function businessOfUser(): Closure
     {
-        return fn (array $attributes): int => Business::factory()->create(['user_id' => $attributes['user_id']])->id;
+        return function (array $attributes): int {
+            $businessFactory = Business::factory();
+            $business = $businessFactory->create(['user_id' => $attributes['user_id']]);
+
+            return $business->id;
+        };
     }
 
     /**

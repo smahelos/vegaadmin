@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ app()->getLocale() }}" class="h-full bg-gray-100">
+<html lang="{{ App::getLocale() }}" class="h-full bg-gray-100">
 
 <head>
     @include('layouts.frontend.partials.head')

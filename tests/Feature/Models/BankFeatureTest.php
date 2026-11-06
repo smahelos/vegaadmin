@@ -19,14 +19,18 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_can_be_created_with_factory(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
 
         $this->assertInstanceOf(Bank::class, $bank);
-        $this->assertDatabaseHas('banks', [
-            'id' => $bank->id,
-            'name' => $bank->name,
-            'code' => $bank->code,
-        ]);
+        $this->assertDatabaseHas(
+            'banks',
+            [
+                'id' => $bank->id,
+                'name' => $bank->name,
+                'code' => $bank->code,
+            ],
+        );
     }
 
     #[Test]
@@ -39,7 +43,8 @@ final class BankFeatureTest extends TestCase
         ]);
 
         // Bank accounts reference the bank code
-        $account = BankAccount::factory()->create([
+        $bankAccountFactory = BankAccount::factory();
+        $account = $bankAccountFactory->create([
             'bank_code' => '0100',
         ]);
 
@@ -49,56 +54,70 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_code_must_be_unique(): void
     {
-        $bank1 = Bank::factory()->create(['code' => '1234']);
+        $bankFactory = Bank::factory();
+        $bank1 = $bankFactory->create(['code' => '1234']);
 
         $this->expectException(QueryException::class);
-        Bank::factory()->create(['code' => '1234']);
+        $bankFactory->create(['code' => '1234']);
     }
 
     #[Test]
     public function bank_can_be_created_with_minimal_data(): void
     {
-        $bank = Bank::factory()->create([
-            'name' => 'Test Bank',
-            'code' => '5678',
-            'country' => 'CZ',
-            'active' => true, // Explicitly set active to true
-        ]);
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create(
+            [
+                'name' => 'Test Bank',
+                'code' => '5678',
+                'country' => 'CZ',
+                'active' => true, // Explicitly set active to true
+            ],
+        );
 
-        $this->assertDatabaseHas('banks', [
-            'name' => 'Test Bank',
-            'code' => '5678',
-            'country' => 'CZ',
-            'active' => 1, // default value stored as integer in DB
-        ]);
+        $this->assertDatabaseHas(
+            'banks',
+            [
+                'name' => 'Test Bank',
+                'code' => '5678',
+                'country' => 'CZ',
+                'active' => 1, // default value stored as integer in DB
+            ],
+        );
     }
 
     #[Test]
     public function bank_can_be_created_with_all_optional_fields(): void
     {
-        $bank = Bank::factory()->create([
-            'name' => 'Full Bank',
-            'code' => '9999',
-            'swift' => 'TESTCZ22',
-            'country' => 'SK',
-            'active' => false,
-            'description' => 'Test bank description',
-        ]);
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create(
+            [
+                'name' => 'Full Bank',
+                'code' => '9999',
+                'swift' => 'TESTCZ22',
+                'country' => 'SK',
+                'active' => false,
+                'description' => 'Test bank description',
+            ],
+        );
 
-        $this->assertDatabaseHas('banks', [
-            'name' => 'Full Bank',
-            'code' => '9999',
-            'swift' => 'TESTCZ22',
-            'country' => 'SK',
-            'active' => 0,
-            'description' => 'Test bank description',
-        ]);
+        $this->assertDatabaseHas(
+            'banks',
+            [
+                'name' => 'Full Bank',
+                'code' => '9999',
+                'swift' => 'TESTCZ22',
+                'country' => 'SK',
+                'active' => 0,
+                'description' => 'Test bank description',
+            ],
+        );
     }
 
     #[Test]
     public function bank_can_be_updated(): void
     {
-        $bank = Bank::factory()->create([
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create([
             'name' => 'Original Bank',
             'active' => true,
         ]);
@@ -108,17 +127,21 @@ final class BankFeatureTest extends TestCase
             'active' => false,
         ]);
 
-        $this->assertDatabaseHas('banks', [
-            'id' => $bank->id,
-            'name' => 'Updated Bank',
-            'active' => 0,
-        ]);
+        $this->assertDatabaseHas(
+            'banks',
+            [
+                'id' => $bank->id,
+                'name' => 'Updated Bank',
+                'active' => 0,
+            ],
+        );
     }
 
     #[Test]
     public function bank_can_be_deleted(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
         $bankId = $bank->id;
 
         $bank->delete();
@@ -131,7 +154,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_deletion_works_correctly(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
         $bankId = $bank->id;
 
         // Bank can be deleted since it's reference data
@@ -145,9 +169,13 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_factory_states_work_correctly(): void
     {
-        $activeBank = Bank::factory()->active()->create();
-        $inactiveBank = Bank::factory()->inactive()->create();
-        $czechBank = Bank::factory()->czech()->create();
+        $bankFactory = Bank::factory();
+        $activeFactory = $bankFactory->active();
+        $activeBank = $activeFactory->create();
+        $inactiveFactory = $bankFactory->inactive();
+        $inactiveBank = $inactiveFactory->create();
+        $czechFactory = $bankFactory->czech();
+        $czechBank = $czechFactory->create();
 
         $this->assertTrue($activeBank->active);
         $this->assertFalse($inactiveBank->active);
@@ -158,7 +186,8 @@ final class BankFeatureTest extends TestCase
     #[Test]
     public function bank_creation_with_timestamps(): void
     {
-        $bank = Bank::factory()->create();
+        $bankFactory = Bank::factory();
+        $bank = $bankFactory->create();
 
         $this->assertNotNull($bank->created_at);
         $this->assertNotNull($bank->updated_at);

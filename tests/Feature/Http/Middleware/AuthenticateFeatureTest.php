@@ -46,6 +46,8 @@ class AuthenticateFeatureTest extends TestCase
         $middleware = (new \ReflectionClass(Authenticate::class))->newInstanceWithoutConstructor();
         $method = (new \ReflectionClass($middleware))->getMethod('redirectTo');
         $method->setAccessible(true);
-        $this->assertNull($method->invoke($middleware, $request));
+        $this->assertNull(
+            $method->invoke($middleware, $request),
+        );
     }
 }

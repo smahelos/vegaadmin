@@ -20,10 +20,18 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     #[Test]
     public function middleware_sets_session_flag(): void
     {
-        $this->assertFalse(session()->has('frontend_session_state'));
+        $session = session();
+        $this->assertFalse(
+            $session->has('frontend_session_state'),
+        );
         $request = Request::create('/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $this->assertTrue(session()->has('frontend_session_state'));
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $this->assertTrue(
+            $session->has('frontend_session_state'),
+        );
     }
 
     #[Test]
@@ -31,9 +39,18 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     {
         session(['_custom_key' => 'stay']);
         $request = Request::create('/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $this->assertEquals('stay', session('_custom_key'));
-        $this->assertTrue(session()->has('frontend_session_state'));
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $this->assertEquals(
+            'stay',
+            session('_custom_key'),
+        );
+        $session = session();
+        $this->assertTrue(
+            $session->has('frontend_session_state'),
+        );
     }
 
     #[Test]
@@ -41,9 +58,13 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     {
         // First request triggers regeneration
         $request1 = Request::create('/dashboard');
-        $idBeforeFirst = session()->getId();
-        $this->middleware->handle($request1, fn () => response('OK'));
-        $idAfterFirst = session()->getId();
+        $session = session();
+        $idBeforeFirst = $session->getId();
+        $this->middleware->handle(
+            $request1,
+            fn () => response('OK'),
+        );
+        $idAfterFirst = $session->getId();
         $this->assertNotEquals(
             $idBeforeFirst,
             $idAfterFirst,
@@ -52,8 +73,11 @@ class RefreshFrontendSessionFeatureTest extends TestCase
 
         // Second request immediately after should NOT regenerate (interval 15 min)
         $request2 = Request::create('/dashboard');
-        $this->middleware->handle($request2, fn () => response('OK'));
-        $idAfterSecond = session()->getId();
+        $this->middleware->handle(
+            $request2,
+            fn () => response('OK'),
+        );
+        $idAfterSecond = $session->getId();
         $this->assertEquals(
             $idAfterFirst,
             $idAfterSecond,
@@ -65,12 +89,19 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     public function session_id_is_not_regenerated_within_interval(): void
     {
         $request = Request::create('/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $firstId = session()->getId();
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $session = session();
+        $firstId = $session->getId();
 
         // Druhý průchod okamžitě – nemělo by dojít k migraci
-        $this->middleware->handle($request, fn () => response('OK'));
-        $secondId = session()->getId();
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $secondId = $session->getId();
         $this->assertSame(
             $firstId,
             $secondId,
@@ -83,23 +114,37 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     {
         $request = Request::create('/dashboard');
         // First pass - causes regeneration and sets timestamp
-        $this->middleware->handle($request, fn () => response('OK'));
-        $idAfterFirst = session()->getId();
-        $this->assertTrue(session()->has('frontend_session_last_regenerated'));
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $session = session();
+        $idAfterFirst = $session->getId();
+        $this->assertTrue(
+            $session->has('frontend_session_last_regenerated'),
+        );
         $originalTimestamp = session('frontend_session_last_regenerated');
 
         // Simulate passage of 16 minutes ( > 900s )
-        session(['frontend_session_last_regenerated' => $originalTimestamp - 901]);
+        session(
+            ['frontend_session_last_regenerated' => $originalTimestamp - 901],
+        );
 
         // Second pass should now regenerate
-        $this->middleware->handle($request, fn () => response('OK'));
-        $idAfterSecond = session()->getId();
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $idAfterSecond = $session->getId();
         $this->assertNotEquals(
             $idAfterFirst,
             $idAfterSecond,
             'Session ID should regenerate after interval passes',
         );
-        $this->assertGreaterThanOrEqual($originalTimestamp, session('frontend_session_last_regenerated'));
+        $this->assertGreaterThanOrEqual(
+            $originalTimestamp,
+            session('frontend_session_last_regenerated'),
+        );
     }
 
     #[Test]
@@ -107,14 +152,21 @@ class RefreshFrontendSessionFeatureTest extends TestCase
     {
         $request = Request::create('/dashboard');
         // First call (regenerates)
-        $this->middleware->handle($request, fn () => response('OK'));
-        $baselineId = session()->getId();
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $session = session();
+        $baselineId = $session->getId();
         // Multiple rapid calls should not regenerate
         for ($i = 0; $i < 5; $i++) {
-            $this->middleware->handle($request, fn () => response('OK'));
+            $this->middleware->handle(
+                $request,
+                fn () => response('OK'),
+            );
             $this->assertSame(
                 $baselineId,
-                session()->getId(),
+                $session->getId(),
                 'Session ID changed unexpectedly within interval on iteration ' . $i,
             );
         }

@@ -31,6 +31,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use App\Models\Tax;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
@@ -101,31 +102,40 @@ class AdminCrudSmokeTest extends TestCase
         $record = $this->createRecord($model);
         $base = '/admin/' . $route;
 
-        $this->freshCrud()->get($base)->assertOk();
+        $this->freshCrud();
+        $response = $this->get($base);
+        $response->assertOk();
 
         // DataTables request of the list view; renders every column of the record
-        $this->freshCrud()->postJson($base . '/search', [
+        $this->freshCrud();
+        $response = $this->postJson($base . '/search', [
             'draw' => 1,
             'start' => 0,
             'length' => 10,
-        ])
-            ->assertOk()
-            ->assertJsonStructure([
-                'draw',
-                'recordsTotal',
-                'recordsFiltered',
-                'data',
-            ])
-            ->assertJsonPath('recordsTotal', fn ($total) => $total >= 1);
+        ]);
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'draw',
+            'recordsTotal',
+            'recordsFiltered',
+            'data',
+        ]);
+        $response->assertJsonPath('recordsTotal', fn ($total) => $total >= 1);
 
         if ($this->hasRoute("{$base}/create")) {
-            $this->freshCrud()->get($base . '/create')->assertOk();
+            $this->freshCrud();
+            $response = $this->get($base . '/create');
+            $response->assertOk();
         }
         if ($this->hasRoute("{$base}/{id}/edit")) {
-            $this->freshCrud()->get("{$base}/{$record->getKey()}/edit")->assertOk();
+            $this->freshCrud();
+            $response = $this->get("{$base}/{$record->getKey()}/edit");
+            $response->assertOk();
         }
         if ($this->hasRoute("{$base}/{id}/show")) {
-            $this->freshCrud()->get("{$base}/{$record->getKey()}/show")->assertOk();
+            $this->freshCrud();
+            $response = $this->get("{$base}/{$record->getKey()}/show");
+            $response->assertOk();
         }
     }
 
@@ -137,15 +147,18 @@ class AdminCrudSmokeTest extends TestCase
      */
     private function freshCrud(): static
     {
-        foreach ([
-            'CrudManager',
-            'BackpackLifecycleHooks',
-            'crud',
-        ] as $abstract) {
+        foreach (
+            [
+                'CrudManager',
+                'BackpackLifecycleHooks',
+                'crud',
+            ] as $abstract
+        ) {
             $this->app->forgetInstance($abstract);
             Facade::clearResolvedInstance($abstract);
         }
-        foreach (Route::getRoutes()->getRoutes() as $route) {
+        $routes = Route::getRoutes();
+        foreach ($routes->getRoutes() as $route) {
             $route->flushController();
         }
 
@@ -154,28 +167,55 @@ class AdminCrudSmokeTest extends TestCase
 
     private function createRecord(string $model): Model
     {
+        if ($model === PaymentMethod::class) {
+            $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+
+            return $paymentMethodQuery->firstOrFail();
+        }
+
+        if ($model === EntityLimitUsage::class) {
+            $now = CarbonImmutable::now();
+
+            return EntityLimitUsage::create(
+                [
+                    'user_id' => $this->adminUser->id,
+                    'entity_type' => 'invoice',
+                    'metric_type' => 'count',
+                    'period_type' => 'monthly',
+                    'period_start' => $now->startOfMonth(),
+                    'period_end' => $now->endOfMonth(),
+                    'current_value' => 1,
+                ],
+            );
+        }
+
         return match ($model) {
-            EntityLimitUsage::class => EntityLimitUsage::create([
-                'user_id' => $this->adminUser->id,
-                'entity_type' => 'invoice',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'period_start' => now()->startOfMonth(),
-                'period_end' => now()->endOfMonth(),
-                'current_value' => 1,
-            ]),
-            PaymentMethod::class => PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail(),
             Permission::class => Permission::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
             Role::class => Role::create(['name' => 'smoke_' . uniqid(), 'guard_name' => 'backpack']),
-            default => $model::factory()->create(),
+            default => $this->createFromFactory($model),
         };
+    }
+
+    private function createFromFactory(string $model): Model
+    {
+        $factory = $model::factory();
+
+        return $factory->create();
     }
 
     private function hasRoute(string $uri): bool
     {
         $uri = ltrim($uri, '/');
 
-        return collect(Route::getRoutes()->getRoutes())
-            ->contains(fn ($route) => $route->uri() === $uri && in_array('GET', $route->methods(), true));
+        $routes = Route::getRoutes();
+        $collection = collect($routes->getRoutes());
+
+        return $collection->contains(
+            fn ($route) => $route->uri() === $uri && in_array(
+                'GET',
+                $route->methods(),
+                true,
+            ),
+        );
     }
 }

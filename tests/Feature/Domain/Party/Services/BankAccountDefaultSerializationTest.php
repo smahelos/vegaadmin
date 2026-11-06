@@ -22,29 +22,46 @@ final class BankAccountDefaultSerializationTest extends TestCase
     public function a_concurrent_archive_waits_until_the_default_selection_commits(): void
     {
         $connection = $this->secondConnection();
-        $connection->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Default owner', ?, '', NOW(), NOW())")
-            ->execute(['default-' . uniqid() . '@billex.test']);
+        $statement = $connection->prepare(
+            "INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Default owner', ?, '', NOW(), NOW())",
+        );
+        $statement->execute(['default-' . uniqid() . '@billex.test']);
         $userId = (int) $connection->lastInsertId();
-        $this->beforeApplicationDestroyed(function () use ($connection, $userId): void {
-            $connection->exec("DELETE FROM users WHERE id = {$userId}");
-        });
-        $contact = Contact::factory()->create(['user_id' => $userId]);
-        $account = BankAccount::factory()->ownedBy($contact)->create();
-        $this->assertNull($this->lockError($connection, $userId));
+        $this->beforeApplicationDestroyed(
+            function () use ($connection, $userId): void {
+                $connection->exec("DELETE FROM users WHERE id = {$userId}");
+            },
+        );
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $userId]);
+        $bankAccountFactory = BankAccount::factory();
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
+        $account = $bankAccountFactory->create();
+        $this->assertNull(
+            $this->lockError($connection, $userId),
+        );
 
-        app(BankAccountApplicationService::class)->setDefault(
+        $bankAccountApplicationService = app(BankAccountApplicationService::class);
+        $bankAccountApplicationService->setDefault(
             UserId::fromInt($userId),
-            AccountOwner::contact(ContactId::fromInt($contact->id)),
+            AccountOwner::contact(
+                ContactId::fromInt($contact->id),
+            ),
             BankAccountId::fromInt($account->id),
         );
 
         $this->assertSame($account->id, $contact->fresh()->default_bank_account_id);
-        $this->assertSame(1205, $this->lockError($connection, $userId));
+        $this->assertSame(
+            1205,
+            $this->lockError($connection, $userId),
+        );
     }
 
     private function secondConnection(): PDO
     {
-        $config = config('database.connections.' . config('database.default'));
+        $config = config(
+            'database.connections.' . config('database.default'),
+        );
         $connection = new PDO(
             "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}",
             $config['username'],

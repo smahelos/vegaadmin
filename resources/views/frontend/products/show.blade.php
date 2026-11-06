@@ -9,12 +9,12 @@
 
         <x-back-button />
 
-        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.products', ['locale' => App::getLocale()]) }}"
             title="{{ __('products.actions.back_to_list') }}" aria-label="{{ __('products.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
         </a>
-        <a href="{{ route('frontend.product.edit', ['locale' => app()->getLocale(), 'id' => $product->id]) }}"
+        <a href="{{ route('frontend.product.edit', ['locale' => App::getLocale(), 'id' => $product->id]) }}"
             title="{{ __('products.actions.edit') }}" aria-label="{{ __('products.actions.edit') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-pink-300 dark:bg-pink-500 hover:bg-pink-500 dark:hover:bg-pink-800 rounded-sm text-gray-700 dark:text-gray-200 hover:text-white text-sm font-medium transition-colors">
             <i class="fas fa-pencil-alt"></i>
@@ -80,8 +80,9 @@
                             <div class="border-l-4 border-yellow-500 pl-3 py-1">
                                 <div class="text-xs text-gray-500 dark:text-gray-400">{{
                                     __('products.fields.created_at') }}</div>
+                                @php($createdAt = \Carbon\Carbon::parse($product->created_at))
                                 <div class="font-medium dark:text-white">{{
-                                    \Carbon\Carbon::parse($product->created_at)->format(\App\Infrastructure\Shared\Support\DateHelper::format())
+                                    $createdAt->format(\App\Infrastructure\Shared\Support\DateHelper::format())
                                     }}</div>
                             </div>
                         </div>
@@ -160,7 +161,8 @@
                     @if($product->image)
                     <div class="border-2 border-dashed border-gray-300 dark:border-gray-700 p-3 rounded-sm">
                         <div class="flex justify-center">
-                            <img src="{{ Storage::disk('public')->url($product->image) }}" alt="{{ $product->name }}"
+                            @php($disk = Storage::disk('public'))
+                            <img src="{{ $disk->url($product->image) }}" alt="{{ $product->name }}"
                                 class="max-h-60 object-contain rounded-md">
                         </div>
                     </div>

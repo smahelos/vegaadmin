@@ -26,7 +26,10 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoRead
 
     public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
     {
-        $product = $this->productRepository->create($this->mapper->toAttributes($invoiceId, $data))->toArray();
+        $product = $this->productRepository->create(
+            $this->mapper->toAttributes($invoiceId, $data),
+        );
+        $product = $product->toArray();
 
         return InvoiceProductDTO::fromArray($product);
     }
@@ -37,7 +40,9 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoRead
     public function bulkCreate(InvoiceId $invoiceId, array $products): void
     {
         foreach ($products as $product) {
-            $this->productRepository->create($this->mapper->toAttributes($invoiceId, $product));
+            $this->productRepository->create(
+                $this->mapper->toAttributes($invoiceId, $product),
+            );
         }
     }
 
@@ -48,7 +53,13 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoRead
 
     public function amountsForInvoice(InvoiceId $invoiceId): array
     {
-        return InvoiceProduct::query()->where('invoice_id', $invoiceId->getValue())->get()
-            ->map(fn (InvoiceProduct $line): InvoiceLineAmountDTO => $this->mapper->toAmounts($line))->all();
+        $query = InvoiceProduct::query();
+        $query->where('invoice_id', $invoiceId->getValue());
+        $lines = $query->get();
+        $lines = $lines->map(
+            fn (InvoiceProduct $line): InvoiceLineAmountDTO => $this->mapper->toAmounts($line),
+        );
+
+        return $lines->all();
     }
 }

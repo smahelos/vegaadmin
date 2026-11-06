@@ -9,7 +9,9 @@ class CronTaskRequest extends FormRequest
     public function authorize(): bool
     {
         // Only authenticated backpack users with cron task permission
-        return backpack_auth()->check() && backpack_auth()->user()->can('can_create_edit_cron_task');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_cron_task') === true;
     }
 
     public function rules(): array
@@ -39,8 +41,10 @@ class CronTaskRequest extends FormRequest
                 if ($frequency === 'custom') {
                     // Basic 5-part cron: minute hour day-of-month month day-of-week with ranges, lists, steps
                     $pattern = '/^(\*|([0-5]?\d)([\-,\/][0-5]?\d)*) (\*|([01]?\d|2[0-3])([\-,\/][01]?\d|2[0-3])*) (\*|([1-9]|[12]\d|3[01])([\-,\/][1-9]|[12]\d|3[01])*) (\*|(1[0-2]|0?[1-9])([\-,\/](1[0-2]|0?[1-9]))*) (\*|([0-6])([\-,\/][0-6])*)$/';
-                    if (! is_string($value) || ! preg_match($pattern, $value)) {
-                        $fail(__('cron_tasks.validation.cron_expression'));
+                    if (!is_string($value) || !preg_match($pattern, $value)) {
+                        $fail(
+                            __('cron_tasks.validation.cron_expression'),
+                        );
                     }
                 }
             },

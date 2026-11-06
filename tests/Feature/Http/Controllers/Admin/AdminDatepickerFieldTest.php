@@ -61,22 +61,27 @@ class AdminDatepickerFieldTest extends TestCase
         string $expected,
     ): void {
         $this->actingAs($this->adminUser, 'backpack');
-        $record = $model::factory()->create([$field => '2026-03-15 10:20:30']);
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create([$field => '2026-03-15 10:20:30']);
 
-        $this->get("/admin/{$route}/{$record->getKey()}/edit")
-            ->assertOk()
-            ->assertSee('name="' . $field . '" value="' . $expected . '" data-datepicker-value', false)
-            ->assertSee('data-init-function="bpFieldInitDatepicker"', false);
+        $httpResponse = $this->get("/admin/{$route}/{$record->getKey()}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee(
+            'name="' . $field . '" value="' . $expected . '" data-datepicker-value',
+            false,
+        );
+        $httpResponse->assertSee('data-init-function="bpFieldInitDatepicker"', false);
     }
 
     #[Test]
     public function edit_form_submits_an_empty_value_when_nothing_is_stored(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $record = Subscription::factory()->create(['trial_ends_at' => null]);
+        $subscriptionFactory = Subscription::factory();
+        $record = $subscriptionFactory->create(['trial_ends_at' => null]);
 
-        $this->get("/admin/subscription/{$record->getKey()}/edit")
-            ->assertOk()
-            ->assertSee('name="trial_ends_at" value="" data-datepicker-value', false);
+        $httpResponse = $this->get("/admin/subscription/{$record->getKey()}/edit");
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertSee('name="trial_ends_at" value="" data-datepicker-value', false);
     }
 }

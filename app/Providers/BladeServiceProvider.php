@@ -20,12 +20,15 @@ class BladeServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Blade::directive('renderRequiredMark', function ($field) {
-            if (isset($field['required']) && $field['required'] === true) {
-                return '<span class="text-red-500">*</span>';
-            }
+        Blade::directive(
+            'renderRequiredMark',
+            function ($field) {
+                if (isset($field['required']) && $field['required'] === true) {
+                    return '<span class="text-red-500">*</span>';
+                }
 
-            return '';
-        });
+                return '';
+            },
+        );
     }
 }

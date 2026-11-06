@@ -48,7 +48,10 @@ final class ContactForm extends Component
         }
 
         $this->requirePermission('frontend.can_update_contact');
-        $contact = $contacts->get($this->userId(), ContactId::fromInt($contactId));
+        $contact = $contacts->get(
+            $this->userId(),
+            ContactId::fromInt($contactId),
+        );
 
         $this->contactId = $contactId;
         $this->party->fillFromProfile($contact->profile);
@@ -59,14 +62,16 @@ final class ContactForm extends Component
     public function save(ContactApplicationService $contacts, PartyLogoApplicationService $logos): void
     {
         $creating = $this->contactId === null;
-        $this->requirePermission($creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact');
+        $this->requirePermission(
+            $creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact',
+        );
         $this->limitMessage = null;
 
         $this->validate($this->rules());
         $this->party->validate();
 
         $profile = $this->party->profile();
-        if (! $this->passesDuplicateCheck($profile)) {
+        if (!$this->passesDuplicateCheck($profile)) {
             return;
         }
 
@@ -80,13 +85,15 @@ final class ContactForm extends Component
 
         $saved = false;
         try {
-            $contact = $creating
-                ? $contacts->create($this->userId(), $data)
-                : $contacts->update(
+            if ($creating) {
+                $contact = $contacts->create($this->userId(), $data);
+            } else {
+                $contact = $contacts->update(
                     $this->userId(),
                     ContactId::fromInt($this->contactId),
                     $data,
                 );
+            }
             $saved = true;
         } catch (EntityLimitExceededException) {
             $this->limitMessage = __('contacts.messages.limit_exceeded');
@@ -97,7 +104,7 @@ final class ContactForm extends Component
 
             return;
         } finally {
-            if (! $saved) {
+            if (!$saved) {
                 $this->discardNewLogo($logos, $logo);
             }
         }
@@ -106,18 +113,32 @@ final class ContactForm extends Component
             $logos->delete($this->currentLogo);
         }
 
-        session()->flash('success', __($creating ? 'contacts.messages.created' : 'contacts.messages.updated'));
-        $this->redirectRoute('frontend.contacts.show', [
-            'locale' => app()->getLocale(),
-            'contact' => $contact->id->value,
-        ]);
+        $session = session();
+        $session->flash(
+            'success',
+            __(
+                $creating ? 'contacts.messages.created' : 'contacts.messages.updated',
+            ),
+        );
+        $application = app();
+        $this->redirectRoute(
+            'frontend.contacts.show',
+            [
+                'locale' => $application->getLocale(),
+                'contact' => $contact->id->value,
+            ],
+        );
     }
 
     public function render(): View
     {
-        return view('livewire.party.contact-form', [
-            'countries' => $this->countryOptions(),
-        ]);
+        return view(
+            'livewire.party.contact-form',
+            [
+                'countries' => $this->countryOptions(),
+                'cancelHref' => $this->cancelHref(),
+            ],
+        );
     }
 
     /**
@@ -150,7 +171,9 @@ final class ContactForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        return app(ContactApplicationService::class)->findDuplicates(
+        $contacts = app(ContactApplicationService::class);
+
+        return $contacts->findDuplicates(
             $this->userId(),
             $profile,
             $this->contactId === null ? null : ContactId::fromInt($this->contactId),
@@ -159,9 +182,26 @@ final class ContactForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
-        return route('frontend.contacts.show', [
-            'locale' => app()->getLocale(),
-            'contact' => $id->value,
-        ]);
+        $application = app();
+
+        return route(
+            'frontend.contacts.show',
+            [
+                'locale' => $application->getLocale(),
+                'contact' => $id->value,
+            ],
+        );
+    }
+
+    private function cancelHref(): string
+    {
+        $application = app();
+        $locale = $application->getLocale();
+
+        if ($this->contactId === null) {
+            return route('frontend.contacts.index', ['locale' => $locale]);
+        }
+
+        return route('frontend.contacts.show', ['locale' => $locale, 'contact' => $this->contactId]);
     }
 }

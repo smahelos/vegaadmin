@@ -25,11 +25,16 @@ final class PartyListLatest extends Component
 
     public function render(LatestPartiesApplicationService $parties): View
     {
-        $this->requirePermission($this->kind === EntityType::BUSINESS ? 'frontend.can_view_business' : 'frontend.can_view_contact');
+        $this->requirePermission(
+            $this->kind === EntityType::BUSINESS ? 'frontend.can_view_business' : 'frontend.can_view_contact',
+        );
 
-        return view('livewire.party.party-list-latest', [
-            'parties' => $parties->listLatest($this->userId(), $this->kind),
-            'resource' => $this->kind === EntityType::BUSINESS ? 'businesses' : 'contacts',
-        ]);
+        return view(
+            'livewire.party.party-list-latest',
+            [
+                'parties' => $parties->listLatest($this->userId(), $this->kind),
+                'resource' => $this->kind === EntityType::BUSINESS ? 'businesses' : 'contacts',
+            ],
+        );
     }
 }

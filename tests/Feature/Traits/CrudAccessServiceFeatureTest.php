@@ -48,18 +48,23 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function denies_all_access_by_default(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $this->service->configureCrudAccess($this->crud, $user->id);
 
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertFalse($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertFalse(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -67,33 +72,49 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function allows_view_access_with_view_permission(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
-        $perm = Permission::where('name', 'can_view_user')->where('guard_name', 'backpack')->first();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $permissionQuery = Permission::where('name', 'can_view_user');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        $this->assertTrue($this->hasAccess('list'));
-        $this->assertTrue($this->hasAccess('show'));
-        $this->assertFalse($this->hasAccess('create'));
+        $this->assertTrue(
+            $this->hasAccess('list'),
+        );
+        $this->assertTrue(
+            $this->hasAccess('show'),
+        );
+        $this->assertFalse(
+            $this->hasAccess('create'),
+        );
     }
 
     #[Test]
     public function allows_full_access_with_create_edit_permission(): void
     {
         $this->setCrudModel(User::class);
-        $user = User::factory()->create();
-        $perm = Permission::where('name', 'can_create_edit_user')->where('guard_name', 'backpack')->first();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $permissionQuery = Permission::where('name', 'can_create_edit_user');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertTrue($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertTrue(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -101,19 +122,26 @@ class CrudAccessServiceFeatureTest extends TestCase
     public function admin_role_allows_full_access(): void
     {
         $this->setCrudModel(User::class);
-        $admin = User::factory()->create();
-        $role = Role::where('name', 'admin')->where('guard_name', 'backpack')->first();
+        $userFactory = User::factory();
+        $admin = $userFactory->create();
+        $roleQuery = Role::where('name', 'admin');
+        $roleQuery->where('guard_name', 'backpack');
+        $role = $roleQuery->first();
         $admin->assignRole($role);
 
         $this->service->configureCrudAccess($this->crud, $admin->id);
-        foreach ([
-            'list',
-            'show',
-            'create',
-            'update',
-            'delete',
-        ] as $op) {
-            $this->assertTrue($this->hasAccess($op));
+        foreach (
+            [
+                'list',
+                'show',
+                'create',
+                'update',
+                'delete',
+            ] as $op
+        ) {
+            $this->assertTrue(
+                $this->hasAccess($op),
+            );
         }
     }
 
@@ -122,14 +150,21 @@ class CrudAccessServiceFeatureTest extends TestCase
     {
         // Switch model to Contact to ensure singular entity mapping handled by service
         $this->setCrudModel(Contact::class);
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         // For contact view permission, adapter checks can_view_contact; create_edit permission is can_create_edit_contact
         Permission::firstOrCreate(['name' => 'can_view_contact', 'guard_name' => 'backpack']);
-        $perm = Permission::where('name', 'can_view_contact')->where('guard_name', 'backpack')->first();
+        $permissionQuery = Permission::where('name', 'can_view_contact');
+        $permissionQuery->where('guard_name', 'backpack');
+        $perm = $permissionQuery->first();
         $user->givePermissionTo($perm);
 
         $this->service->configureCrudAccess($this->crud, $user->id);
-        $this->assertTrue($this->hasAccess('list'));
-        $this->assertFalse($this->hasAccess('create'));
+        $this->assertTrue(
+            $this->hasAccess('list'),
+        );
+        $this->assertFalse(
+            $this->hasAccess('create'),
+        );
     }
 }

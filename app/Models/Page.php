@@ -59,27 +59,37 @@ class Page extends Model
     {
         parent::boot();
 
-        static::creating(function ($page): void {
-            // Auto-assign sort_order if not provided
-            if (is_null($page->sort_order)) {
-                $maxOrder = static::where('parent_id', $page->parent_id)
-                    ->where('category_id', $page->category_id)
-                    ->max('sort_order') ?? 0;
-                $page->sort_order = $maxOrder + 1;
-            }
+        static::creating(
+            function ($page): void {
+                // Auto-assign sort_order if not provided
+                if (is_null($page->sort_order)) {
+                    $query = static::where('parent_id', $page->parent_id);
+                    $query->where('category_id', $page->category_id);
+                    $maxOrder = $query->max('sort_order') ?? 0;
+                    $page->sort_order = $maxOrder + 1;
+                }
 
-            // Auto-assign published_by if published and not already set
-            if ($page->published && ! $page->published_by && auth()->check()) {
-                $page->published_by = auth()->id();
-            }
-        });
+                // Auto-assign published_by if published and not already set
+                if ($page->published && !$page->published_by) {
+                    $auth = auth();
+                    if ($auth->check()) {
+                        $page->published_by = $auth->id();
+                    }
+                }
+            },
+        );
 
-        static::updating(function ($page): void {
-            // Auto-assign published_by if published and not already set
-            if ($page->published && ! $page->published_by && auth()->check()) {
-                $page->published_by = auth()->id();
-            }
-        });
+        static::updating(
+            function ($page): void {
+                // Auto-assign published_by if published and not already set
+                if ($page->published && !$page->published_by) {
+                    $auth = auth();
+                    if ($auth->check()) {
+                        $page->published_by = $auth->id();
+                    }
+                }
+            },
+        );
     }
 
     /**
@@ -95,29 +105,32 @@ class Page extends Model
      */
     public function getName(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $names = $this->name ?? [];
 
         // Ensure we have an array
-        if (! is_array($names)) {
+        if (!is_array($names)) {
             return (string) $names;
         }
 
         // Try requested locale first
-        if (! empty($names[$locale])) {
+        if (!empty($names[$locale])) {
             return $names[$locale];
         }
 
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($names[$fallbackLocale])) {
+            if (!empty($names[$fallbackLocale])) {
                 return $names[$fallbackLocale];
             }
         }
 
         // Return first available or empty string
-        return ! empty($names) ? reset($names) : '';
+        return !empty($names) ? reset($names) : '';
     }
 
     /**
@@ -125,29 +138,32 @@ class Page extends Model
      */
     public function getSlug(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $slugs = $this->slug ?? [];
 
         // Ensure we have an array
-        if (! is_array($slugs)) {
+        if (!is_array($slugs)) {
             return (string) $slugs;
         }
 
         // Try requested locale first
-        if (! empty($slugs[$locale])) {
+        if (!empty($slugs[$locale])) {
             return $slugs[$locale];
         }
 
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($slugs[$fallbackLocale])) {
+            if (!empty($slugs[$fallbackLocale])) {
                 return $slugs[$fallbackLocale];
             }
         }
 
         // Return first available or empty string
-        return ! empty($slugs) ? reset($slugs) : '';
+        return !empty($slugs) ? reset($slugs) : '';
     }
 
     /**
@@ -155,29 +171,32 @@ class Page extends Model
      */
     public function getDescription(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $descriptions = $this->description ?? [];
 
         // Ensure we have an array
-        if (! is_array($descriptions)) {
+        if (!is_array($descriptions)) {
             return (string) $descriptions;
         }
 
         // Try requested locale first
-        if (! empty($descriptions[$locale])) {
+        if (!empty($descriptions[$locale])) {
             return $descriptions[$locale];
         }
 
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($descriptions[$fallbackLocale])) {
+            if (!empty($descriptions[$fallbackLocale])) {
                 return $descriptions[$fallbackLocale];
             }
         }
 
         // Return first available or empty string
-        return ! empty($descriptions) ? reset($descriptions) : '';
+        return !empty($descriptions) ? reset($descriptions) : '';
     }
 
     /**
@@ -185,29 +204,32 @@ class Page extends Model
      */
     public function getContent(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $contents = $this->content ?? [];
 
         // Ensure we have an array
-        if (! is_array($contents)) {
+        if (!is_array($contents)) {
             return (string) $contents;
         }
 
         // Try requested locale first
-        if (! empty($contents[$locale])) {
+        if (!empty($contents[$locale])) {
             return $contents[$locale];
         }
 
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($contents[$fallbackLocale])) {
+            if (!empty($contents[$fallbackLocale])) {
                 return $contents[$fallbackLocale];
             }
         }
 
         // Return first available or empty string
-        return ! empty($contents) ? reset($contents) : '';
+        return !empty($contents) ? reset($contents) : '';
     }
 
     /**
@@ -215,23 +237,26 @@ class Page extends Model
      */
     public function getMetaTitle(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaTitles = $this->meta_title ?? [];
 
         // Ensure we have an array
-        if (! is_array($metaTitles)) {
+        if (!is_array($metaTitles)) {
             return (string) $metaTitles;
         }
 
         // Try requested locale first
-        if (! empty($metaTitles[$locale])) {
+        if (!empty($metaTitles[$locale])) {
             return $metaTitles[$locale];
         }
 
         // Fallback priority: cs -> en -> first available, or use name as fallback
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($metaTitles[$fallbackLocale])) {
+            if (!empty($metaTitles[$fallbackLocale])) {
                 return $metaTitles[$fallbackLocale];
             }
         }
@@ -245,18 +270,21 @@ class Page extends Model
      */
     public function getMetaDescription(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaDescriptions = $this->meta_description ?? [];
 
         // Try requested locale first
-        if (! empty($metaDescriptions[$locale])) {
+        if (!empty($metaDescriptions[$locale])) {
             return $metaDescriptions[$locale];
         }
 
         // Fallback priority: cs -> en -> first available, or use description as fallback
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($metaDescriptions[$fallbackLocale])) {
+            if (!empty($metaDescriptions[$fallbackLocale])) {
                 return $metaDescriptions[$fallbackLocale];
             }
         }
@@ -270,29 +298,32 @@ class Page extends Model
      */
     public function getMetaKeywords(?string $locale = null): string
     {
-        $locale = $locale ?? app()->getLocale();
+        if ($locale === null) {
+            $application = app();
+            $locale = $application->getLocale();
+        }
         $metaKeywords = $this->meta_keywords ?? [];
 
         // Ensure we have an array
-        if (! is_array($metaKeywords)) {
+        if (!is_array($metaKeywords)) {
             return (string) $metaKeywords;
         }
 
         // Try requested locale first
-        if (! empty($metaKeywords[$locale])) {
+        if (!empty($metaKeywords[$locale])) {
             return $metaKeywords[$locale];
         }
 
         // Fallback priority: cs -> en -> first available
         $fallbackLocales = ['cs', 'en'];
         foreach ($fallbackLocales as $fallbackLocale) {
-            if (! empty($metaKeywords[$fallbackLocale])) {
+            if (!empty($metaKeywords[$fallbackLocale])) {
                 return $metaKeywords[$fallbackLocale];
             }
         }
 
         // Return first available or empty string
-        return ! empty($metaKeywords) ? reset($metaKeywords) : '';
+        return !empty($metaKeywords) ? reset($metaKeywords) : '';
     }
 
     /**
@@ -308,7 +339,10 @@ class Page extends Model
      */
     public function children(): HasMany
     {
-        return $this->hasMany(Page::class, 'parent_id')->orderBy('sort_order');
+        $relation = $this->hasMany(Page::class, 'parent_id');
+        $relation->orderBy('sort_order');
+
+        return $relation;
     }
 
     /**
@@ -420,23 +454,29 @@ class Page extends Model
      */
     public function scopePublished(Builder $query): Builder
     {
-        return $query->where('published', true)
-            ->where(function ($q): void {
+        $query->where('published', true);
+        $query->where(
+            function ($q): void {
                 $q->where(
                     'publishing_start',
                     '<=',
                     now(),
-                )
-                    ->orWhereNull('publishing_start');
-            })
-            ->where(function ($q): void {
+                );
+                $q->orWhereNull('publishing_start');
+            },
+        );
+        $query->where(
+            function ($q): void {
                 $q->where(
                     'publishing_end',
                     '>=',
                     now(),
-                )
-                    ->orWhereNull('publishing_end');
-            });
+                );
+                $q->orWhereNull('publishing_end');
+            },
+        );
+
+        return $query;
     }
 
     /**
@@ -460,7 +500,7 @@ class Page extends Model
      */
     public function getIsCurrentlyPublishedAttribute(): bool
     {
-        if (! $this->published) {
+        if (!$this->published) {
             return false;
         }
 
@@ -486,11 +526,14 @@ class Page extends Model
         $current = $this;
 
         while ($current) {
-            array_unshift($breadcrumbs, [
-                'name' => $current->getName(),
-                'slug' => $current->getSlug(),
-                'id' => $current->id,
-            ]);
+            array_unshift(
+                $breadcrumbs,
+                [
+                    'name' => $current->getName(),
+                    'slug' => $current->getSlug(),
+                    'id' => $current->id,
+                ],
+            );
             $current = $current->parent;
         }
 

@@ -10,7 +10,9 @@ final class ClearCacheRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return backpack_auth()->user()?->can('can_configure_system') ?? false;
+        $user = backpack_user();
+
+        return $user?->can('can_configure_system') === true;
     }
 
     /**

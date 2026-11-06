@@ -22,7 +22,9 @@ class MysqlOptimizationLogCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(MysqlOptimizationLog::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/mysql-optimization-log');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/mysql-optimization-log',
+        );
         CRUD::setEntityNameStrings(
             __('admin/database.optimization_logs.entity.singular'),
             __('admin/database.optimization_logs.entity.plural'),
@@ -41,47 +43,65 @@ class MysqlOptimizationLogCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('setting_name')
-            ->label(__('admin/database.optimization_logs.fields.setting_name'))
-            ->type('text');
+        $column = CRUD::column('setting_name');
+        $column->label(
+            __('admin/database.optimization_logs.fields.setting_name'),
+        );
+        $column->type('text');
 
-        CRUD::column('current_value')
-            ->label(__('admin/database.optimization_logs.fields.current_value'))
-            ->type('text');
+        $column = CRUD::column('current_value');
+        $column->label(
+            __('admin/database.optimization_logs.fields.current_value'),
+        );
+        $column->type('text');
 
-        CRUD::column('recommended_value')
-            ->label(__('admin/database.optimization_logs.fields.recommended_value'))
-            ->type('text');
+        $column = CRUD::column('recommended_value');
+        $column->label(
+            __('admin/database.optimization_logs.fields.recommended_value'),
+        );
+        $column->type('text');
 
-        CRUD::column('description')
-            ->label(__('admin/database.optimization_logs.fields.description'))
-            ->type('text')
-            ->limit(100);
+        $column = CRUD::column('description');
+        $column->label(
+            __('admin/database.optimization_logs.fields.description'),
+        );
+        $column->type('text');
+        $column->limit(100);
 
-        CRUD::column('priority')
-            ->label(__('admin/database.optimization_logs.fields.priority'))
-            ->type('badge')
-            ->options([
+        $column = CRUD::column('priority');
+        $column->label(
+            __('admin/database.optimization_logs.fields.priority'),
+        );
+        $column->type('badge');
+        $column->options(
+            [
                 'high' => 'danger',
                 'medium' => 'warning',
                 'low' => 'info',
-            ]);
+            ],
+        );
 
-        CRUD::column('applied')
-            ->label(__('admin/database.optimization_logs.fields.applied'))
-            ->type('badge')
-            ->options([
-                1 => 'success',
-                0 => 'secondary',
-            ])
-            ->text([
+        $column = CRUD::column('applied');
+        $column->label(
+            __('admin/database.optimization_logs.fields.applied'),
+        );
+        $column->type('badge');
+        $column->options([
+            1 => 'success',
+            0 => 'secondary',
+        ]);
+        $column->text(
+            [
                 1 => __('admin/database.optimization_logs.statuses.applied'),
                 0 => __('admin/database.optimization_logs.statuses.pending'),
-            ]);
+            ],
+        );
 
-        CRUD::column('created_at')
-            ->label(__('admin/database.optimization_logs.fields.created_at'))
-            ->type('datetime');
+        $column = CRUD::column('created_at');
+        $column->label(
+            __('admin/database.optimization_logs.fields.created_at'),
+        );
+        $column->type('datetime');
     }
 
     /**
@@ -91,12 +111,16 @@ class MysqlOptimizationLogCrudController extends CrudController
     {
         $this->setupListOperation();
 
-        CRUD::column('description')
-            ->label(__('admin/database.optimization_logs.fields.description'))
-            ->type('textarea');
+        $column = CRUD::column('description');
+        $column->label(
+            __('admin/database.optimization_logs.fields.description'),
+        );
+        $column->type('textarea');
 
-        CRUD::column('updated_at')
-            ->label(__('admin/database.optimization_logs.fields.updated_at'))
-            ->type('datetime');
+        $column = CRUD::column('updated_at');
+        $column->label(
+            __('admin/database.optimization_logs.fields.updated_at'),
+        );
+        $column->type('datetime');
     }
 }

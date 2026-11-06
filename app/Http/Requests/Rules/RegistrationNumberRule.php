@@ -25,14 +25,15 @@ final class RegistrationNumberRule implements ValidationRule
         Closure $fail,
     ): void {
         // A missing country is reported on the country field
-        if ($this->country === null || ! is_string($value)) {
+        if ($this->country === null || !is_string($value)) {
             return;
         }
 
         try {
             RegistrationNumber::fromParts($this->country, $value);
         } catch (InvalidRegistrationNumberException $e) {
-            $fail('parties.validation.' . $e->problem->value)->translate();
+            $message = $fail('parties.validation.' . $e->problem->value);
+            $message->translate();
         }
     }
 }

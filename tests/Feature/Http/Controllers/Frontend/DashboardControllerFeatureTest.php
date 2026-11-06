@@ -18,41 +18,64 @@ final class DashboardControllerFeatureTest extends TestCase
     #[Test]
     public function guest_is_redirected_to_login(): void
     {
-        $this->get(route('frontend.dashboard', ['locale' => 'cs']))->assertRedirect(route('login'));
+        $httpResponse = $this->get(
+            route('frontend.dashboard', ['locale' => 'cs']),
+        );
+        $httpResponse->assertRedirect(
+            route('login'),
+        );
     }
 
     #[Test]
     public function the_dashboard_renders_the_users_statistics_and_latest_parties(): void
     {
         $user = $this->frontendUser();
-        $business = Business::factory()->create(['user_id' => $user->id, 'name' => 'My own business']);
-        Contact::factory()->create(['user_id' => $user->id, 'name' => 'My contact']);
-        Contact::factory()->create(['name' => 'Private other contact']);
-        Invoice::factory()->create([
-            'user_id' => $user->id,
-            'business_id' => $business->id,
-            'payment_amount' => '123.45',
-        ]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $user->id, 'name' => 'My own business']);
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $user->id, 'name' => 'My contact']);
+        $contactFactory->create(['name' => 'Private other contact']);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $user->id,
+                'business_id' => $business->id,
+                'payment_amount' => '123.45',
+            ],
+        );
 
-        $this->actingAs($user)->get(route('frontend.dashboard', ['locale' => 'cs']))
-            ->assertOk()->assertSee('My own business')->assertSee('My contact')->assertDontSee('Private other contact')
-            ->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
-                && $dashboard->statistics->businessCount === 1
-                && $dashboard->statistics->contactCount === 1
-                && $dashboard->statistics->totalAmount->getAmount() === '123.45');
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->get(
+            route('frontend.dashboard', ['locale' => 'cs']),
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('My own business');
+        $httpResponse = $httpResponse->assertSee('My contact');
+        $httpResponse = $httpResponse->assertDontSee('Private other contact');
+        $httpResponse->assertViewHas(
+            'dashboard',
+            fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
+            && $dashboard->statistics->businessCount === 1
+            && $dashboard->statistics->contactCount === 1
+            && $dashboard->statistics->totalAmount->getAmount() === '123.45',
+        );
     }
 
     #[Test]
     public function one_off_invoices_keep_the_date_filters_available_without_a_contact_selector(): void
     {
         $user = $this->frontendUser();
-        Invoice::factory()->create(['user_id' => $user->id, 'contact_id' => null]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['user_id' => $user->id, 'contact_id' => null]);
 
-        $this->actingAs($user)->get(route('frontend.dashboard', ['locale' => 'cs']))
-            ->assertOk()
-            ->assertSee('id="stats-timerange"', false)
-            ->assertSee('id="stats-date-from"', false)
-            ->assertDontSee('id="stats-contact-filter"', false)
-            ->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->get(
+            route('frontend.dashboard', ['locale' => 'cs']),
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('id="stats-timerange"', false);
+        $httpResponse = $httpResponse->assertSee('id="stats-date-from"', false);
+        $httpResponse = $httpResponse->assertDontSee('id="stats-contact-filter"', false);
+        $httpResponse->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
     }
 }

@@ -20,13 +20,15 @@ class StatusFeatureTest extends TestCase
         parent::setUp();
 
         // The queries below read the whole statuses table; start without the seeded statuses
-        Status::query()->delete();
+        $statusQuery = Status::query();
+        $statusQuery->delete();
     }
 
     #[Test]
     public function model_can_be_created_with_factory(): void
     {
-        $status = Status::factory()->create();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create();
 
         $this->assertInstanceOf(Status::class, $status);
         $this->assertNotEmpty($status->name);
@@ -34,17 +36,22 @@ class StatusFeatureTest extends TestCase
         $this->assertNotNull($status->category_id);
         $this->assertIsBool($status->is_active);
 
-        $this->assertDatabaseHas('statuses', [
-            'id' => $status->id,
-            'name' => $status->name,
-            'slug' => $status->slug,
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'id' => $status->id,
+                'name' => $status->name,
+                'slug' => $status->slug,
+            ],
+        );
     }
 
     #[Test]
     public function status_factory_can_create_active_status(): void
     {
-        $status = Status::factory()->active()->create();
+        $statusFactory = Status::factory();
+        $activeFactory = $statusFactory->active();
+        $status = $activeFactory->create();
 
         $this->assertTrue($status->is_active);
         $this->assertDatabaseHas('statuses', [
@@ -56,7 +63,9 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function status_factory_can_create_inactive_status(): void
     {
-        $status = Status::factory()->inactive()->create();
+        $statusFactory = Status::factory();
+        $inactiveFactory = $statusFactory->inactive();
+        $status = $inactiveFactory->create();
 
         $this->assertFalse($status->is_active);
         $this->assertDatabaseHas('statuses', [
@@ -68,7 +77,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_create_status_through_database(): void
     {
-        $category = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create();
 
         $statusData = [
             'name' => 'Test Status',
@@ -89,7 +99,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_update_status(): void
     {
-        $status = Status::factory()->create([
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create([
             'name' => 'Original Name',
             'slug' => 'original-name',
         ]);
@@ -99,11 +110,14 @@ class StatusFeatureTest extends TestCase
             'slug' => 'updated-name',
         ]);
 
-        $this->assertDatabaseHas('statuses', [
-            'id' => $status->id,
-            'name' => 'Updated Name',
-            'slug' => 'updated-name',
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'id' => $status->id,
+                'name' => 'Updated Name',
+                'slug' => 'updated-name',
+            ],
+        );
 
         $this->assertDatabaseMissing('statuses', [
             'id' => $status->id,
@@ -114,7 +128,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_delete_status(): void
     {
-        $status = Status::factory()->create();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create();
         $statusId = $status->id;
 
         $status->delete();
@@ -127,38 +142,51 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function slug_must_be_unique(): void
     {
-        Status::factory()->create(['slug' => 'unique-slug']);
+        $statusFactory = Status::factory();
+        $statusFactory->create(['slug' => 'unique-slug']);
 
         $this->expectException(QueryException::class);
 
-        Status::factory()->create(['slug' => 'unique-slug']);
+        $statusFactory->create(['slug' => 'unique-slug']);
     }
 
     #[Test]
     public function can_query_statuses_by_category(): void
     {
-        $category1 = StatusCategory::factory()->create();
-        $category2 = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $category1 = $statusCategoryFactory->create();
+        $category2 = $statusCategoryFactory->create();
 
-        $status1 = Status::factory()->create(['category_id' => $category1->id]);
-        $status2 = Status::factory()->create(['category_id' => $category1->id]);
-        $status3 = Status::factory()->create(['category_id' => $category2->id]);
+        $statusFactory = Status::factory();
+        $status1 = $statusFactory->create(['category_id' => $category1->id]);
+        $status2 = $statusFactory->create(['category_id' => $category1->id]);
+        $status3 = $statusFactory->create(['category_id' => $category2->id]);
 
-        $category1Statuses = Status::where('category_id', $category1->id)->get();
+        $statusQuery = Status::where('category_id', $category1->id);
+        $category1Statuses = $statusQuery->get();
 
         $this->assertCount(2, $category1Statuses);
-        $this->assertTrue($category1Statuses->contains($status1));
-        $this->assertTrue($category1Statuses->contains($status2));
-        $this->assertFalse($category1Statuses->contains($status3));
+        $this->assertTrue(
+            $category1Statuses->contains($status1),
+        );
+        $this->assertTrue(
+            $category1Statuses->contains($status2),
+        );
+        $this->assertFalse(
+            $category1Statuses->contains($status3),
+        );
     }
 
     #[Test]
     public function can_load_category_relationship(): void
     {
-        $category = StatusCategory::factory()->create(['name' => 'Test Category']);
-        $status = Status::factory()->create(['category_id' => $category->id]);
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create(['name' => 'Test Category']);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(['category_id' => $category->id]);
 
-        $statusWithCategory = Status::with('category')->find($status->id);
+        $statusQuery = Status::with('category');
+        $statusWithCategory = $statusQuery->find($status->id);
 
         $this->assertNotNull($statusWithCategory->category);
         $this->assertEquals('Test Category', $statusWithCategory->category->name);
@@ -168,7 +196,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_access_invoices_relationship(): void
     {
-        $status = Status::factory()->create();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create();
 
         $invoicesRelation = $status->invoices();
 
@@ -178,11 +207,14 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_order_statuses_by_name(): void
     {
-        Status::factory()->create(['name' => 'Zebra Status']);
-        Status::factory()->create(['name' => 'Alpha Status']);
-        Status::factory()->create(['name' => 'Beta Status']);
+        $statusFactory = Status::factory();
+        $statusFactory->create(['name' => 'Zebra Status']);
+        $statusFactory->create(['name' => 'Alpha Status']);
+        $statusFactory->create(['name' => 'Beta Status']);
 
-        $statusesOrderedByName = Status::orderBy('name')->pluck('name')->toArray();
+        $statusQuery = Status::orderBy('name');
+        $statusValues = $statusQuery->pluck('name');
+        $statusesOrderedByName = $statusValues->toArray();
 
         $expectedOrder = [
             'Alpha Status',
@@ -195,46 +227,68 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_search_statuses_by_name(): void
     {
-        $category = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create();
 
-        Status::create([
-            'name' => 'Payment Due',
-            'slug' => 'payment-due',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Payment Due',
+                'slug' => 'payment-due',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
-        Status::create([
-            'name' => 'Pending Payment',
-            'slug' => 'pending-payment-test',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Pending Payment',
+                'slug' => 'pending-payment-test',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
-        Status::create([
-            'name' => 'Cancelled Status',
-            'slug' => 'cancelled-status-test',
-            'category_id' => $category->id,
-            'is_active' => true,
-        ]);
+        Status::create(
+            [
+                'name' => 'Cancelled Status',
+                'slug' => 'cancelled-status-test',
+                'category_id' => $category->id,
+                'is_active' => true,
+            ],
+        );
 
         // Use case insensitive search for "payment"
-        $searchResults = Status::whereRaw('LOWER(name) LIKE ?', ['%payment%'])->get();
+        $statusQuery = Status::whereRaw('LOWER(name) LIKE ?', ['%payment%']);
+        $searchResults = $statusQuery->get();
 
         $this->assertCount(2, $searchResults);
-        $this->assertTrue($searchResults->pluck('name')->contains('Payment Due'));
-        $this->assertTrue($searchResults->pluck('name')->contains('Pending Payment'));
-        $this->assertFalse($searchResults->pluck('name')->contains('Cancelled Status'));
+        $searchResultNames = $searchResults->pluck('name');
+        $this->assertTrue(
+            $searchResultNames->contains('Payment Due'),
+        );
+        $this->assertTrue(
+            $searchResultNames->contains('Pending Payment'),
+        );
+        $this->assertFalse(
+            $searchResultNames->contains('Cancelled Status'),
+        );
     }
 
     #[Test]
     public function can_filter_by_active_status(): void
     {
-        Status::factory()->count(3)->active()->create();
-        Status::factory()->count(2)->inactive()->create();
+        $statusFactory = Status::factory();
+        $batchFactory = $statusFactory->count(3);
+        $batchFactory = $batchFactory->active();
+        $batchFactory->create();
+        $batchFactory = $statusFactory->count(2);
+        $batchFactory = $batchFactory->inactive();
+        $batchFactory->create();
 
-        $activeCount = Status::where('is_active', true)->count();
-        $inactiveCount = Status::where('is_active', false)->count();
+        $statusQuery = Status::where('is_active', true);
+        $activeCount = $statusQuery->count();
+        $statusQuery = Status::where('is_active', false);
+        $inactiveCount = $statusQuery->count();
 
         $this->assertEquals(3, $activeCount);
         $this->assertEquals(2, $inactiveCount);
@@ -243,7 +297,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function status_has_timestamps(): void
     {
-        $status = Status::factory()->create();
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create();
 
         $this->assertNotNull($status->created_at);
         $this->assertNotNull($status->updated_at);
@@ -254,19 +309,25 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function can_create_status_with_minimal_data(): void
     {
-        $category = StatusCategory::factory()->create();
+        $statusCategoryFactory = StatusCategory::factory();
+        $category = $statusCategoryFactory->create();
 
-        $status = Status::create([
-            'name' => 'Minimal Status',
-            'slug' => 'minimal-status',
-            'category_id' => $category->id,
-        ]);
+        $status = Status::create(
+            [
+                'name' => 'Minimal Status',
+                'slug' => 'minimal-status',
+                'category_id' => $category->id,
+            ],
+        );
 
-        $this->assertDatabaseHas('statuses', [
-            'name' => 'Minimal Status',
-            'slug' => 'minimal-status',
-            'category_id' => $category->id,
-        ]);
+        $this->assertDatabaseHas(
+            'statuses',
+            [
+                'name' => 'Minimal Status',
+                'slug' => 'minimal-status',
+                'category_id' => $category->id,
+            ],
+        );
 
         $this->assertNotNull($status->id);
         $this->assertEquals('Minimal Status', $status->name);
@@ -276,7 +337,8 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function is_active_cast_to_boolean(): void
     {
-        $status = Status::factory()->create(['is_active' => 1]);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(['is_active' => 1]);
 
         $this->assertIsBool($status->is_active);
         $this->assertTrue($status->is_active);
@@ -291,16 +353,21 @@ class StatusFeatureTest extends TestCase
     #[Test]
     public function color_preview_is_a_badge_in_the_status_color(): void
     {
-        $status = Status::factory()->create(['name' => 'Paid <b>', 'color' => 'green']);
+        $statusFactory = Status::factory();
+        $status = $statusFactory->create(['name' => 'Paid <b>', 'color' => 'green']);
 
-        $this->assertSame('<span class="badge bg-green text-green-fg">Paid &lt;b&gt;</span>', $status->color_preview);
+        $this->assertSame(
+            '<span class="badge bg-green text-green-fg">Paid &lt;b&gt;</span>',
+            $status->color_preview,
+        );
     }
 
     #[Test]
     public function gray_or_missing_color_uses_the_secondary_badge(): void
     {
-        $gray = Status::factory()->create(['color' => 'gray']);
-        $none = Status::factory()->create(['color' => null]);
+        $statusFactory = Status::factory();
+        $gray = $statusFactory->create(['color' => 'gray']);
+        $none = $statusFactory->create(['color' => null]);
 
         $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $gray->color_preview);
         $this->assertStringContainsString('badge bg-secondary text-secondary-fg', $none->color_preview);

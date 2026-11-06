@@ -37,20 +37,23 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $from,
             $to,
             $contactIds,
-        )
-            ->select(
-                DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
-                DB::raw('SUM(invoices.payment_amount) as total'),
-            )
-            ->selectRaw('SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid', [InvoiceStatus::PAID->value])
-            ->leftJoin(
-                'statuses',
-                'invoices.payment_status_id',
-                '=',
-                'statuses.id',
-            )
-            ->groupBy('month')
-            ->orderBy('month');
+        );
+        $query->select(
+            DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
+            DB::raw('SUM(invoices.payment_amount) as total'),
+        );
+        $query->selectRaw(
+            'SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid',
+            [InvoiceStatus::PAID->value],
+        );
+        $query->leftJoin(
+            'statuses',
+            'invoices.payment_status_id',
+            '=',
+            'statuses.id',
+        );
+        $query->groupBy('month');
+        $query->orderBy('month');
 
         return $this->rows($query);
     }
@@ -67,9 +70,9 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $to,
             $contactIds,
         );
-        $query = CustomerRevenueQuery::group($query)
-            ->orderByDesc('total')
-            ->limit(10);
+        $query = CustomerRevenueQuery::group($query);
+        $query->orderByDesc('total');
+        $query->limit(10);
 
         return $this->rows($query);
     }
@@ -85,13 +88,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $from,
             $to,
             $contactIds,
-        )
-            ->select(
-                DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
-                DB::raw('SUM(invoices.payment_amount) as amount'),
-                DB::raw('"revenue" as type'),
-            )
-            ->groupBy('month');
+        );
+        $query->select(
+            DB::raw('DATE_FORMAT(invoices.issue_date, "%Y-%m") as month'),
+            DB::raw('SUM(invoices.payment_amount) as amount'),
+            DB::raw('"revenue" as type'),
+        );
+        $query->groupBy('month');
 
         return $this->rows($query);
     }
@@ -101,20 +104,27 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
     ): array {
-        $query = Expense::query()
-            ->where('expenses.user_id', $userId->toInt())
-            ->where(
+        $query = Expense::query();
+        $query->where('expenses.user_id', $userId->toInt());
+        $query->where(
+            'expenses.expense_date',
+            '>=',
+            $from->format('Y-m-d'),
+        );
+        $query->when(
+            $to !== null,
+            fn (Builder $query) => $query->where(
                 'expenses.expense_date',
-                '>=',
-                $from->format('Y-m-d'),
-            )
-            ->when($to !== null, fn (Builder $query) => $query->where('expenses.expense_date', '<=', $to?->format('Y-m-d')))
-            ->select(
-                DB::raw('DATE_FORMAT(expenses.expense_date, "%Y-%m") as month'),
-                DB::raw('SUM(expenses.amount) as amount'),
-                DB::raw('"expense" as type'),
-            )
-            ->groupBy('month');
+                '<=',
+                $to?->format('Y-m-d'),
+            ),
+        );
+        $query->select(
+            DB::raw('DATE_FORMAT(expenses.expense_date, "%Y-%m") as month'),
+            DB::raw('SUM(expenses.amount) as amount'),
+            DB::raw('"expense" as type'),
+        );
+        $query->groupBy('month');
 
         return $this->rows($query);
     }
@@ -130,24 +140,25 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $from,
             $to,
             $contactIds,
-        )
-            ->selectRaw(
-                'CASE WHEN statuses.slug IN (?, ?) AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE statuses.slug END as status',
-                [
-                    InvoiceStatus::PENDING->value,
-                    InvoiceStatus::PARTIALLY_PAID->value,
-                    $this->clock->now()->format('Y-m-d'),
-                    self::OVERDUE,
-                ],
-            )
-            ->selectRaw('COUNT(*) as count')
-            ->leftJoin(
-                'statuses',
-                'invoices.payment_status_id',
-                '=',
-                'statuses.id',
-            )
-            ->groupBy('status');
+        );
+        $today = $this->clock->now();
+        $query->selectRaw(
+            'CASE WHEN statuses.slug IN (?, ?) AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE statuses.slug END as status',
+            [
+                InvoiceStatus::PENDING->value,
+                InvoiceStatus::PARTIALLY_PAID->value,
+                $today->format('Y-m-d'),
+                self::OVERDUE,
+            ],
+        );
+        $query->selectRaw('COUNT(*) as count');
+        $query->leftJoin(
+            'statuses',
+            'invoices.payment_status_id',
+            '=',
+            'statuses.id',
+        );
+        $query->groupBy('status');
 
         return $this->rows($query);
     }
@@ -163,22 +174,22 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $from,
             $to,
             $contactIds,
-        )
-            ->select(
-                'payment_methods.slug as method',
-                'payment_methods.name as method_name',
-                DB::raw('SUM(invoices.payment_amount) as total'),
-                DB::raw('COUNT(*) as count'),
-            )
-            ->leftJoin(
-                'payment_methods',
-                'invoices.payment_method_id',
-                '=',
-                'payment_methods.id',
-            )
-            ->whereNotNull('invoices.payment_method_id')
-            ->groupBy('method', 'method_name')
-            ->orderBy('total', 'desc');
+        );
+        $query->select(
+            'payment_methods.slug as method',
+            'payment_methods.name as method_name',
+            DB::raw('SUM(invoices.payment_amount) as total'),
+            DB::raw('COUNT(*) as count'),
+        );
+        $query->leftJoin(
+            'payment_methods',
+            'invoices.payment_method_id',
+            '=',
+            'payment_methods.id',
+        );
+        $query->whereNotNull('invoices.payment_method_id');
+        $query->groupBy('method', 'method_name');
+        $query->orderBy('total', 'desc');
 
         return $this->rows($query);
     }
@@ -195,18 +206,30 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         ?DateTimeImmutable $to,
         array $contactIds,
     ): Builder {
-        return Invoice::query()
-            ->where('invoices.user_id', $userId->toInt())
-            ->where(
+        $query = Invoice::query();
+        $query->where('invoices.user_id', $userId->toInt());
+        $query->where(
+            'invoices.issue_date',
+            '>=',
+            $from->format('Y-m-d'),
+        );
+        $query->when(
+            $to !== null,
+            fn (Builder $query) => $query->where(
                 'invoices.issue_date',
-                '>=',
-                $from->format('Y-m-d'),
-            )
-            ->when($to !== null, fn (Builder $query) => $query->where('invoices.issue_date', '<=', $to?->format('Y-m-d')))
-            ->when($contactIds !== [], fn (Builder $query) => $query->whereIn(
+                '<=',
+                $to?->format('Y-m-d'),
+            ),
+        );
+        $query->when(
+            $contactIds !== [],
+            fn (Builder $query) => $query->whereIn(
                 'invoices.contact_id',
                 array_map(static fn (ContactId $id): int => $id->value, $contactIds),
-            ));
+            ),
+        );
+
+        return $query;
     }
 
     /**
@@ -215,9 +238,14 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
      */
     private function rows(Builder $query): array
     {
-        return array_values(array_map(
-            static fn (object $row): array => (array) $row,
-            $query->toBase()->get()->all(),
-        ));
+        $baseQuery = $query->toBase();
+        $rows = $baseQuery->get();
+
+        return array_values(
+            array_map(
+                static fn (object $row): array => (array) $row,
+                $rows->all(),
+            ),
+        );
     }
 }

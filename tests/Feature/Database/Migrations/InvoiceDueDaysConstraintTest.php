@@ -19,8 +19,9 @@ final class InvoiceDueDaysConstraintTest extends TestCase
     #[Test]
     public function due_days_within_the_range_are_stored(): void
     {
-        $first = Invoice::factory()->create(['due_in' => 0]);
-        $last = Invoice::factory()->create(['due_in' => InvoiceDueDate::MAX_DAYS]);
+        $invoiceFactory = Invoice::factory();
+        $first = $invoiceFactory->create(['due_in' => 0]);
+        $last = $invoiceFactory->create(['due_in' => InvoiceDueDate::MAX_DAYS]);
 
         $this->assertDatabaseHas('invoices', ['id' => $first->id, 'due_in' => 0]);
         $this->assertDatabaseHas('invoices', ['id' => $last->id, 'due_in' => InvoiceDueDate::MAX_DAYS]);
@@ -39,10 +40,12 @@ final class InvoiceDueDaysConstraintTest extends TestCase
     #[DataProvider('dueDaysOutsideTheRange')]
     public function due_days_outside_the_range_are_refused(int $dueDays): void
     {
-        $invoice = Invoice::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
 
         $this->expectException(QueryException::class);
 
-        $invoice->forceFill(['due_in' => $dueDays])->save();
+        $invoice->forceFill(['due_in' => $dueDays]);
+        $invoice->save();
     }
 }

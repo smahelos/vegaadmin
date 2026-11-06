@@ -6,9 +6,10 @@
             @foreach(config('app.available_locales', ['cs', 'en', 'de', 'sk']) as $locale)
             @php
             $currentRoute = \Illuminate\Support\Facades\Route::currentRouteName();
-            $routeParams = array_merge(request()->route()?->parameters() ?? [], ['locale' => $locale]);
+            $route = Request::route();
+            $routeParams = array_merge($route?->parameters() ?? [], ['locale' => $locale]);
             @endphp
-            <option value="{{ route($currentRoute, $routeParams) }}" {{ app()->getLocale() == $locale ? 'selected' : ''
+            <option value="{{ route($currentRoute, $routeParams) }}" {{ App::getLocale() == $locale ? 'selected' : ''
                 }}>
                 {{ strtoupper($locale) }}
             </option>

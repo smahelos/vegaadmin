@@ -14,7 +14,10 @@ final class PaymentMethodFeatureTest extends TestCase
     #[Test]
     public function every_payment_method_code_is_seeded(): void
     {
-        $seeded = PaymentMethod::query()->orderBy('slug')->pluck('slug')->all();
+        $paymentMethodQuery = PaymentMethod::query();
+        $paymentMethodQuery->orderBy('slug');
+        $paymentMethodValues = $paymentMethodQuery->pluck('slug');
+        $seeded = $paymentMethodValues->all();
         $codes = array_map(fn (PaymentMethodCode $code): string => $code->value, PaymentMethodCode::cases());
         sort($codes);
 
@@ -24,8 +27,12 @@ final class PaymentMethodFeatureTest extends TestCase
     #[Test]
     public function translated_name_is_the_translation_of_the_method(): void
     {
-        $paymentMethod = PaymentMethod::where('slug', PaymentMethodCode::CASH->value)->firstOrFail();
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
+        $paymentMethod = $paymentMethodQuery->firstOrFail();
 
-        $this->assertSame(__('payment_methods.methods.cash'), $paymentMethod->translated_name);
+        $this->assertSame(
+            __('payment_methods.methods.cash'),
+            $paymentMethod->translated_name,
+        );
     }
 }

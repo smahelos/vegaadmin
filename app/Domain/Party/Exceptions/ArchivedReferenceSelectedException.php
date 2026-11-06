@@ -18,6 +18,8 @@ final class ArchivedReferenceSelectedException extends DomainException
     public function __construct(
         public readonly BusinessId|ContactId|BankAccountId $reference,
     ) {
-        parent::__construct('An archived ' . $reference::class . " {$reference->value} cannot be selected");
+        parent::__construct(
+            'An archived ' . $reference::class . " {$reference->value} cannot be selected",
+        );
     }
 }

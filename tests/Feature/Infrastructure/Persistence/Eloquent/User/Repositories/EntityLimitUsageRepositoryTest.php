@@ -18,17 +18,34 @@ final class EntityLimitUsageRepositoryTest extends TestCase
     {
         // can_create_edit_invoice exists only for the backpack guard; the reference data limits
         // invoices through limit_*_basic, which frontend_user holds on the web guard
-        EntityLimit::factory()->create([
-            'entity_type' => 'invoice',
-            'permission_name' => 'can_create_edit_invoice',
-            'is_active' => true,
-        ]);
-        $user = User::factory()->create();
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'entity_type' => 'invoice',
+                'permission_name' => 'can_create_edit_invoice',
+                'is_active' => true,
+            ],
+        );
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->assignRole('frontend_user');
 
         $repository = $this->app->make(EntityLimitUsageRepositoryInterface::class);
 
-        $this->assertTrue($repository->hasEntityPermission($user->id, 'invoice', PermissionCatalog::WEB));
-        $this->assertFalse($repository->hasEntityPermission(User::factory()->create()->id, 'invoice', PermissionCatalog::WEB));
+        $this->assertTrue(
+            $repository->hasEntityPermission(
+                $user->id,
+                'invoice',
+                PermissionCatalog::WEB,
+            ),
+        );
+        $otherUser = $userFactory->create();
+        $this->assertFalse(
+            $repository->hasEntityPermission(
+                $otherUser->id,
+                'invoice',
+                PermissionCatalog::WEB,
+            ),
+        );
     }
 }

@@ -29,7 +29,15 @@ final class DuplicateFinderTest extends TestCase
                 null,
             ),
             [
-                $this->contact(1, $this->profile('New name', null, null, null)),
+                $this->contact(
+                    1,
+                    $this->profile(
+                        'New name',
+                        null,
+                        null,
+                        null,
+                    ),
+                ),
                 $this->contact(
                     2,
                     $this->profile(
@@ -62,8 +70,24 @@ final class DuplicateFinderTest extends TestCase
                 null,
             ),
             [
-                $this->contact(1, $this->profile('B', Country::AT, 'FN 1', null)),
-                $this->contact(2, $this->profile('C', Country::DE, 'FN 1', null)),
+                $this->contact(
+                    1,
+                    $this->profile(
+                        'B',
+                        Country::AT,
+                        'FN 1',
+                        null,
+                    ),
+                ),
+                $this->contact(
+                    2,
+                    $this->profile(
+                        'C',
+                        Country::DE,
+                        'FN 1',
+                        null,
+                    ),
+                ),
             ],
         );
 
@@ -83,13 +107,40 @@ final class DuplicateFinderTest extends TestCase
                 'Office@Acme.test',
             ),
             [
-                $this->contact(1, $this->profile(' ACME S.R.O. ', null, null, null)),
-                $this->contact(2, $this->profile('Other', null, null, 'office@acme.test')),
-                $this->contact(3, $this->profile('Unrelated', null, null, null)),
+                $this->contact(
+                    1,
+                    $this->profile(
+                        ' ACME S.R.O. ',
+                        null,
+                        null,
+                        null,
+                    ),
+                ),
+                $this->contact(
+                    2,
+                    $this->profile(
+                        'Other',
+                        null,
+                        null,
+                        'office@acme.test',
+                    ),
+                ),
+                $this->contact(
+                    3,
+                    $this->profile(
+                        'Unrelated',
+                        null,
+                        null,
+                        null,
+                    ),
+                ),
             ],
         );
 
-        $this->assertSame([DuplicateReason::NAME, DuplicateReason::EMAIL], array_map(fn ($duplicate) => $duplicate->reason, $duplicates));
+        $this->assertSame(
+            [DuplicateReason::NAME, DuplicateReason::EMAIL],
+            array_map(fn ($duplicate) => $duplicate->reason, $duplicates),
+        );
     }
 
     private function profile(

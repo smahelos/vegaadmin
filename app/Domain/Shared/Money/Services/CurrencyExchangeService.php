@@ -58,7 +58,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
             return 1.0;
         }
 
-        if (! $this->isValidIso($fromCurrency) || ! $this->isValidIso($toCurrency)) {
+        if (!$this->isValidIso($fromCurrency) || !$this->isValidIso($toCurrency)) {
             return null;
         }
 
@@ -80,7 +80,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
     public function getExchangeRates(string $baseCurrency = 'USD'): array
     {
         $baseCurrency = strtoupper($baseCurrency);
-        if (! $this->isValidIso($baseCurrency)) {
+        if (!$this->isValidIso($baseCurrency)) {
             $baseCurrency = 'USD';
         }
         $cacheKey = 'exchange_rates_' . $baseCurrency;
@@ -239,7 +239,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
                 if (is_array($response)) {
                     if (array_key_exists('success', $response)) {
                         // Wrapped response
-                        if (! empty($response['success'])) {
+                        if (!empty($response['success'])) {
                             $data = $response['data'] ?? null;
                             if (is_array($data) && isset($data['rates']) && is_array($data['rates'])) {
                                 return $data['rates'];
@@ -263,7 +263,7 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
                 }
             }
 
-            if ($i < $attempts && ! $skipSleep) {
+            if ($i < $attempts && !$skipSleep) {
                 $delay = $this->computeRetryDelay(
                     $i,
                     $baseDelay,
@@ -359,7 +359,10 @@ class CurrencyExchangeService implements CurrencyExchangeServiceInterface
                 ($this->clock)(),
                 $openTimeout,
             );
-            $this->logger->log('warning', 'FX circuit transitioned to OPEN after ' . $failCount . ' consecutive failures.');
+            $this->logger->log(
+                'warning',
+                'FX circuit transitioned to OPEN after ' . $failCount . ' consecutive failures.',
+            );
         }
     }
 }

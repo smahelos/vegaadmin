@@ -33,13 +33,22 @@ final class MoneyFormatterTest extends TestCase
         $m = Money::fromString('1234.5', 'CZK');
         $out = $this->formatter->format($m, 'cs_CZ');
         // Assert contains integer digits in some grouped form and currency marker (symbol or code)
-        $this->assertTrue(str_contains($out, 'CZK') || str_contains($out, 'Kč'));
+        $this->assertTrue(
+            str_contains($out, 'CZK') || str_contains($out, 'Kč'),
+        );
         $digits = preg_replace(
             '/[^0-9]/',
             '',
             $out,
         );
-        $this->assertSame('123450', substr($digits, 0, 6)); // 1234.50 normalized digits sequence
+        $this->assertSame(
+            '123450',
+            substr(
+                $digits,
+                0,
+                6,
+            ),
+        ); // 1234.50 normalized digits sequence
     }
 
     #[Test]

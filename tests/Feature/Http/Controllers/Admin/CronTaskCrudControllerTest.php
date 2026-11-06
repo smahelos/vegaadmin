@@ -14,7 +14,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 // No Mockery needed; simple in-memory stub implements interface
 
 // Lightweight stub for ArtisanCommandsServiceInterface to avoid mocking framework overhead
-if (! class_exists(CronTaskCommandsServiceStub::class)) {
+if (!class_exists(CronTaskCommandsServiceStub::class)) {
     class CronTaskCommandsServiceStub implements ArtisanCommandsServiceInterface
     {
         public function getAllCommands(bool $onlyNames = false): array
@@ -55,7 +55,7 @@ class CronTaskCrudControllerTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Trait already ensures permission list including can_create_edit_cron_task for backpack guard
-        if (! $this->adminUser->hasPermissionTo('can_create_edit_cron_task', 'backpack')) {
+        if (!$this->adminUser->hasPermissionTo('can_create_edit_cron_task', 'backpack')) {
             $this->adminUser->givePermissionTo('can_create_edit_cron_task');
         }
     }
@@ -99,7 +99,8 @@ class CronTaskCrudControllerTest extends TestCase
             'frequency' => 'daily',
         ]);
 
-        $cronTask = CronTask::where('name', $payload['name'])->first();
+        $cronTaskQuery = CronTask::where('name', $payload['name']);
+        $cronTask = $cronTaskQuery->first();
         $this->assertNotNull($cronTask);
         $this->assertEquals('inspire', $cronTask->base_command); // accessor
     }
@@ -129,17 +130,23 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_executes_the_task_and_reports_success(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->from('/admin/cron-task')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
-            ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas('alert_messages.success', [__('cron_tasks.messages.task_executed')])
-            ->assertSessionMissing('alert_messages.error');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->from('/admin/cron-task');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/cron-task');
+        $httpResponse = $httpResponse->assertSessionHas(
+            'alert_messages.success',
+            [__('cron_tasks.messages.task_executed')],
+        );
+        $httpResponse->assertSessionMissing('alert_messages.error');
 
         $this->assertNotNull($task->fresh()->last_run);
     }
@@ -147,27 +154,34 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_reports_a_failed_task_as_an_error(): void
     {
-        $task = CronTask::factory()->create(['command' => 'billex:no-such-command']);
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create(['command' => 'billex:no-such-command']);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->from('/admin/cron-task')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
-            ->assertRedirect('/admin/cron-task')
-            ->assertSessionHas('alert_messages.error', [__('cron_tasks.messages.execution_failed')])
-            ->assertSessionMissing('alert_messages.success');
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpClient = $httpClient->from('/admin/cron-task');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse = $httpResponse->assertRedirect('/admin/cron-task');
+        $httpResponse = $httpResponse->assertSessionHas(
+            'alert_messages.error',
+            [__('cron_tasks.messages.execution_failed')],
+        );
+        $httpResponse->assertSessionMissing('alert_messages.success');
     }
 
     #[Test]
     public function run_is_not_reachable_over_get(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
 
-        $this->actingAs($this->adminUser, 'backpack')
-            ->get('/admin/cron-task/' . $task->id . '/run')
-            ->assertMethodNotAllowed();
+        $httpClient = $this->actingAs($this->adminUser, 'backpack');
+        $httpResponse = $httpClient->get('/admin/cron-task/' . $task->id . '/run');
+        $httpResponse->assertMethodNotAllowed();
 
         $this->assertNull($task->fresh()->last_run);
     }
@@ -175,17 +189,25 @@ class CronTaskCrudControllerTest extends TestCase
     #[Test]
     public function run_requires_the_cron_task_permission(): void
     {
-        $task = CronTask::factory()->create([
+        $cronTaskFactory = CronTask::factory();
+        $task = $cronTaskFactory->create([
             'command' => 'inspire',
             'last_run' => null,
         ]);
-        $user = User::factory()->create();
-        $user->assignRole(Role::findByName('backend_user', 'backpack'));
-        $user->givePermissionTo(Permission::findByName('backpack.access', 'backpack'));
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole(
+            Role::findByName('backend_user', 'backpack'),
+        );
+        $user->givePermissionTo(
+            Permission::findByName('backpack.access', 'backpack'),
+        );
 
-        $this->actingAs($user, 'backpack')
-            ->post(route('admin.cron-tasks.run', ['id' => $task->id]))
-            ->assertForbidden();
+        $httpClient = $this->actingAs($user, 'backpack');
+        $httpResponse = $httpClient->post(
+            route('admin.cron-tasks.run', ['id' => $task->id]),
+        );
+        $httpResponse->assertForbidden();
 
         $this->assertNull($task->fresh()->last_run);
     }

@@ -23,12 +23,14 @@ final class InvoiceReminderRenderingTest extends TestCase
     public static function reminders(): iterable
     {
         foreach (InvoiceReminderType::cases() as $type) {
-            foreach ([
-                'cs',
-                'de',
-                'en',
-                'sk',
-            ] as $locale) {
+            foreach (
+                [
+                    'cs',
+                    'de',
+                    'en',
+                    'sk',
+                ] as $locale
+            ) {
                 yield $type->value . '-' . $locale => [$type, $locale];
             }
         }
@@ -39,21 +41,33 @@ final class InvoiceReminderRenderingTest extends TestCase
     public function renders_both_recipients_from_stored_document_data(InvoiceReminderType $type, string $locale): void
     {
         Notification::fake();
-        $invoice = Invoice::factory()->create([
-            'invoice_vs' => '20260042',
-            'contact_id' => null,
-            'supplier_name' => 'Stored issuing business',
-            'supplier_email' => 'issuer@example.test',
-            'customer_name' => 'Stored one-off customer',
-            'customer_email' => 'customer@example.test',
-            'payment_amount' => '1234.56',
-            'payment_currency' => 'EUR',
-        ]);
-        Business::whereKey($invoice->business_id)->update(['name' => 'Changed source business', 'archived_at' => now()]);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'invoice_vs' => '20260042',
+                'contact_id' => null,
+                'supplier_name' => 'Stored issuing business',
+                'supplier_email' => 'issuer@example.test',
+                'customer_name' => 'Stored one-off customer',
+                'customer_email' => 'customer@example.test',
+                'payment_amount' => '1234.56',
+                'payment_currency' => 'EUR',
+            ],
+        );
+        $businessQuery = Business::whereKey($invoice->business_id);
+        $businessQuery->update(
+            ['name' => 'Changed source business', 'archived_at' => now()],
+        );
 
-        app(InvoiceReminderApplicationService::class)->sendForInvoice(InvoiceId::fromInt($invoice->id), [$type]);
+        $invoiceReminderApplicationService = app(InvoiceReminderApplicationService::class);
+        $invoiceReminderApplicationService->sendForInvoice(
+            InvoiceId::fromInt($invoice->id),
+            [$type],
+        );
 
-        $notifications = collect(Notification::sentNotifications())->flatten(3)->all();
+        $collection = collect(Notification::sentNotifications());
+        $flattened = $collection->flatten(3);
+        $notifications = $flattened->all();
         $this->assertCount(2, $notifications);
         foreach ($notifications as $sent) {
             $notification = $sent['notification'];
@@ -61,9 +75,21 @@ final class InvoiceReminderRenderingTest extends TestCase
             $message = $notification->toMail($sent['notifiable']);
             $html = (string) $message->render();
             $this->assertStringContainsString('20260042', $html);
-            $this->assertStringContainsString(app(MoneyFormatterInterface::class)->formatWithCode(Money::fromString('1234.56', 'EUR'), $locale), html_entity_decode($html));
-            $dueDate = $invoice->issue_date->toDateTimeImmutable()->modify('+' . $invoice->due_in . ' days');
-            $this->assertStringContainsString(app(DateFormatterInterface::class)->formatDate($dueDate, $locale), $html);
+            $moneyFormatter = app(MoneyFormatterInterface::class);
+            $this->assertStringContainsString(
+                $moneyFormatter->formatWithCode(
+                    Money::fromString('1234.56', 'EUR'),
+                    $locale,
+                ),
+                html_entity_decode($html),
+            );
+            $issueDate = $invoice->issue_date->toDateTimeImmutable();
+            $dueDate = $issueDate->modify('+' . $invoice->due_in . ' days');
+            $dateFormatter = app(DateFormatterInterface::class);
+            $this->assertStringContainsString(
+                $dateFormatter->formatDate($dueDate, $locale),
+                $html,
+            );
             $this->assertStringContainsString('Stored issuing business', $html);
             $this->assertStringContainsString('Stored one-off customer', $html);
             $this->assertStringNotContainsString('Changed source business', $html);

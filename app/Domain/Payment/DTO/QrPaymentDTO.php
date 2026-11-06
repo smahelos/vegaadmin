@@ -19,11 +19,12 @@ final readonly class QrPaymentDTO
     /** QR formats carry two decimal places, rounded half up without a binary float conversion. */
     public function amountDecimal(): string
     {
-        $rounded = $this->amount->multiplyBy(
+        $money = $this->amount->multiplyBy(
             '1',
             2,
             Money::ROUND_HALF_UP,
-        )->getAmount();
+        );
+        $rounded = $money->getAmount();
         $parts = explode(
             '.',
             $rounded,

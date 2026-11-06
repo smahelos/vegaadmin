@@ -52,7 +52,7 @@
                     @foreach ($parties as $party)
                         <tr wire:key="party-{{ $party->id->value }}">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                <a href="{{ route($showRoute, ['locale' => app()->getLocale(), $routeKey => $party->id->value]) }}"
+                                <a href="{{ route($showRoute, ['locale' => App::getLocale(), $routeKey => $party->id->value]) }}"
                                     class="hover:text-[#490BF4]">{{ $party->profile->name }}</a>
                                 @if ($defaultId !== null && $defaultId->equals($party->id))
                                     <span class="ml-2 rounded-sm bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">{{ __('businesses.fields.default') }}</span>

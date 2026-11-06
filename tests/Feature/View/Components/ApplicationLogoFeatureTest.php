@@ -63,9 +63,15 @@ class ApplicationLogoFeatureTest extends TestCase
 
         // Verify view has expected Laravel view properties
         $this->assertInstanceOf(View::class, $view);
-        $this->assertTrue(method_exists($view, 'render'));
-        $this->assertTrue(method_exists($view, 'with'));
-        $this->assertTrue(method_exists($view, 'getData'));
+        $this->assertTrue(
+            method_exists($view, 'render'),
+        );
+        $this->assertTrue(
+            method_exists($view, 'with'),
+        );
+        $this->assertTrue(
+            method_exists($view, 'getData'),
+        );
     }
 
     #[Test]
@@ -133,7 +139,11 @@ class ApplicationLogoFeatureTest extends TestCase
         $this->assertInstanceOf(View::class, $view);
 
         // Verify the component follows Laravel component conventions
-        $this->assertTrue(method_exists($component, 'render'));
-        $this->assertTrue(method_exists($component, 'resolveView'));
+        $this->assertTrue(
+            method_exists($component, 'render'),
+        );
+        $this->assertTrue(
+            method_exists($component, 'resolveView'),
+        );
     }
 }

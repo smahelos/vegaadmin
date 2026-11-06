@@ -19,12 +19,14 @@ class SubscriptionPlanFeatureFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->unique()->words(3, true);
+        $unique = $this->faker->unique();
+        $name = $unique->words(3, true);
+        $optional = $this->faker->optional();
 
         return [
             'name' => $name,
-            'description' => $this->faker->optional()->paragraph(),
-            'slug' => $this->faker->unique()->slug(),
+            'description' => $optional->paragraph(),
+            'slug' => $unique->slug(),
             'is_active' => $this->faker->boolean(85),
             'sort_order' => $this->faker->numberBetween(0, 100),
         ];

@@ -16,7 +16,8 @@ class UserRequestFeatureTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     private function validate(array $data): \Illuminate\Validation\Validator
@@ -54,29 +55,49 @@ class UserRequestFeatureTest extends TestCase
     #[Test]
     public function name_and_email_pass(): void
     {
-        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'])->fails());
+        $validator = $this->validate(
+            ['name' => 'Jan Novák', 'email' => 'jan_' . uniqid() . '@example.com'],
+        );
+        $this->assertFalse(
+            $validator->fails(),
+        );
     }
 
     #[Test]
     public function own_email_passes(): void
     {
-        $this->assertFalse($this->validate(['name' => 'Jan Novák', 'email' => $this->user->email])->fails());
+        $validator = $this->validate(['name' => 'Jan Novák', 'email' => $this->user->email]);
+        $this->assertFalse(
+            $validator->fails(),
+        );
     }
 
     #[Test]
     public function another_users_email_fails(): void
     {
-        $other = User::factory()->create();
+        $userFactory = User::factory();
+        $other = $userFactory->create();
 
-        $this->assertTrue($this->validate(['name' => 'Jan Novák', 'email' => $other->email])->errors()->has('email'));
+        $validator = $this->validate(['name' => 'Jan Novák', 'email' => $other->email]);
+        $errors = $validator->errors();
+        $this->assertTrue(
+            $errors->has('email'),
+        );
     }
 
     #[Test]
     public function missing_name_and_invalid_email_fail_with_field_labels(): void
     {
-        $errors = $this->validate(['name' => '', 'email' => 'invalid'])->errors();
+        $validator = $this->validate(['name' => '', 'email' => 'invalid']);
+        $errors = $validator->errors();
 
-        $this->assertStringContainsString(__('users.fields.name'), $errors->first('name'));
-        $this->assertStringContainsString(__('users.fields.email'), $errors->first('email'));
+        $this->assertStringContainsString(
+            __('users.fields.name'),
+            $errors->first('name'),
+        );
+        $this->assertStringContainsString(
+            __('users.fields.email'),
+            $errors->first('email'),
+        );
     }
 }

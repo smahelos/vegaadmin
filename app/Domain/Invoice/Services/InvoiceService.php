@@ -64,12 +64,16 @@ final class InvoiceService implements InvoiceServiceInterface
     ): InvoiceDTO {
         $data['user_id'] = $userId->toInt();
         $data['total_amount'] = $this->totalOf($data, $invoiceProducts);
-        $invoice = $this->invoiceWriteRepository->create(InvoiceWriteData::fromArray($data, $parties));
+        $invoice = $this->invoiceWriteRepository->create(
+            InvoiceWriteData::fromArray($data, $parties),
+        );
 
         $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
 
         // Publish Domain Event for new invoice creation via unified publisher
-        $this->events->publish(new InvoiceCreated($invoice, $userId->toInt()));
+        $this->events->publish(
+            new InvoiceCreated($invoice, $userId->toInt()),
+        );
 
         return $invoice;
     }
@@ -87,15 +91,16 @@ final class InvoiceService implements InvoiceServiceInterface
         ?array $invoiceProducts,
     ): InvoiceDTO {
         $invoice = $this->invoiceReadRepository->findByIdForUser($invoiceId, $userId);
-        if (! $invoice) {
+        if (!$invoice) {
             throw new InvoiceNotFoundException('Invoice not accessible for user');
         }
 
         $data['user_id'] = $userId->toInt();
-        $data['total_amount'] = $invoiceProducts === null
-            ? $this->storedTotal($invoiceId, $data)
-            : $this->totalOf($data, $invoiceProducts);
-        $invoice = $this->invoiceWriteRepository->update($invoice->id, InvoiceWriteData::fromArray($data, $parties));
+        $data['total_amount'] = $invoiceProducts === null ? $this->storedTotal($invoiceId, $data) : $this->totalOf($data, $invoiceProducts);
+        $invoice = $this->invoiceWriteRepository->update(
+            $invoice->id,
+            InvoiceWriteData::fromArray($data, $parties),
+        );
 
         if ($invoiceProducts !== null) {
             $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
@@ -113,9 +118,14 @@ final class InvoiceService implements InvoiceServiceInterface
      */
     public function generateInvoiceNumber(UserId $userId, int $year): string
     {
-        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber($userId, (int) date('Y'));
+        $lastInvoiceNumber = $this->invoiceReadRepository->findLastInvoiceNumber(
+            $userId,
+            (int) date('Y'),
+        );
 
-        return InvoiceNumber::generateNext($lastInvoiceNumber)->getNumber();
+        $number = InvoiceNumber::generateNext($lastInvoiceNumber);
+
+        return $number->getNumber();
     }
 
     /**
@@ -130,7 +140,12 @@ final class InvoiceService implements InvoiceServiceInterface
             return Money::fromString((string) ($data['payment_amount'] ?? '0'), (string) $data['payment_currency']);
         }
 
-        return InvoiceTotals::fromProducts(Currency::from((string) $data['payment_currency']), $products)->total();
+        $totals = InvoiceTotals::fromProducts(
+            Currency::from((string) $data['payment_currency']),
+            $products,
+        );
+
+        return $totals->total();
     }
 
     /** @param array<string, mixed> $data */
@@ -140,9 +155,14 @@ final class InvoiceService implements InvoiceServiceInterface
         if ($lines === []) {
             return $this->totalOf($data, []);
         }
-        $totals = InvoiceTotals::zero(Currency::from((string) $data['payment_currency']));
+        $totals = InvoiceTotals::zero(
+            Currency::from((string) $data['payment_currency']),
+        );
         foreach ($lines as $line) {
-            $totals = $totals->withLine($line->total->subtract($line->tax), $line->tax);
+            $totals = $totals->withLine(
+                $line->total->subtract($line->tax),
+                $line->tax,
+            );
         }
 
         return $totals->total();

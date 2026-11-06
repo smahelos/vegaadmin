@@ -23,22 +23,29 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function can_create_product_with_factory(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
-        $this->assertDatabaseHas('products', [
-            'id' => $product->id,
-            'name' => $product->name,
-            'slug' => $product->slug,
-            'price' => $product->price,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product->id,
+                'name' => $product->name,
+                'slug' => $product->slug,
+                'price' => $product->price,
+            ],
+        );
     }
 
     #[Test]
     public function fillable_attributes_can_be_mass_assigned(): void
     {
-        $user = User::factory()->create();
-        $tax = Tax::factory()->create();
-        $category = ProductCategory::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
 
         $data = [
             'name' => 'Test Product',
@@ -63,11 +70,14 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $product = Product::factory()->create([
-            'price' => '123.45',
-            'is_default' => 1,
-            'is_active' => 0,
-        ]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'price' => '123.45',
+                'is_default' => 1,
+                'is_active' => 0,
+            ],
+        );
 
         // Price is cast to decimal which is a string in Laravel
         $this->assertIsString($product->price);
@@ -81,8 +91,10 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function belongs_to_user_relationship(): void
     {
-        $user = User::factory()->create();
-        $product = Product::factory()->create(['user_id' => $user->id]);
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $user->id]);
 
         $this->assertInstanceOf(User::class, $product->user);
         $this->assertEquals($user->id, $product->user->id);
@@ -92,8 +104,10 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function belongs_to_tax_relationship(): void
     {
-        $tax = Tax::factory()->create();
-        $product = Product::factory()->create(['tax_id' => $tax->id]);
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['tax_id' => $tax->id]);
 
         $this->assertInstanceOf(Tax::class, $product->tax);
         $this->assertEquals($tax->id, $product->tax->id);
@@ -102,8 +116,10 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function belongs_to_category_relationship(): void
     {
-        $category = ProductCategory::factory()->create();
-        $product = Product::factory()->create(['category_id' => $category->id]);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['category_id' => $category->id]);
 
         $this->assertInstanceOf(ProductCategory::class, $product->category);
         $this->assertEquals($category->id, $product->category->id);
@@ -124,10 +140,13 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function slug_is_generated_from_name(): void
     {
-        $product = Product::factory()->create([
-            'name' => 'Test Product Name',
-            'slug' => null, // Let sluggable generate it
-        ]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'name' => 'Test Product Name',
+                'slug' => null, // Let sluggable generate it
+            ],
+        );
 
         // Refresh to get generated slug
         $product->refresh();
@@ -139,16 +158,18 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function setting_product_as_default_unsets_other_defaults(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         // Create first default product
-        $product1 = Product::factory()->create([
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create([
             'user_id' => $user->id,
             'is_default' => true,
         ]);
 
         // Create second product and set as default
-        $product2 = Product::factory()->create([
+        $product2 = $productFactory->create([
             'user_id' => $user->id,
             'is_default' => true,
         ]);
@@ -163,15 +184,17 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function default_product_behavior_is_user_specific(): void
     {
-        $user1 = User::factory()->create();
-        $user2 = User::factory()->create();
+        $userFactory = User::factory();
+        $user1 = $userFactory->create();
+        $user2 = $userFactory->create();
 
-        $product1 = Product::factory()->create([
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create([
             'user_id' => $user1->id,
             'is_default' => true,
         ]);
 
-        $product2 = Product::factory()->create([
+        $product2 = $productFactory->create([
             'user_id' => $user2->id,
             'is_default' => true,
         ]);
@@ -187,8 +210,11 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $defaultProduct = Product::factory()->default()->create();
-        $customPriceProduct = Product::factory()->price(50.00)->create();
+        $productFactory = Product::factory();
+        $defaultFactory = $productFactory->default();
+        $defaultProduct = $defaultFactory->create();
+        $priceFactory = $productFactory->price(50.00);
+        $customPriceProduct = $priceFactory->create();
 
         $this->assertTrue($defaultProduct->is_default);
         $this->assertEquals(50.00, $customPriceProduct->price);
@@ -197,8 +223,11 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function factory_for_user_state_works(): void
     {
-        $user = User::factory()->create();
-        $product = Product::factory()->forUser($user)->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $productFactory = Product::factory();
+        $ownedFactory = $productFactory->forUser($user);
+        $product = $ownedFactory->create();
 
         $this->assertEquals($user->id, $product->user_id);
         $this->assertEquals($user->id, $product->user->id);
@@ -207,7 +236,8 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function can_update_product(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
         $newData = [
             'name' => 'Updated Product Name',
@@ -217,16 +247,20 @@ class ProductFeatureTest extends TestCase
 
         $product->update($newData);
 
-        $this->assertDatabaseHas('products', array_merge(
-            ['id' => $product->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'products',
+            array_merge(
+                ['id' => $product->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
     public function can_delete_product(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
         $productId = $product->id;
 
         $product->delete();
@@ -237,7 +271,8 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function get_invoice_count_attribute_works(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
         // Test that the accessor exists and returns a value
         $invoiceCount = $product->getInvoiceCountAttribute();
@@ -249,20 +284,26 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function file_upload_methods_exist(): void
     {
-        $product = Product::factory()->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
 
         // Test file URL methods exist and return strings or null
         $fileUrl = $product->getFileUrl('image');
         $thumbUrl = $product->getImageThumbUrl();
 
-        $this->assertTrue(is_string($fileUrl) || is_null($fileUrl));
-        $this->assertTrue(is_string($thumbUrl) || is_null($thumbUrl));
+        $this->assertTrue(
+            is_string($fileUrl) || is_null($fileUrl),
+        );
+        $this->assertTrue(
+            is_string($thumbUrl) || is_null($thumbUrl),
+        );
     }
 
     #[Test]
     public function can_create_product_without_optional_relationships(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'name' => 'Simple Product',
@@ -282,7 +323,8 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function price_decimal_precision_is_maintained(): void
     {
-        $product = Product::factory()->create(['price' => 123.456789]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['price' => 123.456789]);
 
         // Should be cast to 2 decimal places
         $this->assertEquals(123.46, $product->price);
@@ -291,10 +333,13 @@ class ProductFeatureTest extends TestCase
     #[Test]
     public function image_mutator_works(): void
     {
-        $product = Product::factory()->make();
+        $productFactory = Product::factory();
+        $product = $productFactory->make();
 
         // Test that setImageAttribute method exists and can be called
-        $this->assertTrue(method_exists($product, 'setImageAttribute'));
+        $this->assertTrue(
+            method_exists($product, 'setImageAttribute'),
+        );
 
         // Test setting image value
         $product->setImageAttribute('test-image.jpg');

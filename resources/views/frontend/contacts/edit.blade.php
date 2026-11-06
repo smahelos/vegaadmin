@@ -6,7 +6,7 @@
     <div class="flex flex-wrap items-center gap-2 md:gap-4">
         <x-back-button />
         <x-icon-button icon="fa-list" :label="__('contacts.actions.back_to_list')"
-            :href="route('frontend.contacts.index', ['locale' => app()->getLocale()])" />
+            :href="route('frontend.contacts.index', ['locale' => App::getLocale()])" />
     </div>
 </div>
 

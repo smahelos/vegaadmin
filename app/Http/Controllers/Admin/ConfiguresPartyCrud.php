@@ -37,7 +37,9 @@ trait ConfiguresPartyCrud
         string $translations,
     ): void {
         CRUD::setModel($model);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/' . $entity);
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/' . $entity,
+        );
         CRUD::setEntityNameStrings(
             __($translations . '.entity.singular'),
             __($translations . '.entity.plural'),
@@ -75,45 +77,76 @@ trait ConfiguresPartyCrud
 
     protected function setupPartyList(string $entity): void
     {
-        CRUD::column('user')
-            ->label(__('parties.fields.owner'))
-            ->type('relationship')
-            ->attribute('name');
-        CRUD::column('name')->label(__('parties.fields.name'));
-        CRUD::column('company_number')->label(__('parties.fields.company_number'));
-        CRUD::column('email')->label(__('parties.fields.email'));
-        CRUD::column('city')
-            ->label(__('parties.fields.city'))
-            ->type('closure')
-            ->function(fn (Business|Contact $entry): string => e($entry->address?->city ?? ''))
-            ->escaped(false);
-        CRUD::column('archived_at')
-            ->label(__('parties.statuses.archived'))
-            ->type('datetime');
+        $column = CRUD::column('user');
+        $column->label(
+            __('parties.fields.owner'),
+        );
+        $column->type('relationship');
+        $column->attribute('name');
+        $column = CRUD::column('name');
+        $column->label(
+            __('parties.fields.name'),
+        );
+        $column = CRUD::column('company_number');
+        $column->label(
+            __('parties.fields.company_number'),
+        );
+        $column = CRUD::column('email');
+        $column->label(
+            __('parties.fields.email'),
+        );
+        $column = CRUD::column('city');
+        $column->label(
+            __('parties.fields.city'),
+        );
+        $column->type('closure');
+        $column->function(
+            fn (Business|Contact $entry): string => e($entry->address?->city ?? ''),
+        );
+        $column->escaped(false);
+        $column = CRUD::column('archived_at');
+        $column->label(
+            __('parties.statuses.archived'),
+        );
+        $column->type('datetime');
 
-        CRUD::filter('user_id')
-            ->type('select2')
-            ->label(__('parties.fields.owner'))
-            ->values(fn (): array => User::query()->orderBy('name')->pluck('name', 'id')->all())
-            ->whenActive(function (string $value): void {
+        $userQuery = User::query();
+        $userQuery->orderBy('name');
+        $userNames = $userQuery->pluck('name', 'id');
+
+        $filter = CRUD::filter('user_id');
+        $filter->type('select2');
+        $filter->label(
+            __('parties.fields.owner'),
+        );
+        $filter->values($userNames->all());
+        $filter->whenActive(
+            function (string $value): void {
                 CRUD::addClause(
                     'where',
                     'user_id',
                     (int) $value,
                 );
-            });
-        CRUD::filter('status')
-            ->type('select2')
-            ->label(__('parties.filters.status'))
-            ->values([
+            },
+        );
+        $filter = CRUD::filter('status');
+        $filter->type('select2');
+        $filter->label(
+            __('parties.filters.status'),
+        );
+        $filter->values(
+            [
                 self::STATUS_ACTIVE => __('parties.filters.active'),
                 self::STATUS_ARCHIVED => __('parties.filters.archived'),
-            ])
-            ->whenActive(function (string $value): void {
-                CRUD::addClause(fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED
-                    ? $query->whereNotNull('archived_at')
-                    : $query->whereNull('archived_at'));
-            });
+            ],
+        );
+        $filter->whenActive(
+            function (string $value): void {
+                CRUD::addClause(
+                    fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at'),
+                );
+            },
+        );
 
         CRUD::addButton(
             'line',
@@ -134,11 +167,16 @@ trait ConfiguresPartyCrud
 
     protected function addOwnerField(): void
     {
-        CRUD::field('user_id')
-            ->label(__('parties.fields.owner'))
-            ->type('select2_from_array')
-            ->options(User::query()->orderBy('name')->pluck('name', 'id')->all())
-            ->allows_null(false);
+        $field = CRUD::field('user_id');
+        $field->label(
+            __('parties.fields.owner'),
+        );
+        $field->type('select2_from_array');
+        $userQuery = User::query();
+        $userQuery->orderBy('name');
+        $userNames = $userQuery->pluck('name', 'id');
+        $field->options($userNames->all());
+        $field->allows_null(false);
     }
 
     /**
@@ -146,14 +184,21 @@ trait ConfiguresPartyCrud
      */
     protected function addProfileFields(?Address $address = null): void
     {
-        $countries = app(CountryOptionsPresenter::class)->options(app()->getLocale());
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
 
-        CRUD::addFields(PartyFormFields::profile($countries, [
-            'street' => $address?->street,
-            'city' => $address?->city,
-            'postal_code' => $address?->postal_code,
-            'country' => $address?->country,
-        ]));
+        CRUD::addFields(
+            PartyFormFields::profile(
+                $countries,
+                [
+                    'street' => $address?->street,
+                    'city' => $address?->city,
+                    'postal_code' => $address?->postal_code,
+                    'country' => $address?->country,
+                ],
+            ),
+        );
     }
 
     protected function ownerOf(Business|Contact $entry): UserId
@@ -163,8 +208,10 @@ trait ConfiguresPartyCrud
 
     protected function redirectWithSuccess(string $message): RedirectResponse
     {
-        Alert::success($message)->flash();
+        $alerts = Alert::success($message);
+        $alerts->flash();
+        $redirector = redirect();
 
-        return redirect()->back();
+        return $redirector->back();
     }
 }

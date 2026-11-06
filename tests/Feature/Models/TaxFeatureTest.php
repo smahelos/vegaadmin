@@ -18,13 +18,15 @@ class TaxFeatureTest extends TestCase
         parent::setUp();
 
         // The queries below count the whole taxes table; start without the seeded VAT rates
-        Tax::query()->delete();
+        $taxQuery = Tax::query();
+        $taxQuery->delete();
     }
 
     #[Test]
     public function model_can_be_created_with_factory(): void
     {
-        $tax = Tax::factory()->create();
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
 
         $this->assertInstanceOf(Tax::class, $tax);
         $this->assertNotNull($tax->id);
@@ -37,7 +39,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_zero_rate_tax(): void
     {
-        $tax = Tax::factory()->zero()->create();
+        $taxFactory = Tax::factory();
+        $zeroFactory = $taxFactory->zero();
+        $tax = $zeroFactory->create();
 
         $this->assertEquals(0.00, $tax->rate);
     }
@@ -45,7 +49,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_standard_vat(): void
     {
-        $tax = Tax::factory()->standardVat()->create();
+        $taxFactory = Tax::factory();
+        $standardVatFactory = $taxFactory->standardVat();
+        $tax = $standardVatFactory->create();
 
         $this->assertEquals('Standard VAT', $tax->name);
         $this->assertEquals(21.00, $tax->rate);
@@ -55,7 +61,9 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function tax_factory_can_create_reduced_vat(): void
     {
-        $tax = Tax::factory()->reducedVat()->create();
+        $taxFactory = Tax::factory();
+        $reducedVatFactory = $taxFactory->reducedVat();
+        $tax = $reducedVatFactory->create();
 
         $this->assertEquals('Reduced VAT', $tax->name);
         $this->assertEquals(15.00, $tax->rate);
@@ -73,11 +81,14 @@ class TaxFeatureTest extends TestCase
 
         $tax = Tax::create($taxData);
 
-        $this->assertDatabaseHas('taxes', [
-            'name' => 'Test Tax',
-            'rate' => 25.50,
-            'slug' => 'test-tax',
-        ]);
+        $this->assertDatabaseHas(
+            'taxes',
+            [
+                'name' => 'Test Tax',
+                'rate' => 25.50,
+                'slug' => 'test-tax',
+            ],
+        );
 
         $this->assertEquals('Test Tax', $tax->name);
         $this->assertEquals(25.50, $tax->rate);
@@ -87,7 +98,8 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_update_tax(): void
     {
-        $tax = Tax::factory()->create([
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create([
             'name' => 'Original Tax',
             'rate' => 10.00,
         ]);
@@ -97,11 +109,14 @@ class TaxFeatureTest extends TestCase
             'rate' => 20.00,
         ]);
 
-        $this->assertDatabaseHas('taxes', [
-            'id' => $tax->id,
-            'name' => 'Updated Tax',
-            'rate' => 20.00,
-        ]);
+        $this->assertDatabaseHas(
+            'taxes',
+            [
+                'id' => $tax->id,
+                'name' => 'Updated Tax',
+                'rate' => 20.00,
+            ],
+        );
 
         $this->assertDatabaseMissing('taxes', [
             'id' => $tax->id,
@@ -112,7 +127,8 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_delete_tax(): void
     {
-        $tax = Tax::factory()->create();
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
         $taxId = $tax->id;
 
         $tax->delete();
@@ -127,7 +143,8 @@ class TaxFeatureTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
-        Tax::factory()->create(['name' => null]);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['name' => null]);
     }
 
     #[Test]
@@ -135,17 +152,20 @@ class TaxFeatureTest extends TestCase
     {
         $this->expectException(QueryException::class);
 
-        Tax::factory()->create(['rate' => null]);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['rate' => null]);
     }
 
     #[Test]
     public function can_query_taxes_by_rate_range(): void
     {
-        Tax::factory()->create(['name' => 'Low Tax', 'rate' => 5.00]);
-        Tax::factory()->create(['name' => 'Medium Tax', 'rate' => 15.00]);
-        Tax::factory()->create(['name' => 'High Tax', 'rate' => 25.00]);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['name' => 'Low Tax', 'rate' => 5.00]);
+        $taxFactory->create(['name' => 'Medium Tax', 'rate' => 15.00]);
+        $taxFactory->create(['name' => 'High Tax', 'rate' => 25.00]);
 
-        $mediumTaxes = Tax::whereBetween('rate', [10.00, 20.00])->get();
+        $taxQuery = Tax::whereBetween('rate', [10.00, 20.00]);
+        $mediumTaxes = $taxQuery->get();
 
         $this->assertCount(1, $mediumTaxes);
         $this->assertEquals('Medium Tax', $mediumTaxes->first()->name);
@@ -154,11 +174,14 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_order_taxes_by_name(): void
     {
-        Tax::factory()->create(['name' => 'Zebra Tax']);
-        Tax::factory()->create(['name' => 'Alpha Tax']);
-        Tax::factory()->create(['name' => 'Beta Tax']);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['name' => 'Zebra Tax']);
+        $taxFactory->create(['name' => 'Alpha Tax']);
+        $taxFactory->create(['name' => 'Beta Tax']);
 
-        $taxesOrderedByName = Tax::orderBy('name')->pluck('name')->toArray();
+        $taxQuery = Tax::orderBy('name');
+        $taxValues = $taxQuery->pluck('name');
+        $taxesOrderedByName = $taxValues->toArray();
 
         $expectedOrder = [
             'Alpha Tax',
@@ -171,11 +194,14 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_order_taxes_by_rate(): void
     {
-        Tax::factory()->create(['name' => 'High Tax', 'rate' => 25.00]);
-        Tax::factory()->create(['name' => 'Low Tax', 'rate' => 5.00]);
-        Tax::factory()->create(['name' => 'Medium Tax', 'rate' => 15.00]);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['name' => 'High Tax', 'rate' => 25.00]);
+        $taxFactory->create(['name' => 'Low Tax', 'rate' => 5.00]);
+        $taxFactory->create(['name' => 'Medium Tax', 'rate' => 15.00]);
 
-        $taxesOrderedByRate = Tax::orderBy('rate')->pluck('name')->toArray();
+        $taxQuery = Tax::orderBy('rate');
+        $taxValues = $taxQuery->pluck('name');
+        $taxesOrderedByRate = $taxValues->toArray();
 
         $expectedOrder = [
             'Low Tax',
@@ -188,30 +214,45 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_search_taxes_by_name(): void
     {
-        Tax::factory()->create(['name' => 'Standard VAT']);
-        Tax::factory()->create(['name' => 'Reduced VAT']);
-        Tax::factory()->create(['name' => 'Zero Rate']);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['name' => 'Standard VAT']);
+        $taxFactory->create(['name' => 'Reduced VAT']);
+        $taxFactory->create(['name' => 'Zero Rate']);
 
-        $searchResults = Tax::whereRaw('LOWER(name) LIKE ?', ['%vat%'])->get();
+        $taxQuery = Tax::whereRaw('LOWER(name) LIKE ?', ['%vat%']);
+        $searchResults = $taxQuery->get();
 
         $this->assertCount(2, $searchResults);
-        $this->assertTrue($searchResults->pluck('name')->contains('Standard VAT'));
-        $this->assertTrue($searchResults->pluck('name')->contains('Reduced VAT'));
-        $this->assertFalse($searchResults->pluck('name')->contains('Zero Rate'));
+        $searchResultNames = $searchResults->pluck('name');
+        $this->assertTrue(
+            $searchResultNames->contains('Standard VAT'),
+        );
+        $this->assertTrue(
+            $searchResultNames->contains('Reduced VAT'),
+        );
+        $this->assertFalse(
+            $searchResultNames->contains('Zero Rate'),
+        );
     }
 
     #[Test]
     public function can_filter_taxes_by_zero_rate(): void
     {
-        Tax::factory()->zero()->count(2)->create();
-        Tax::factory()->count(3)->create(['rate' => 21.00]);
+        $taxFactory = Tax::factory();
+        $zeroFactory = $taxFactory->zero();
+        $zeroFactory = $zeroFactory->count(2);
+        $zeroFactory->create();
+        $taxFactory = $taxFactory->count(3);
+        $taxFactory->create(['rate' => 21.00]);
 
-        $zeroRateTaxes = Tax::where('rate', 0)->get();
-        $nonZeroTaxes = Tax::where(
+        $taxQuery = Tax::where('rate', 0);
+        $zeroRateTaxes = $taxQuery->get();
+        $taxQuery = Tax::where(
             'rate',
             '>',
             0,
-        )->get();
+        );
+        $nonZeroTaxes = $taxQuery->get();
 
         $this->assertCount(2, $zeroRateTaxes);
         $this->assertCount(3, $nonZeroTaxes);
@@ -220,19 +261,31 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_perform_bulk_operations(): void
     {
-        Tax::factory()->count(5)->create(['rate' => 21.00]);
+        $taxFactory = Tax::factory();
+        $taxFactory = $taxFactory->count(5);
+        $taxFactory->create(['rate' => 21.00]);
 
         // Bulk update
-        Tax::where('rate', 21.00)->update(['rate' => 23.00]);
+        $taxQuery = Tax::where('rate', 21.00);
+        $taxQuery->update(['rate' => 23.00]);
 
-        $this->assertEquals(0, Tax::where('rate', 21.00)->count());
-        $this->assertEquals(5, Tax::where('rate', 23.00)->count());
+        $taxQuery = Tax::where('rate', 21.00);
+        $this->assertEquals(
+            0,
+            $taxQuery->count(),
+        );
+        $taxQuery = Tax::where('rate', 23.00);
+        $this->assertEquals(
+            5,
+            $taxQuery->count(),
+        );
     }
 
     #[Test]
     public function tax_has_timestamps(): void
     {
-        $tax = Tax::factory()->create();
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
 
         $this->assertNotNull($tax->created_at);
         $this->assertNotNull($tax->updated_at);
@@ -261,7 +314,8 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function rate_is_stored_as_decimal(): void
     {
-        $tax = Tax::factory()->create(['rate' => 21.55]);
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create(['rate' => 21.55]);
 
         $tax->refresh();
 
@@ -272,12 +326,14 @@ class TaxFeatureTest extends TestCase
     #[Test]
     public function can_find_tax_by_slug(): void
     {
-        $tax = Tax::factory()->create([
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create([
             'name' => 'Standard VAT',
             'slug' => 'standard-vat',
         ]);
 
-        $foundTax = Tax::where('slug', 'standard-vat')->first();
+        $taxQuery = Tax::where('slug', 'standard-vat');
+        $foundTax = $taxQuery->first();
 
         $this->assertNotNull($foundTax);
         $this->assertEquals($tax->id, $foundTax->id);

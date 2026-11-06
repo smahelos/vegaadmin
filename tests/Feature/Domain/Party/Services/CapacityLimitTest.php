@@ -38,16 +38,25 @@ final class CapacityLimitTest extends TestCase
     {
         $other = $this->secondConnection();
         $ownerId = $this->committedUser($other);
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
         $probe = "SELECT id FROM users WHERE id = {$ownerId} FOR SHARE";
-        $this->assertNull($this->lockError($other, $probe), 'The owner was locked before the capacity check');
+        $this->assertNull(
+            $this->lockError($other, $probe),
+            'The owner was locked before the capacity check',
+        );
 
-        $this->app->make(ContactApplicationService::class)->create(
+        $contactService = $this->app->make(ContactApplicationService::class);
+        $contactService->create(
             UserId::fromInt($ownerId),
             new ContactWriteData($this->profile(), null),
         );
 
-        $this->assertSame(self::LOCK_WAIT_TIMEOUT, $this->lockError($other, $probe));
+        $this->assertSame(
+            self::LOCK_WAIT_TIMEOUT,
+            $this->lockError($other, $probe),
+        );
     }
 
     /** @return iterable<string, array{bool, bool}> */
@@ -67,30 +76,49 @@ final class CapacityLimitTest extends TestCase
         $ownerId = $this->committedUser($other);
         $table = $business ? 'businesses' : 'contacts';
         $permission = $business ? 'limit_active_businesses_basic' : 'limit_active_contacts_basic';
-        $limitQuery = $other->prepare('SELECT limit_value FROM entity_limits WHERE permission_name = ? AND is_active = 1');
+        $limitQuery = $other->prepare(
+            'SELECT limit_value FROM entity_limits WHERE permission_name = ? AND is_active = 1',
+        );
         $limitQuery->execute([$permission]);
         $limit = (int) $limitQuery->fetchColumn();
         $this->assertGreaterThan(0, $limit);
-        $insert = $other->prepare('INSERT INTO ' . $table . ' (user_id, name, archived_at) VALUES (?, ?, ?)');
+        $insert = $other->prepare(
+            'INSERT INTO ' . $table . ' (user_id, name, archived_at) VALUES (?, ?, ?)',
+        );
         $archived = [];
         for ($i = 0; $i <= $limit; $i++) {
             $isArchived = $i >= $limit - 1;
-            $insert->execute([
-                $ownerId,
-                'Capacity candidate ' . $i,
-                $isArchived ? '2026-01-01 00:00:00' : null,
-            ]);
+            $insert->execute(
+                [
+                    $ownerId,
+                    'Capacity candidate ' . $i,
+                    $isArchived ? '2026-01-01 00:00:00' : null,
+                ],
+            );
             if ($isArchived) {
                 $archived[] = (int) $other->lastInsertId();
             }
         }
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
-        $this->assertSame($limit - 1, DB::table($table)->where('user_id', $ownerId)->whereNull('archived_at')->count());
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
+        $activeQuery = DB::table($table);
+        $activeQuery->where('user_id', $ownerId);
+        $activeQuery->whereNull('archived_at');
+        $this->assertSame(
+            $limit - 1,
+            $activeQuery->count(),
+        );
 
         // The competing request commits after this transaction established its consistent-read snapshot.
         $other->beginTransaction();
-        $other->query('SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE')->fetchAll();
-        $other->exec('UPDATE ' . $table . ' SET archived_at = NULL WHERE id = ' . $archived[1]);
+        $lockStatement = $other->query(
+            'SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE',
+        );
+        $lockStatement->fetchAll();
+        $other->exec(
+            'UPDATE ' . $table . ' SET archived_at = NULL WHERE id = ' . $archived[1],
+        );
         $other->commit();
 
         $this->expectException(EntityLimitExceededException::class);
@@ -98,7 +126,10 @@ final class CapacityLimitTest extends TestCase
         if ($business) {
             $service = $this->app->make(BusinessApplicationService::class);
             if ($restore) {
-                $service->restore($userId, BusinessId::fromInt($archived[0]));
+                $service->restore(
+                    $userId,
+                    BusinessId::fromInt($archived[0]),
+                );
             } else {
                 $service->create(
                     $userId,
@@ -109,9 +140,15 @@ final class CapacityLimitTest extends TestCase
         } else {
             $service = $this->app->make(ContactApplicationService::class);
             if ($restore) {
-                $service->restore($userId, ContactId::fromInt($archived[0]));
+                $service->restore(
+                    $userId,
+                    ContactId::fromInt($archived[0]),
+                );
             } else {
-                $service->create($userId, new ContactWriteData($this->profile(), null));
+                $service->create(
+                    $userId,
+                    new ContactWriteData($this->profile(), null),
+                );
             }
         }
     }
@@ -129,31 +166,51 @@ final class CapacityLimitTest extends TestCase
     {
         $other = $this->secondConnection();
         $ownerId = $this->committedUser($other);
-        $insert = $other->prepare('INSERT INTO businesses (user_id, name, archived_at) VALUES (?, ?, ?)');
-        $insert->execute([
-            $ownerId,
-            'Archived business',
-            '2026-01-01 00:00:00',
-        ]);
+        $insert = $other->prepare(
+            'INSERT INTO businesses (user_id, name, archived_at) VALUES (?, ?, ?)',
+        );
+        $insert->execute(
+            [
+                $ownerId,
+                'Archived business',
+                '2026-01-01 00:00:00',
+            ],
+        );
         $archivedId = (int) $other->lastInsertId();
-        User::query()->findOrFail($ownerId)->assignRole('frontend_user');
-        $this->assertSame(0, DB::table('businesses')->where('user_id', $ownerId)->whereNull('archived_at')->count());
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($ownerId);
+        $user->assignRole('frontend_user');
+        $businessesQuery = DB::table('businesses');
+        $businessesQuery->where('user_id', $ownerId);
+        $businessesQuery->whereNull('archived_at');
+        $this->assertSame(
+            0,
+            $businessesQuery->count(),
+        );
 
         $other->beginTransaction();
-        $other->query('SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE')->fetchAll();
+        $lockStatement = $other->query(
+            'SELECT id FROM users WHERE id = ' . $ownerId . ' FOR UPDATE',
+        );
+        $lockStatement->fetchAll();
         $insert->execute([
             $ownerId,
             'Concurrent first business',
             null,
         ]);
         $defaultId = (int) $other->lastInsertId();
-        $other->exec('UPDATE users SET default_business_id = ' . $defaultId . ' WHERE id = ' . $ownerId);
+        $other->exec(
+            'UPDATE users SET default_business_id = ' . $defaultId . ' WHERE id = ' . $ownerId,
+        );
         $other->commit();
 
         $service = $this->app->make(BusinessApplicationService::class);
         $userId = UserId::fromInt($ownerId);
         if ($restore) {
-            $service->restore($userId, BusinessId::fromInt($archivedId));
+            $service->restore(
+                $userId,
+                BusinessId::fromInt($archivedId),
+            );
         } else {
             $service->create(
                 $userId,
@@ -162,12 +219,20 @@ final class CapacityLimitTest extends TestCase
             );
         }
 
-        $this->assertSame($defaultId, DB::table('users')->where('id', $ownerId)->lockForUpdate()->value('default_business_id'));
+        $usersQuery = DB::table('users');
+        $usersQuery->where('id', $ownerId);
+        $usersQuery->lockForUpdate();
+        $this->assertSame(
+            $defaultId,
+            $usersQuery->value('default_business_id'),
+        );
     }
 
     private function secondConnection(): PDO
     {
-        $config = config('database.connections.' . config('database.default'));
+        $config = config(
+            'database.connections.' . config('database.default'),
+        );
         $connection = new PDO(
             "mysql:host={$config['host']};port={$config['port']};dbname={$config['database']}",
             $config['username'],
@@ -185,17 +250,22 @@ final class CapacityLimitTest extends TestCase
      */
     private function committedUser(PDO $connection): int
     {
-        $connection
-            ->prepare("INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Capacity owner', ?, '', NOW(), NOW())")
-            ->execute(['capacity-' . uniqid() . '@billex.test']);
+        $statement = $connection->prepare(
+            "INSERT INTO users (name, email, password, created_at, updated_at) VALUES ('Capacity owner', ?, '', NOW(), NOW())",
+        );
+        $statement->execute(['capacity-' . uniqid() . '@billex.test']);
         $id = (int) $connection->lastInsertId();
 
-        $this->beforeApplicationDestroyed(function () use ($connection, $id): void {
-            $connection->exec("UPDATE users SET default_business_id = NULL WHERE id = {$id}");
-            $connection->exec("DELETE FROM contacts WHERE user_id = {$id}");
-            $connection->exec("DELETE FROM businesses WHERE user_id = {$id}");
-            $connection->exec("DELETE FROM users WHERE id = {$id}");
-        });
+        $this->beforeApplicationDestroyed(
+            function () use ($connection, $id): void {
+                $connection->exec(
+                    "UPDATE users SET default_business_id = NULL WHERE id = {$id}",
+                );
+                $connection->exec("DELETE FROM contacts WHERE user_id = {$id}");
+                $connection->exec("DELETE FROM businesses WHERE user_id = {$id}");
+                $connection->exec("DELETE FROM users WHERE id = {$id}");
+            },
+        );
 
         return $id;
     }

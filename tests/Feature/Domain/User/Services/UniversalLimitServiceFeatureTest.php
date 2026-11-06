@@ -31,31 +31,38 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->service = app(UniversalLimitService::class);
 
         // Create test user with unique name
-        $this->user = User::create([
-            'name' => 'Test User ' . uniqid(),
-            'email' => 'test' . uniqid() . '@example.com',
-            'password' => bcrypt('password'),
-        ]);
+        $this->user = User::create(
+            [
+                'name' => 'Test User ' . uniqid(),
+                'email' => 'test' . uniqid() . '@example.com',
+                'password' => bcrypt('password'),
+            ],
+        );
 
         // Create permission for testing
-        $permission = Permission::firstOrCreate([
-            'name' => 'frontend.can_create_edit_invoice',
-            'guard_name' => 'web',
-        ]);
+        $permission = Permission::firstOrCreate(
+            [
+                'name' => 'frontend.can_create_edit_invoice',
+                'guard_name' => 'web',
+            ],
+        );
 
         // Give user the permission
         $this->user->givePermissionTo($permission);
 
         // Create entity limit with permission-based structure
-        $this->monthlyInvoiceLimit = EntityLimit::factory()->create([
-            'permission_name' => 'frontend.can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 10,
-            'description' => 'Monthly invoice creation limit',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $this->monthlyInvoiceLimit = $entityLimitFactory->create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 10,
+                'description' => 'Monthly invoice creation limit',
+                'is_active' => true,
+            ],
+        );
     }
 
     #[Test]
@@ -122,15 +129,27 @@ class UniversalLimitServiceFeatureTest extends TestCase
     #[Test]
     public function record_usage_increments_count_correctly(): void
     {
-        $this->assertTrue($this->service->recordUsage($this->user->id, 'invoice', 'count', 'monthly', 'web', 1));
+        $this->assertTrue(
+            $this->service->recordUsage(
+                $this->user->id,
+                'invoice',
+                'count',
+                'monthly',
+                'web',
+                1,
+            ),
+        );
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where([
-            'user_id' => $this->user->id,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-        ])->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where(
+            [
+                'user_id' => $this->user->id,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+            ],
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(1, $usage->current_value);
@@ -140,25 +159,39 @@ class UniversalLimitServiceFeatureTest extends TestCase
     public function record_usage_increments_value_for_value_based_limits(): void
     {
         // Create a value-based limit
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'metric_type' => 'value',
-            'period_type' => 'monthly',
-            'limit_value' => 100000,
-            'description' => 'Monthly invoice value limit',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'metric_type' => 'value',
+                'period_type' => 'monthly',
+                'limit_value' => 100000,
+                'description' => 'Monthly invoice value limit',
+                'is_active' => true,
+            ],
+        );
 
-        $this->assertTrue($this->service->recordUsage($this->user->id, 'invoice', 'value', 'monthly', 'web', 5000));
+        $this->assertTrue(
+            $this->service->recordUsage(
+                $this->user->id,
+                'invoice',
+                'value',
+                'monthly',
+                'web',
+                5000,
+            ),
+        );
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where([
-            'user_id' => $this->user->id,
-            'entity_type' => 'invoice',
-            'metric_type' => 'value',
-            'period_type' => 'monthly',
-        ])->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where(
+            [
+                'user_id' => $this->user->id,
+                'entity_type' => 'invoice',
+                'metric_type' => 'value',
+                'period_type' => 'monthly',
+            ],
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(5000, $usage->current_value);
@@ -183,12 +216,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->assertTrue($result);
 
         // Verify usage was recorded
-        $usage = EntityLimitUsage::where([
-            'user_id' => $this->user->id,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-        ])->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where(
+            [
+                'user_id' => $this->user->id,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+            ],
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNotNull($usage);
         $this->assertEquals(1, $usage->current_value);
@@ -198,7 +234,8 @@ class UniversalLimitServiceFeatureTest extends TestCase
     public function record_usage_returns_false_for_user_without_permission(): void
     {
         // Create user without permission
-        $userWithoutPermission = User::factory()->create();
+        $userFactory = User::factory();
+        $userWithoutPermission = $userFactory->create();
 
         $result = $this->service->recordUsage(
             $userWithoutPermission->id,
@@ -212,12 +249,15 @@ class UniversalLimitServiceFeatureTest extends TestCase
         $this->assertFalse($result);
 
         // Verify no usage was recorded
-        $usage = EntityLimitUsage::where([
-            'user_id' => $userWithoutPermission->id,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-        ])->first();
+        $entityLimitUsageQuery = EntityLimitUsage::where(
+            [
+                'user_id' => $userWithoutPermission->id,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+            ],
+        );
+        $usage = $entityLimitUsageQuery->first();
 
         $this->assertNull($usage);
     }
@@ -277,15 +317,17 @@ class UniversalLimitServiceFeatureTest extends TestCase
     public function check_limit_works_with_different_period_types(): void
     {
         // Create daily limit
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_invoice',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'daily',
-            'limit_value' => 5,
-            'description' => 'Daily invoice creation limit',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'daily',
+                'limit_value' => 5,
+                'description' => 'Daily invoice creation limit',
+                'is_active' => true,
+            ],
+        );
 
         $dailyResult = $this->service->checkLimit(
             $this->user->id,
@@ -311,23 +353,27 @@ class UniversalLimitServiceFeatureTest extends TestCase
     public function service_handles_multiple_permissions_with_different_limits(): void
     {
         // Create another permission with higher limit
-        Permission::firstOrCreate([
-            'name' => 'frontend.can_create_edit_invoice_premium',
-            'guard_name' => 'web',
-        ]);
+        Permission::firstOrCreate(
+            [
+                'name' => 'frontend.can_create_edit_invoice_premium',
+                'guard_name' => 'web',
+            ],
+        );
 
         $this->user->givePermissionTo('frontend.can_create_edit_invoice_premium');
 
         // Create higher limit for premium permission
-        EntityLimit::create([
-            'permission_name' => 'frontend.can_create_edit_invoice_premium',
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 50,
-            'description' => 'Premium monthly invoice limit',
-            'is_active' => true,
-        ]);
+        EntityLimit::create(
+            [
+                'permission_name' => 'frontend.can_create_edit_invoice_premium',
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 50,
+                'description' => 'Premium monthly invoice limit',
+                'is_active' => true,
+            ],
+        );
 
         $result = $this->service->checkLimit(
             $this->user->id,

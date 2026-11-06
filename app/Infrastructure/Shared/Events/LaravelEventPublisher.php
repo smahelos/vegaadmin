@@ -30,21 +30,23 @@ final class LaravelEventPublisher implements EventPublisherInterface
     {
         $this->domainDispatcher->dispatch($event);
 
-        $this->transactions->addCallback(function () use ($event): void {
-            // The use case is committed by now: a failing listener must not turn it into an error the user
-            // retries, so it is logged like a failing domain handler in DomainEventDispatcher
-            try {
-                $this->dispatcher->dispatch($event);
-            } catch (Throwable $e) {
-                $this->log->log(
-                    'error',
-                    'Domain event listener failed',
-                    [
-                        'event' => $event->getEventName(),
-                        'exception' => $e,
-                    ],
-                );
-            }
-        });
+        $this->transactions->addCallback(
+            function () use ($event): void {
+                // The use case is committed by now: a failing listener must not turn it into an error the user
+                // retries, so it is logged like a failing domain handler in DomainEventDispatcher
+                try {
+                    $this->dispatcher->dispatch($event);
+                } catch (Throwable $e) {
+                    $this->log->log(
+                        'error',
+                        'Domain event listener failed',
+                        [
+                            'event' => $event->getEventName(),
+                            'exception' => $e,
+                        ],
+                    );
+                }
+            },
+        );
     }
 }

@@ -1,6 +1,7 @@
 @extends('layouts.frontend')
 
 @use('App\Domain\Payment\Enums\PaymentMethodCode')
+@use('Carbon\CarbonImmutable')
 {{-- Taken before the payment method options are replaced by their labels below --}}
 @php
 $bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $paymentMethods ?? [], true) ?: null;
@@ -11,58 +12,60 @@ $bankTransferMethodId = array_search(PaymentMethodCode::BANK_ACCOUNT->value, $pa
 * Helper for getting field by name
 */
 if (!function_exists('getCreateFieldByName')) {
-function getCreateFieldByName($fields, $name) {
-foreach ($fields as $field) {
-if ($field['name'] === $name) {
-return $field;
-}
-}
-return null;
-}
+    function getCreateFieldByName($fields, $name) {
+        foreach ($fields as $field) {
+            if ($field['name'] === $name) {
+                return $field;
+            }
+        }
+
+        return null;
+    }
 }
 
 /**
 * Generating common attributes for input fields
 */
 if (!function_exists('renderCreateInputAttributes')) {
-function renderCreateInputAttributes($field, $suggestedNumber = false) {
-$attributes = [];
-// Field type
-$attributes[] = 'type="' . $field['type'] . '"';
+    function renderCreateInputAttributes($field, $suggestedNumber = false) {
+        $attributes = [];
+        // Field type
+        $attributes[] = 'type="' . $field['type'] . '"';
 
-// Name and ID
-$attributes[] = 'name="' . $field['name'] . '"';
-$attributes[] = 'id="' . $field['name'] . '"';
+        // Name and ID
+        $attributes[] = 'name="' . $field['name'] . '"';
+        $attributes[] = 'id="' . $field['name'] . '"';
 
-// The amount is the sum of the items: the script fills it in and the server computes it again
-if($field['name'] === 'payment_amount') {
-$attributes[] = 'step="0.01"';
-$attributes[] = 'readonly';
-}
+        // The amount is the sum of the items: the script fills it in and the server computes it again
+        if($field['name'] === 'payment_amount') {
+            $attributes[] = 'step="0.01"';
+            $attributes[] = 'readonly';
+        }
 
-// Required field
-if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'payment_amount') {
-$attributes[] = 'required';
-}
+        // Required field
+        if(isset($field['required']) && $field['required'] === true && $field['name'] !== 'payment_amount') {
+            $attributes[] = 'required';
+        }
 
-// Placeholder
-if(isset($field['placeholder']) && $field['placeholder'] !== '') {
-$attributes[] = 'placeholder="' . $field['placeholder'] . '"';
-}
+        // Placeholder
+        if(isset($field['placeholder']) && $field['placeholder'] !== '') {
+            $attributes[] = 'placeholder="' . $field['placeholder'] . '"';
+        }
 
-// Value - different sources based on field type
-if($field['name'] === 'issue_date') {
-$attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
-} elseif($field['name'] === 'tax_point_date') {
-$attributes[] = 'value="' . old($field['name'], now()->format('Y-m-d')) . '"';
-} elseif($field['name'] === 'invoice_vs') {
-$attributes[] = 'value="' . old($field['name'], $suggestedNumber ?? '') . '"';
-} else {
-$attributes[] = 'value="' . old($field['name']) . '"';
-}
+        // Value - different sources based on field type
+        $today = CarbonImmutable::now();
+        if($field['name'] === 'issue_date') {
+            $attributes[] = 'value="' . old($field['name'], $today->format('Y-m-d')) . '"';
+        } elseif($field['name'] === 'tax_point_date') {
+            $attributes[] = 'value="' . old($field['name'], $today->format('Y-m-d')) . '"';
+        } elseif($field['name'] === 'invoice_vs') {
+            $attributes[] = 'value="' . old($field['name'], $suggestedNumber ?? '') . '"';
+        } else {
+            $attributes[] = 'value="' . old($field['name']) . '"';
+        }
 
-return implode(' ', $attributes);
-}
+        return implode(' ', $attributes);
+    }
 }
 
 $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
@@ -71,8 +74,8 @@ $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 $sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
 $sectionEndFields = ['payment_status_id', 'tax_point_date', 'payment_currency'];
 
-$formAction = $userLoggedIn ? route('frontend.invoice.store', ['locale' => app()->getLocale()]) :
-route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
+$storeRoute = $userLoggedIn ? 'frontend.invoice.store' : 'frontend.invoice.store.guest';
+$formAction = route($storeRoute, ['locale' => App::getLocale()]);
 @endphp
 
 @section('content')
@@ -84,7 +87,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
     <div class="flex-none space-x-2 space-y-2 grid grid-cols-2 md:flex md:grid-cols-none md:space-x-0">
         <x-back-button />
 
-        <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
             title="{{ __('invoices.actions.back_to_list') }}" aria-label="{{ __('invoices.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
@@ -157,7 +160,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
                     </div>
                     @endguest
                     <!-- Start 4 col parent grid -->
-                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !auth()->check(), 'md:col-span-6' => auth()->check()])>
+                    <div @class(['grid grid-cols-1', 'md:col-span-4' => !Auth::check(), 'md:col-span-6' => Auth::check()])>
 
                         @elseif($field['name'] === 'invoice_vs')
                         <!-- Invoice number -->
@@ -485,7 +488,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
     <div class="flex flex-wrap justify-between gap-4 mb-20 md:mb-10">
         <div class="flex flex-wrap gap-4">
             @if($userLoggedIn)
-            <a href="{{ route('frontend.invoices', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.invoices', ['locale' => App::getLocale()]) }}"
                 class="inline-flex justify-center px-6 py-4 md:px-12 md:py-6 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('invoices.actions.cancel') }}
             </a>
@@ -510,7 +513,7 @@ route('frontend.invoice.store.guest', ['locale' => app()->getLocale()]);
     </div>
 
     <!-- set Locale -->
-    <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+    <input type="hidden" name="lang" value="{{ App::getLocale() }}">
     <input type="hidden" name="tax_amount" value="0">
     <input type="hidden" name="payment_without_tax_amount" value="0">
     <input type="hidden" name="template" value="default">

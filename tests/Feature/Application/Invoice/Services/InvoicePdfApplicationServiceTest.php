@@ -16,6 +16,7 @@ use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Status;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\AssertsInvoiceActionResult;
@@ -32,8 +33,11 @@ class InvoicePdfApplicationServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->user = User::factory()->create();
-        Permission::firstOrCreate(['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web']);
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
+        Permission::firstOrCreate(
+            ['name' => 'frontend.can_create_edit_invoice', 'guard_name' => 'web'],
+        );
         $this->user->givePermissionTo('frontend.can_create_edit_invoice');
         // Register fake limit service BEFORE resolving application services
         $fakeLimit = new class implements UniversalLimitServiceInterface
@@ -120,14 +124,18 @@ class InvoicePdfApplicationServiceTest extends TestCase
      */
     private function guestInput(): array
     {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
+        $now = CarbonImmutable::now();
+
         return [
             'invoice_vs' => 'INV-' . uniqid(),
-            'payment_method_id' => PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value)->firstOrFail()->id,
+            'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             'payment_currency' => 'EUR',
-            'issue_date' => now()->format('Y-m-d'),
-            'tax_point_date' => now()->format('Y-m-d'),
+            'issue_date' => $now->format('Y-m-d'),
+            'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 14,
-            'payment_status_id' => Status::where('slug', InvoiceStatus::PENDING->value)->firstOrFail()->id,
+            'payment_status_id' => $statusQuery->firstOrFail()->id,
             'invoice_text' => 'Test invoice',
             'invoice-products' => [
                 [
@@ -162,8 +170,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function user_can_generate_pdf(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id, 'payment_currency' => 'EUR']);
-        InvoiceProduct::factory()->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id, 'payment_currency' => 'EUR']);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
 
         $pdf = $this->pdfService->generate($this->user->id, $invoice->id);
 
@@ -175,7 +185,8 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function guest_can_preview_pdf_by_token(): void
     {
-        $stored = app(GuestInvoiceApplicationServiceInterface::class)->storeGuestInvoice(
+        $guestInvoiceApplicationService = app(GuestInvoiceApplicationServiceInterface::class);
+        $stored = $guestInvoiceApplicationService->storeGuestInvoice(
             $this->guestInput(),
             $this->party('Dodavatel s.r.o.'),
             $this->party('Odběratel s.r.o.'),
@@ -197,8 +208,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
     #[Test]
     public function another_users_invoice_is_not_rendered(): void
     {
-        $invoice = Invoice::factory()->create(['user_id' => $this->user->id]);
-        $otherUser = User::factory()->create();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
 
         $pdf = $this->pdfService->generate($otherUser->id, $invoice->id);
 

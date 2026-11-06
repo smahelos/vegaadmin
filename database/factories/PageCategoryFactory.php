@@ -31,7 +31,8 @@ class PageCategoryFactory extends Factory
             'sk',
         ]);
         $baseName = $this->faker->words(2, true);
-        $baseSlug = $this->faker->unique()->slug();
+        $unique = $this->faker->unique();
+        $baseSlug = $unique->slug();
         $baseDescription = $this->faker->sentence();
 
         $nameData = [];

@@ -42,13 +42,18 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function a_czech_company_number_is_refused_twice_in_one_account_archived_records_included(string $model): void
     {
-        $archived = $this->factoryOf($model)->archived()->create();
+        $partyFactory = $this->factoryOf($model);
+        $archivedFactory = $partyFactory->archived();
+        $archived = $archivedFactory->create();
 
+        $modelFactory = $model::factory();
         $this->assertRefused(
-            fn () => $model::factory()->create([
-                'user_id' => $archived->user_id,
-                'company_number' => $archived->company_number,
-            ]),
+            fn () => $modelFactory->create(
+                [
+                    'user_id' => $archived->user_id,
+                    'company_number' => $archived->company_number,
+                ],
+            ),
             1062,
         );
     }
@@ -60,11 +65,15 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function the_same_czech_company_number_is_stored_in_another_account(string $model): void
     {
-        $party = $model::factory()->create();
+        $modelFactory = $model::factory();
+        $party = $modelFactory->create();
 
-        $copy = $model::factory()->create(['company_number' => $party->company_number]);
+        $copy = $modelFactory->create(['company_number' => $party->company_number]);
 
-        $this->assertDatabaseHas($party->getTable(), ['id' => $copy->id, 'company_number' => $party->company_number]);
+        $this->assertDatabaseHas(
+            $party->getTable(),
+            ['id' => $copy->id, 'company_number' => $party->company_number],
+        );
     }
 
     /**
@@ -74,16 +83,25 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('parties')]
     public function foreign_and_missing_company_numbers_may_repeat_in_one_account(string $model): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
-        foreach ([
-            ['registration_country' => 'AT', 'company_number' => 'FN 123456a'],
-            ['registration_country' => null, 'company_number' => null],
-        ] as $identity) {
-            $model::factory()->count(2)->create(['user_id' => $user->id, ...$identity]);
+        $modelFactory = $model::factory();
+        $batchFactory = $modelFactory->count(2);
+        foreach (
+            [
+                ['registration_country' => 'AT', 'company_number' => 'FN 123456a'],
+                ['registration_country' => null, 'company_number' => null],
+            ] as $identity
+        ) {
+            $batchFactory->create(['user_id' => $user->id, ...$identity]);
         }
 
-        $this->assertSame(4, $model::where('user_id', $user->id)->count());
+        $modelQuery = $model::where('user_id', $user->id);
+        $this->assertSame(
+            4,
+            $modelQuery->count(),
+        );
     }
 
     /**
@@ -102,42 +120,74 @@ final class BusinessAndContactConstraintTest extends TestCase
     #[DataProvider('ownedRecords')]
     public function an_address_or_account_needs_exactly_one_owner(string $model): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $business->user_id]);
 
-        $this->assertRefused(fn () => $model::factory()->create(['business_id' => null, 'contact_id' => null]), 3819);
-        $this->assertRefused(fn () => $model::factory()->create(['business_id' => $business->id, 'contact_id' => $contact->id]), 3819);
+        $modelFactory = $model::factory();
+        $this->assertRefused(
+            fn () => $modelFactory->create(['business_id' => null, 'contact_id' => null]),
+            3819,
+        );
+        $this->assertRefused(
+            fn () => $modelFactory->create(
+                ['business_id' => $business->id, 'contact_id' => $contact->id],
+            ),
+            3819,
+        );
     }
 
     #[Test]
     public function a_default_account_belongs_to_its_owner(): void
     {
-        $business = Business::factory()->create();
-        $contact = Contact::factory()->create(['user_id' => $business->user_id]);
-        $otherBusiness = Business::factory()->create(['user_id' => $business->user_id]);
-        $ownAccount = BankAccount::factory()->ownedBy($business)->create();
-        $contactAccount = BankAccount::factory()->ownedBy($contact)->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $business->user_id]);
+        $otherBusiness = $businessFactory->create(['user_id' => $business->user_id]);
+        $bankAccountFactory = BankAccount::factory();
+        $ownedFactory = $bankAccountFactory->ownedBy($business);
+        $ownAccount = $ownedFactory->create();
+        $ownedFactory = $bankAccountFactory->ownedBy($contact);
+        $contactAccount = $ownedFactory->create();
 
-        $business->forceFill(['default_bank_account_id' => $ownAccount->id])->save();
-        $contact->forceFill(['default_bank_account_id' => $contactAccount->id])->save();
+        $business->forceFill(['default_bank_account_id' => $ownAccount->id]);
+        $business->save();
+        $contact->forceFill(['default_bank_account_id' => $contactAccount->id]);
+        $contact->save();
 
         $this->assertDefaultRefused($otherBusiness, $ownAccount->id);
         $this->assertDefaultRefused($business, $contactAccount->id);
         $this->assertDefaultRefused($contact, $ownAccount->id);
-        $this->assertDatabaseHas('businesses', ['id' => $business->id, 'default_bank_account_id' => $ownAccount->id]);
-        $this->assertDatabaseHas('contacts', ['id' => $contact->id, 'default_bank_account_id' => $contactAccount->id]);
+        $this->assertDatabaseHas(
+            'businesses',
+            ['id' => $business->id, 'default_bank_account_id' => $ownAccount->id],
+        );
+        $this->assertDatabaseHas(
+            'contacts',
+            ['id' => $contact->id, 'default_bank_account_id' => $contactAccount->id],
+        );
     }
 
     #[Test]
     public function the_default_business_belongs_to_the_user(): void
     {
-        $business = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
         $user = User::findOrFail($business->user_id);
-        $otherUsersBusiness = Business::factory()->create();
+        $otherUsersBusiness = $businessFactory->create();
 
-        $user->forceFill(['default_business_id' => $business->id])->save();
+        $user->forceFill(['default_business_id' => $business->id]);
+        $user->save();
 
-        $this->assertRefused(fn () => $user->forceFill(['default_business_id' => $otherUsersBusiness->id])->save(), 1452);
+        $this->assertRefused(
+            function () use ($user, $otherUsersBusiness): void {
+                $user->forceFill(['default_business_id' => $otherUsersBusiness->id]);
+                $user->save();
+            },
+            1452,
+        );
         $this->assertDatabaseHas('users', ['id' => $user->id, 'default_business_id' => $business->id]);
     }
 
@@ -151,7 +201,13 @@ final class BusinessAndContactConstraintTest extends TestCase
 
     private function assertDefaultRefused(Model $owner, int $accountId): void
     {
-        $this->assertRefused(fn () => $owner->forceFill(['default_bank_account_id' => $accountId])->save(), 1452);
+        $this->assertRefused(
+            function () use ($owner, $accountId): void {
+                $owner->forceFill(['default_bank_account_id' => $accountId]);
+                $owner->save();
+            },
+            1452,
+        );
         $owner->refresh();
     }
 }

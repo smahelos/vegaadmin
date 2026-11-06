@@ -55,8 +55,9 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         // Create some features for testing
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
         $uniquePlanName = 'Premium Plan ' . uniqid();
         $data = [
             'name' => $uniquePlanName,
@@ -69,16 +70,22 @@ class SubscriptionPlanCrudControllerTest extends TestCase
             'is_active' => true,
         ];
 
-        $response = $this->post(backpack_url('subscription-plan'), $data);
+        $response = $this->post(
+            backpack_url('subscription-plan'),
+            $data,
+        );
 
         $response->assertRedirect();
-        $this->assertDatabaseHas('subscription_plans', [
-            'name' => $uniquePlanName,
-            'description' => 'A premium subscription plan',
-            'price' => 99.99,
-            'currency' => 'CZK',
-            'trial_days' => 14,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plans',
+            [
+                'name' => $uniquePlanName,
+                'description' => 'A premium subscription plan',
+                'price' => 99.99,
+                'currency' => 'CZK',
+                'trial_days' => 14,
+            ],
+        );
     }
 
     #[Test]
@@ -107,7 +114,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->get("/admin/subscription-plan/{$plan->id}/show");
 
@@ -119,7 +127,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->get("/admin/subscription-plan/{$plan->id}/edit");
 
@@ -131,14 +140,16 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create([
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create([
             'name' => 'Original Plan',
             'price' => 50.00,
         ]);
 
         // Create some features for testing
-        $feature1 = SubscriptionPlanFeature::factory()->create();
-        $feature2 = SubscriptionPlanFeature::factory()->create();
+        $subscriptionPlanFeatureFactory = SubscriptionPlanFeature::factory();
+        $feature1 = $subscriptionPlanFeatureFactory->create();
+        $feature2 = $subscriptionPlanFeatureFactory->create();
 
         $data = [
             'name' => 'Updated Plan',
@@ -156,17 +167,20 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         // HTTP testing for Backpack updates is complex due to CSRF tokens and middleware
         $plan->update($data);
 
-        $this->assertDatabaseHas('subscription_plans', [
-            'id' => $plan->id,
-            'name' => 'Updated Plan',
-            'description' => 'Updated description',
-            'price' => 75.00,
-            'currency' => 'EUR',
-            'billing_period' => 'yearly',
-            'billing_interval' => 1,
-            'trial_days' => 30,
-            'is_active' => false,
-        ]);
+        $this->assertDatabaseHas(
+            'subscription_plans',
+            [
+                'id' => $plan->id,
+                'name' => 'Updated Plan',
+                'description' => 'Updated description',
+                'price' => 75.00,
+                'currency' => 'EUR',
+                'billing_period' => 'yearly',
+                'billing_interval' => 1,
+                'trial_days' => 30,
+                'is_active' => false,
+            ],
+        );
     }
 
     #[Test]
@@ -174,7 +188,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->adminUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->delete("/admin/subscription-plan/{$plan->id}");
 
@@ -198,7 +213,8 @@ class SubscriptionPlanCrudControllerTest extends TestCase
     {
         $this->actingAs($this->regularUser, 'backpack');
 
-        $plan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
 
         $response = $this->delete("/admin/subscription-plan/{$plan->id}");
 
@@ -218,14 +234,16 @@ class SubscriptionPlanCrudControllerTest extends TestCase
         $response = $this->postJson('/admin/subscription-plan', $data);
 
         $response->assertStatus(422); // Validation error
-        $response->assertJsonValidationErrors([
-            'name',
-            'price',
-            'currency',
-            'billing_period',
-            'billing_interval',
-            'trial_days',
-        ]);
+        $response->assertJsonValidationErrors(
+            [
+                'name',
+                'price',
+                'currency',
+                'billing_period',
+                'billing_interval',
+                'trial_days',
+            ],
+        );
     }
 
     #[Test]

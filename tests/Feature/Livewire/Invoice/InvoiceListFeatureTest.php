@@ -32,24 +32,44 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function shows_only_owned_invoices_and_filter_options(): void
     {
-        $owned = Invoice::factory()->create(['user_id' => $this->user->id, 'invoice_vs' => 'OWNED-001']);
-        $foreign = Invoice::factory()->create(['invoice_vs' => 'FOREIGN-001']);
-        $foreignContact = Contact::factory()->create(['name' => 'Foreign Contact']);
-        $component = Livewire::test(InvoiceList::class)
-            ->assertSee($owned->invoice_vs)->assertDontSee($foreign->invoice_vs)
-            ->assertDontSee($foreignContact->name);
-        $this->assertSame([$owned->id], $component->viewData('invoices')->map(fn ($row): int => $row->id->value)->all());
-        $this->assertNotContains($foreign->business_id, array_map(fn ($row): int => $row->id->value, $component->viewData('businesses')));
+        $invoiceFactory = Invoice::factory();
+        $owned = $invoiceFactory->create(['user_id' => $this->user->id, 'invoice_vs' => 'OWNED-001']);
+        $foreign = $invoiceFactory->create(['invoice_vs' => 'FOREIGN-001']);
+        $contactFactory = Contact::factory();
+        $foreignContact = $contactFactory->create(['name' => 'Foreign Contact']);
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertSee($owned->invoice_vs);
+        $component->assertDontSee($foreign->invoice_vs);
+        $component->assertDontSee($foreignContact->name);
+        $invoices = $component->viewData('invoices');
+        $invoiceIds = $invoices->map(fn ($row): int => $row->id->value);
+        $this->assertSame(
+            [$owned->id],
+            $invoiceIds->all(),
+        );
+        $this->assertNotContains(
+            $foreign->business_id,
+            array_map(
+                fn ($row): int => $row->id->value,
+                $component->viewData('businesses'),
+            ),
+        );
     }
 
     #[Test]
     public function combines_business_contact_status_and_stored_customer_search(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $other = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id, 'name' => 'Current Address Book Name']);
-        $paid = Status::where('slug', 'paid')->value('id');
-        $pending = Status::where('slug', 'pending')->value('id');
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $other = $businessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(
+            ['user_id' => $this->user->id, 'name' => 'Current Address Book Name'],
+        );
+        $statusQuery = Status::where('slug', 'paid');
+        $paid = $statusQuery->value('id');
+        $statusQuery = Status::where('slug', 'pending');
+        $pending = $statusQuery->value('id');
         $base = [
             'user_id' => $this->user->id,
             'business_id' => $business->id,
@@ -57,63 +77,119 @@ final class InvoiceListFeatureTest extends TestCase
             'payment_status_id' => $paid,
             'customer_name' => 'Stored Customer',
         ];
-        $match = Invoice::factory()->create($base + ['invoice_vs' => 'MATCH-001']);
-        Invoice::factory()->create(array_replace($base, ['business_id' => $other->id, 'invoice_vs' => 'OTHER-BUSINESS']));
-        Invoice::factory()->create(array_replace($base, ['contact_id' => null, 'invoice_vs' => 'ONE-OFF']));
-        Invoice::factory()->create(array_replace($base, ['payment_status_id' => $pending, 'invoice_vs' => 'UNPAID']));
-        Invoice::factory()->create(array_replace($base, ['customer_name' => 'Different Customer', 'invoice_vs' => 'OTHER-NAME']));
+        $invoiceFactory = Invoice::factory();
+        $match = $invoiceFactory->create($base + ['invoice_vs' => 'MATCH-001']);
+        $invoiceFactory->create(
+            array_replace(
+                $base,
+                ['business_id' => $other->id, 'invoice_vs' => 'OTHER-BUSINESS'],
+            ),
+        );
+        $invoiceFactory->create(
+            array_replace($base, ['contact_id' => null, 'invoice_vs' => 'ONE-OFF']),
+        );
+        $invoiceFactory->create(
+            array_replace($base, ['payment_status_id' => $pending, 'invoice_vs' => 'UNPAID']),
+        );
+        $invoiceFactory->create(
+            array_replace(
+                $base,
+                ['customer_name' => 'Different Customer', 'invoice_vs' => 'OTHER-NAME'],
+            ),
+        );
 
-        $component = Livewire::withQueryParams(['business_id' => (string) $business->id, 'contact_id' => (string) $contact->id])
-            ->test(InvoiceList::class)->set('status', 'paid')->set('search', 'Stored Customer')
-            ->assertSee('MATCH-001')->assertDontSee('OTHER-BUSINESS')->assertDontSee('ONE-OFF')
-            ->assertDontSee('UNPAID')->assertDontSee('OTHER-NAME');
-        $this->assertSame(1, $component->viewData('invoices')->total());
-        $this->assertSame($match->id, $component->viewData('invoices')->first()->id->value);
+        Livewire::withQueryParams(
+            ['business_id' => (string) $business->id, 'contact_id' => (string) $contact->id],
+        );
+        $component = Livewire::test(InvoiceList::class);
+        $component->set('status', 'paid');
+        $component->set('search', 'Stored Customer');
+        $component->assertSee('MATCH-001');
+        $component->assertDontSee('OTHER-BUSINESS');
+        $component->assertDontSee('ONE-OFF');
+        $component->assertDontSee('UNPAID');
+        $component->assertDontSee('OTHER-NAME');
+        $invoices = $component->viewData('invoices');
+        $this->assertSame(
+            1,
+            $invoices->total(),
+        );
+        $this->assertSame(
+            $match->id,
+            $invoices->first()->id->value,
+        );
     }
 
     #[Test]
     public function filters_each_party_independently_and_keeps_one_off_history(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $other = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'business_id' => $business->id,
-            'contact_id' => $contact->id,
-            'invoice_vs' => 'FIRST',
-        ]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'business_id' => $other->id,
-            'contact_id' => $contact->id,
-            'invoice_vs' => 'SECOND',
-        ]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'business_id' => $business->id,
-            'contact_id' => null,
-            'invoice_vs' => 'ONE-OFF',
-        ]);
-        Livewire::test(InvoiceList::class)->set('businessId', (string) $business->id)
-            ->assertSee('FIRST')->assertSee('ONE-OFF')->assertDontSee('SECOND')
-            ->set('businessId', '')->set('contactId', (string) $contact->id)
-            ->assertSee('FIRST')->assertSee('SECOND')->assertDontSee('ONE-OFF');
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $other = $businessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+                'invoice_vs' => 'FIRST',
+            ],
+        );
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'business_id' => $other->id,
+                'contact_id' => $contact->id,
+                'invoice_vs' => 'SECOND',
+            ],
+        );
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'business_id' => $business->id,
+                'contact_id' => null,
+                'invoice_vs' => 'ONE-OFF',
+            ],
+        );
+        $component = Livewire::test(InvoiceList::class);
+        $component->set('businessId', (string) $business->id);
+        $component->assertSee('FIRST');
+        $component->assertSee('ONE-OFF');
+        $component->assertDontSee('SECOND');
+        $component->set('businessId', '');
+        $component->set('contactId', (string) $contact->id);
+        $component->assertSee('FIRST');
+        $component->assertSee('SECOND');
+        $component->assertDontSee('ONE-OFF');
     }
 
     #[Test]
     public function archived_parties_remain_filterable_without_restoration(): void
     {
-        $business = Business::factory()->archived()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->archived()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'business_id' => $business->id,
-            'contact_id' => $contact->id,
-            'invoice_vs' => 'HISTORY-001',
-        ]);
-        Livewire::test(InvoiceList::class)->set('businessId', (string) $business->id)->set('contactId', (string) $contact->id)
-            ->assertSee('HISTORY-001')->assertSee(__('invoices.filters.archived'));
+        $businessFactory = Business::factory();
+        $archivedBusinessFactory = $businessFactory->archived();
+        $business = $archivedBusinessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $archivedContactFactory = $contactFactory->archived();
+        $contact = $archivedContactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+                'invoice_vs' => 'HISTORY-001',
+            ],
+        );
+        $component = Livewire::test(InvoiceList::class);
+        $component->set('businessId', (string) $business->id);
+        $component->set('contactId', (string) $contact->id);
+        $component->assertSee('HISTORY-001');
+        $component->assertSee(
+            __('invoices.filters.archived'),
+        );
         $this->assertNotNull($business->fresh()->archived_at);
         $this->assertNotNull($contact->fresh()->archived_at);
     }
@@ -121,18 +197,24 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function rejects_foreign_and_missing_business_ids_identically(): void
     {
-        $foreign = Business::factory()->create();
+        $businessFactory = Business::factory();
+        $foreign = $businessFactory->create();
         foreach ([(string) $foreign->id, '2147483647'] as $id) {
-            Livewire::test(InvoiceList::class)->set('businessId', $id)->assertNotFound();
+            $component = Livewire::test(InvoiceList::class);
+            $component->set('businessId', $id);
+            $component->assertNotFound();
         }
     }
 
     #[Test]
     public function rejects_foreign_and_missing_contact_ids_identically(): void
     {
-        $foreign = Contact::factory()->create();
+        $contactFactory = Contact::factory();
+        $foreign = $contactFactory->create();
         foreach ([(string) $foreign->id, '2147483647'] as $id) {
-            Livewire::test(InvoiceList::class)->set('contactId', $id)->assertNotFound();
+            $component = Livewire::test(InvoiceList::class);
+            $component->set('contactId', $id);
+            $component->assertNotFound();
         }
     }
 
@@ -140,7 +222,9 @@ final class InvoiceListFeatureTest extends TestCase
     #[DataProvider('invalidFilters')]
     public function rejects_malformed_url_filters(string $key, string $value): void
     {
-        Livewire::withQueryParams([$key => $value])->test(InvoiceList::class)->assertNotFound();
+        Livewire::withQueryParams([$key => $value]);
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertNotFound();
     }
 
     /** @return list<array{string, string}> */
@@ -158,85 +242,135 @@ final class InvoiceListFeatureTest extends TestCase
     #[Test]
     public function filter_changes_and_reset_return_to_the_first_page(): void
     {
-        $business = Business::factory()->create(['user_id' => $this->user->id]);
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->count(12)->create([
-            'user_id' => $this->user->id,
-            'business_id' => $business->id,
-            'contact_id' => $contact->id,
-            'invoice_vs' => 'PAGE-001',
-            'payment_status_id' => Status::where('slug', 'paid')->value('id'),
-        ]);
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['user_id' => $this->user->id]);
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->count(12);
+        $statusQuery = Status::where('slug', 'paid');
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+                'invoice_vs' => 'PAGE-001',
+                'payment_status_id' => $statusQuery->value('id'),
+            ],
+        );
         $component = Livewire::test(InvoiceList::class);
-        foreach ([
-            'businessId' => (string) $business->id,
-            'contactId' => (string) $contact->id,
-            'search' => 'PAGE',
-            'status' => 'paid',
-        ] as $key => $value) {
-            $component->call('gotoPage', 2)->set($key, $value)->assertSet('paginators.page', 1);
+        foreach (
+            [
+                'businessId' => (string) $business->id,
+                'contactId' => (string) $contact->id,
+                'search' => 'PAGE',
+                'status' => 'paid',
+            ] as $key => $value
+        ) {
+            $component->call('gotoPage', 2);
+            $component->set($key, $value);
+            $component->assertSet('paginators.page', 1);
         }
-        $component->call('gotoPage', 2)->call('resetFilters')->assertSet('paginators.page', 1)
-            ->assertSet('businessId', '')->assertSet('contactId', '')->assertSet('search', '')->assertSet('status', '');
-        $this->assertSame(12, $component->viewData('invoices')->total());
+        $component->call('gotoPage', 2);
+        $component->call('resetFilters');
+        $component->assertSet('paginators.page', 1);
+        $component->assertSet('businessId', '');
+        $component->assertSet('contactId', '');
+        $component->assertSet('search', '');
+        $component->assertSet('status', '');
+        $invoices = $component->viewData('invoices');
+        $this->assertSame(
+            12,
+            $invoices->total(),
+        );
     }
 
     #[Test]
     public function empty_results_keep_filter_controls_available(): void
     {
-        Livewire::test(InvoiceList::class)->set('search', 'No match')
-            ->assertSeeHtml('id="invoice-business"')->assertSeeHtml('id="invoice-contact"')
-            ->assertViewHas('hasData', false)->call('resetFilters')->assertSet('search', '');
+        $component = Livewire::test(InvoiceList::class);
+        $component->set('search', 'No match');
+        $component->assertSeeHtml('id="invoice-business"');
+        $component->assertSeeHtml('id="invoice-contact"');
+        $component->assertViewHas('hasData', false);
+        $component->call('resetFilters');
+        $component->assertSet('search', '');
     }
 
     #[Test]
     public function sorts_due_dates_and_ignores_unknown_sort_columns(): void
     {
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'invoice_vs' => 'EARLY',
-            'issue_date' => '2026-01-10',
-            'due_in' => 5,
-            'created_at' => '2026-01-01',
-        ]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'invoice_vs' => 'LATER',
-            'issue_date' => '2026-01-01',
-            'due_in' => 30,
-            'created_at' => '2026-01-02',
-        ]);
-        Livewire::withQueryParams(['sort' => 'user_id desc; --'])->test(InvoiceList::class)
-            ->assertSeeInOrder(['LATER', 'EARLY'])->call('sortBy', 'due_date')->assertSeeInOrder(['EARLY', 'LATER'])
-            ->call('sortBy', 'due_date')->assertSeeInOrder(['LATER', 'EARLY']);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'invoice_vs' => 'EARLY',
+                'issue_date' => '2026-01-10',
+                'due_in' => 5,
+                'created_at' => '2026-01-01',
+            ],
+        );
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'invoice_vs' => 'LATER',
+                'issue_date' => '2026-01-01',
+                'due_in' => 30,
+                'created_at' => '2026-01-02',
+            ],
+        );
+        Livewire::withQueryParams(['sort' => 'user_id desc; --']);
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertSeeInOrder(['LATER', 'EARLY']);
+        $component->call('sortBy', 'due_date');
+        $component->assertSeeInOrder(['EARLY', 'LATER']);
+        $component->call('sortBy', 'due_date');
+        $component->assertSeeInOrder(['LATER', 'EARLY']);
     }
 
     #[Test]
     public function searches_invoice_numbers_and_links_stored_customers_to_contacts(): void
     {
-        $contact = Contact::factory()->create(['user_id' => $this->user->id]);
-        Invoice::factory()->create([
-            'user_id' => $this->user->id,
-            'contact_id' => $contact->id,
-            'invoice_vs' => 'LINKED-001',
-            'customer_name' => 'Stored Customer',
-        ]);
-        Invoice::factory()->create(['user_id' => $this->user->id, 'invoice_vs' => 'OTHER-002']);
-        Livewire::test(InvoiceList::class)->set('search', 'LINKED-001')->assertSee('Stored Customer')->assertDontSee('OTHER-002')
-            ->assertSeeHtml('href="' . route('frontend.contacts.show', ['locale' => app()->getLocale(), 'contact' => $contact->id]) . '"');
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'contact_id' => $contact->id,
+                'invoice_vs' => 'LINKED-001',
+                'customer_name' => 'Stored Customer',
+            ],
+        );
+        $invoiceFactory->create(['user_id' => $this->user->id, 'invoice_vs' => 'OTHER-002']);
+        $component = Livewire::test(InvoiceList::class);
+        $component->set('search', 'LINKED-001');
+        $component->assertSee('Stored Customer');
+        $component->assertDontSee('OTHER-002');
+        $application = app();
+        $component->assertSeeHtml(
+            'href="' . route(
+                'frontend.contacts.show',
+                ['locale' => $application->getLocale(), 'contact' => $contact->id],
+            ) . '"',
+        );
     }
 
     #[Test]
     public function rejects_guests(): void
     {
-        auth()->logout();
-        Livewire::test(InvoiceList::class)->assertForbidden();
+        $auth = auth();
+        $auth->logout();
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertForbidden();
     }
 
     #[Test]
     public function rejects_a_user_without_invoice_view_permission(): void
     {
-        $this->actingAs(User::factory()->create());
-        Livewire::test(InvoiceList::class)->assertForbidden();
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertForbidden();
     }
 }

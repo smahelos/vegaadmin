@@ -13,30 +13,40 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function can_create_database_health_alert(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create([
-            'alert_type' => 'memory',
-            'severity' => 'warning',
-            'message' => 'High memory usage detected',
-            'resolved' => false,
-        ]);
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $alert = $databaseHealthAlertFactory->create(
+            [
+                'alert_type' => 'memory',
+                'severity' => 'warning',
+                'message' => 'High memory usage detected',
+                'resolved' => false,
+            ],
+        );
 
-        $this->assertDatabaseHas('database_health_alerts', [
-            'id' => $alert->id,
-            'alert_type' => 'memory',
-            'severity' => 'warning',
-            'message' => 'High memory usage detected',
-            'resolved' => false,
-        ]);
+        $this->assertDatabaseHas(
+            'database_health_alerts',
+            [
+                'id' => $alert->id,
+                'alert_type' => 'memory',
+                'severity' => 'warning',
+                'message' => 'High memory usage detected',
+                'resolved' => false,
+            ],
+        );
     }
 
     #[Test]
     public function scope_unresolved_filters_correctly(): void
     {
 
-        DatabaseHealthAlert::factory()->resolved()->create();
-        $unresolvedAlert = DatabaseHealthAlert::factory()->unresolved()->create();
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $resolvedFactory = $databaseHealthAlertFactory->resolved();
+        $resolvedFactory->create();
+        $unresolvedFactory = $databaseHealthAlertFactory->unresolved();
+        $unresolvedAlert = $unresolvedFactory->create();
 
-        $results = DatabaseHealthAlert::unresolved()->get();
+        $alertQuery = DatabaseHealthAlert::unresolved();
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($unresolvedAlert->id, $results->first()->id);
@@ -47,10 +57,14 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function scope_severity_filters_correctly(): void
     {
 
-        DatabaseHealthAlert::factory()->info()->create();
-        $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $infoFactory = $databaseHealthAlertFactory->info();
+        $infoFactory->create();
+        $criticalFactory = $databaseHealthAlertFactory->critical();
+        $criticalAlert = $criticalFactory->create();
 
-        $results = DatabaseHealthAlert::severity('critical')->get();
+        $alertQuery = DatabaseHealthAlert::severity('critical');
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($criticalAlert->id, $results->first()->id);
@@ -61,15 +75,18 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function casts_work_correctly(): void
     {
 
-        $alert = DatabaseHealthAlert::factory()->create([
-            'metric_data' => [
-                'value' => 85.5,
-                'threshold' => 80,
-                'unit' => '%',
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $alert = $databaseHealthAlertFactory->create(
+            [
+                'metric_data' => [
+                    'value' => 85.5,
+                    'threshold' => 80,
+                    'unit' => '%',
+                ],
+                'resolved' => '1',
+                'resolved_at' => '2024-01-01 10:00:00',
             ],
-            'resolved' => '1',
-            'resolved_at' => '2024-01-01 10:00:00',
-        ]);
+        );
 
         $this->assertIsArray($alert->metric_data);
         $this->assertEquals([
@@ -86,11 +103,17 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function factory_states_work_correctly(): void
     {
 
-        $criticalAlert = DatabaseHealthAlert::factory()->critical()->create();
-        $warningAlert = DatabaseHealthAlert::factory()->warning()->create();
-        $infoAlert = DatabaseHealthAlert::factory()->info()->create();
-        $memoryAlert = DatabaseHealthAlert::factory()->memory()->create();
-        $diskAlert = DatabaseHealthAlert::factory()->disk()->create();
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $criticalFactory = $databaseHealthAlertFactory->critical();
+        $criticalAlert = $criticalFactory->create();
+        $warningFactory = $databaseHealthAlertFactory->warning();
+        $warningAlert = $warningFactory->create();
+        $infoFactory = $databaseHealthAlertFactory->info();
+        $infoAlert = $infoFactory->create();
+        $memoryFactory = $databaseHealthAlertFactory->memory();
+        $memoryAlert = $memoryFactory->create();
+        $diskFactory = $databaseHealthAlertFactory->disk();
+        $diskAlert = $diskFactory->create();
 
         $this->assertEquals('critical', $criticalAlert->severity);
         $this->assertFalse($criticalAlert->resolved);
@@ -110,11 +133,19 @@ class DatabaseHealthAlertFeatureTest extends TestCase
     public function can_combine_multiple_scopes(): void
     {
 
-        DatabaseHealthAlert::factory()->critical()->resolved()->create();
-        DatabaseHealthAlert::factory()->info()->unresolved()->create();
-        $targetAlert = DatabaseHealthAlert::factory()->critical()->unresolved()->create();
+        $databaseHealthAlertFactory = DatabaseHealthAlert::factory();
+        $criticalFactory = $databaseHealthAlertFactory->critical();
+        $resolvedFactory = $criticalFactory->resolved();
+        $resolvedFactory->create();
+        $infoFactory = $databaseHealthAlertFactory->info();
+        $infoFactory = $infoFactory->unresolved();
+        $infoFactory->create();
+        $unresolvedFactory = $criticalFactory->unresolved();
+        $targetAlert = $unresolvedFactory->create();
 
-        $results = DatabaseHealthAlert::unresolved()->severity('critical')->get();
+        $alertQuery = DatabaseHealthAlert::unresolved();
+        $alertQuery = $alertQuery->severity('critical');
+        $results = $alertQuery->get();
 
         $this->assertCount(1, $results);
         $this->assertEquals($targetAlert->id, $results->first()->id);

@@ -16,8 +16,15 @@ final class DashboardController extends Controller
 
     public function index(Request $request): View
     {
-        return view('frontend.dashboard', [
-            'dashboard' => $this->dashboardService->getDashboardData(UserId::fromInt($request->user('web')->id)),
-        ]);
+        return view(
+            'frontend.dashboard',
+            [
+                'dashboard' => $this->dashboardService->getDashboardData(
+                    UserId::fromInt(
+                        $request->user('web')->id,
+                    ),
+                ),
+            ],
+        );
     }
 }

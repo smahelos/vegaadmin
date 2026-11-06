@@ -4,10 +4,10 @@
     'amount' => null,
     'currency' => null,
     'decimals' => 2,
-    'locale' => app()->getLocale(),
+    'locale' => App::getLocale(),
 ])
 @php
-    $loc = $locale ?? app()->getLocale();
+    $loc = $locale ?? App::getLocale();
     $usesComma = in_array($loc, ['cs','sk','de']);
     $decSep = $usesComma ? ',' : '.';
     $thouSep = $usesComma ? ' ' : ',';

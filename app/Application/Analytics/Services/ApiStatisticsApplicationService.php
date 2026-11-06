@@ -73,7 +73,10 @@ final class ApiStatisticsApplicationService implements ApiStatisticsApplicationS
         );
 
         $rows = array_merge($revenue, $expenses);
-        usort($rows, static fn (array $a, array $b): int => strcmp((string) $a['month'], (string) $b['month']));
+        usort(
+            $rows,
+            static fn (array $a, array $b): int => strcmp((string) $a['month'], (string) $b['month']),
+        );
 
         return $rows;
     }

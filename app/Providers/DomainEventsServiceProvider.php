@@ -24,9 +24,14 @@ final class DomainEventsServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Register DomainEventDispatcher as singleton so it persists throughout the application lifecycle
-        $this->app->singleton(DomainEventDispatcher::class, function ($app) {
-            return new DomainEventDispatcher($app->make(LogInterface::class));
-        });
+        $this->app->singleton(
+            DomainEventDispatcher::class,
+            function ($app) {
+                return new DomainEventDispatcher(
+                    $app->make(LogInterface::class),
+                );
+            },
+        );
     }
 
     public function boot(): void

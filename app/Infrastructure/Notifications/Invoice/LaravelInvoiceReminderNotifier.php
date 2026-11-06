@@ -30,6 +30,7 @@ class LaravelInvoiceReminderNotifier implements InvoiceReminderNotifierInterface
         }
 
         // Send via on-demand notification to email
-        Notification::route('mail', $recipient->email)->notify($notification);
+        $notifiable = Notification::route('mail', $recipient->email);
+        $notifiable->notify($notification);
     }
 }

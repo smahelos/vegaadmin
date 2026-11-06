@@ -38,7 +38,9 @@ class SubscriptionPlanCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(SubscriptionPlan::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/subscription-plan');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/subscription-plan',
+        );
         CRUD::setEntityNameStrings(
             __('subscriptions.plans.entity.singular'),
             __('subscriptions.plans.entity.plural'),
@@ -46,8 +48,8 @@ class SubscriptionPlanCrudController extends CrudController
 
         // Configure access using centralized service
         $userId = optional(backpack_user())->id ?? 0;
-        app(CrudAccessServiceInterface::class)
-            ->configureCrudAccess($this->crud, (int) $userId);
+        $crudAccess = app(CrudAccessServiceInterface::class);
+        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
     }
 
     /**
@@ -55,53 +57,55 @@ class SubscriptionPlanCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::addColumns([
+        CRUD::addColumns(
             [
-                'name' => 'name',
-                'label' => __('subscriptions.plans.fields.name'),
-                'type' => 'text',
-            ],
-            [
-                'name' => 'price',
-                'label' => __('subscriptions.plans.fields.price'),
-                'type' => 'number',
-                'decimals' => 2,
-                'suffix' => ' CZK',
-            ],
-            [
-                'name' => 'currency',
-                'label' => __('subscriptions.plans.fields.currency'),
-                'type' => 'text',
-            ],
-            [
-                'name' => 'billing_period',
-                'label' => __('subscriptions.plans.fields.billing_period'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'monthly' => __('subscriptions.plans.billing_periods.monthly'),
-                    'yearly' => __('subscriptions.plans.billing_periods.yearly'),
+                [
+                    'name' => 'name',
+                    'label' => __('subscriptions.plans.fields.name'),
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'price',
+                    'label' => __('subscriptions.plans.fields.price'),
+                    'type' => 'number',
+                    'decimals' => 2,
+                    'suffix' => ' CZK',
+                ],
+                [
+                    'name' => 'currency',
+                    'label' => __('subscriptions.plans.fields.currency'),
+                    'type' => 'text',
+                ],
+                [
+                    'name' => 'billing_period',
+                    'label' => __('subscriptions.plans.fields.billing_period'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                        'yearly' => __('subscriptions.plans.billing_periods.yearly'),
+                    ],
+                ],
+                [
+                    'name' => 'billing_interval',
+                    'label' => __('subscriptions.plans.fields.billing_interval'),
+                    'type' => 'number',
+                ],
+                [
+                    'name' => 'trial_days',
+                    'label' => __('subscriptions.plans.fields.trial_days'),
+                    'type' => 'number',
+                ],
+                [
+                    'name' => 'is_active',
+                    'label' => __('subscriptions.plans.fields.is_active'),
+                    'type' => 'boolean',
+                    'options' => [
+                        0 => __('general.no'),
+                        1 => __('general.yes'),
+                    ],
                 ],
             ],
-            [
-                'name' => 'billing_interval',
-                'label' => __('subscriptions.plans.fields.billing_interval'),
-                'type' => 'number',
-            ],
-            [
-                'name' => 'trial_days',
-                'label' => __('subscriptions.plans.fields.trial_days'),
-                'type' => 'number',
-            ],
-            [
-                'name' => 'is_active',
-                'label' => __('subscriptions.plans.fields.is_active'),
-                'type' => 'boolean',
-                'options' => [
-                    0 => __('general.no'),
-                    1 => __('general.yes'),
-                ],
-            ],
-        ]);
+        );
 
         // Add filters
         if (backpack_pro()) {
@@ -149,93 +153,95 @@ class SubscriptionPlanCrudController extends CrudController
     {
         CRUD::setValidation(SubscriptionPlanRequest::class);
 
-        CRUD::addFields([
+        CRUD::addFields(
             [
-                'name' => 'name',
-                'label' => __('subscriptions.plans.fields.name'),
-                'type' => 'text',
-                'attributes' => [
-                    'placeholder' => __('subscriptions.plans.placeholders.name'),
+                [
+                    'name' => 'name',
+                    'label' => __('subscriptions.plans.fields.name'),
+                    'type' => 'text',
+                    'attributes' => [
+                        'placeholder' => __('subscriptions.plans.placeholders.name'),
+                    ],
+                ],
+                [
+                    'name' => 'description',
+                    'label' => __('subscriptions.plans.fields.description'),
+                    'type' => 'textarea',
+                    'attributes' => [
+                        'placeholder' => __('subscriptions.plans.placeholders.description'),
+                    ],
+                ],
+                [
+                    'name' => 'price',
+                    'label' => __('subscriptions.plans.fields.price'),
+                    'type' => 'number',
+                    'attributes' => [
+                        'step' => '0.01',
+                        'min' => '0',
+                        'placeholder' => __('subscriptions.plans.placeholders.price'),
+                    ],
+                ],
+                [
+                    'name' => 'currency',
+                    'label' => __('subscriptions.plans.fields.currency'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'CZK' => 'CZK',
+                        'EUR' => 'EUR',
+                        'USD' => 'USD',
+                    ],
+                    'default' => 'CZK',
+                ],
+                [
+                    'name' => 'billing_period',
+                    'label' => __('subscriptions.plans.fields.billing_period'),
+                    'type' => 'select_from_array',
+                    'options' => [
+                        'monthly' => __('subscriptions.plans.billing_periods.monthly'),
+                        'yearly' => __('subscriptions.plans.billing_periods.yearly'),
+                    ],
+                    'default' => 'monthly',
+                ],
+                [
+                    'name' => 'billing_interval',
+                    'label' => __('subscriptions.plans.fields.billing_interval'),
+                    'type' => 'number',
+                    'attributes' => [
+                        'min' => '1',
+                        'placeholder' => __('subscriptions.plans.placeholders.billing_interval'),
+                    ],
+                    'default' => 1,
+                ],
+                [
+                    'name' => 'trial_days',
+                    'label' => __('subscriptions.plans.fields.trial_days'),
+                    'type' => 'number',
+                    'attributes' => [
+                        'min' => '0',
+                        'placeholder' => __('subscriptions.plans.placeholders.trial_days'),
+                    ],
+                    'default' => 0,
+                ],
+                [
+                    'name' => 'features',
+                    'entity' => 'features',
+                    'label' => __('subscriptions.plans.fields.features'),
+                    'type' => 'checklist',
+                    'hint' => __('subscriptions.plans.hints.features'),
+                    'model' => SubscriptionPlanFeature::class,
+                    'attribute' => 'name',
+                    'pivot' => true,
+                    'show_select_all' => true,
+                    'number_of_columns' => 2,
+                ],
+                [
+                    'name' => 'is_active',
+                    'label' => __('subscriptions.plans.fields.is_active'),
+                    'type' => 'checkbox',
+                    'default' => true,
                 ],
             ],
-            [
-                'name' => 'description',
-                'label' => __('subscriptions.plans.fields.description'),
-                'type' => 'textarea',
-                'attributes' => [
-                    'placeholder' => __('subscriptions.plans.placeholders.description'),
-                ],
-            ],
-            [
-                'name' => 'price',
-                'label' => __('subscriptions.plans.fields.price'),
-                'type' => 'number',
-                'attributes' => [
-                    'step' => '0.01',
-                    'min' => '0',
-                    'placeholder' => __('subscriptions.plans.placeholders.price'),
-                ],
-            ],
-            [
-                'name' => 'currency',
-                'label' => __('subscriptions.plans.fields.currency'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'CZK' => 'CZK',
-                    'EUR' => 'EUR',
-                    'USD' => 'USD',
-                ],
-                'default' => 'CZK',
-            ],
-            [
-                'name' => 'billing_period',
-                'label' => __('subscriptions.plans.fields.billing_period'),
-                'type' => 'select_from_array',
-                'options' => [
-                    'monthly' => __('subscriptions.plans.billing_periods.monthly'),
-                    'yearly' => __('subscriptions.plans.billing_periods.yearly'),
-                ],
-                'default' => 'monthly',
-            ],
-            [
-                'name' => 'billing_interval',
-                'label' => __('subscriptions.plans.fields.billing_interval'),
-                'type' => 'number',
-                'attributes' => [
-                    'min' => '1',
-                    'placeholder' => __('subscriptions.plans.placeholders.billing_interval'),
-                ],
-                'default' => 1,
-            ],
-            [
-                'name' => 'trial_days',
-                'label' => __('subscriptions.plans.fields.trial_days'),
-                'type' => 'number',
-                'attributes' => [
-                    'min' => '0',
-                    'placeholder' => __('subscriptions.plans.placeholders.trial_days'),
-                ],
-                'default' => 0,
-            ],
-            [
-                'name' => 'features',
-                'entity' => 'features',
-                'label' => __('subscriptions.plans.fields.features'),
-                'type' => 'checklist',
-                'hint' => __('subscriptions.plans.hints.features'),
-                'model' => SubscriptionPlanFeature::class,
-                'attribute' => 'name',
-                'pivot' => true,
-                'show_select_all' => true,
-                'number_of_columns' => 2,
-            ],
-            [
-                'name' => 'is_active',
-                'label' => __('subscriptions.plans.fields.is_active'),
-                'type' => 'checkbox',
-                'default' => true,
-            ],
-        ]);
+        );
     }
 
     /**
@@ -253,32 +259,40 @@ class SubscriptionPlanCrudController extends CrudController
     {
         $this->setupListOperation();
 
-        CRUD::addColumn([
-            'name' => 'description',
-            'label' => __('subscriptions.plans.fields.description'),
-            'type' => 'textarea',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'description',
+                'label' => __('subscriptions.plans.fields.description'),
+                'type' => 'textarea',
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'features',
-            'label' => __('subscriptions.plans.fields.features'),
-            'type' => 'relationship',
-            'entity' => 'features',
-            'attribute' => 'name',
-            'limit' => 50,
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'features',
+                'label' => __('subscriptions.plans.fields.features'),
+                'type' => 'relationship',
+                'entity' => 'features',
+                'attribute' => 'name',
+                'limit' => 50,
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'created_at',
-            'label' => __('subscriptions.plans.fields.created_at'),
-            'type' => 'datetime',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'created_at',
+                'label' => __('subscriptions.plans.fields.created_at'),
+                'type' => 'datetime',
+            ],
+        );
 
-        CRUD::addColumn([
-            'name' => 'updated_at',
-            'label' => __('subscriptions.plans.fields.updated_at'),
-            'type' => 'datetime',
-        ]);
+        CRUD::addColumn(
+            [
+                'name' => 'updated_at',
+                'label' => __('subscriptions.plans.fields.updated_at'),
+                'type' => 'datetime',
+            ],
+        );
     }
 
     /**
@@ -299,11 +313,15 @@ class SubscriptionPlanCrudController extends CrudController
         $item = $this->crud->create($requestData);
 
         // Sync the features
-        if (! empty($features)) {
-            $item->features()->sync($features);
+        if (!empty($features)) {
+            $planFeatures = $item->features();
+            $planFeatures->sync($features);
         }
 
-        Alert::success(trans('backpack::crud.insert_success'))->flash();
+        $alerts = Alert::success(
+            trans('backpack::crud.insert_success'),
+        );
+        $alerts->flash();
 
         // Save the redirect choice for next time
         $this->crud->setSaveAction();
@@ -332,9 +350,13 @@ class SubscriptionPlanCrudController extends CrudController
         );
 
         // Sync the features
-        $item->features()->sync($features);
+        $planFeatures = $item->features();
+        $planFeatures->sync($features);
 
-        Alert::success(trans('backpack::crud.update_success'))->flash();
+        $alerts = Alert::success(
+            trans('backpack::crud.update_success'),
+        );
+        $alerts->flash();
 
         // Save the redirect choice for next time
         $this->crud->setSaveAction();

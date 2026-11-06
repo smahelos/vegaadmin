@@ -24,6 +24,7 @@ Public frontend: Blade layouts and components, Livewire 3 (which ships Alpine), 
 
 - Views receive DTOs and presenter output; they never query, call models or compute domain values (totals, due dates, statuses).
 - No `@php` blocks with logic; prepare the data in a presenter or a view component (`app/View/Components`).
+- PHP written in a template follows the chain and ternary rules of `php.md` (Readability). `tests/Feature/Architecture/BladeExpressionStyleTest.php` checks them on the compiled templates.
 - Every user-facing string goes through `__()` (`translations.md`). Money is formatted by `MoneyFormatterInterface` (via presenter or `<x-money>`), dates by a locale-aware formatter — never `number_format()` or a fixed `d.m.Y`.
 - Links use `route()` with the current locale.
 

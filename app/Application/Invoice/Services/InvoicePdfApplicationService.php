@@ -33,8 +33,11 @@ class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterf
         bool $preview = false,
     ): InvoiceActionResult {
         try {
-            $dto = $this->invoiceDtoReadRepository->findByIdForUser(InvoiceId::fromInt($invoiceId), UserId::fromInt($userId));
-            if (! $dto) {
+            $dto = $this->invoiceDtoReadRepository->findByIdForUser(
+                InvoiceId::fromInt($invoiceId),
+                UserId::fromInt($userId),
+            );
+            if (!$dto) {
                 throw new ModelNotFoundException('Invoice not accessible for user');
             }
             $printData = $this->printDataBuilder->build($dto);
@@ -45,9 +48,10 @@ class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterf
             );
             $filename = 'faktura-' . ($printData->number ?? (string) $invoiceId) . '.pdf';
             $response = $preview ? $pdf->stream($filename) : $pdf->download($filename);
+            $application = app();
             $response = $response->cookie(
                 'locale',
-                $locale ?? app()->getLocale(),
+                $locale ?? $application->getLocale(),
                 60 * 24 * 30,
             );
 
@@ -67,16 +71,23 @@ class InvoicePdfApplicationService implements InvoicePdfApplicationServiceInterf
         bool $preview = false,
     ): InvoiceActionResult {
         try {
-            if (! $token) {
-                $token = session()->get('last_guest_invoice_token');
-                if (! $token) {
+            if (!$token) {
+                $session = session();
+                $token = $session->get('last_guest_invoice_token');
+                if (!$token) {
                     return InvoiceActionResult::failure('invoices.messages.not_found');
                 }
             }
-            Log::info('Starting PDF generation with token: ' . substr($token, 0, 8) . '...');
+            Log::info(
+                'Starting PDF generation with token: ' . substr(
+                    $token,
+                    0,
+                    8,
+                ) . '...',
+            );
             // Use application-level store to retrieve guest invoice data
             $invoiceData = $this->temporaryInvoiceStore->get($token);
-            if (! $invoiceData) {
+            if (!$invoiceData) {
                 return InvoiceActionResult::failure('invoices.messages.expired');
             }
             $printData = $this->tempPrintDataFactory->fromArray($invoiceData);

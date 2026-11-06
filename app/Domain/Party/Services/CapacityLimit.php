@@ -51,11 +51,13 @@ final class CapacityLimit
         );
 
         if ($active >= $limit) {
-            throw new EntityLimitExceededException([
-                'entity_type' => $type->value,
-                'limit' => $limit,
-                'current_usage' => $active,
-            ]);
+            throw new EntityLimitExceededException(
+                [
+                    'entity_type' => $type->value,
+                    'limit' => $limit,
+                    'current_usage' => $active,
+                ],
+            );
         }
     }
 }

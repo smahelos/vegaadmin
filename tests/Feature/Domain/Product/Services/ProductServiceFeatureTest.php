@@ -67,7 +67,11 @@ class ProductServiceFeatureTest extends TestCase
             public function invalidateTags(array $tags): bool
             {
                 foreach ($this->tags as $k => $t) {
-                    if (count(array_intersect($t, $tags)) > 0) {
+                    if (
+                        count(
+                            array_intersect($t, $tags),
+                        ) > 0
+                    ) {
                         unset($this->store[$k], $this->tags[$k]);
                     }
                 }
@@ -87,7 +91,7 @@ class ProductServiceFeatureTest extends TestCase
 
             public function increment(string $key, int $amount): bool
             {
-                if (! array_key_exists($key, $this->store)) {
+                if (!array_key_exists($key, $this->store)) {
                     $this->store[$key] = 0;
                 } $this->store[$key] += $amount;
 
@@ -100,10 +104,12 @@ class ProductServiceFeatureTest extends TestCase
     public function get_form_data_returns_expected_structure_and_is_cached(): void
     {
         // Prepare data
-        ProductCategory::factory()->create(['name' => 'Electronics']);
-        ProductCategory::factory()->create(['name' => 'Books']);
-        Tax::factory()->create(['slug' => 'dph', 'rate' => 21]);
-        Tax::factory()->create(['slug' => 'other', 'rate' => 10]); // should be ignored
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create(['name' => 'Electronics']);
+        $productCategoryFactory->create(['name' => 'Books']);
+        $taxFactory = Tax::factory();
+        $taxFactory->create(['slug' => 'dph', 'rate' => 21]);
+        $taxFactory->create(['slug' => 'other', 'rate' => 10]); // should be ignored
 
         $cache = $this->makeCountingCache();
         $this->app->instance(CacheServiceInterface::class, $cache);
@@ -136,9 +142,11 @@ class ProductServiceFeatureTest extends TestCase
     {
         Cache::flush();
         // The service lists the whole table; start without the seeded categories
-        ProductCategory::query()->delete();
-        ProductCategory::factory()->create(['name' => 'Zeta']);
-        ProductCategory::factory()->create(['name' => 'Alpha']);
+        $productCategoryQuery = ProductCategory::query();
+        $productCategoryQuery->delete();
+        $productCategoryFactory = ProductCategory::factory();
+        $productCategoryFactory->create(['name' => 'Zeta']);
+        $productCategoryFactory->create(['name' => 'Alpha']);
 
         // Resolve Application service
         $service = app(ProductApplicationServiceInterface::class);
@@ -152,8 +160,13 @@ class ProductServiceFeatureTest extends TestCase
         $secondQueries = DB::getQueryLog();
 
         // Sorted asc by name
-        $this->assertSame(['Alpha', 'Zeta'], array_values($first));
+        $this->assertSame(
+            ['Alpha', 'Zeta'],
+            array_values($first),
+        );
         // Second call should hit cache and perform fewer (ideally zero) queries
-        $this->assertTrue(count($secondQueries) <= count($firstQueries));
+        $this->assertTrue(
+            count($secondQueries) <= count($firstQueries),
+        );
     }
 }

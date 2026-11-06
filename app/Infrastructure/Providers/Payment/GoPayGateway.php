@@ -20,13 +20,15 @@ class GoPayGateway implements PaymentGatewayInterface
     public function __construct(?Payments $payments = null)
     {
         // Allow injecting a fake/stub Payments instance for behavior tests without real credentials.
-        $this->gopay = $payments ?: Api::payments([
-            'goid' => config('services.gopay.goid'),
-            'clientId' => config('services.gopay.client_id'),
-            'clientSecret' => config('services.gopay.client_secret'),
-            'isProductionMode' => config('services.gopay.production', false),
-            'gatewayUrl' => config('services.gopay.gateway_url', 'https://gw.sandbox.gopay.com/'),
-        ]);
+        $this->gopay = $payments ?? Api::payments(
+            [
+                'goid' => config('services.gopay.goid'),
+                'clientId' => config('services.gopay.client_id'),
+                'clientSecret' => config('services.gopay.client_secret'),
+                'isProductionMode' => config('services.gopay.production', false),
+                'gatewayUrl' => config('services.gopay.gateway_url', 'https://gw.sandbox.gopay.com/'),
+            ],
+        );
     }
 
     /**
@@ -88,10 +90,13 @@ class GoPayGateway implements PaymentGatewayInterface
                 ];
             }
 
-            Log::error('GoPay payment creation failed', [
-                'order_id' => $paymentData['order_id'] ?? null,
-                'response' => $response->json,
-            ]);
+            Log::error(
+                'GoPay payment creation failed',
+                [
+                    'order_id' => $paymentData['order_id'] ?? null,
+                    'response' => $response->json,
+                ],
+            );
 
             return [
                 'success' => false,
@@ -100,10 +105,13 @@ class GoPayGateway implements PaymentGatewayInterface
             ];
 
         } catch (\Exception $e) {
-            Log::error('GoPay payment creation exception', [
-                'order_id' => $paymentData['order_id'] ?? null,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(
+                'GoPay payment creation exception',
+                [
+                    'order_id' => $paymentData['order_id'] ?? null,
+                    'error' => $e->getMessage(),
+                ],
+            );
 
             return [
                 'success' => false,
@@ -120,7 +128,7 @@ class GoPayGateway implements PaymentGatewayInterface
         try {
             $paymentId = $data['id'] ?? null;
 
-            if (! $paymentId) {
+            if (!$paymentId) {
                 return [
                     'success' => false,
                     'error' => 'Missing payment ID',
@@ -168,10 +176,13 @@ class GoPayGateway implements PaymentGatewayInterface
             ];
 
         } catch (\Exception $e) {
-            Log::error('GoPay payment verification failed', [
-                'payment_id' => $paymentId,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(
+                'GoPay payment verification failed',
+                [
+                    'payment_id' => $paymentId,
+                    'error' => $e->getMessage(),
+                ],
+            );
 
             return [
                 'success' => false,
@@ -191,10 +202,13 @@ class GoPayGateway implements PaymentGatewayInterface
             return $response->hasSucceed();
 
         } catch (\Exception $e) {
-            Log::error('GoPay payment cancellation failed', [
-                'payment_id' => $paymentId,
-                'error' => $e->getMessage(),
-            ]);
+            Log::error(
+                'GoPay payment cancellation failed',
+                [
+                    'payment_id' => $paymentId,
+                    'error' => $e->getMessage(),
+                ],
+            );
 
             return false;
         }

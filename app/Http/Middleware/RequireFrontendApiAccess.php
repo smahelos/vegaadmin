@@ -19,14 +19,15 @@ class RequireFrontendApiAccess
     public function handle(Request $request, Closure $next): Response
     {
         // Only check web guard - never mix with backpack
-        if (! Auth::guard('web')->check()) {
+        $guard = Auth::guard('web');
+        if (!$guard->check()) {
             return $this->unauthorized($request);
         }
 
-        $user = Auth::guard('web')->user();
+        $user = $guard->user();
 
         // Check if user has frontend API access permission
-        if (! $user->can('frontend.api.access')) {
+        if (!$user->can('frontend.api.access')) {
             return $this->forbidden($request);
         }
 
@@ -39,13 +40,23 @@ class RequireFrontendApiAccess
     private function unauthorized(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'error' => __('users.auth.unauthenticated'),
-                'code' => 401,
-            ], 401);
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                [
+                    'error' => __('users.auth.unauthenticated'),
+                    'code' => 401,
+                ],
+                401,
+            );
         }
 
-        return redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
+        $application = app();
+        $redirector = redirect();
+
+        return $redirector->guest(
+            route('frontend.login', ['locale' => $application->getLocale()]),
+        );
     }
 
     /**
@@ -54,12 +65,24 @@ class RequireFrontendApiAccess
     private function forbidden(Request $request): Response
     {
         if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'error' => __('users.auth.forbidden'),
-                'code' => 403,
-            ], 403);
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                [
+                    'error' => __('users.auth.forbidden'),
+                    'code' => 403,
+                ],
+                403,
+            );
         }
 
-        return redirect()->route('frontend.dashboard', ['locale' => app()->getLocale()])->with('error', __('users.auth.forbidden'));
+        $application = app();
+        $redirector = redirect();
+        $redirect = $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
+
+        return $redirect->with(
+            'error',
+            __('users.auth.forbidden'),
+        );
     }
 }

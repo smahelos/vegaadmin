@@ -50,7 +50,10 @@ final class BusinessForm extends Component
         }
 
         $this->requirePermission('frontend.can_update_business');
-        $business = $businesses->get($this->userId(), BusinessId::fromInt($businessId));
+        $business = $businesses->get(
+            $this->userId(),
+            BusinessId::fromInt($businessId),
+        );
 
         $this->businessId = $businessId;
         $this->party->fillFromProfile($business->profile);
@@ -60,7 +63,9 @@ final class BusinessForm extends Component
     public function save(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): void
     {
         $creating = $this->businessId === null;
-        $this->requirePermission($creating ? 'frontend.can_create_business' : 'frontend.can_update_business');
+        $this->requirePermission(
+            $creating ? 'frontend.can_create_business' : 'frontend.can_update_business',
+        );
         $this->limitMessage = null;
 
         $this->validate($this->rules());
@@ -71,7 +76,7 @@ final class BusinessForm extends Component
         }
 
         $profile = $this->party->profile();
-        if (! $this->passesDuplicateCheck($profile)) {
+        if (!$this->passesDuplicateCheck($profile)) {
             return;
         }
 
@@ -80,17 +85,19 @@ final class BusinessForm extends Component
 
         $saved = false;
         try {
-            $business = $creating
-                ? $businesses->create(
+            if ($creating) {
+                $business = $businesses->create(
                     $this->userId(),
                     $data,
                     $withAccount ? $this->account->writeData() : null,
-                )
-                : $businesses->update(
+                );
+            } else {
+                $business = $businesses->update(
                     $this->userId(),
                     BusinessId::fromInt($this->businessId),
                     $data,
                 );
+            }
             $saved = true;
         } catch (EntityLimitExceededException $e) {
             $this->limitMessage = __('businesses.messages.limit_exceeded');
@@ -101,7 +108,7 @@ final class BusinessForm extends Component
 
             return;
         } finally {
-            if (! $saved) {
+            if (!$saved) {
                 $this->discardNewLogo($logos, $logo);
             }
         }
@@ -110,19 +117,33 @@ final class BusinessForm extends Component
             $logos->delete($this->currentLogo);
         }
 
-        session()->flash('success', __($creating ? 'businesses.messages.created' : 'businesses.messages.updated'));
-        $this->redirectRoute('frontend.businesses.show', [
-            'locale' => app()->getLocale(),
-            'business' => $business->id->value,
-        ]);
+        $session = session();
+        $session->flash(
+            'success',
+            __(
+                $creating ? 'businesses.messages.created' : 'businesses.messages.updated',
+            ),
+        );
+        $application = app();
+        $this->redirectRoute(
+            'frontend.businesses.show',
+            [
+                'locale' => $application->getLocale(),
+                'business' => $business->id->value,
+            ],
+        );
     }
 
     public function render(): View
     {
-        return view('livewire.party.business-form', [
-            'countries' => $this->countryOptions(),
-            'bankOptions' => $this->bankOptions($this->account->country),
-        ]);
+        return view(
+            'livewire.party.business-form',
+            [
+                'countries' => $this->countryOptions(),
+                'cancelHref' => $this->cancelHref(),
+                'bankOptions' => $this->bankOptions($this->account->country),
+            ],
+        );
     }
 
     /**
@@ -150,7 +171,9 @@ final class BusinessForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        return app(BusinessApplicationService::class)->findDuplicates(
+        $businesses = app(BusinessApplicationService::class);
+
+        return $businesses->findDuplicates(
             $this->userId(),
             $profile,
             $this->businessId === null ? null : BusinessId::fromInt($this->businessId),
@@ -159,9 +182,26 @@ final class BusinessForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
-        return route('frontend.businesses.show', [
-            'locale' => app()->getLocale(),
-            'business' => $id->value,
-        ]);
+        $application = app();
+
+        return route(
+            'frontend.businesses.show',
+            [
+                'locale' => $application->getLocale(),
+                'business' => $id->value,
+            ],
+        );
+    }
+
+    private function cancelHref(): string
+    {
+        $application = app();
+        $locale = $application->getLocale();
+
+        if ($this->businessId === null) {
+            return route('frontend.businesses.index', ['locale' => $locale]);
+        }
+
+        return route('frontend.businesses.show', ['locale' => $locale, 'business' => $this->businessId]);
     }
 }

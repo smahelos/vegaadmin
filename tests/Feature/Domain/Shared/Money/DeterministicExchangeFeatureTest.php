@@ -26,17 +26,26 @@ class DeterministicExchangeFeatureTest extends TestCase
     {
         $service = app(CurrencyExchangeServiceInterface::class);
         $this->assertInstanceOf(CurrencyExchangeServiceInterface::class, $service);
-        $this->assertSame(1.0, $service->getExchangeRate('USD', 'USD'));
+        $this->assertSame(
+            1.0,
+            $service->getExchangeRate('USD', 'USD'),
+        );
     }
 
     #[Test]
     public function money_conversion_uses_deterministic_rates(): void
     {
         $eur = Money::fromString('100', 'EUR'); // baseRates: EUR=0.8, USD=1.0 => USD/EUR = 1.0/0.8 = 1.25
-        $usd = $eur->convertTo('USD', app(CurrencyExchangeServiceInterface::class));
+        $usd = $eur->convertTo(
+            'USD',
+            app(CurrencyExchangeServiceInterface::class),
+        );
         $this->assertSame('125', $usd->getAmount());
 
-        $czk = $usd->convertTo('CZK', app(CurrencyExchangeServiceInterface::class)); // CZK/USD = 20 / 1.0 = 20 -> 125 *20 = 2500
+        $czk = $usd->convertTo(
+            'CZK',
+            app(CurrencyExchangeServiceInterface::class),
+        ); // CZK/USD = 20 / 1.0 = 20 -> 125 *20 = 2500
         $this->assertSame('2500', $czk->getAmount());
     }
 
@@ -44,6 +53,8 @@ class DeterministicExchangeFeatureTest extends TestCase
     public function unknown_currency_returns_null_rate(): void
     {
         $service = app(CurrencyExchangeServiceInterface::class);
-        $this->assertNull($service->getExchangeRate('EUR', 'XYZ'));
+        $this->assertNull(
+            $service->getExchangeRate('EUR', 'XYZ'),
+        );
     }
 }

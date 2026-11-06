@@ -19,11 +19,12 @@ class PageController extends Controller
      */
     public function homepage(): View
     {
-        $locale = app()->getLocale();
+        $application = app();
+        $locale = $application->getLocale();
         $page = $this->pageService->getHomepage($locale);
 
         // If no published pages exist, show a default message
-        if (! $page) {
+        if (!$page) {
             return view('frontend.pages.homepage-empty');
         }
 
@@ -38,7 +39,16 @@ class PageController extends Controller
         // TODO: This should be dynamic, currently hardcoded to page ID 11
         $pricePage = $this->pageService->getPageContentById(11);
 
-        return view('frontend.pages.homepage', compact('page', 'locale', 'navigationPages', 'featurePages', 'pricePage'));
+        return view(
+            'frontend.pages.homepage',
+            compact(
+                'page',
+                'locale',
+                'navigationPages',
+                'featurePages',
+                'pricePage',
+            ),
+        );
     }
 
     /**
@@ -50,7 +60,14 @@ class PageController extends Controller
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.index', compact('pages', 'categoriesWithPages', 'navigationPages'));
+        return view(
+            'frontend.pages.index',
+            compact(
+                'pages',
+                'categoriesWithPages',
+                'navigationPages',
+            ),
+        );
     }
 
     /**
@@ -59,19 +76,25 @@ class PageController extends Controller
     public function show(string $locale, string $slug): View|RedirectResponse
     {
         // Set application locale from URL parameter
-        app()->setLocale($locale);
+        $application = app();
+        $application->setLocale($locale);
 
         $page = $this->pageService->getPageBySlug($slug, $locale);
 
-        if (! $page) {
-            abort(404, __('pages.page_not_found'));
+        if (!$page) {
+            abort(
+                404,
+                __('pages.page_not_found'),
+            );
         }
 
         // Check if the current URL slug matches the localized slug
         // If not, redirect to the correct URL for the current locale
         $localizedSlug = $page->slug[$locale] ?? null;
         if ($localizedSlug !== $slug) {
-            return redirect()->route('frontend.pages.show', [
+            $redirector = redirect();
+
+            return $redirector->route('frontend.pages.show', [
                 'locale' => $locale,
                 'slug' => $localizedSlug,
             ]);
@@ -86,13 +109,16 @@ class PageController extends Controller
         // Get navigation pages for menu
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.show', compact(
-            'page',
-            'breadcrumbs',
-            'relatedPages',
-            'navigationPages',
-            'locale',
-        ));
+        return view(
+            'frontend.pages.show',
+            compact(
+                'page',
+                'breadcrumbs',
+                'relatedPages',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -101,18 +127,30 @@ class PageController extends Controller
     public function categoryBySlug(string $locale, string $slug): View
     {
         // Set application locale from URL parameter
-        app()->setLocale($locale);
+        $application = app();
+        $application->setLocale($locale);
 
         $category = $this->pageService->getCategoryBySlug($slug, $locale);
 
-        if (! $category) {
-            abort(404, __('pages.category_not_found'));
+        if (!$category) {
+            abort(
+                404,
+                __('pages.category_not_found'),
+            );
         }
 
         $pages = $this->pageService->getPagesByCategory($category->id);
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.category', compact('pages', 'category', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.category',
+            compact(
+                'pages',
+                'category',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -120,20 +158,32 @@ class PageController extends Controller
      */
     public function category(string $categoryId, ?string $locale = null): View
     {
+        $application = app();
         // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? app()->getLocale();
-        app()->setLocale($locale);
+        $locale = $locale ?? $application->getLocale();
+        $application->setLocale($locale);
 
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);
 
         if ($pages->isEmpty()) {
-            abort(404, __('pages.category_not_found'));
+            abort(
+                404,
+                __('pages.category_not_found'),
+            );
         }
 
         $category = $pages->first()->category;
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.category', compact('pages', 'category', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.category',
+            compact(
+                'pages',
+                'category',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -141,9 +191,10 @@ class PageController extends Controller
      */
     public function search(Request $request, ?string $locale = null): View
     {
-        $locale = $locale ?? app()->getLocale();
+        $application = app();
+        $locale = $locale ?? $application->getLocale();
         // Set application locale
-        app()->setLocale($locale);
+        $application->setLocale($locale);
 
         $keyword = $request->get('q', '');
         $pages = collect();
@@ -154,7 +205,15 @@ class PageController extends Controller
 
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.search', compact('pages', 'keyword', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.search',
+            compact(
+                'pages',
+                'keyword',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 
     /**
@@ -162,13 +221,21 @@ class PageController extends Controller
      */
     public function sitemap(?string $locale = null): View
     {
+        $application = app();
         // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? app()->getLocale();
-        app()->setLocale($locale);
+        $locale = $locale ?? $application->getLocale();
+        $application->setLocale($locale);
 
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        return view('frontend.pages.sitemap', compact('categoriesWithPages', 'navigationPages', 'locale'));
+        return view(
+            'frontend.pages.sitemap',
+            compact(
+                'categoriesWithPages',
+                'navigationPages',
+                'locale',
+            ),
+        );
     }
 }

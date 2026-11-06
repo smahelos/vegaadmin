@@ -34,26 +34,34 @@ class InvoiceListRecent extends Component
             $query = Invoice::with([
                 'paymentMethod',
                 'paymentStatus',
-            ])
-                ->where('user_id', Auth::id())
-                ->latest();
+            ]);
+            $query->where('user_id', Auth::id());
+            $query->latest();
 
             $invoices = $query->paginate(5);
 
-            return view('livewire.invoice.invoice-list-recent', [
-                'invoices' => $invoices,
-                'hasData' => $invoices->total() > 0,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            return view(
+                'livewire.invoice.invoice-list-recent',
+                [
+                    'invoices' => $invoices,
+                    'hasData' => $invoices->total() > 0,
+                    'errorMessage' => $this->errorMessage,
+                ],
+            );
         } catch (Throwable $e) {
             Log::error('Loading recent invoices failed', ['exception' => $e]);
             $this->errorMessage = __('invoices.messages.error_loading');
 
-            return view('livewire.invoice.invoice-list-recent', [
-                'invoices' => Invoice::where('id', 0)->paginate(10), // Empty paginator
-                'hasData' => false,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            $query = Invoice::where('id', 0);
+
+            return view(
+                'livewire.invoice.invoice-list-recent',
+                [
+                    'invoices' => $query->paginate(10), // Empty paginator
+                    'hasData' => false,
+                    'errorMessage' => $this->errorMessage,
+                ],
+            );
         }
     }
 }

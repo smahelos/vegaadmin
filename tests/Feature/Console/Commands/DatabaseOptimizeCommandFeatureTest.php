@@ -23,11 +23,19 @@ final class DatabaseOptimizeCommandFeatureTest extends TestCase
         ]);
 
         $this->assertSame(0, $exitCode);
-        $this->assertDatabaseHas('database_maintenance_logs', [
-            'task_type' => 'optimize',
-            'table_name' => 'taxes',
-            'status' => 'completed',
-        ]);
-        $this->assertSame(1, DB::table('performance_metrics')->where('table_name', 'taxes')->count());
+        $this->assertDatabaseHas(
+            'database_maintenance_logs',
+            [
+                'task_type' => 'optimize',
+                'table_name' => 'taxes',
+                'status' => 'completed',
+            ],
+        );
+        $performanceMetricsQuery = DB::table('performance_metrics');
+        $performanceMetricsQuery->where('table_name', 'taxes');
+        $this->assertSame(
+            1,
+            $performanceMetricsQuery->count(),
+        );
     }
 }

@@ -22,27 +22,41 @@ class PageServiceCategoriesFeatureTest extends TestCase
     #[Test]
     public function returns_only_categories_with_published_pages(): void
     {
-        $catWithPages = PageCategory::factory()->create();
-        $catEmpty = PageCategory::factory()->create();
-        $catWithDraftOnly = PageCategory::factory()->create();
+        $pageCategoryFactory = PageCategory::factory();
+        $catWithPages = $pageCategoryFactory->create();
+        $catEmpty = $pageCategoryFactory->create();
+        $catWithDraftOnly = $pageCategoryFactory->create();
 
         // Published pages
-        Page::factory()->published()->inCategory($catWithPages)->create();
-        Page::factory()->published()->inCategory($catWithPages)->create();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
+        $categorizedFactory = $publishedFactory->inCategory($catWithPages);
+        $categorizedFactory->create();
+        $categorizedFactory->create();
 
         // Draft page (should not count)
-        Page::factory()->draft()->inCategory($catWithDraftOnly)->create();
+        $draftFactory = $pageFactory->draft();
+        $draftFactory = $draftFactory->inCategory($catWithDraftOnly);
+        $draftFactory->create();
 
         $categories = $this->service->getCategoriesWithPages();
 
         $this->assertInstanceOf(Collection::class, $categories);
-        $this->assertTrue($categories->contains('id', $catWithPages->id));
-        $this->assertFalse($categories->contains('id', $catEmpty->id));
-        $this->assertFalse($categories->contains('id', $catWithDraftOnly->id));
+        $this->assertTrue(
+            $categories->contains('id', $catWithPages->id),
+        );
+        $this->assertFalse(
+            $categories->contains('id', $catEmpty->id),
+        );
+        $this->assertFalse(
+            $categories->contains('id', $catWithDraftOnly->id),
+        );
 
         // Eager loaded pages are only published and ordered
         $returned = $categories->firstWhere('id', $catWithPages->id);
         $this->assertCount(2, $returned->pages);
-        $this->assertTrue($returned->pages->every(fn ($p) => $p->published));
+        $this->assertTrue(
+            $returned->pages->every(fn ($p) => $p->published),
+        );
     }
 }

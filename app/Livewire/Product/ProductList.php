@@ -102,26 +102,28 @@ class ProductList extends Component
     public function render(): View
     {
         try {
-            $query = Product::query()
-                ->where('user_id', Auth::id())
-                ->withCount('invoices');
+            $query = Product::query();
+            $query->where('user_id', Auth::id());
+            $query->withCount('invoices');
 
-            if (! empty($this->search)) {
-                $query->where(function ($q): void {
-                    $q->where(
-                        'name',
-                        'like',
-                        "%{$this->search}%",
-                    )
-                        ->orWhere(
+            if (!empty($this->search)) {
+                $query->where(
+                    function ($q): void {
+                        $q->where(
+                            'name',
+                            'like',
+                            "%{$this->search}%",
+                        );
+                        $q->orWhere(
                             'description',
                             'like',
                             "%{$this->search}%",
                         );
-                });
+                    },
+                );
             }
 
-            if (! empty($this->status)) {
+            if (!empty($this->status)) {
                 if ($this->status === 'active') {
                     $query->where('is_active', true);
                 } elseif ($this->status === 'inactive') {
@@ -133,19 +135,27 @@ class ProductList extends Component
 
             $products = $query->paginate(10);
 
-            return view('livewire.product.product-list', [
-                'products' => $products,
-                'hasData' => $products->total() > 0,
-            ]);
+            return view(
+                'livewire.product.product-list',
+                [
+                    'products' => $products,
+                    'hasData' => $products->total() > 0,
+                ],
+            );
         } catch (Throwable $e) {
             Log::error('Loading products failed', ['exception' => $e]);
             $this->errorMessage = __('products.messages.error_loading');
 
-            return view('livewire.product.product-list', [
-                'products' => Product::where('id', 0)->paginate(10), // Empty paginator
-                'hasData' => false,
-                'errorMessage' => $this->errorMessage,
-            ]);
+            $query = Product::where('id', 0);
+
+            return view(
+                'livewire.product.product-list',
+                [
+                    'products' => $query->paginate(10), // Empty paginator
+                    'hasData' => false,
+                    'errorMessage' => $this->errorMessage,
+                ],
+            );
         }
     }
 }

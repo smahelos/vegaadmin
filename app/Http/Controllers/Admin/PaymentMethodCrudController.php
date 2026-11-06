@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
@@ -19,7 +21,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  *
  * @property-read CrudPanel $crud
  */
-class PaymentMethodCrudController extends CrudController
+final class PaymentMethodCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
@@ -34,8 +36,13 @@ class PaymentMethodCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(PaymentMethod::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/payment-method');
-        CRUD::setEntityNameStrings(__('payment_methods.entity.singular'), __('payment_methods.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/payment-method',
+        );
+        CRUD::setEntityNameStrings(
+            __('payment_methods.entity.singular'),
+            __('payment_methods.entity.plural'),
+        );
     }
 
     /**
@@ -43,11 +50,26 @@ class PaymentMethodCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('payment_methods.fields.name'));
-        CRUD::column('slug')->label(__('payment_methods.fields.slug'));
-        CRUD::column('country')->label(__('payment_methods.fields.country'));
-        CRUD::column('currency')->label(__('payment_methods.fields.currency'));
-        CRUD::column('icon')->label(__('payment_methods.fields.icon'));
+        $column = CRUD::column('name');
+        $column->label(
+            __('payment_methods.fields.name'),
+        );
+        $column = CRUD::column('slug');
+        $column->label(
+            __('payment_methods.fields.slug'),
+        );
+        $column = CRUD::column('country');
+        $column->label(
+            __('payment_methods.fields.country'),
+        );
+        $column = CRUD::column('currency');
+        $column->label(
+            __('payment_methods.fields.currency'),
+        );
+        $column = CRUD::column('icon');
+        $column->label(
+            __('payment_methods.fields.icon'),
+        );
     }
 
     /**

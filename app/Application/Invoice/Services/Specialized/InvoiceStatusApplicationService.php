@@ -31,7 +31,7 @@ class InvoiceStatusApplicationService implements InvoiceStatusApplicationService
     ): InvoiceDTO {
         $invoice = $this->invoiceReadRepository->findForUser($userId->toInt(), $invoiceId->getValue());
 
-        if (! $invoice) {
+        if (!$invoice) {
             throw new ModelNotFoundException('Invoice not found or access denied');
         }
 

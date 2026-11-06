@@ -44,13 +44,17 @@ final class ContactApplicationService
 
     public function create(UserId $userId, ContactWriteData $data): ContactDTO
     {
-        return $this->transactions->transaction(function () use ($userId, $data): ContactDTO {
-            $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
-            $contact = $this->contactWriter->create($userId, $data);
-            $this->events->publish(new ContactCreated($contact->id, $userId));
+        return $this->transactions->transaction(
+            function () use ($userId, $data): ContactDTO {
+                $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
+                $contact = $this->contactWriter->create($userId, $data);
+                $this->events->publish(
+                    new ContactCreated($contact->id, $userId),
+                );
 
-            return $contact;
-        });
+                return $contact;
+            },
+        );
     }
 
     public function update(
@@ -58,25 +62,34 @@ final class ContactApplicationService
         ContactId $id,
         ContactWriteData $data,
     ): ContactDTO {
-        return $this->transactions->transaction(function () use ($userId, $id, $data): ContactDTO {
-            $this->get($userId, $id);
-            $contact = $this->contactWriter->update($id, $data);
-            $this->events->publish(new ContactUpdated($id, $userId));
+        return $this->transactions->transaction(
+            function () use ($userId, $id, $data): ContactDTO {
+                $this->get($userId, $id);
+                $contact = $this->contactWriter->update($id, $data);
+                $this->events->publish(
+                    new ContactUpdated($id, $userId),
+                );
 
-            return $contact;
-        });
+                return $contact;
+            },
+        );
     }
 
     public function archive(UserId $userId, ContactId $id): void
     {
-        $this->transactions->transaction(function () use ($userId, $id): void {
-            if ($this->get($userId, $id)->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $id): void {
+                $contact = $this->get($userId, $id);
+                if ($contact->isArchived()) {
+                    return;
+                }
 
-            $this->contactWriter->archive($id, $this->clock->now());
-            $this->events->publish(new ContactArchived($id, $userId));
-        });
+                $this->contactWriter->archive($id, $this->clock->now());
+                $this->events->publish(
+                    new ContactArchived($id, $userId),
+                );
+            },
+        );
     }
 
     /**
@@ -84,15 +97,20 @@ final class ContactApplicationService
      */
     public function restore(UserId $userId, ContactId $id): void
     {
-        $this->transactions->transaction(function () use ($userId, $id): void {
-            if (! $this->get($userId, $id)->isArchived()) {
-                return;
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $id): void {
+                $contact = $this->get($userId, $id);
+                if (!$contact->isArchived()) {
+                    return;
+                }
 
-            $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
-            $this->contactWriter->restore($id);
-            $this->events->publish(new ContactRestored($id, $userId));
-        });
+                $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
+                $this->contactWriter->restore($id);
+                $this->events->publish(
+                    new ContactRestored($id, $userId),
+                );
+            },
+        );
     }
 
     /**
@@ -129,10 +147,13 @@ final class ContactApplicationService
         PartyProfile $profile,
         ?ContactId $except,
     ): array {
-        return $this->duplicates->find($profile, $this->contacts->listPossibleDuplicates(
-            $userId,
+        return $this->duplicates->find(
             $profile,
-            $except,
-        ));
+            $this->contacts->listPossibleDuplicates(
+                $userId,
+                $profile,
+                $except,
+            ),
+        );
     }
 }

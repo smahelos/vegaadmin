@@ -43,12 +43,12 @@ $field['wrapper']['data-field-name'] = $field['wrapper']['data-field-name'] ?? $
         @foreach ($entry->{$field['name']} as $key => $file)
         <div class="file-item mb-2 d-flex align-items-center p-2 border rounded">
             @php
-            $fileUrl = method_exists($entry, 'getFileUrl') ? $entry->getFileUrl($field['name'], $key) : asset('storage/'
-            . $file);
+            $fileUrl = method_exists($entry, 'getFileUrl') ? $entry->getFileUrl($field['name'], $key) : asset('storage/' . $file);
             $fileService = app(\App\Domain\Shared\File\Contracts\FileUploadServiceInterface::class);
             $fileIcon = $fileService->getFileTypeIcon($file);
             $fileName = basename($file);
-            $fileSize = Storage::disk('public')->exists($file) ? Storage::disk('public')->size($file) : 0;
+            $disk = Storage::disk('public');
+            $fileSize = $disk->exists($file) ? $disk->size($file) : 0;
             $fileSizeKB = round($fileSize / 1024, 2);
             @endphp
 

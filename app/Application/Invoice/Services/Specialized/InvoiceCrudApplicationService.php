@@ -69,22 +69,29 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
                         $this->permissions->getUserPermissions($actorId->toInt(), 'backpack'),
                         true,
                     );
-                    if (! $unlimited) {
+                    if (!$unlimited) {
                         $check = $this->limits->checkLimit(
                             $userId->toInt(),
                             'invoice',
                             'count',
                             $this->limits->getBestPeriodType($userId->toInt(), 'invoice'),
                         );
-                        if (! $check['allowed']) {
+                        if (!$check['allowed']) {
                             throw new EntityLimitExceededException($check);
                         }
                     }
 
+                    $documentParties = $this->parties->assemble(
+                        $userId,
+                        $parties,
+                        null,
+                    );
+                    $documentParties = $documentParties->withSupplierLogo($logo);
+
                     return $this->invoiceService->createInvoice(
                         $userId,
                         $data,
-                        $this->parties->assemble($userId, $parties, null)->withSupplierLogo($logo),
+                        $documentParties,
                         $products,
                     );
                 },
@@ -110,7 +117,7 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
         $this->productOwnership->assertOwned($userId, $products ?? []);
         $business = $this->businesses->findByIdForUser($parties->businessId, $userId)
             ?? throw new BusinessNotFoundException($parties->businessId);
-        $keep = ! $parties->reloadBusiness && $stored->parties->businessId->equals($parties->businessId);
+        $keep = !$parties->reloadBusiness && $stored->parties->businessId->equals($parties->businessId);
 
         return $this->logos->saveWithLogo(
             $stored->parties->supplierLogo,
@@ -118,13 +125,22 @@ final class InvoiceCrudApplicationService implements InvoiceCrudApplicationServi
             $business->logo,
             null,
             fn (?string $logo): InvoiceDTO => $this->transaction->transaction(
-                fn (): InvoiceDTO => $this->invoiceService->updateInvoice(
-                    $userId,
-                    $invoiceId,
-                    $data,
-                    $this->parties->assemble($userId, $parties, $stored->parties)->withSupplierLogo($logo),
-                    $products,
-                ),
+                function () use ($userId, $invoiceId, $data, $parties, $stored, $products, $logo): InvoiceDTO {
+                    $documentParties = $this->parties->assemble(
+                        $userId,
+                        $parties,
+                        $stored->parties,
+                    );
+                    $documentParties = $documentParties->withSupplierLogo($logo);
+
+                    return $this->invoiceService->updateInvoice(
+                        $userId,
+                        $invoiceId,
+                        $data,
+                        $documentParties,
+                        $products,
+                    );
+                },
             ),
         );
     }

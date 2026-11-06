@@ -21,9 +21,15 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->setUpAdminTestEnvironment();
 
         // Define a temporary route using the request for testing (bypassing Backpack CRUD stack)
-        Route::post('/admin/entity-limit-test', function (EntityLimitRequest $request) {
-            return response()->json(['success' => true]);
-        })->middleware('web');
+        $route = Route::post(
+            '/admin/entity-limit-test',
+            function (EntityLimitRequest $request) {
+                $responseFactory = response();
+
+                return $responseFactory->json(['success' => true]);
+            },
+        );
+        $route->middleware('web');
     }
 
     #[Test]
@@ -47,7 +53,8 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->withoutMiddleware();
         $this->actingAs($this->adminUser, 'backpack');
         $response = $this->postJson('/admin/entity-limit-test', $payload);
-        $response->assertStatus(200)->assertJson(['success' => true]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['success' => true]);
     }
 
     #[Test]
@@ -58,13 +65,15 @@ class EntityLimitRequestFeatureTest extends TestCase
 
         $response = $this->postJson('/admin/entity-limit-test', []);
         $response->assertStatus(422);
-        $response->assertJsonValidationErrors([
-            'permission_name',
-            'entity_type',
-            'metric_type',
-            'period_type',
-            'limit_value',
-        ]);
+        $response->assertJsonValidationErrors(
+            [
+                'permission_name',
+                'entity_type',
+                'metric_type',
+                'period_type',
+                'limit_value',
+            ],
+        );
     }
 
     #[Test]
@@ -73,13 +82,16 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->withoutMiddleware();
         $this->actingAs($this->adminUser, 'backpack');
 
-        $response = $this->postJson('/admin/entity-limit-test', [
-            'permission_name' => 'test_limit_' . uniqid(),
-            'entity_type' => 'invalid_entity',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 10,
-        ]);
+        $response = $this->postJson(
+            '/admin/entity-limit-test',
+            [
+                'permission_name' => 'test_limit_' . uniqid(),
+                'entity_type' => 'invalid_entity',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 10,
+            ],
+        );
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['entity_type']);
@@ -92,22 +104,28 @@ class EntityLimitRequestFeatureTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
 
         $existingName = 'dup_limit_' . uniqid();
-        EntityLimit::factory()->create([
-            'permission_name' => $existingName,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 1,
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'permission_name' => $existingName,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 1,
+                'is_active' => true,
+            ],
+        );
 
-        $response = $this->postJson('/admin/entity-limit-test', [
-            'permission_name' => $existingName,
-            'entity_type' => 'invoice',
-            'metric_type' => 'count',
-            'period_type' => 'monthly',
-            'limit_value' => 2,
-        ]);
+        $response = $this->postJson(
+            '/admin/entity-limit-test',
+            [
+                'permission_name' => $existingName,
+                'entity_type' => 'invoice',
+                'metric_type' => 'count',
+                'period_type' => 'monthly',
+                'limit_value' => 2,
+            ],
+        );
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors(['permission_name']);
@@ -130,6 +148,7 @@ class EntityLimitRequestFeatureTest extends TestCase
         ];
 
         $response = $this->postJson('/admin/entity-limit-test', $payload);
-        $response->assertStatus(200)->assertJson(['success' => true]);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['success' => true]);
     }
 }

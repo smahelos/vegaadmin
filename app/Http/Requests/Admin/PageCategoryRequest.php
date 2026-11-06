@@ -15,7 +15,9 @@ class PageCategoryRequest extends FormRequest
     public function authorize(): bool
     {
         // Only allow updates if the user has permission to manage page categories
-        return backpack_user() && backpack_user()->can('can_create_edit_page');
+        $user = backpack_user();
+
+        return $user?->can('can_create_edit_page') === true;
     }
 
     /**
@@ -55,9 +57,11 @@ class PageCategoryRequest extends FormRequest
      */
     public function withValidator(Validator $validator): void
     {
-        $validator->after(function ($validator): void {
-            $this->validateAtLeastOneLocale($validator);
-        });
+        $validator->after(
+            function ($validator): void {
+                $this->validateAtLeastOneLocale($validator);
+            },
+        );
     }
 
     /**
@@ -78,28 +82,32 @@ class PageCategoryRequest extends FormRequest
             $nameValue = $this->input("name_{$locale}", '');
             $slugValue = $this->input("slug_{$locale}", '');
 
-            Log::debug("Checking locale {$locale}", [
-                'name_value' => $nameValue,
-                'slug_value' => $slugValue,
-                'name_empty' => empty(trim($nameValue)),
-                'slug_empty' => empty(trim($slugValue)),
-            ]);
+            Log::debug(
+                "Checking locale {$locale}",
+                [
+                    'name_value' => $nameValue,
+                    'slug_value' => $slugValue,
+                    'name_empty' => empty(trim($nameValue)),
+                    'slug_empty' => empty(trim($slugValue)),
+                ],
+            );
 
             // If both name and slug are filled for this locale, we have a valid locale
-            if (! empty(trim($nameValue)) && ! empty(trim($slugValue))) {
+            if (!empty(trim($nameValue)) && !empty(trim($slugValue))) {
                 $hasValidLocale = true;
                 Log::debug("Found valid locale: {$locale}");
                 break;
             }
         }
 
-        if (! $hasValidLocale) {
+        if (!$hasValidLocale) {
             Log::debug('No valid locale found, adding validation errors');
-            $validator->errors()->add(
+            $errors = $validator->errors();
+            $errors->add(
                 'name',
                 __('pages.categories.validation.at_least_one_locale'),
             );
-            $validator->errors()->add(
+            $errors->add(
                 'slug',
                 __('pages.categories.validation.at_least_one_locale'),
             );
@@ -112,18 +120,22 @@ class PageCategoryRequest extends FormRequest
     public function attributes(): array
     {
         $attributes = [];
-        foreach ([
-            'name',
-            'slug',
-            'description',
-        ] as $field) {
+        foreach (
+            [
+                'name',
+                'slug',
+                'description',
+            ] as $field
+        ) {
             $attributes[$field] = __("pages.categories.fields.$field");
-            foreach (config('app.available_locales', [
-                'cs',
-                'en',
-                'de',
-                'sk',
-            ]) as $locale) {
+            foreach (
+                config('app.available_locales', [
+                    'cs',
+                    'en',
+                    'de',
+                    'sk',
+                ]) as $locale
+            ) {
                 $attributes["{$field}_{$locale}"] = __("pages.categories.fields.$field") . ' (' . strtoupper($locale) . ')';
             }
         }
@@ -156,7 +168,7 @@ class PageCategoryRequest extends FormRequest
 
             if ($slugValue !== null) {
                 $mergeData['slug'][$locale] = $slugValue;
-            } elseif (! empty($nameValue)) {
+            } elseif (!empty($nameValue)) {
                 // Generate slug if name is provided but slug is empty
                 $mergeData['slug'][$locale] = Str::slug($nameValue);
             }
@@ -166,7 +178,7 @@ class PageCategoryRequest extends FormRequest
             }
         }
 
-        if (! empty($mergeData)) {
+        if (!empty($mergeData)) {
             $this->merge($mergeData);
         }
     }

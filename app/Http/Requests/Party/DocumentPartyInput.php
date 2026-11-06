@@ -55,16 +55,22 @@ final class DocumentPartyInput
         string $role,
         bool $addressRequired,
     ): array {
-        $rules = PartyInput::rules(self::fieldsOf($input, $role . '_'), fn (string $field): string => $field);
+        $rules = PartyInput::rules(
+            self::fieldsOf($input, $role . '_'),
+            fn (string $field): string => $field,
+        );
 
         $keyed = [];
         foreach (self::FIELDS as $field) {
             $fieldRules = $rules[$field];
-            if ($addressRequired && in_array(
-                $field,
-                self::ADDRESS_FIELDS,
-                true,
-            )) {
+            if (
+                $addressRequired
+                && in_array(
+                    $field,
+                    self::ADDRESS_FIELDS,
+                    true,
+                )
+            ) {
                 $fieldRules = ['required', ...$fieldRules];
             }
             $keyed[$role . '_' . $field] = $fieldRules;
@@ -99,7 +105,9 @@ final class DocumentPartyInput
                 PartyInput::country($fields, 'registration_country'),
                 PartyInput::text($fields, 'company_number'),
             ),
-            vatNumber: VatNumber::fromNullable(PartyInput::text($fields, 'vat_number')),
+            vatNumber: VatNumber::fromNullable(
+                PartyInput::text($fields, 'vat_number'),
+            ),
             address: Address::fromParts(
                 PartyInput::text($fields, 'street'),
                 PartyInput::text($fields, 'city'),
@@ -120,7 +128,7 @@ final class DocumentPartyInput
      */
     public static function accountRules(array $input, bool $bankTransfer): array
     {
-        if (! $bankTransfer) {
+        if (!$bankTransfer) {
             return array_fill_keys(
                 array_map(fn (string $field): string => 'account_' . $field, self::ACCOUNT_FIELDS),
                 ['exclude'],
@@ -153,7 +161,7 @@ final class DocumentPartyInput
     public static function account(array $input): ?DocumentAccountDTO
     {
         $fields = self::fieldsOf($input, 'account_');
-        if (! BankAccountInput::isFilled($fields)) {
+        if (!BankAccountInput::isFilled($fields)) {
             return null;
         }
 
@@ -178,7 +186,10 @@ final class DocumentPartyInput
         $fields = [];
         foreach ($input as $key => $value) {
             if (is_string($key) && str_starts_with($key, $prefix)) {
-                $fields[substr($key, strlen($prefix))] = $value;
+                $fields[substr(
+                    $key,
+                    strlen($prefix),
+                )] = $value;
             }
         }
 

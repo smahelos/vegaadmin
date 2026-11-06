@@ -15,16 +15,16 @@ final class InvoiceStatusFeatureTest extends TestCase
     #[Test]
     public function every_invoice_status_has_a_seeded_invoice_status_row(): void
     {
-        $slugs = DB::table('statuses')
-            ->join(
-                'status_categories',
-                'statuses.category_id',
-                '=',
-                'status_categories.id',
-            )
-            ->where('status_categories.slug', 'invoice-statuses')
-            ->pluck('statuses.slug')
-            ->all();
+        $statusesQuery = DB::table('statuses');
+        $statusesQuery->join(
+            'status_categories',
+            'statuses.category_id',
+            '=',
+            'status_categories.id',
+        );
+        $statusesQuery->where('status_categories.slug', 'invoice-statuses');
+        $statusesValues = $statusesQuery->pluck('statuses.slug');
+        $slugs = $statusesValues->all();
 
         $expected = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::cases());
         sort($expected);

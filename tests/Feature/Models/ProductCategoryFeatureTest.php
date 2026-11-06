@@ -13,36 +13,48 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_product_category(): void
     {
-        $category = ProductCategory::factory()->create([
-            'name' => 'Electronics',
-            'description' => 'Electronic products and devices',
-        ]);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create(
+            [
+                'name' => 'Electronics',
+                'description' => 'Electronic products and devices',
+            ],
+        );
 
-        $this->assertDatabaseHas('product_categories', [
-            'id' => $category->id,
-            'name' => 'Electronics',
-            'description' => 'Electronic products and devices',
-        ]);
+        $this->assertDatabaseHas(
+            'product_categories',
+            [
+                'id' => $category->id,
+                'name' => 'Electronics',
+                'description' => 'Electronic products and devices',
+            ],
+        );
     }
 
     #[Test]
     public function products_relationship_works_correctly(): void
     {
-        $category = ProductCategory::factory()->create();
-        $product1 = Product::factory()->create(['category_id' => $category->id]);
-        $product2 = Product::factory()->create(['category_id' => $category->id]);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['category_id' => $category->id]);
+        $product2 = $productFactory->create(['category_id' => $category->id]);
 
         // Create another product in different category to ensure proper filtering
-        $otherCategory = ProductCategory::factory()->create();
-        Product::factory()->create(['category_id' => $otherCategory->id]);
+        $otherCategory = $productCategoryFactory->create();
+        $productFactory->create(['category_id' => $otherCategory->id]);
 
         $relationship = $category->products();
         $this->assertInstanceOf(HasMany::class, $relationship);
 
         $products = $category->products;
         $this->assertCount(2, $products);
-        $this->assertTrue($products->contains($product1));
-        $this->assertTrue($products->contains($product2));
+        $this->assertTrue(
+            $products->contains($product1),
+        );
+        $this->assertTrue(
+            $products->contains($product2),
+        );
     }
 
     #[Test]
@@ -106,7 +118,8 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function can_delete_category_without_products(): void
     {
-        $category = ProductCategory::factory()->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
 
         $categoryId = $category->id;
         $category->delete();
@@ -117,9 +130,12 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function category_can_have_many_products(): void
     {
-        $category = ProductCategory::factory()->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
 
-        $products = Product::factory()->count(5)->create(['category_id' => $category->id]);
+        $productFactory = Product::factory();
+        $productFactory = $productFactory->count(5);
+        $products = $productFactory->create(['category_id' => $category->id]);
 
         $this->assertCount(5, $category->products);
 
@@ -131,7 +147,8 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function can_create_category_without_description(): void
     {
-        $category = ProductCategory::factory()->create([
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create([
             'name' => 'Simple Category',
             'description' => null,
         ]);
@@ -160,7 +177,8 @@ class ProductCategoryFeatureTest extends TestCase
     #[Test]
     public function factory_creates_valid_category_data(): void
     {
-        $category = ProductCategory::factory()->create();
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create();
 
         $this->assertNotEmpty($category->name);
         $this->assertNotEmpty($category->slug);

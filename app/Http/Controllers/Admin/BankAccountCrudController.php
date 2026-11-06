@@ -43,7 +43,9 @@ final class BankAccountCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(BankAccount::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/bank-account');
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/bank-account',
+        );
         CRUD::setEntityNameStrings(
             __('parties.bank_accounts.entity.singular'),
             __('parties.bank_accounts.entity.plural'),
@@ -65,7 +67,9 @@ final class BankAccountCrudController extends CrudController
 
     public function edit(int $id): View
     {
-        $this->authorizeOwner(BankAccount::query()->findOrFail($id));
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
+        $this->authorizeOwner($entry);
 
         return $this->editAccount($id);
     }
@@ -80,7 +84,10 @@ final class BankAccountCrudController extends CrudController
             $request->writeData(),
         );
 
-        Alert::success(trans('backpack::crud.insert_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.insert_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($account->id->value);
@@ -98,7 +105,10 @@ final class BankAccountCrudController extends CrudController
             $request->writeData(),
         );
 
-        Alert::success(trans('backpack::crud.update_success'))->flash();
+        $alerts = Alert::success(
+            __('backpack::crud.update_success'),
+        );
+        $alerts->flash();
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($entry->id);
@@ -106,7 +116,8 @@ final class BankAccountCrudController extends CrudController
 
     public function archive(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->archive(
             $this->userOf($entry),
@@ -114,49 +125,68 @@ final class BankAccountCrudController extends CrudController
             BankAccountId::fromInt($entry->id),
             null,
         );
-        Alert::success(__('parties.bank_accounts.messages.archived'))->flash();
+        $alerts = Alert::success(
+            __('parties.bank_accounts.messages.archived'),
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     public function restore(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->restore(
             $this->userOf($entry),
             $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
         );
-        Alert::success(__('parties.bank_accounts.messages.restored'))->flash();
+        $alerts = Alert::success(
+            __('parties.bank_accounts.messages.restored'),
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     public function setDefault(BankAccountApplicationService $accounts, int $id): RedirectResponse
     {
-        $entry = BankAccount::query()->findOrFail($id);
+        $accountQuery = BankAccount::query();
+        $entry = $accountQuery->findOrFail($id);
         $this->authorizeOwner($entry);
         $accounts->setDefault(
             $this->userOf($entry),
             $this->ownerOf($entry),
             BankAccountId::fromInt($entry->id),
         );
-        Alert::success(__('parties.bank_accounts.messages.default_changed'))->flash();
+        $alerts = Alert::success(
+            __('parties.bank_accounts.messages.default_changed'),
+        );
+        $alerts->flash();
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 
     protected function setupListOperation(): void
     {
-        if (backpack_user()?->can('can_view_business') !== true) {
+        $user = backpack_user();
+        if ($user?->can('can_view_business') !== true) {
             CRUD::addClause('whereNull', 'business_id');
         }
-        if (backpack_user()?->can('can_view_contact') !== true) {
+        if ($user?->can('can_view_contact') !== true) {
             CRUD::addClause('whereNull', 'contact_id');
         }
-        $businessId = request()->integer('business_id');
-        $contactId = request()->integer('contact_id');
+        $request = request();
+        $businessId = $request->integer('business_id');
+        $contactId = $request->integer('contact_id');
         if ($businessId > 0) {
             CRUD::addClause(
                 'where',
@@ -171,23 +201,53 @@ final class BankAccountCrudController extends CrudController
             );
         }
 
-        CRUD::column('owner')
-            ->label(__('parties.bank_accounts.fields.owner'))
-            ->type('closure')
-            ->function(fn (BankAccount $entry): string => e($entry->business->name ?? $entry->contact->name ?? ''))
-            ->escaped(false);
-        CRUD::column('label')->label(__('parties.bank_accounts.fields.label'));
-        CRUD::column('iban')->label(__('parties.bank_accounts.fields.iban'));
-        CRUD::column('number')->label(__('parties.bank_accounts.fields.number'));
-        CRUD::column('bank_code')->label(__('parties.bank_accounts.fields.bank_code'));
-        CRUD::column('default')
-            ->label(__('parties.bank_accounts.fields.default'))
-            ->type('closure')
-            ->function(fn (BankAccount $entry): string => $this->isDefault($entry) ? e(__('general.yes')) : '')
-            ->escaped(false);
-        CRUD::column('archived_at')
-            ->label(__('parties.statuses.archived'))
-            ->type('datetime');
+        $column = CRUD::column('owner');
+        $column->label(
+            __('parties.bank_accounts.fields.owner'),
+        );
+        $column->type('closure');
+        $column->function(
+            fn (BankAccount $entry): string => e($entry->business->name ?? $entry->contact->name ?? ''),
+        );
+        $column->escaped(false);
+        $column = CRUD::column('label');
+        $column->label(
+            __('parties.bank_accounts.fields.label'),
+        );
+        $column = CRUD::column('iban');
+        $column->label(
+            __('parties.bank_accounts.fields.iban'),
+        );
+        $column = CRUD::column('number');
+        $column->label(
+            __('parties.bank_accounts.fields.number'),
+        );
+        $column = CRUD::column('bank_code');
+        $column->label(
+            __('parties.bank_accounts.fields.bank_code'),
+        );
+        $column = CRUD::column('default');
+        $column->label(
+            __('parties.bank_accounts.fields.default'),
+        );
+        $column->type('closure');
+        $column->function(
+            function (BankAccount $entry): string {
+                if ($this->isDefault($entry)) {
+                    return e(
+                        __('general.yes'),
+                    );
+                }
+
+                return '';
+            },
+        );
+        $column->escaped(false);
+        $column = CRUD::column('archived_at');
+        $column->label(
+            __('parties.statuses.archived'),
+        );
+        $column->type('datetime');
 
         CRUD::addButton(
             'line',
@@ -201,12 +261,15 @@ final class BankAccountCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(BankAccountRequest::class);
-        CRUD::field('business_id')
-            ->type('hidden')
-            ->value(request()->integer('business_id') ?: null);
-        CRUD::field('contact_id')
-            ->type('hidden')
-            ->value(request()->integer('contact_id') ?: null);
+        $field = CRUD::field('business_id');
+        $field->type('hidden');
+        $request = request();
+        $businessId = $request->integer('business_id');
+        $field->value($businessId ?: null);
+        $field = CRUD::field('contact_id');
+        $field->type('hidden');
+        $contactId = $request->integer('contact_id');
+        $field->value($contactId ?: null);
         $this->addAccountFields();
     }
 
@@ -218,7 +281,13 @@ final class BankAccountCrudController extends CrudController
 
     private function addAccountFields(): void
     {
-        CRUD::addFields(PartyFormFields::bankAccount(app(CountryOptionsPresenter::class)->options(app()->getLocale())));
+        $application = app();
+        $presenter = app(CountryOptionsPresenter::class);
+        $countries = $presenter->options($application->getLocale());
+
+        CRUD::addFields(
+            PartyFormFields::bankAccount($countries),
+        );
     }
 
     /**
@@ -228,26 +297,38 @@ final class BankAccountCrudController extends CrudController
     {
         $businessId = $request->integer('business_id');
         if ($businessId > 0) {
-            $business = Business::query()->findOrFail($businessId);
+            $businessQuery = Business::query();
+            $business = $businessQuery->findOrFail($businessId);
 
             return [
                 'user' => UserId::fromInt($business->user_id),
-                'owner' => AccountOwner::business(BusinessId::fromInt($business->id)),
+                'owner' => AccountOwner::business(
+                    BusinessId::fromInt($business->id),
+                ),
             ];
         }
 
-        $contact = Contact::query()->findOrFail($request->integer('contact_id'));
+        $contactQuery = Contact::query();
+        $contact = $contactQuery->findOrFail(
+            $request->integer('contact_id'),
+        );
 
         return [
             'user' => UserId::fromInt($contact->user_id),
-            'owner' => AccountOwner::contact(ContactId::fromInt($contact->id)),
+            'owner' => AccountOwner::contact(
+                ContactId::fromInt($contact->id),
+            ),
         ];
     }
 
     private function authorizeOwner(BankAccount $entry): void
     {
         $permission = $entry->business_id !== null ? 'can_update_business' : 'can_update_contact';
-        abort_unless(backpack_user()?->can($permission) === true, 403);
+        $user = backpack_user();
+        abort_unless(
+            $user?->can($permission) === true,
+            403,
+        );
     }
 
     private function userOf(BankAccount $entry): UserId
@@ -260,9 +341,15 @@ final class BankAccountCrudController extends CrudController
 
     private function ownerOf(BankAccount $entry): AccountOwner
     {
-        return $entry->business_id !== null
-            ? AccountOwner::business(BusinessId::fromInt($entry->business_id))
-            : AccountOwner::contact(ContactId::fromInt($entry->contact_id));
+        if ($entry->business_id !== null) {
+            return AccountOwner::business(
+                BusinessId::fromInt($entry->business_id),
+            );
+        }
+
+        return AccountOwner::contact(
+            ContactId::fromInt($entry->contact_id),
+        );
     }
 
     private function isDefault(BankAccount $entry): bool

@@ -23,7 +23,8 @@ class ProductServiceTest extends TestCase
         parent::setUp();
 
         $this->productService = $this->app->make(ProductServiceInterface::class);
-        $this->user = User::factory()->create();
+        $userFactory = User::factory();
+        $this->user = $userFactory->create();
     }
 
     #[Test]
@@ -35,7 +36,10 @@ class ProductServiceTest extends TestCase
             description: 'Test description',
         );
 
-        $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
+        $product = $this->productService->createProduct(
+            $productData,
+            UserId::fromInt($this->user->id),
+        );
 
         $this->assertInstanceOf(ProductDTO::class, $product);
         $this->assertEquals('Test Product', $product->name);
@@ -52,7 +56,10 @@ class ProductServiceTest extends TestCase
             price: 50.00,
         );
 
-        $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
+        $product = $this->productService->createProduct(
+            $productData,
+            UserId::fromInt($this->user->id),
+        );
 
         $this->assertTrue($product->is_default);
     }
@@ -61,14 +68,18 @@ class ProductServiceTest extends TestCase
     public function second_product_is_not_default(): void
     {
         // Create first product
-        Product::factory()->create(['user_id' => $this->user->id, 'is_default' => true]);
+        $productFactory = Product::factory();
+        $productFactory->create(['user_id' => $this->user->id, 'is_default' => true]);
 
         $productData = new ProductWriteData(
             name: 'Second Product',
             price: 75.00,
         );
 
-        $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
+        $product = $this->productService->createProduct(
+            $productData,
+            UserId::fromInt($this->user->id),
+        );
 
         // Should be false or null, not true
         $this->assertNotTrue($product->is_default);
@@ -82,7 +93,10 @@ class ProductServiceTest extends TestCase
             price: 25.00,
         );
 
-        $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
+        $product = $this->productService->createProduct(
+            $productData,
+            UserId::fromInt($this->user->id),
+        );
 
         $this->assertEquals('test-product-name', $product->slug);
     }
@@ -96,7 +110,10 @@ class ProductServiceTest extends TestCase
             price: 25.00,
         );
 
-        $product = $this->productService->createProduct($productData, UserId::fromInt($this->user->id));
+        $product = $this->productService->createProduct(
+            $productData,
+            UserId::fromInt($this->user->id),
+        );
 
         $this->assertEquals('custom-slug', $product->slug);
     }
@@ -104,7 +121,8 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function can_update_product(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $updateData = new ProductWriteData(
             name: 'Updated Product',
@@ -112,7 +130,10 @@ class ProductServiceTest extends TestCase
             is_active: 1,
         );
 
-        $updatedProduct = $this->productService->updateProduct(ProductId::fromInt($product->id), $updateData);
+        $updatedProduct = $this->productService->updateProduct(
+            ProductId::fromInt($product->id),
+            $updateData,
+        );
 
         $this->assertEquals('Updated Product', $updatedProduct->name);
         $this->assertEquals(149.99, $updatedProduct->price->getAmount());
@@ -122,7 +143,8 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function handles_boolean_fields_correctly(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
         $updateData = new ProductWriteData(
             name: 'Test Product',
@@ -130,7 +152,10 @@ class ProductServiceTest extends TestCase
             is_active: false,
         );
 
-        $updatedProduct = $this->productService->updateProduct(ProductId::fromInt($product->id), $updateData);
+        $updatedProduct = $this->productService->updateProduct(
+            ProductId::fromInt($product->id),
+            $updateData,
+        );
 
         $this->assertTrue($updatedProduct->is_default);
         $this->assertFalse($updatedProduct->is_active);
@@ -139,9 +164,12 @@ class ProductServiceTest extends TestCase
     #[Test]
     public function can_delete_product(): void
     {
-        $product = Product::factory()->create(['user_id' => $this->user->id]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
 
-        $this->productService->deleteProduct(ProductId::fromInt($product->id));
+        $this->productService->deleteProduct(
+            ProductId::fromInt($product->id),
+        );
 
         $this->assertDatabaseMissing('products', ['id' => $product->id]);
     }

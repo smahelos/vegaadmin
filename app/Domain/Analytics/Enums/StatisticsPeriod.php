@@ -18,10 +18,10 @@ enum StatisticsPeriod: string
      */
     public function start(DateTimeImmutable $now): DateTimeImmutable
     {
-        return $now
-            ->modify('first day of this month')
-            ->modify('-' . $this->months() . ' months')
-            ->setTime(0, 0);
+        $start = $now->modify('first day of this month');
+        $start = $start->modify('-' . $this->months() . ' months');
+
+        return $start->setTime(0, 0);
     }
 
     private function months(): int

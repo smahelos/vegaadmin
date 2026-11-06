@@ -15,12 +15,14 @@ class SetLocaleFeatureTest extends TestCase
     {
         parent::setUp();
         $this->middleware = new SetLocale;
-        config(['app.available_locales' => [
-            'cs',
-            'en',
-            'de',
-            'sk',
-        ]]);
+        config(
+            ['app.available_locales' => [
+                'cs',
+                'en',
+                'de',
+                'sk',
+            ]],
+        );
         config(['app.locale' => 'cs']);
     }
 
@@ -28,16 +30,24 @@ class SetLocaleFeatureTest extends TestCase
     public function locale_from_first_url_segment_takes_priority(): void
     {
         $request = Request::create('/en/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $this->assertEquals('en', app()->getLocale());
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $application = app();
+        $this->assertEquals('en', $application->getLocale());
     }
 
     #[Test]
     public function unsupported_segment_falls_back_to_default(): void
     {
         $request = Request::create('/xx/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $this->assertEquals('cs', app()->getLocale());
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $application = app();
+        $this->assertEquals('cs', $application->getLocale());
     }
 
     #[Test]
@@ -45,7 +55,11 @@ class SetLocaleFeatureTest extends TestCase
     {
         session(['locale' => 'de']);
         $request = Request::create('/dashboard');
-        $this->middleware->handle($request, fn () => response('OK'));
-        $this->assertEquals('de', app()->getLocale());
+        $this->middleware->handle(
+            $request,
+            fn () => response('OK'),
+        );
+        $application = app();
+        $this->assertEquals('de', $application->getLocale());
     }
 }

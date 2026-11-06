@@ -6,6 +6,7 @@ namespace Tests\Feature\Console\Commands;
 
 use App\Models\Contact;
 use App\Models\Invoice;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
@@ -16,30 +17,44 @@ final class DatabaseArchiveCommandFeatureTest extends TestCase
     #[Test]
     public function archives_document_party_references_and_stored_one_off_data(): void
     {
-        $invoice = Invoice::factory()->create([
-            'created_at' => now()->subYears(4),
-            'supplier_name' => 'Stored issuing business',
-            'customer_name' => 'Stored one-off customer',
-            'contact_id' => null,
-        ]);
-        $contact = Contact::factory()->create(['user_id' => $invoice->user_id]);
-        $linked = Invoice::factory()->create([
-            'user_id' => $invoice->user_id,
-            'business_id' => $invoice->business_id,
-            'contact_id' => $contact->id,
-            'created_at' => now()->subYears(4),
-        ]);
+        $invoiceFactory = Invoice::factory();
+        $now = CarbonImmutable::now();
+        $invoice = $invoiceFactory->create(
+            [
+                'created_at' => $now->subYears(4),
+                'supplier_name' => 'Stored issuing business',
+                'customer_name' => 'Stored one-off customer',
+                'contact_id' => null,
+            ],
+        );
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $invoice->user_id]);
+        $linked = $invoiceFactory->create(
+            [
+                'user_id' => $invoice->user_id,
+                'business_id' => $invoice->business_id,
+                'contact_id' => $contact->id,
+                'created_at' => $now->subYears(4),
+            ],
+        );
 
-        $this->artisan('db:archive', ['--force' => true])->assertSuccessful();
+        $command = $this->pendingCommand('db:archive', ['--force' => true]);
+        $command->assertSuccessful();
+        $command->run();
 
         $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
-        $this->assertDatabaseHas('invoices_archive', [
-            'original_id' => $invoice->id,
-            'business_id' => $invoice->business_id,
-            'contact_id' => null,
-        ]);
+        $this->assertDatabaseHas(
+            'invoices_archive',
+            [
+                'original_id' => $invoice->id,
+                'business_id' => $invoice->business_id,
+                'contact_id' => null,
+            ],
+        );
         $this->assertDatabaseHas('invoices_archive', ['original_id' => $linked->id, 'contact_id' => $contact->id]);
-        $archive = DB::table('invoices_archive')->where('original_id', $invoice->id)->first();
+        $invoicesArchiveQuery = DB::table('invoices_archive');
+        $invoicesArchiveQuery->where('original_id', $invoice->id);
+        $archive = $invoicesArchiveQuery->first();
         $stored = json_decode(
             $archive->invoice_data,
             true,

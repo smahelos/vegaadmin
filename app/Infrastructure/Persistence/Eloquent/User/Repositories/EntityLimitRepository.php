@@ -14,40 +14,48 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             return [];
         }
 
-        $rows = DB::table('entity_limits')
-            ->select(
-                'permission_name',
-                'entity_type',
-                'metric_type',
-                'period_type',
-                'limit_value',
-            )
-            ->whereIn('permission_name', $permissionNames)
-            ->where('is_active', 1)
-            ->get();
+        $query = DB::table('entity_limits');
+        $query->select(
+            'permission_name',
+            'entity_type',
+            'metric_type',
+            'period_type',
+            'limit_value',
+        );
+        $query->whereIn('permission_name', $permissionNames);
+        $query->where('is_active', 1);
+        $rows = $query->get();
 
-        return $rows->map(fn ($row) => [
-            'permission_name' => $row->permission_name,
-            'entity_type' => $row->entity_type,
-            'metric_type' => $row->metric_type,
-            'period_type' => $row->period_type,
-            'limit_value' => (int) $row->limit_value,
-        ])->all();
+        $limits = $rows->map(
+            fn ($row) => [
+                'permission_name' => $row->permission_name,
+                'entity_type' => $row->entity_type,
+                'metric_type' => $row->metric_type,
+                'period_type' => $row->period_type,
+                'limit_value' => (int) $row->limit_value,
+            ],
+        );
+
+        return $limits->all();
     }
 
     public function getPermissionNamesForEntity(string $entityType, bool $includeInactive = true): array
     {
-        $query = DB::table('entity_limits')
-            ->select('permission_name')
-            ->where('entity_type', $entityType)
-            ->whereNotNull('permission_name')
-            ->distinct();
+        $query = DB::table('entity_limits');
+        $query->select('permission_name');
+        $query->where('entity_type', $entityType);
+        $query->whereNotNull('permission_name');
+        $query->distinct();
 
-        if (! $includeInactive) {
+        if (!$includeInactive) {
             $query->where('is_active', 1);
         }
 
-        return $query->pluck('permission_name')->filter()->values()->all();
+        $names = $query->pluck('permission_name');
+        $names = $names->filter();
+        $names = $names->values();
+
+        return $names->all();
     }
 
     public function getActiveByPermissionsFiltered(
@@ -60,28 +68,32 @@ class EntityLimitRepository implements EntityLimitRepositoryInterface
             return [];
         }
 
-        $rows = DB::table('entity_limits')
-            ->select(
-                'permission_name',
-                'entity_type',
-                'metric_type',
-                'period_type',
-                'limit_value',
-            )
-            ->whereIn('permission_name', $permissionNames)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where('is_active', 1)
-            ->get();
+        $query = DB::table('entity_limits');
+        $query->select(
+            'permission_name',
+            'entity_type',
+            'metric_type',
+            'period_type',
+            'limit_value',
+        );
+        $query->whereIn('permission_name', $permissionNames);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where('is_active', 1);
+        $rows = $query->get();
 
-        return $rows->map(fn ($row) => [
-            'permission_name' => $row->permission_name,
-            'entity_type' => $row->entity_type,
-            'metric_type' => $row->metric_type,
-            'period_type' => $row->period_type,
-            'limit_value' => (int) $row->limit_value,
-        ])->all();
+        $limits = $rows->map(
+            fn ($row) => [
+                'permission_name' => $row->permission_name,
+                'entity_type' => $row->entity_type,
+                'metric_type' => $row->metric_type,
+                'period_type' => $row->period_type,
+                'limit_value' => (int) $row->limit_value,
+            ],
+        );
+
+        return $limits->all();
     }
 
     /**

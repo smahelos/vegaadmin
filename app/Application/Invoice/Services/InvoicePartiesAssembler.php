@@ -58,9 +58,9 @@ final class InvoicePartiesAssembler
         ?DocumentParties $stored,
     ): DocumentParties {
         $keepBusiness = $stored !== null &&
-            ! $selection->reloadBusiness &&
+            !$selection->reloadBusiness &&
             $stored->businessId->equals($selection->businessId);
-        $copyBusiness = ! $keepBusiness;
+        $copyBusiness = !$keepBusiness;
 
         $supplier = $this->businesses->assemble(
             $userId,
@@ -115,15 +115,15 @@ final class InvoicePartiesAssembler
         }
 
         $isStored = $this->isStored($accountId, $stored?->bankAccountId);
-        if ($isStored && ! $copyBusiness && $stored?->account !== null) {
+        if ($isStored && !$copyBusiness && $stored?->account !== null) {
             return $stored->account;
         }
 
         $account = $this->accounts->get($userId, $accountId);
-        if ($account->owner->businessId === null || ! $account->owner->businessId->equals($selection->businessId)) {
+        if ($account->owner->businessId === null || !$account->owner->businessId->equals($selection->businessId)) {
             throw new BankAccountNotFoundException($accountId);
         }
-        if ($account->isArchived() && ! $isStored) {
+        if ($account->isArchived() && !$isStored) {
             throw new ArchivedReferenceSelectedException($accountId);
         }
 
@@ -132,7 +132,10 @@ final class InvoicePartiesAssembler
 
     private function saveToContacts(UserId $userId, DocumentPartyDTO $customer): ContactId
     {
-        return $this->contacts->create($userId, new ContactWriteData($customer->toProfile(), null))->id;
+        return $this->contacts->create(
+            $userId,
+            new ContactWriteData($customer->toProfile(), null),
+        )->id;
     }
 
     private function isStored(

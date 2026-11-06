@@ -31,7 +31,10 @@ class DddGuardRootTraitsRuleTest extends TestCase
     {
         // Test the original path, not our process-specific one
         $originalTraitsPath = base_path('app/Traits');
-        $this->assertFalse(is_dir($originalTraitsPath), 'Legacy app/Traits directory must stay removed.');
+        $this->assertFalse(
+            is_dir($originalTraitsPath),
+            'Legacy app/Traits directory must stay removed.',
+        );
     }
 
     #[Test]
@@ -49,13 +52,17 @@ class DddGuardRootTraitsRuleTest extends TestCase
 
         // Temporarily override config to use our process-specific path
         $originalConfig = config('ddd_guard.forbidden_paths');
-        $modifiedConfig = collect($originalConfig)->map(function ($path) {
-            if (isset($path['path']) && $path['path'] === base_path('app/Traits')) {
-                $path['path'] = $this->traitsPath;
-            }
+        $collection = collect($originalConfig);
+        $mapped = $collection->map(
+            function ($path) {
+                if (isset($path['path']) && $path['path'] === base_path('app/Traits')) {
+                    $path['path'] = $this->traitsPath;
+                }
 
-            return $path;
-        })->toArray();
+                return $path;
+            },
+        );
+        $modifiedConfig = $mapped->toArray();
 
         config(['ddd_guard.forbidden_paths' => $modifiedConfig]);
 

@@ -25,14 +25,25 @@ class FrontendAuthFeatureTest extends TestCase
     #[Test]
     public function web_guard_authenticates_user_and_permissions_work(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $user->givePermissionTo('view_dashboard');
         $this->actingAs($user, 'web');
 
-        $this->assertTrue(auth('web')->check());
-        $this->assertEquals($user->id, auth('web')->id());
-        $this->assertTrue($user->hasPermissionTo('view_dashboard', 'web'));
-        $this->assertFalse($user->hasPermissionTo('manage_users', 'web'));
+        $auth = auth('web');
+        $this->assertTrue(
+            $auth->check(),
+        );
+        $this->assertEquals(
+            $user->id,
+            $auth->id(),
+        );
+        $this->assertTrue(
+            $user->hasPermissionTo('view_dashboard', 'web'),
+        );
+        $this->assertFalse(
+            $user->hasPermissionTo('manage_users', 'web'),
+        );
     }
 
     #[Test]
@@ -41,7 +52,11 @@ class FrontendAuthFeatureTest extends TestCase
         $request = request();
         $request->headers->set('X-Requested-With', 'XMLHttpRequest');
 
-        $response = response()->json(['error' => __('users.auth.unauthorized'), 'code' => 401], 401);
+        $responseFactory = response();
+        $response = $responseFactory->json(
+            ['error' => __('users.auth.unauthorized'), 'code' => 401],
+            401,
+        );
         $this->assertInstanceOf(JsonResponse::class, $response);
         $data = $response->getData(true);
         $this->assertArrayHasKey('error', $data);
@@ -51,7 +66,11 @@ class FrontendAuthFeatureTest extends TestCase
     #[Test]
     public function unauthorized_redirect_for_regular_request(): void
     {
-        $response = redirect()->guest(route('frontend.login', ['locale' => app()->getLocale()]));
+        $redirector = redirect();
+        $application = app();
+        $response = $redirector->guest(
+            route('frontend.login', ['locale' => $application->getLocale()]),
+        );
         $this->assertInstanceOf(RedirectResponse::class, $response);
         $this->assertEquals(302, $response->getStatusCode());
     }

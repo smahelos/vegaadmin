@@ -30,14 +30,16 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
     public function __construct(?array $baseRates = null, string $canonicalBase = 'USD')
     {
         $this->canonicalBase = strtoupper($canonicalBase);
-        $this->baseRates = $this->sanitizeRates($baseRates ?? [
-            'USD' => 1.0,
-            'EUR' => 0.8,
-            'CZK' => 20.0,
-            'GBP' => 0.7,
-            'PLN' => 3.9,
-        ]);
-        if (! isset($this->baseRates[$this->canonicalBase])) {
+        $this->baseRates = $this->sanitizeRates(
+            $baseRates ?? [
+                'USD' => 1.0,
+                'EUR' => 0.8,
+                'CZK' => 20.0,
+                'GBP' => 0.7,
+                'PLN' => 3.9,
+            ],
+        );
+        if (!isset($this->baseRates[$this->canonicalBase])) {
             // Ensure canonical base always present as 1.0 reference
             $this->baseRates[$this->canonicalBase] = 1.0;
         }
@@ -51,7 +53,7 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         if ($fromCurrency === $toCurrency) {
             return 1.0;
         }
-        if (! isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
+        if (!isset($this->baseRates[$fromCurrency], $this->baseRates[$toCurrency])) {
             return null;
         }
 
@@ -82,10 +84,10 @@ class DeterministicCurrencyExchangeService implements CurrencyExchangeServiceInt
         $clean = [];
         foreach ($rates as $code => $value) {
             $uc = strtoupper($code);
-            if (! preg_match('/^[A-Z]{3}$/', $uc)) {
+            if (!preg_match('/^[A-Z]{3}$/', $uc)) {
                 continue;
             }
-            if (! is_numeric($value) || $value <= 0) {
+            if (!is_numeric($value) || $value <= 0) {
                 continue;
             }
             $clean[$uc] = (float) $value;

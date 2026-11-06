@@ -4,13 +4,16 @@ namespace Tests\Feature\Domain\Payment\Services;
 
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
+use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Mockery;
 use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Fakes\Shared\RecordingLog;
 use Tests\TestCase;
 
 class SubscriptionPaymentServiceFeatureTest extends TestCase
@@ -53,30 +56,37 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
     public function process_subscription_payment_with_invalid_gateway_returns_error(): void
     {
         $uniqueId = uniqid();
-        $user = User::create([
-            'name' => 'Test User ' . $uniqueId,
-            'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password',
-        ]);
+        $user = User::create(
+            [
+                'name' => 'Test User ' . $uniqueId,
+                'email' => 'test' . $uniqueId . '@example.com',
+                'password' => 'password',
+            ],
+        );
 
-        $subscriptionPlan = SubscriptionPlan::create([
-            'name' => 'Test Plan ' . $uniqueId,
-            'slug' => 'test-plan-' . $uniqueId,
-            'price' => 29.99,
-            'currency' => 'EUR',
-            'billing_period' => 'monthly',
-            'is_active' => true,
-        ]);
+        $subscriptionPlan = SubscriptionPlan::create(
+            [
+                'name' => 'Test Plan ' . $uniqueId,
+                'slug' => 'test-plan-' . $uniqueId,
+                'price' => 29.99,
+                'currency' => 'EUR',
+                'billing_period' => 'monthly',
+                'is_active' => true,
+            ],
+        );
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $subscriptionPlan->id,
-            'status' => 'active',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-            'starts_at' => now(),
-            'ends_at' => now()->addMonth(),
-        ]);
+        $now = CarbonImmutable::now();
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'status' => 'active',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
+            ],
+        );
 
         $result = $this->service->processSubscriptionPayment(
             $subscription->id,
@@ -93,30 +103,37 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
     public function cancel_subscription_payment_with_no_payments_returns_true(): void
     {
         $uniqueId = uniqid();
-        $user = User::create([
-            'name' => 'Test User ' . $uniqueId,
-            'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password',
-        ]);
+        $user = User::create(
+            [
+                'name' => 'Test User ' . $uniqueId,
+                'email' => 'test' . $uniqueId . '@example.com',
+                'password' => 'password',
+            ],
+        );
 
-        $subscriptionPlan = SubscriptionPlan::create([
-            'name' => 'Test Plan ' . $uniqueId,
-            'slug' => 'test-plan-' . $uniqueId,
-            'price' => 29.99,
-            'currency' => 'EUR',
-            'billing_period' => 'monthly',
-            'is_active' => true,
-        ]);
+        $subscriptionPlan = SubscriptionPlan::create(
+            [
+                'name' => 'Test Plan ' . $uniqueId,
+                'slug' => 'test-plan-' . $uniqueId,
+                'price' => 29.99,
+                'currency' => 'EUR',
+                'billing_period' => 'monthly',
+                'is_active' => true,
+            ],
+        );
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $subscriptionPlan->id,
-            'status' => 'active',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-            'starts_at' => now(),
-            'ends_at' => now()->addMonth(),
-        ]);
+        $now = CarbonImmutable::now();
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'status' => 'active',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
+            ],
+        );
 
         $result = $this->service->cancelSubscriptionPayment($subscription->id);
 
@@ -128,44 +145,93 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
     public function cancel_subscription_payment_with_completed_payment_returns_true(): void
     {
         $uniqueId = uniqid();
-        $user = User::create([
-            'name' => 'Test User ' . $uniqueId,
-            'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password',
-        ]);
+        $user = User::create(
+            [
+                'name' => 'Test User ' . $uniqueId,
+                'email' => 'test' . $uniqueId . '@example.com',
+                'password' => 'password',
+            ],
+        );
 
-        $subscriptionPlan = SubscriptionPlan::create([
-            'name' => 'Test Plan ' . $uniqueId,
-            'slug' => 'test-plan-' . $uniqueId,
-            'price' => 29.99,
-            'currency' => 'EUR',
-            'billing_period' => 'monthly',
-            'is_active' => true,
-        ]);
+        $subscriptionPlan = SubscriptionPlan::create(
+            [
+                'name' => 'Test Plan ' . $uniqueId,
+                'slug' => 'test-plan-' . $uniqueId,
+                'price' => 29.99,
+                'currency' => 'EUR',
+                'billing_period' => 'monthly',
+                'is_active' => true,
+            ],
+        );
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $subscriptionPlan->id,
-            'status' => 'active',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-            'starts_at' => now(),
-            'ends_at' => now()->addMonth(),
-        ]);
+        $now = CarbonImmutable::now();
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'status' => 'active',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
+            ],
+        );
 
-        Payment::create([
-            'subscription_id' => $subscription->id,
-            'status' => 'completed',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-            'gateway' => 'test',
-            'gateway_payment_id' => 'test_payment_' . $uniqueId,
-        ]);
+        Payment::create(
+            [
+                'subscription_id' => $subscription->id,
+                'status' => 'completed',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+                'gateway' => 'test',
+                'gateway_payment_id' => 'test_payment_' . $uniqueId,
+            ],
+        );
 
         $result = $this->service->cancelSubscriptionPayment($subscription->id);
 
         // Service returns true - only pending/processing payments are cancelled
         $this->assertTrue($result);
+    }
+
+    #[Test]
+    public function cancelling_logs_how_many_pending_payments_it_cancelled(): void
+    {
+        $log = new RecordingLog;
+        $this->app->instance(LogInterface::class, $log);
+        $service = app(SubscriptionPaymentServiceInterface::class);
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create(['status' => 'active']);
+        foreach (
+            [
+                'pending',
+                'processing',
+                'completed',
+            ] as $status
+        ) {
+            Payment::create(
+                [
+                    'subscription_id' => $subscription->id,
+                    'status' => $status,
+                    'amount' => '10.00',
+                    'currency' => 'CZK',
+                    'gateway' => 'gopay',
+                ],
+            );
+        }
+
+        $this->assertTrue(
+            $service->cancelSubscriptionPayment($subscription->id),
+        );
+
+        $summaries = array_values(
+            array_filter(
+                $log->entries,
+                fn (array $entry): bool => $entry['message'] === 'All subscription payments cancelled',
+            ),
+        );
+        $this->assertCount(1, $summaries);
+        $this->assertSame(2, $summaries[0]['context']['cancelled_payments']);
     }
 
     #[Test]
@@ -184,39 +250,48 @@ class SubscriptionPaymentServiceFeatureTest extends TestCase
     public function verify_subscription_payment_requires_valid_payment(): void
     {
         $uniqueId = uniqid();
-        $user = User::create([
-            'name' => 'Test User ' . $uniqueId,
-            'email' => 'test' . $uniqueId . '@example.com',
-            'password' => 'password',
-        ]);
+        $user = User::create(
+            [
+                'name' => 'Test User ' . $uniqueId,
+                'email' => 'test' . $uniqueId . '@example.com',
+                'password' => 'password',
+            ],
+        );
 
-        $subscriptionPlan = SubscriptionPlan::create([
-            'name' => 'Test Plan ' . $uniqueId,
-            'slug' => 'test-plan-' . $uniqueId,
-            'price' => 29.99,
-            'currency' => 'EUR',
-            'billing_period' => 'monthly',
-            'is_active' => true,
-        ]);
+        $subscriptionPlan = SubscriptionPlan::create(
+            [
+                'name' => 'Test Plan ' . $uniqueId,
+                'slug' => 'test-plan-' . $uniqueId,
+                'price' => 29.99,
+                'currency' => 'EUR',
+                'billing_period' => 'monthly',
+                'is_active' => true,
+            ],
+        );
 
-        $subscription = Subscription::create([
-            'user_id' => $user->id,
-            'subscription_plan_id' => $subscriptionPlan->id,
-            'status' => 'active',
-            'amount' => 29.99,
-            'currency' => 'EUR',
-            'starts_at' => now(),
-            'ends_at' => now()->addMonth(),
-        ]);
+        $now = CarbonImmutable::now();
+        $subscription = Subscription::create(
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'status' => 'active',
+                'amount' => 29.99,
+                'currency' => 'EUR',
+                'starts_at' => $now,
+                'ends_at' => $now->addMonth(),
+            ],
+        );
 
-        $payment = Payment::create([
-            'subscription_id' => $subscription->id,
-            'status' => 'pending',
-            'gateway' => 'gopay',
-            'gateway_payment_id' => 'GP' . $uniqueId,
-            'amount' => 29.99,
-            'currency' => 'EUR',
-        ]);
+        $payment = Payment::create(
+            [
+                'subscription_id' => $subscription->id,
+                'status' => 'pending',
+                'gateway' => 'gopay',
+                'gateway_payment_id' => 'GP' . $uniqueId,
+                'amount' => 29.99,
+                'currency' => 'EUR',
+            ],
+        );
 
         // NOTE: This test would normally verify payment via gateway
         // but we skip actual payment verification due to missing GoPay credentials

@@ -76,15 +76,19 @@ final class CacheManagementController extends Controller
             foreach ($commands as $command) {
                 Artisan::call($command);
             }
-            Alert::success($successMessage)->flash();
+            $alerts = Alert::success($successMessage);
+            $alerts->flash();
         } catch (Throwable $e) {
             Log::error('Clearing cache failed', [
                 'commands' => $commands,
                 'exception' => $e,
             ]);
-            Alert::error($errorMessage)->flash();
+            $alerts = Alert::error($errorMessage);
+            $alerts->flash();
         }
 
-        return redirect()->back();
+        $redirector = redirect();
+
+        return $redirector->back();
     }
 }

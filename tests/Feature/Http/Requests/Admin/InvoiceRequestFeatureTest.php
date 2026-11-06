@@ -53,38 +53,68 @@ final class InvoiceRequestFeatureTest extends TestCase
     public function rejects_invalid_document_input(string $field, mixed $value): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
-            'user_id' => $this->adminUser->id,
-            'payment_amount' => '100.50',
-            $field => $value,
-        ]))->assertSessionHasErrors($field);
+        $httpResponse = $this->post(
+            '/admin/invoice',
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'payment_amount' => '100.50',
+                    $field => $value,
+                ],
+            ),
+        );
+        $httpResponse->assertSessionHasErrors($field);
     }
 
     #[Test]
     public function rejects_a_status_from_the_expense_category(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $this->post('/admin/invoice', $this->invoiceInput($business, $account, [
-            'user_id' => $this->adminUser->id,
-            'payment_amount' => '100.50',
-            'payment_status_id' => Status::where('slug', 'paid-expense')->firstOrFail()->id,
-        ]))->assertSessionHasErrors('payment_status_id');
+        $statusQuery = Status::where('slug', 'paid-expense');
+        $httpResponse = $this->post(
+            '/admin/invoice',
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'payment_amount' => '100.50',
+                    'payment_status_id' => $statusQuery->firstOrFail()->id,
+                ],
+            ),
+        );
+        $httpResponse->assertSessionHasErrors('payment_status_id');
     }
 
     #[Test]
     public function a_correction_with_the_same_contact_still_requires_the_complete_address(): void
     {
         [$business, $account] = $this->issuerOf($this->adminUser);
-        $invoice = Invoice::factory()->create([
-            'user_id' => $this->adminUser->id,
-            'business_id' => $business->id,
-            'contact_id' => Contact::factory()->create(['user_id' => $this->adminUser->id])->id,
-        ]);
-        $this->put('/admin/invoice/' . $invoice->id, $this->invoiceInput($business, $account, [
-            'user_id' => $this->adminUser->id,
-            'payment_amount' => '100.50',
-            'contact_id' => $invoice->contact_id,
-            'customer_street' => '',
-        ]))->assertSessionHasErrors('customer_street');
+        $invoiceFactory = Invoice::factory();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->adminUser->id,
+                'business_id' => $business->id,
+                'contact_id' => $contact->id,
+            ],
+        );
+        $httpResponse = $this->put(
+            '/admin/invoice/' . $invoice->id,
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'payment_amount' => '100.50',
+                    'contact_id' => $invoice->contact_id,
+                    'customer_street' => '',
+                ],
+            ),
+        );
+        $httpResponse->assertSessionHasErrors('customer_street');
     }
 }

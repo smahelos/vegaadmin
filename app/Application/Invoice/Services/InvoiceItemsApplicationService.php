@@ -53,15 +53,18 @@ final class InvoiceItemsApplicationService
     private function assertCanEdit(UserId $actorId): void
     {
         $permissions = $this->permissions->getUserPermissions($actorId->toInt(), 'backpack');
-        if (! in_array(
-            'can_create_invoice',
-            $permissions,
-            true,
-        ) && ! in_array(
-            'can_update_invoice',
-            $permissions,
-            true,
-        )) {
+        if (
+            !in_array(
+                'can_create_invoice',
+                $permissions,
+                true,
+            )
+            && !in_array(
+                'can_update_invoice',
+                $permissions,
+                true,
+            )
+        ) {
             throw new InvoiceAccessDeniedException('Invoice editing permission required');
         }
     }

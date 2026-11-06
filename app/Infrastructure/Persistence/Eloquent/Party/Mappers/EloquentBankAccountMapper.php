@@ -18,11 +18,19 @@ final class EloquentBankAccountMapper
 {
     public static function toDTO(BankAccountModel $account): BankAccountDTO
     {
+        if ($account->business_id === null) {
+            $owner = AccountOwner::contact(
+                ContactId::fromInt($account->contact_id),
+            );
+        } else {
+            $owner = AccountOwner::business(
+                BusinessId::fromInt($account->business_id),
+            );
+        }
+
         return new BankAccountDTO(
             id: BankAccountId::fromInt($account->id),
-            owner: $account->business_id === null
-                ? AccountOwner::contact(ContactId::fromInt($account->contact_id))
-                : AccountOwner::business(BusinessId::fromInt($account->business_id)),
+            owner: $owner,
             label: $account->label,
             account: BankAccount::fromParts(
                 $account->iban,

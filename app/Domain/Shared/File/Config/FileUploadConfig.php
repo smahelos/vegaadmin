@@ -24,8 +24,14 @@ class FileUploadConfig
 
         return new FileUploadContextConfig(
             max(1, (int) ($merged['max_kb'] ?? 10240)),
-            array_values(array_unique(array_map('strtolower', (array) ($merged['allowed_extensions'] ?? [])))),
-            array_values(array_unique((array) ($merged['allowed_mime_groups'] ?? []))),
+            array_values(
+                array_unique(
+                    array_map('strtolower', (array) ($merged['allowed_extensions'] ?? [])),
+                ),
+            ),
+            array_values(
+                array_unique((array) ($merged['allowed_mime_groups'] ?? [])),
+            ),
             (array) ($merged['thumbnail'] ?? []),
             (bool) ($merged['hash_deduplication']['enabled'] ?? false),
         );
@@ -55,6 +61,9 @@ class FileUploadConfig
             return true;
         }
 
-        return array_keys($arr) === range(0, count($arr) - 1);
+        return array_keys($arr) === range(
+            0,
+            count($arr) - 1,
+        );
     }
 }

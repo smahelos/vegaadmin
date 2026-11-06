@@ -5,6 +5,7 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\SubscriptionRequest;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -61,7 +62,8 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('subscription_plan_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('subscription_plan_id', $errors->toArray());
     }
 
     #[Test]
@@ -78,13 +80,15 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('subscription_plan_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('subscription_plan_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_user_id_is_missing(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -96,13 +100,15 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('user_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_user_id_does_not_exist(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -115,14 +121,17 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('user_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('user_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_status_is_invalid(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -135,14 +144,17 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('status', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('status', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_amount_is_missing(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -154,14 +166,17 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('amount', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('amount', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_starts_at_is_invalid_date(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -175,45 +190,54 @@ class SubscriptionRequestFeatureTest extends TestCase
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('starts_at', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('starts_at', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_when_ends_at_is_invalid_date(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
+        $now = CarbonImmutable::now();
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
             'status' => 'active',
             'amount' => 99.99,
             'currency' => 'CZK',
-            'starts_at' => now()->format('Y-m-d H:i:s'),
+            'starts_at' => $now->format('Y-m-d H:i:s'),
             'ends_at' => 'invalid-date',
         ];
 
         $validator = Validator::make($data, $this->request->rules());
 
         $this->assertTrue($validator->fails());
-        $this->assertArrayHasKey('ends_at', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('ends_at', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
+        $now = CarbonImmutable::now();
+        $date = $now->addDays(30);
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
             'user_id' => $user->id,
             'status' => 'active',
             'amount' => 99.99,
             'currency' => 'CZK',
-            'starts_at' => now()->format('Y-m-d H:i:s'),
-            'ends_at' => now()->addDays(30)->format('Y-m-d H:i:s'),
+            'starts_at' => $now->format('Y-m-d H:i:s'),
+            'ends_at' => $date->format('Y-m-d H:i:s'),
         ];
 
         $validator = Validator::make($data, $this->request->rules());
@@ -224,8 +248,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_minimal_required_data(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $data = [
             'subscription_plan_id' => $subscriptionPlan->id,
@@ -243,8 +269,10 @@ class SubscriptionRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_all_valid_status_values(): void
     {
-        $subscriptionPlan = SubscriptionPlan::factory()->create();
-        $user = User::factory()->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $subscriptionPlan = $subscriptionPlanFactory->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
 
         $validStatuses = [
             'pending',

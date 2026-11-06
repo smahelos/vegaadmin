@@ -36,32 +36,35 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         \DateTimeImmutable $periodEnd,
     ): int|float {
         $now = CarbonImmutable::now();
-        $row = DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                '<=',
-                $now,
-            )
-            ->where(
-                'period_end',
-                '>',
-                $now,
-            )
-            ->first();
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            '<=',
+            $now,
+        );
+        $query->where(
+            'period_end',
+            '>',
+            $now,
+        );
+        $row = $query->first();
 
-        Log::debug('EntityLimitUsageRepository: Fetched current value', [
-            'user_id' => $userId,
-            'entity_type' => $entityType,
-            'metric_type' => $metricType,
-            'period_type' => $periodType,
-            'period_start' => $periodStart,
-            'period_end' => $periodEnd,
-            'current_value' => $row ? (float) $row->current_value : 0,
-        ]);
+        Log::debug(
+            'EntityLimitUsageRepository: Fetched current value',
+            [
+                'user_id' => $userId,
+                'entity_type' => $entityType,
+                'metric_type' => $metricType,
+                'period_type' => $periodType,
+                'period_start' => $periodStart,
+                'period_end' => $periodEnd,
+                'current_value' => $row ? (float) $row->current_value : 0,
+            ],
+        );
 
         return $row ? (float) $row->current_value : 0;
     }
@@ -77,36 +80,41 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
     ): bool {
         $now = CarbonImmutable::now();
         // Try update first
-        $updated = DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where(
-                'period_start',
-                '<=',
-                $now,
-            )
-            ->where(
-                'period_end',
-                '>',
-                $now,
-            )
-            ->update([
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            '<=',
+            $now,
+        );
+        $query->where(
+            'period_end',
+            '>',
+            $now,
+        );
+        $updated = $query->update(
+            [
                 'current_value' => DB::raw('current_value + ' . ((float) $value)),
                 'updated_at' => now(),
-            ]);
+            ],
+        );
 
-        Log::debug('UELS: Increment usage attempt', [
-            'user_id' => $userId,
-            'entity_type' => $entityType,
-            'metric_type' => $metricType,
-            'period_type' => $periodType,
-            'period_start' => $periodStart,
-            'period_end' => $periodEnd,
-            'increment_value' => $value,
-            'rows_updated' => $updated,
-        ]);
+        Log::debug(
+            'UELS: Increment usage attempt',
+            [
+                'user_id' => $userId,
+                'entity_type' => $entityType,
+                'metric_type' => $metricType,
+                'period_type' => $periodType,
+                'period_start' => $periodStart,
+                'period_end' => $periodEnd,
+                'increment_value' => $value,
+                'rows_updated' => $updated,
+            ],
+        );
 
         // If updated rows > 0, return true
         if ($updated > 0) {
@@ -114,17 +122,20 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         }
 
         // Create if not exists
-        $inserted = DB::table('entity_limit_usage')->insert([
-            'user_id' => $userId,
-            'entity_type' => $entityType,
-            'metric_type' => $metricType,
-            'period_type' => $periodType,
-            'period_start' => CarbonImmutable::instance($periodStart),
-            'period_end' => CarbonImmutable::instance($periodEnd),
-            'current_value' => $value,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $query = DB::table('entity_limit_usage');
+        $inserted = $query->insert(
+            [
+                'user_id' => $userId,
+                'entity_type' => $entityType,
+                'metric_type' => $metricType,
+                'period_type' => $periodType,
+                'period_start' => CarbonImmutable::instance($periodStart),
+                'period_end' => CarbonImmutable::instance($periodEnd),
+                'current_value' => $value,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        );
 
         return (bool) $inserted;
     }
@@ -137,14 +148,21 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         \DateTimeImmutable $periodStart,
         \DateTimeImmutable $periodEnd,
     ): int {
-        return DB::table('entity_limit_usage')
-            ->where('user_id', $userId)
-            ->where('entity_type', $entityType)
-            ->where('metric_type', $metricType)
-            ->where('period_type', $periodType)
-            ->where('period_start', CarbonImmutable::instance($periodStart))
-            ->where('period_end', CarbonImmutable::instance($periodEnd))
-            ->delete();
+        $query = DB::table('entity_limit_usage');
+        $query->where('user_id', $userId);
+        $query->where('entity_type', $entityType);
+        $query->where('metric_type', $metricType);
+        $query->where('period_type', $periodType);
+        $query->where(
+            'period_start',
+            CarbonImmutable::instance($periodStart),
+        );
+        $query->where(
+            'period_end',
+            CarbonImmutable::instance($periodEnd),
+        );
+
+        return $query->delete();
     }
 
     /**
@@ -158,12 +176,15 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
     ): bool {
         $user = User::find($userId);
 
-        if (! $user) {
-            Log::debug('EntityLimitUsageRepository: User not found for permission check', [
-                'user_id' => $userId,
-                'entity_type' => $entityType,
-                'guard' => $guard,
-            ]);
+        if (!$user) {
+            Log::debug(
+                'EntityLimitUsageRepository: User not found for permission check',
+                [
+                    'user_id' => $userId,
+                    'entity_type' => $entityType,
+                    'guard' => $guard,
+                ],
+            );
 
             return false;
         }
@@ -172,10 +193,13 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         $permissionsForEntity = $this->entityLimitRepository->getPermissionNamesForEntity($entityType, true);
 
         if (empty($permissionsForEntity)) {
-            Log::debug('EntityLimitUsageRepository: No permissions configured for entity type', [
-                'entity_type' => $entityType,
-                'user_id' => $userId,
-            ]);
+            Log::debug(
+                'EntityLimitUsageRepository: No permissions configured for entity type',
+                [
+                    'entity_type' => $entityType,
+                    'user_id' => $userId,
+                ],
+            );
 
             return false;
         }
@@ -184,23 +208,29 @@ class EntityLimitUsageRepository implements EntityLimitUsageRepositoryInterface
         // permission of the other guard, which counts as not granted instead of throwing
         foreach ($permissionsForEntity as $permission) {
             if ($user->checkPermissionTo($permission, $guard)) {
-                Log::debug('EntityLimitUsageRepository: User has permission for entity', [
-                    'entity_type' => $entityType,
-                    'user_id' => $userId,
-                    'permission' => $permission,
-                    'guard' => $guard,
-                ]);
+                Log::debug(
+                    'EntityLimitUsageRepository: User has permission for entity',
+                    [
+                        'entity_type' => $entityType,
+                        'user_id' => $userId,
+                        'permission' => $permission,
+                        'guard' => $guard,
+                    ],
+                );
 
                 return true;
             }
         }
 
-        Log::debug('EntityLimitUsageRepository: User has no permission for entity', [
-            'entity_type' => $entityType,
-            'user_id' => $userId,
-            'checked_permissions' => $permissionsForEntity,
-            'guard' => $guard,
-        ]);
+        Log::debug(
+            'EntityLimitUsageRepository: User has no permission for entity',
+            [
+                'entity_type' => $entityType,
+                'user_id' => $userId,
+                'checked_permissions' => $permissionsForEntity,
+                'guard' => $guard,
+            ],
+        );
 
         return false;
     }

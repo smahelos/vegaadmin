@@ -26,21 +26,27 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
     #[Test]
     public function transitions_to_open_after_fail_threshold(): void
     {
-        config()->set('exchange.fail_threshold', 2);
-        config()->set('exchange.open_timeout_seconds', 60);
+        $config = config();
+        $config->set('exchange.fail_threshold', 2);
+        $config->set('exchange.open_timeout_seconds', 60);
 
-        Http::fakeSequence()
-            ->pushStatus(500)
-            ->pushStatus(500)
-            ->pushStatus(200, ['rates' => ['USD' => 1.0, 'EUR' => 0.9]]);
+        $sequence = Http::fakeSequence();
+        $sequence->pushStatus(500);
+        $sequence->pushStatus(500);
+        $sequence->pushStatus(200, ['rates' => ['USD' => 1.0, 'EUR' => 0.9]]);
 
         $fallback1 = $this->service->getExchangeRates('USD'); // fail 1 -> fallback
         $this->assertIsArray($fallback1);
         $fallback2 = $this->service->getExchangeRates('USD'); // fail 2 -> circuit opens, still fallback
         $this->assertIsArray($fallback2);
 
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
-        $this->assertNotNull(Cache::get('fx_cb_opened_at'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
+        $this->assertNotNull(
+            Cache::get('fx_cb_opened_at'),
+        );
 
         // Third call should short-circuit (success response in queue should remain unused) → still fallback
         $third = $this->service->getExchangeRates('USD');
@@ -63,25 +69,34 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
         );
 
         // Successful probe response
-        Http::fake(fn () => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200));
+        Http::fake(
+            fn () => Http::response(['rates' => ['USD' => 1.0, 'CZK' => 22.2]], 200),
+        );
 
         $rates = $this->service->getExchangeRates('USD');
         $this->assertIsArray($rates);
         $this->assertEquals(22.2, $rates['CZK']);
-        $this->assertEquals('closed', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'closed',
+            Cache::get('fx_cb_state'),
+        );
     }
 
     #[Test]
     public function half_open_probe_failure_reopens_circuit(): void
     {
-        config()->set('exchange.fail_threshold', 1);
-        config()->set('exchange.open_timeout_seconds', 1);
+        $config = config();
+        $config->set('exchange.fail_threshold', 1);
+        $config->set('exchange.open_timeout_seconds', 1);
 
-        Http::fakeSequence()
-            ->pushStatus(500) // initial -> open
-            ->pushStatus(500); // half-open probe fails
+        $sequence = Http::fakeSequence();
+        $sequence->pushStatus(500); // initial -> open
+        $sequence->pushStatus(500); // half-open probe fails
         $this->service->getExchangeRates('USD'); // open (fallback)
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
 
         // Open timeout expired: the circuit opened before the timeout
         Cache::put(
@@ -92,6 +107,9 @@ final class CurrencyExchangeCircuitBreakerTest extends TestCase
 
         // Probe attempt
         $this->service->getExchangeRates('USD'); // half-open probe failure -> reopen
-        $this->assertEquals('open', Cache::get('fx_cb_state'));
+        $this->assertEquals(
+            'open',
+            Cache::get('fx_cb_state'),
+        );
     }
 }

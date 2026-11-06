@@ -47,7 +47,10 @@ class InvoiceController extends Controller
     {
         $limitsData = $this->resolveLimits();
 
-        return view('frontend.invoices.index', compact('limitsData'));
+        return view(
+            'frontend.invoices.index',
+            compact('limitsData'),
+        );
     }
 
     /**
@@ -57,11 +60,14 @@ class InvoiceController extends Controller
     {
         $dto = $this->invoiceFormService->prepareCreateData(Auth::user()->id);
 
-        return view('frontend.invoices.create', [
-            ...$dto->toArray(),
-            'contactId' => $request->integer('contact_id') ?: null,
-            'businessId' => $request->integer('business_id') ?: null,
-        ]);
+        return view(
+            'frontend.invoices.create',
+            [
+                ...$dto->toArray(),
+                'contactId' => $request->integer('contact_id') ?: null,
+                'businessId' => $request->integer('business_id') ?: null,
+            ],
+        );
     }
 
     /**
@@ -91,8 +97,13 @@ class InvoiceController extends Controller
 
             return view('frontend.invoices.edit', $dto->toArray());
         } catch (ModelNotFoundException $e) {
-            return redirect()->route('frontend.invoices', ['locale' => $locale])
-                ->with('error', __('invoices.messages.edit_error_unauthorized'));
+            $redirector = redirect();
+            $redirect = $redirector->route('frontend.invoices', ['locale' => $locale]);
+
+            return $redirect->with(
+                'error',
+                __('invoices.messages.edit_error_unauthorized'),
+            );
         }
     }
 
@@ -110,15 +121,25 @@ class InvoiceController extends Controller
             $payload->products,
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
-            return back()->with('error', __($result->message ?? 'invoices.messages.create_failed'));
+            $redirect = back();
+
+            return $redirect->with(
+                'error',
+                __($result->message ?? 'invoices.messages.create_failed'),
+            );
         }
-        $locale = app()->getLocale();
+        $application = app();
+        $locale = $application->getLocale();
         $targetUrl = '/' . $locale . '/invoice';
 
-        return redirect($targetUrl)
-            ->with('success', __($result->message ?? 'invoices.messages.created'))
-            ->withInput()
-            ->withErrors($result->errors ?? []);
+        $redirect = redirect($targetUrl);
+        $redirect->with(
+            'success',
+            __($result->message ?? 'invoices.messages.created'),
+        );
+        $redirect->withInput();
+
+        return $redirect->withErrors($result->errors ?? []);
     }
 
     /**
@@ -136,20 +157,32 @@ class InvoiceController extends Controller
                 $request->get('lang'),
             );
 
-            return response()->json($response);
+            $responseFactory = response();
+
+            return $responseFactory->json($response);
         } catch (ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => __('invoices.messages.validation_failed'),
-                'errors' => $e->errors(),
-            ], 422);
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                [
+                    'success' => false,
+                    'message' => __('invoices.messages.validation_failed'),
+                    'errors' => $e->errors(),
+                ],
+                422,
+            );
         } catch (\Exception $e) {
             Log::error('Guest invoice creation failed', ['exception' => $e]);
 
-            return response()->json([
-                'success' => false,
-                'message' => __('invoices.messages.create_error'),
-            ], 500);
+            $responseFactory = response();
+
+            return $responseFactory->json(
+                [
+                    'success' => false,
+                    'message' => __('invoices.messages.create_error'),
+                ],
+                500,
+            );
         }
     }
 
@@ -163,18 +196,26 @@ class InvoiceController extends Controller
         try {
             $dto = $this->invoiceFormService->prepareShowData(Auth::user()->id, $id);
 
-            return view('frontend.invoices.show', [
-                ...$dto->toArray(),
-                'countries' => $this->countries->options($locale),
-            ]);
+            return view(
+                'frontend.invoices.show',
+                [
+                    ...$dto->toArray(),
+                    'countries' => $this->countries->options($locale),
+                ],
+            );
         } catch (ModelNotFoundException $e) {
             Log::warning('Invoice not found or unauthorized for show: ID=' . $id);
         } catch (\Exception $e) {
             Log::error('Error viewing invoice: ' . $e->getMessage());
         }
 
-        return redirect()->route('frontend.invoices', ['locale' => $locale])
-            ->with('error', __('invoices.messages.show_error'));
+        $redirector = redirect();
+        $redirect = $redirector->route('frontend.invoices', ['locale' => $locale]);
+
+        return $redirect->with(
+            'error',
+            __('invoices.messages.show_error'),
+        );
     }
 
     /**
@@ -195,7 +236,13 @@ class InvoiceController extends Controller
             $request->has('preview'),
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
-            return redirect()->back()->with('error', __($result->message ?? 'invoices.messages.pdf_error'));
+            $redirector = redirect();
+            $redirect = $redirector->back();
+
+            return $redirect->with(
+                'error',
+                __($result->message ?? 'invoices.messages.pdf_error'),
+            );
         }
 
         return $result->response;
@@ -214,7 +261,10 @@ class InvoiceController extends Controller
             $request->has('preview'),
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
-            abort($result->message === 'invoices.messages.not_found' ? 404 : 500, __($result->message));
+            abort(
+                $result->message === 'invoices.messages.not_found' ? 404 : 500,
+                __($result->message),
+            );
         }
 
         return $result->response;
@@ -240,28 +290,54 @@ class InvoiceController extends Controller
             $payload->products,
         );
         if ($result->status === InvoiceActionStatus::FAILURE) {
-            return back()
-                ->with('error', __($result->message ?? 'invoices.messages.update_failed'))
-                ->withInput()
-                ->withErrors($result->errors ?? []);
+            $redirect = back();
+            $redirect->with(
+                'error',
+                __($result->message ?? 'invoices.messages.update_failed'),
+            );
+            $redirect->withInput();
+
+            return $redirect->withErrors($result->errors ?? []);
         }
 
-        return redirect()->route('frontend.invoice.show', ['id' => $result->invoice->id, 'locale' => app()->getLocale()])
-            ->with('success', __($result->message ?? 'invoices.messages.updated'));
+        $redirector = redirect();
+        $application = app();
+        $redirect = $redirector->route(
+            'frontend.invoice.show',
+            ['id' => $result->invoice->id, 'locale' => $application->getLocale()],
+        );
+
+        return $redirect->with(
+            'success',
+            __($result->message ?? 'invoices.messages.updated'),
+        );
     }
 
     public function destroyGuest(string $locale, string $token): RedirectResponse
     {
+        $application = app();
         try {
             $deleted = $this->guestInvoiceApplicationService->deleteTemporary($token);
 
-            return redirect()->route('home', ['locale' => app()->getLocale()])
-                ->with($deleted ? 'success' : 'error', __($deleted ? 'invoices.messages.deleted_guest' : 'invoices.messages.token_invalid'));
+            $redirector = redirect();
+            $redirect = $redirector->route('home', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                $deleted ? 'success' : 'error',
+                __(
+                    $deleted ? 'invoices.messages.deleted_guest' : 'invoices.messages.token_invalid',
+                ),
+            );
         } catch (\Exception $e) {
             Log::error('Error deleting guest invoice');
 
-            return redirect()->route('home', ['locale' => app()->getLocale()])
-                ->with('error', __('invoices.messages.delete_error'));
+            $redirector = redirect();
+            $redirect = $redirector->route('home', ['locale' => $application->getLocale()]);
+
+            return $redirect->with(
+                'error',
+                __('invoices.messages.delete_error'),
+            );
         }
     }
 
@@ -276,9 +352,13 @@ class InvoiceController extends Controller
         $result = $user ? $this->invoiceFrontendActions->markAsPaid($user->id, $id) : null;
         $ok = $result?->status === InvoiceActionStatus::SUCCESS;
 
-        return back()->with(
+        $redirect = back();
+
+        return $redirect->with(
             $ok ? 'success' : 'error',
-            __($ok ? ($result->message ?? 'invoices.messages.marked_as_paid') : ($result->message ?? 'invoices.messages.update_error')),
+            __(
+                $ok ? ($result->message ?? 'invoices.messages.marked_as_paid') : ($result->message ?? 'invoices.messages.update_error'),
+            ),
         );
     }
 
@@ -298,15 +378,26 @@ class InvoiceController extends Controller
             $template = $requestTemplate;
         }
         $user = Auth::user();
-        $result = $user ? $this->invoiceFrontendActions->setTemplate(
-            $user->id,
-            $id,
-            $template,
-        ) : null;
+        if ($user) {
+            $result = $this->invoiceFrontendActions->setTemplate(
+                $user->id,
+                $id,
+                $template,
+            );
+        } else {
+            $result = null;
+        }
         $ok = $result?->status === InvoiceActionStatus::SUCCESS;
 
-        return redirect()->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id])
-            ->with($ok ? 'success' : 'error', __($ok ? ($result->message ?? 'invoices.messages.template_set') : ($result->message ?? 'invoices.messages.update_error')));
+        $redirector = redirect();
+        $redirect = $redirector->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id]);
+
+        return $redirect->with(
+            $ok ? 'success' : 'error',
+            __(
+                $ok ? ($result->message ?? 'invoices.messages.template_set') : ($result->message ?? 'invoices.messages.update_error'),
+            ),
+        );
     }
 
     /**
@@ -341,8 +432,13 @@ class InvoiceController extends Controller
         Request $request,
     ): RedirectResponse {
         $user = Auth::user();
-        if (! $user) {
-            return back()->with('error', __('users.auth.unauthenticated'));
+        if (!$user) {
+            $redirect = back();
+
+            return $redirect->with(
+                'error',
+                __('users.auth.unauthenticated'),
+            );
         }
         // Whitelist and basic validation
         $payload = $request->only([
@@ -364,7 +460,10 @@ class InvoiceController extends Controller
         ];
         $validator = validator($payload, $rules);
         if ($validator->fails()) {
-            return back()->withErrors($validator)->withInput();
+            $redirect = back();
+            $redirect->withErrors($validator);
+
+            return $redirect->withInput();
         }
         $validated = $validator->validated();
         // Normalize boolean
@@ -379,8 +478,15 @@ class InvoiceController extends Controller
         );
         $ok = $result->status === InvoiceActionStatus::SUCCESS;
 
-        return redirect()->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id])
-            ->with($ok ? 'success' : 'error', __($result->message ?? ($ok ? 'invoices.messages.updated' : 'invoices.messages.update_error')));
+        $redirector = redirect();
+        $redirect = $redirector->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id]);
+
+        return $redirect->with(
+            $ok ? 'success' : 'error',
+            __(
+                $result->message ?? ($ok ? 'invoices.messages.updated' : 'invoices.messages.update_error'),
+            ),
+        );
     }
 
     /**
@@ -390,7 +496,7 @@ class InvoiceController extends Controller
     {
         $user = Auth::user();
         $result = $user ? $this->invoiceFrontendActions->getLimitData($user->id) : null;
-        if (! $result || $result->status !== InvoiceActionStatus::SUCCESS) {
+        if (!$result || $result->status !== InvoiceActionStatus::SUCCESS) {
             return [
                 'limit' => 0,
                 'current_usage' => 0,

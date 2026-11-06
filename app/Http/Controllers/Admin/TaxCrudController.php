@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
@@ -13,7 +15,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-class TaxCrudController extends CrudController
+final class TaxCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
@@ -28,8 +30,13 @@ class TaxCrudController extends CrudController
     public function setup(): void
     {
         CRUD::setModel(Tax::class);
-        CRUD::setRoute(config('backpack.base.route_prefix') . '/tax');
-        CRUD::setEntityNameStrings(__('taxes.entity.singular'), __('taxes.entity.plural'));
+        CRUD::setRoute(
+            config('backpack.base.route_prefix') . '/tax',
+        );
+        CRUD::setEntityNameStrings(
+            __('taxes.entity.singular'),
+            __('taxes.entity.plural'),
+        );
     }
 
     /**
@@ -37,10 +44,24 @@ class TaxCrudController extends CrudController
      */
     protected function setupListOperation(): void
     {
-        CRUD::column('name')->label(__('taxes.fields.name'));
-        CRUD::column('rate')->label(__('taxes.fields.rate'))->type('number')->suffix('%');
-        CRUD::column('slug')->label(__('taxes.fields.slug'));
-        CRUD::column('description')->label(__('taxes.fields.description'));
+        $column = CRUD::column('name');
+        $column->label(
+            __('taxes.fields.name'),
+        );
+        $column = CRUD::column('rate');
+        $column->label(
+            __('taxes.fields.rate'),
+        );
+        $column->type('number');
+        $column->suffix('%');
+        $column = CRUD::column('slug');
+        $column->label(
+            __('taxes.fields.slug'),
+        );
+        $column = CRUD::column('description');
+        $column->label(
+            __('taxes.fields.description'),
+        );
     }
 
     /**

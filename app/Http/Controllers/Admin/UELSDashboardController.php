@@ -7,6 +7,7 @@ use App\Models\EntityLimit;
 use App\Models\EntityLimitUsage;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +27,8 @@ class UELSDashboardController extends CrudController
     public function index(Request $request): View
     {
         // Check permissions
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
+        $user = backpack_user();
+        if (!$user || !$user->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -47,13 +49,16 @@ class UELSDashboardController extends CrudController
         // Get recent activity
         $recentActivity = $this->getRecentActivity();
 
-        return view('admin.uels-dashboard', compact(
-            'stats',
-            'violations',
-            'trends',
-            'limitsBreakdown',
-            'recentActivity',
-        ));
+        return view(
+            'admin.uels-dashboard',
+            compact(
+                'stats',
+                'violations',
+                'trends',
+                'limitsBreakdown',
+                'recentActivity',
+            ),
+        );
     }
 
     /**
@@ -61,18 +66,50 @@ class UELSDashboardController extends CrudController
      */
     private function getOverviewStats(): array
     {
+        $now = CarbonImmutable::now();
+        $activeLimitQuery = EntityLimit::where('is_active', true);
+        $usersWithUsageQuery = EntityLimitUsage::distinct('user_id');
+        $usersWithUsageQuery->whereNotNull('user_id');
+        $todayQuery = EntityLimitUsage::where(
+            'period_start',
+            '>=',
+            $now->startOfDay(),
+        );
+        $weekQuery = EntityLimitUsage::where(
+            'period_start',
+            '>=',
+            $now->startOfWeek(),
+        );
+        $monthQuery = EntityLimitUsage::where(
+            'period_start',
+            '>=',
+            $now->startOfMonth(),
+        );
+        $yearQuery = EntityLimitUsage::where(
+            'period_start',
+            '>=',
+            $now->startOfYear(),
+        );
+        $lifetimeQuery = EntityLimitUsage::where(
+            'period_end',
+            '>=',
+            '9999-12-31 23:59:59',
+        );
+        $permissionQuery = EntityLimit::distinct('permission_name');
+        $anonymousQuery = EntityLimitUsage::whereNull('user_id');
+
         return [
             'total_limits' => EntityLimit::count(),
-            'active_limits' => EntityLimit::where('is_active', true)->count(),
-            'total_users_with_usage' => EntityLimitUsage::distinct('user_id')->whereNotNull('user_id')->count('user_id'),
+            'active_limits' => $activeLimitQuery->count(),
+            'total_users_with_usage' => $usersWithUsageQuery->count('user_id'),
             'total_usage_records' => EntityLimitUsage::count(),
-            'today_usage' => EntityLimitUsage::where('period_start', '>=', now()->startOfDay())->sum('current_value'),
-            'this_week_usage' => EntityLimitUsage::where('period_start', '>=', now()->startOfWeek())->sum('current_value'),
-            'this_month_usage' => EntityLimitUsage::where('period_start', '>=', now()->startOfMonth())->sum('current_value'),
-            'this_year_usage' => EntityLimitUsage::where('period_start', '>=', now()->startOfYear())->sum('current_value'),
-            'lifetime_usage' => EntityLimitUsage::where('period_end', '>=', '9999-12-31 23:59:59')->sum('current_value'),
-            'total_permissions_with_limits' => EntityLimit::distinct('permission_name')->count('permission_name'),
-            'anonymous_usage_records' => EntityLimitUsage::whereNull('user_id')->count(),
+            'today_usage' => $todayQuery->sum('current_value'),
+            'this_week_usage' => $weekQuery->sum('current_value'),
+            'this_month_usage' => $monthQuery->sum('current_value'),
+            'this_year_usage' => $yearQuery->sum('current_value'),
+            'lifetime_usage' => $lifetimeQuery->sum('current_value'),
+            'total_permissions_with_limits' => $permissionQuery->count('permission_name'),
+            'anonymous_usage_records' => $anonymousQuery->count(),
         ];
     }
 
@@ -82,7 +119,8 @@ class UELSDashboardController extends CrudController
     private function getLimitViolations(UniversalLimitService $limitService): array
     {
         $violations = [];
-        $users = User::take(50)->get(); // Limit to 50 users for performance
+        $query = User::take(50);
+        $users = $query->get(); // Limit to 50 users for performance
         $entityTypes = EntityLimit::ENTITY_TYPES;
         $metricTypes = array_keys(EntityLimit::METRIC_TYPES);
         $periodTypes = array_keys(EntityLimit::PERIOD_TYPES);
@@ -98,13 +136,17 @@ class UELSDashboardController extends CrudController
                                 $metricType,
                                 $periodType,
                             );
-                            if (isset($check['current_usage']) && isset($check['limit']) && $check['current_usage'] > 0) {
+                            if (
+                                isset($check['current_usage'])
+                                && isset($check['limit'])
+                                && $check['current_usage'] > 0
+                            ) {
                                 $check['usage_percentage'] = (int) $check['current_usage'] / (int) $check['limit'] * 100;
                             } else {
                                 $check['usage_percentage'] = 0;
 
                             }
-                            if (! $check['allowed'] && $check['reason'] === 'limit_exceeded') {
+                            if (!$check['allowed'] && $check['reason'] === 'limit_exceeded') {
                                 $violations[] = [
                                     'user' => $user,
                                     'entity_type' => $entityType,
@@ -124,7 +166,12 @@ class UELSDashboardController extends CrudController
             }
         }
 
-        return collect($violations)->sortByDesc('percentage')->take(20)->values()->all();
+        $sorted = collect($violations);
+        $sorted = $sorted->sortByDesc('percentage');
+        $sorted = $sorted->take(20);
+        $sorted = $sorted->values();
+
+        return $sorted->all();
     }
 
     /**
@@ -132,31 +179,32 @@ class UELSDashboardController extends CrudController
      */
     private function getUsageTrends(): array
     {
-        $thirtyDaysAgo = now()->subDays(30);
+        $now = CarbonImmutable::now();
+        $thirtyDaysAgo = $now->subDays(30);
 
-        $trends = DB::table('entity_limit_usage')
-            ->select(
-                DB::raw('DATE(period_start) as date'),
-                'entity_type',
-                'metric_type',
-                'period_type',
-                DB::raw('SUM(current_value) as total_usage'),
-                DB::raw('COUNT(*) as usage_count'),
-            )
-            ->where(
-                'period_start',
-                '>=',
-                $thirtyDaysAgo,
-            )
-            ->groupBy(
-                'date',
-                'entity_type',
-                'metric_type',
-                'period_type',
-            )
-            ->orderBy('date')
-            ->get()
-            ->groupBy('entity_type');
+        $query = DB::table('entity_limit_usage');
+        $query->select(
+            DB::raw('DATE(period_start) as date'),
+            'entity_type',
+            'metric_type',
+            'period_type',
+            DB::raw('SUM(current_value) as total_usage'),
+            DB::raw('COUNT(*) as usage_count'),
+        );
+        $query->where(
+            'period_start',
+            '>=',
+            $thirtyDaysAgo,
+        );
+        $query->groupBy(
+            'date',
+            'entity_type',
+            'metric_type',
+            'period_type',
+        );
+        $query->orderBy('date');
+        $usage = $query->get();
+        $trends = $usage->groupBy('entity_type');
 
         return $trends->toArray();
     }
@@ -166,26 +214,39 @@ class UELSDashboardController extends CrudController
      */
     private function getLimitsBreakdown(): array
     {
-        return EntityLimit::select(
+        $query = EntityLimit::select(
             'entity_type',
             'metric_type',
             'period_type',
             'permission_name',
-        )
-            ->where('is_active', true)
-            ->get()
-            ->groupBy(['entity_type', 'metric_type'])
-            ->map(function ($metricType) {
-                return $metricType->map(function ($periods) {
-                    return $periods->groupBy('period_type')->map(function ($items) {
-                        return [
-                            'count' => $items->count(),
-                            'permissions' => $items->pluck('permission_name')->unique()->values()->toArray(),
-                        ];
-                    });
-                });
-            })
-            ->toArray();
+        );
+        $query->where('is_active', true);
+        $limits = $query->get();
+        $grouped = $limits->groupBy(['entity_type', 'metric_type']);
+        $breakdown = $grouped->map(
+            function ($metricType) {
+                return $metricType->map(
+                    function ($periods) {
+                        $byPeriod = $periods->groupBy('period_type');
+
+                        return $byPeriod->map(
+                            function ($items) {
+                                $permissions = $items->pluck('permission_name');
+                                $permissions = $permissions->unique();
+                                $permissions = $permissions->values();
+
+                                return [
+                                    'count' => $items->count(),
+                                    'permissions' => $permissions->toArray(),
+                                ];
+                            },
+                        );
+                    },
+                );
+            },
+        );
+
+        return $breakdown->toArray();
     }
 
     /**
@@ -193,11 +254,12 @@ class UELSDashboardController extends CrudController
      */
     private function getRecentActivity(): array
     {
-        return EntityLimitUsage::with('user')
-            ->orderBy('last_reset_at', 'desc')
-            ->take(50)
-            ->get()
-            ->map(function ($usage) {
+        $query = EntityLimitUsage::with('user');
+        $query->orderBy('last_reset_at', 'desc');
+        $query->take(50);
+        $usages = $query->get();
+        $activity = $usages->map(
+            function ($usage) {
                 return [
                     'user_name' => $usage->user->name ?? ($usage->user_id ? 'Unknown User' : 'Anonymous'),
                     'user_id' => $usage->user_id,
@@ -209,8 +271,10 @@ class UELSDashboardController extends CrudController
                     'period_end' => $usage->period_end,
                     'last_updated_at' => $usage->last_reset_at,
                 ];
-            })
-            ->toArray();
+            },
+        );
+
+        return $activity->toArray();
     }
 
     /**
@@ -218,8 +282,11 @@ class UELSDashboardController extends CrudController
      */
     public function getUserLimitAnalysis(Request $request): JsonResponse
     {
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        $user = backpack_user();
+        if (!$user || !$user->hasPermissionTo('can_configure_system', 'backpack')) {
+            $responseFactory = response();
+
+            return $responseFactory->json(['error' => 'Unauthorized'], 403);
         }
 
         $request->validate([
@@ -255,7 +322,8 @@ class UELSDashboardController extends CrudController
                     }
 
                     Log::debug(
-                        "UELS: User {$user->id} limit check", [
+                        "UELS: User {$user->id} limit check",
+                        [
                             'entity_type' => $entityType,
                             'metric_type' => $metricType,
                             'period_type' => $periodType,
@@ -264,7 +332,8 @@ class UELSDashboardController extends CrudController
                             'limit_value' => $check['limit'] ?? null,
                             'usage_percentage' => $check['usage_percentage'] ?? 0,
                             'reason' => $check['reason'] ?? null,
-                        ]);
+                        ],
+                    );
                     $analysis[$entityType][$metricType][$periodType] = [
                         'allowed' => $check['allowed'],
                         'current_usage' => $check['current_usage'] ?? 0,
@@ -277,14 +346,18 @@ class UELSDashboardController extends CrudController
             }
         }
 
-        return response()->json([
-            'user' => $user->only([
-                'id',
-                'name',
-                'email',
-            ]),
-            'analysis' => $analysis,
-        ]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            [
+                'user' => $user->only([
+                    'id',
+                    'name',
+                    'email',
+                ]),
+                'analysis' => $analysis,
+            ],
+        );
     }
 
     /**
@@ -292,37 +365,54 @@ class UELSDashboardController extends CrudController
      */
     public function bulkResetUsage(Request $request): JsonResponse
     {
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
-            return response()->json(['error' => 'Unauthorized'], 403);
+        $user = backpack_user();
+        if (!$user || !$user->hasPermissionTo('can_configure_system', 'backpack')) {
+            $responseFactory = response();
+
+            return $responseFactory->json(['error' => 'Unauthorized'], 403);
         }
 
-        Log::info('request 1', [
-            'entity_type' => $request->entity_type,
-            'metric_type' => $request->metric_type,
-            'period_type' => $request->period_type,
-            'user_ids' => $request->user_ids,
-            'reset_all_users' => $request->reset_all_users,
-            'include_anonymous' => $request->include_anonymous,
-        ]);
+        Log::info(
+            'request 1',
+            [
+                'entity_type' => $request->entity_type,
+                'metric_type' => $request->metric_type,
+                'period_type' => $request->period_type,
+                'user_ids' => $request->user_ids,
+                'reset_all_users' => $request->reset_all_users,
+                'include_anonymous' => $request->include_anonymous,
+            ],
+        );
 
-        $request->validate([
-            'entity_type' => 'required|in:' . implode(',', EntityLimit::ENTITY_TYPES),
-            'metric_type' => 'required|in:' . implode(',', array_keys(EntityLimit::METRIC_TYPES)),
-            'period_type' => 'required|in:' . implode(',', array_keys(EntityLimit::PERIOD_TYPES)),
-            // 'user_ids' => 'nullable|array',
-            // 'user_ids.*' => 'exists:users,id',
-            'reset_all_users' => 'accepted|string',
-            'include_anonymous' => 'accepted|string',
-        ]);
+        $request->validate(
+            [
+                'entity_type' => 'required|in:' . implode(',', EntityLimit::ENTITY_TYPES),
+                'metric_type' => 'required|in:' . implode(
+                    ',',
+                    array_keys(EntityLimit::METRIC_TYPES),
+                ),
+                'period_type' => 'required|in:' . implode(
+                    ',',
+                    array_keys(EntityLimit::PERIOD_TYPES),
+                ),
+                // 'user_ids' => 'nullable|array',
+                // 'user_ids.*' => 'exists:users,id',
+                'reset_all_users' => 'accepted|string',
+                'include_anonymous' => 'accepted|string',
+            ],
+        );
 
-        Log::info('request 2', [
-            'entity_type' => $request->entity_type,
-            'metric_type' => $request->metric_type,
-            'period_type' => $request->period_type,
-            'user_ids' => $request->user_ids,
-            'reset_all_users' => $request->reset_all_users,
-            'include_anonymous' => $request->include_anonymous,
-        ]);
+        Log::info(
+            'request 2',
+            [
+                'entity_type' => $request->entity_type,
+                'metric_type' => $request->metric_type,
+                'period_type' => $request->period_type,
+                'user_ids' => $request->user_ids,
+                'reset_all_users' => $request->reset_all_users,
+                'include_anonymous' => $request->include_anonymous,
+            ],
+        );
 
         $limitService = app(UniversalLimitService::class);
         $successCount = 0;
@@ -333,18 +423,21 @@ class UELSDashboardController extends CrudController
             $users = User::all();
         } else {
             // Reset for specific users
-            $users = User::whereIn('id', $request->user_ids ?? [])->get();
+            $query = User::whereIn('id', $request->user_ids ?? []);
+            $users = $query->get();
         }
 
         // Reset for authenticated users
         foreach ($users as $user) {
             try {
-                if ($limitService->resetUsage(
-                    $user,
-                    $request->entity_type,
-                    $request->metric_type,
-                    $request->period_type,
-                )) {
+                if (
+                    $limitService->resetUsage(
+                        $user,
+                        $request->entity_type,
+                        $request->metric_type,
+                        $request->period_type,
+                    )
+                ) {
                     $successCount++;
                 } else {
                     $errorCount++;
@@ -357,12 +450,14 @@ class UELSDashboardController extends CrudController
         // Reset for anonymous users if requested
         if ($request->include_anonymous) {
             try {
-                if ($limitService->resetUsage(
-                    null,
-                    $request->entity_type,
-                    $request->metric_type,
-                    $request->period_type,
-                )) {
+                if (
+                    $limitService->resetUsage(
+                        null,
+                        $request->entity_type,
+                        $request->metric_type,
+                        $request->period_type,
+                    )
+                ) {
                     $successCount++;
                 } else {
                     $errorCount++;
@@ -372,20 +467,27 @@ class UELSDashboardController extends CrudController
             }
         }
 
-        Log::info('UELS: Bulk reset completed', [
-            'entity_type' => $request->entity_type,
-            'metric_type' => $request->metric_type,
-            'period_type' => $request->period_type,
-            'success_count' => $successCount,
-            'error_count' => $errorCount,
-        ]);
+        Log::info(
+            'UELS: Bulk reset completed',
+            [
+                'entity_type' => $request->entity_type,
+                'metric_type' => $request->metric_type,
+                'period_type' => $request->period_type,
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+            ],
+        );
 
-        return response()->json([
-            'success' => true,
-            'message' => __('entity_limits.dashboard.reset.completed', ['success' => $successCount, 'failed' => $errorCount]),
-            'success_count' => $successCount,
-            'error_count' => $errorCount,
-        ]);
+        $responseFactory = response();
+
+        return $responseFactory->json(
+            [
+                'success' => true,
+                'message' => __('entity_limits.dashboard.reset.completed', ['success' => $successCount, 'failed' => $errorCount]),
+                'success_count' => $successCount,
+                'error_count' => $errorCount,
+            ],
+        );
     }
 
     /**
@@ -393,7 +495,8 @@ class UELSDashboardController extends CrudController
      */
     public function exportUsageData(Request $request): StreamedResponse
     {
-        if (! backpack_user() || ! backpack_user()->hasPermissionTo('can_configure_system', 'backpack')) {
+        $user = backpack_user();
+        if (!$user || !$user->hasPermissionTo('can_configure_system', 'backpack')) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -437,9 +540,11 @@ class UELSDashboardController extends CrudController
             }
         }
 
-        $usages = $query->orderBy('last_reset_at', 'desc')->get();
+        $query->orderBy('last_reset_at', 'desc');
+        $usages = $query->get();
 
-        $filename = 'entity_usage_export_' . now()->format('Y-m-d_H-i-s') . '.csv';
+        $now = CarbonImmutable::now();
+        $filename = 'entity_usage_export_' . $now->format('Y-m-d_H-i-s') . '.csv';
 
         $headers = [
             'Content-Type' => 'text/csv',
@@ -450,41 +555,49 @@ class UELSDashboardController extends CrudController
             $file = fopen('php://output', 'w');
 
             // CSV header
-            fputcsv($file, [
-                'User ID',
-                'User Name',
-                'User Email',
-                'User Type',
-                'Entity Type',
-                'Metric Type',
-                'Period Type',
-                'Period Start',
-                'Period End',
-                'Current Value',
-                'Last Updated',
-            ]);
+            fputcsv(
+                $file,
+                [
+                    'User ID',
+                    'User Name',
+                    'User Email',
+                    'User Type',
+                    'Entity Type',
+                    'Metric Type',
+                    'Period Type',
+                    'Period Start',
+                    'Period End',
+                    'Current Value',
+                    'Last Updated',
+                ],
+            );
 
             // CSV data
             foreach ($usages as $usage) {
-                fputcsv($file, [
-                    $usage->user_id ?? 'N/A',
-                    $usage->user->name ?? 'N/A',
-                    $usage->user->email ?? 'N/A',
-                    $usage->user_id ? 'Authenticated' : 'Anonymous',
-                    $usage->entity_type ?? 'N/A',
-                    $usage->metric_type ?? 'N/A',
-                    $usage->period_type ?? 'N/A',
-                    $usage->period_start,
-                    $usage->period_end,
-                    $usage->current_value,
-                    $usage->last_reset_at,
-                ]);
+                fputcsv(
+                    $file,
+                    [
+                        $usage->user_id ?? 'N/A',
+                        $usage->user->name ?? 'N/A',
+                        $usage->user->email ?? 'N/A',
+                        $usage->user_id ? 'Authenticated' : 'Anonymous',
+                        $usage->entity_type ?? 'N/A',
+                        $usage->metric_type ?? 'N/A',
+                        $usage->period_type ?? 'N/A',
+                        $usage->period_start,
+                        $usage->period_end,
+                        $usage->current_value,
+                        $usage->last_reset_at,
+                    ],
+                );
             }
 
             fclose($file);
         };
 
-        return response()->stream(
+        $responseFactory = response();
+
+        return $responseFactory->stream(
             $callback,
             200,
             $headers,

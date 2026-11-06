@@ -95,7 +95,9 @@ class CurrencySelectFeatureTest extends TestCase
         $this->assertIsArray($component->currencies);
         $this->assertIsString($component->name);
         $this->assertIsString($component->id);
-        $this->assertTrue(is_string($component->selected) || is_null($component->selected));
+        $this->assertTrue(
+            is_string($component->selected) || is_null($component->selected),
+        );
         $this->assertIsBool($component->required);
         $this->assertIsString($component->label);
         $this->assertIsString($component->class);

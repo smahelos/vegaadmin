@@ -8,7 +8,7 @@
 
         <x-back-button />
 
-        <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.products', ['locale' => App::getLocale()]) }}"
             title="{{ __('products.actions.back_to_list') }}" aria-label="{{ __('products.actions.back_to_list') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
@@ -25,7 +25,7 @@
 </div>
 @endauth
 
-<form action="{{ route('frontend.product.update', ['locale' => app()->getLocale(), 'id' => $product->id]) }}"
+<form action="{{ route('frontend.product.update', ['locale' => App::getLocale(), 'id' => $product->id]) }}"
     method="POST" enctype="multipart/form-data">
     @csrf
     @method('PUT')
@@ -170,8 +170,11 @@
                             <div class="md:col-span-1 @if(!$errors->has('image'))mb-5 @endif">
                                 <div id="image-preview-container">
                                     @if($product->image)
+                                    @php
+                                    $disk = Storage::disk('public');
+                                    @endphp
                                     <img id="current-image-preview"
-                                        src="{{ Storage::disk('public')->url($product->image) }}"
+                                        src="{{ $disk->url($product->image) }}"
                                         alt="{{ $product->name }}" class="max-h-40 object-cover rounded-sm">
                                     @else
                                     <p id="no-image-message" class="text-gray-500 dark:text-gray-400">{{
@@ -192,8 +195,7 @@
                         <div class="mb-5">
                             <label for="is_default" class="flex items-center">
                                 <input type="hidden" name="is_default" value="0">
-                                <input type="checkbox" name="is_default" id="is_default" value="1" {{ old('is_default',
-                                    $product->is_default) ? 'checked' : '' }}
+                                <input type="checkbox" name="is_default" id="is_default" value="1" {{ old('is_default', $product->is_default) ? 'checked' : '' }}
                                 class="border-2 border-blue-100 w-4 h-4 text-blue-600 bg-gray-100 rounded-sm
                                 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2
                                 dark:bg-gray-700 dark:border-gray-600">
@@ -211,8 +213,7 @@
                         <div class="mb-5">
                             <label for="is_active" class="flex items-center">
                                 <input type="hidden" name="is_active" value="0">
-                                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active',
-                                    $product->is_active) ? 'checked' : '' }}
+                                <input type="checkbox" name="is_active" id="is_active" value="1" {{ old('is_active', $product->is_active) ? 'checked' : '' }}
                                 class="border-2 border-blue-100 w-4 h-4 text-blue-600 bg-gray-100 rounded-sm
                                 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2
                                 dark:bg-gray-700 dark:border-gray-600">
@@ -236,7 +237,7 @@
 
         <!-- Form submit button -->
         <div class="flex justify-between mb-20 md:mb-10">
-            <a href="{{ route('frontend.products', ['locale' => app()->getLocale()]) }}"
+            <a href="{{ route('frontend.products', ['locale' => App::getLocale()]) }}"
                 class="inline-flex justify-center py-6 px-12 border border-white dark:border-gray-700 shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-200 dark:hover:text-white bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                 {{ __('products.actions.cancel') }}
             </a>
@@ -247,7 +248,7 @@
         </div>
 
         <!-- set Locale -->
-        <input type="hidden" name="lang" value="{{ app()->getLocale() }}">
+        <input type="hidden" name="lang" value="{{ App::getLocale() }}">
 </form>
 
 {{-- UELS Modal --}}

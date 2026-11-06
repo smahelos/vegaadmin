@@ -23,7 +23,7 @@ final class BackpackUsageProvider extends ReflectionBasedMemberUsageProvider
     {
         $class = $method->getDeclaringClass();
 
-        if (! $class->isSubclassOf(CrudController::class)) {
+        if (!$class->isSubclassOf(CrudController::class)) {
             return null;
         }
 

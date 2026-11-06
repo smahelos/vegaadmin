@@ -22,9 +22,9 @@ class ProductCrudControllerTest extends TestCase
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
-        $permission = Permission::where('name', 'can_create_edit_product')
-            ->where('guard_name', 'backpack')
-            ->first();
+        $permissionQuery = Permission::where('name', 'can_create_edit_product');
+        $permissionQuery->where('guard_name', 'backpack');
+        $permission = $permissionQuery->first();
 
         $this->regularUser->givePermissionTo($permission);
 
@@ -38,14 +38,17 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->regularUser, 'backpack');
 
         // Create entity limit for products
-        EntityLimit::factory()->create([
-            'entity_type' => 'product',
-            'limit_value' => 10,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_product',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'entity_type' => 'product',
+                'limit_value' => 10,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'permission_name' => 'can_create_edit_product',
+                'is_active' => true,
+            ],
+        );
 
         // Check initial usage
         $initialCheck = $this->limitService->checkLimit(
@@ -63,7 +66,8 @@ class ProductCrudControllerTest extends TestCase
             'user_id' => $this->regularUser->id,
         ];
 
-        $product = Product::factory()->create($productData);
+        $productFactory = Product::factory();
+        $product = $productFactory->create($productData);
         $result = $this->limitService->recordUsage(
             $this->regularUser->id,
             'product',
@@ -85,24 +89,30 @@ class ProductCrudControllerTest extends TestCase
         $this->assertEquals($initialUsage + 1, $newUsage);
 
         // Verify product was created
-        $this->assertDatabaseHas('products', [
-            'name' => $productData['name'],
-            'user_id' => $this->regularUser->id,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'name' => $productData['name'],
+                'user_id' => $this->regularUser->id,
+            ],
+        );
     }
 
     #[Test]
     public function product_creation_respects_entity_limits(): void
     {
         // Set a strict limit for products
-        EntityLimit::factory()->create([
-            'entity_type' => 'product',
-            'limit_value' => 1,
-            'period_type' => 'monthly',
-            'metric_type' => 'count',
-            'permission_name' => 'can_create_edit_product',
-            'is_active' => true,
-        ]);
+        $entityLimitFactory = EntityLimit::factory();
+        $entityLimitFactory->create(
+            [
+                'entity_type' => 'product',
+                'limit_value' => 1,
+                'period_type' => 'monthly',
+                'metric_type' => 'count',
+                'permission_name' => 'can_create_edit_product',
+                'is_active' => true,
+            ],
+        );
 
         // First product creation - should succeed
         $checkBeforeFirst = $this->limitService->checkLimit(
@@ -113,7 +123,8 @@ class ProductCrudControllerTest extends TestCase
         );
         $this->assertTrue($checkBeforeFirst['allowed']);
 
-        $product1 = Product::factory()->create(['user_id' => $this->regularUser->id]);
+        $productFactory = Product::factory();
+        $product1 = $productFactory->create(['user_id' => $this->regularUser->id]);
         $result1 = $this->limitService->recordUsage(
             $this->regularUser->id,
             'product',
@@ -134,17 +145,21 @@ class ProductCrudControllerTest extends TestCase
         $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
 
         // Verify first product was created
-        $this->assertDatabaseHas('products', [
-            'id' => $product1->id,
-            'user_id' => $this->regularUser->id,
-        ]);
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product1->id,
+                'user_id' => $this->regularUser->id,
+            ],
+        );
     }
 
     #[Test]
     public function create_form_offers_product_categories(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
-        $category = ProductCategory::factory()->create(['name' => 'Category ' . uniqid()]);
+        $productCategoryFactory = ProductCategory::factory();
+        $category = $productCategoryFactory->create(['name' => 'Category ' . uniqid()]);
 
         $response = $this->get('/admin/product/create');
 
@@ -159,13 +174,16 @@ class ProductCrudControllerTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
         $name = 'Product ' . uniqid();
 
-        $this->post('/admin/product', [
-            'name' => $name,
-            'price' => 100,
-            'currency' => 'CZK',
-        ])
-            ->assertSessionHasNoErrors()
-            ->assertRedirect();
+        $httpResponse = $this->post(
+            '/admin/product',
+            [
+                'name' => $name,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        );
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
 
         $this->assertDatabaseHas('products', ['name' => $name, 'user_id' => $this->adminUser->id]);
     }

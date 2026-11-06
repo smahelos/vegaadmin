@@ -39,45 +39,6 @@ class InvoiceDTO
 
     public static function fromArray(array $data): self
     {
-        $currency = strtoupper((string) ($data['currency'] ?? 'CZK'));
-
-        // Convert monetary values to Money objects if they aren't already
-        $subtotal = isset($data['subtotal']) && $data['subtotal'] instanceof Money
-            ? $data['subtotal']
-            : Money::fromString(
-                is_string($data['subtotal'] ?? null) ? (string) $data['subtotal'] : number_format(
-                    (float) ($data['subtotal'] ?? 0),
-                    2,
-                    '.',
-                    '',
-                ),
-                $currency,
-            );
-
-        $totalTax = isset($data['total_tax']) && $data['total_tax'] instanceof Money
-            ? $data['total_tax']
-            : Money::fromString(
-                is_string($data['total_tax'] ?? null) ? (string) $data['total_tax'] : number_format(
-                    (float) ($data['total_tax'] ?? 0),
-                    2,
-                    '.',
-                    '',
-                ),
-                $currency,
-            );
-
-        $totalAmount = isset($data['total_amount']) && $data['total_amount'] instanceof Money
-            ? $data['total_amount']
-            : Money::fromString(
-                is_string($data['total_amount'] ?? null) ? (string) $data['total_amount'] : number_format(
-                    (float) ($data['total_amount'] ?? 0),
-                    2,
-                    '.',
-                    '',
-                ),
-                $currency,
-            );
-
         return new self(
             id: $data['id'] instanceof InvoiceId ? $data['id'] : InvoiceId::fromInt((int) $data['id']),
             user_id: (int) ($data['user_id'] ?? 0),
@@ -88,9 +49,9 @@ class InvoiceDTO
             issue_date: $data['issue_date'] ?? null,
             tax_point_date: $data['tax_point_date'] ?? null,
             due_in: isset($data['due_in']) ? (int) $data['due_in'] : null,
-            subtotal: $subtotal,
-            total_tax: $totalTax,
-            total_amount: $totalAmount,
+            subtotal: $data['subtotal'],
+            total_tax: $data['total_tax'],
+            total_amount: $data['total_amount'],
             payment_method_id: $data['payment_method_id'] ?? null,
             invoice_text: $data['invoice_text'] ?? null,
             currency: $data['currency'] ?? null,

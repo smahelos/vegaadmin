@@ -68,10 +68,15 @@ final class QrPaymentProviderFactory
     {
         $countryCode = strtoupper($countryCode);
 
-        if (! isset(self::$providers[$countryCode])) {
+        if (!isset(self::$providers[$countryCode])) {
 
             // Fallback to European provider for unknown European countries
-            if (in_array($countryCode, array_keys(self::$ibanCountryMapping))) {
+            if (
+                in_array(
+                    $countryCode,
+                    array_keys(self::$ibanCountryMapping),
+                )
+            ) {
                 $countryCode = 'EU';
             } else {
                 throw new InvalidArgumentException("Unsupported country code: {$countryCode}");
@@ -80,7 +85,7 @@ final class QrPaymentProviderFactory
 
         $providerClass = self::$providers[$countryCode];
 
-        if (! class_exists($providerClass)) {
+        if (!class_exists($providerClass)) {
             throw new InvalidArgumentException("Provider class not found: {$providerClass}");
         }
 

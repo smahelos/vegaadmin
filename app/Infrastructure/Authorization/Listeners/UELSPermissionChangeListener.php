@@ -41,11 +41,14 @@ class UELSPermissionChangeListener implements ShouldQueue
     public function handlePermissionAttached(PermissionAttached $event): void
     {
         $this->clearUserCache($event);
-        Log::info('UELS: Permission attached, cache cleared', [
-            'model_id' => $event->model->id ?? null,
-            'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
-            'model_type' => get_class($event->model),
-        ]);
+        Log::info(
+            'UELS: Permission attached, cache cleared',
+            [
+                'model_id' => $event->model->id ?? null,
+                'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
+                'model_type' => get_class($event->model),
+            ],
+        );
     }
 
     /**
@@ -54,11 +57,14 @@ class UELSPermissionChangeListener implements ShouldQueue
     public function handlePermissionDetached(PermissionDetached $event): void
     {
         $this->clearUserCache($event);
-        Log::info('UELS: Permission detached, cache cleared', [
-            'model_id' => $event->model->id ?? null,
-            'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
-            'model_type' => get_class($event->model),
-        ]);
+        Log::info(
+            'UELS: Permission detached, cache cleared',
+            [
+                'model_id' => $event->model->id ?? null,
+                'permissions' => is_array($event->permissionsOrIds) ? $event->permissionsOrIds : [$event->permissionsOrIds],
+                'model_type' => get_class($event->model),
+            ],
+        );
     }
 
     /**
@@ -67,11 +73,14 @@ class UELSPermissionChangeListener implements ShouldQueue
     public function handleRoleAttached(RoleAttached $event): void
     {
         $this->clearUserCache($event);
-        Log::info('UELS: Role attached, cache cleared', [
-            'model_id' => $event->model->id ?? null,
-            'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
-            'model_type' => get_class($event->model),
-        ]);
+        Log::info(
+            'UELS: Role attached, cache cleared',
+            [
+                'model_id' => $event->model->id ?? null,
+                'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
+                'model_type' => get_class($event->model),
+            ],
+        );
     }
 
     /**
@@ -80,11 +89,14 @@ class UELSPermissionChangeListener implements ShouldQueue
     public function handleRoleDetached(RoleDetached $event): void
     {
         $this->clearUserCache($event);
-        Log::info('UELS: Role detached, cache cleared', [
-            'model_id' => $event->model->id ?? null,
-            'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
-            'model_type' => get_class($event->model),
-        ]);
+        Log::info(
+            'UELS: Role detached, cache cleared',
+            [
+                'model_id' => $event->model->id ?? null,
+                'roles' => is_array($event->rolesOrIds) ? $event->rolesOrIds : [$event->rolesOrIds],
+                'model_type' => get_class($event->model),
+            ],
+        );
     }
 
     /**

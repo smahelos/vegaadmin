@@ -70,21 +70,23 @@ final class InvoiceContactApplicationService
      */
     public function saveCustomerToContacts(UserId $userId, InvoiceId $invoiceId): ContactId
     {
-        return $this->transactions->transaction(function () use ($userId, $invoiceId): ContactId {
-            $invoice = $this->invoices->findByIdForUserForUpdate($invoiceId, $userId)
-                ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
-            if ($invoice->parties->contactId !== null) {
-                return $invoice->parties->contactId;
-            }
+        return $this->transactions->transaction(
+            function () use ($userId, $invoiceId): ContactId {
+                $invoice = $this->invoices->findByIdForUserForUpdate($invoiceId, $userId)
+                    ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+                if ($invoice->parties->contactId !== null) {
+                    return $invoice->parties->contactId;
+                }
 
-            $contact = $this->contacts->create(
-                $userId,
-                new ContactWriteData($invoice->parties->customer->toProfile(), null),
-            );
-            $this->invoiceWriter->linkContact($invoiceId, $contact->id);
+                $contact = $this->contacts->create(
+                    $userId,
+                    new ContactWriteData($invoice->parties->customer->toProfile(), null),
+                );
+                $this->invoiceWriter->linkContact($invoiceId, $contact->id);
 
-            return $contact->id;
-        });
+                return $contact->id;
+            },
+        );
     }
 
     /**
@@ -98,18 +100,20 @@ final class InvoiceContactApplicationService
         InvoiceId $invoiceId,
         ContactId $contactId,
     ): void {
-        $this->transactions->transaction(function () use ($userId, $invoiceId, $contactId): void {
-            $invoice = $this->get($userId, $invoiceId);
-            $contact = $this->contacts->get($userId, $contactId);
-            if ($contact->isArchived()) {
-                throw new ArchivedReferenceSelectedException($contactId);
-            }
-            if (! $invoice->parties->customer->hasIdentityOf($contact->profile)) {
-                throw new ContactIdentityChangedException($contactId);
-            }
+        $this->transactions->transaction(
+            function () use ($userId, $invoiceId, $contactId): void {
+                $invoice = $this->get($userId, $invoiceId);
+                $contact = $this->contacts->get($userId, $contactId);
+                if ($contact->isArchived()) {
+                    throw new ArchivedReferenceSelectedException($contactId);
+                }
+                if (!$invoice->parties->customer->hasIdentityOf($contact->profile)) {
+                    throw new ContactIdentityChangedException($contactId);
+                }
 
-            $this->invoiceWriter->linkContact($invoiceId, $contactId);
-        });
+                $this->invoiceWriter->linkContact($invoiceId, $contactId);
+            },
+        );
     }
 
     private function get(UserId $userId, InvoiceId $invoiceId): InvoiceDTO

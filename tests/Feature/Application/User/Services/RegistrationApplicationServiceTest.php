@@ -24,24 +24,40 @@ final class RegistrationApplicationServiceTest extends TestCase
     {
         $email = 'owner-' . uniqid() . '@billex.test';
 
-        $registered = $this->app->make(RegistrationApplicationService::class)->register(
+        $registrationService = $this->app->make(RegistrationApplicationService::class);
+        $registered = $registrationService->register(
             new UserWriteData(
                 'Jana Nováková',
                 $email,
                 'secret-password',
             ),
-            new BusinessWriteData($this->profile('Studio Nováková', '27074358', email: 'studio@billex.test', address: $this->brnoAddress()), null),
+            new BusinessWriteData(
+                $this->profile(
+                    'Studio Nováková',
+                    '27074358',
+                    email: 'studio@billex.test',
+                    address: $this->brnoAddress(),
+                ),
+                null,
+            ),
             $this->czechAccount(),
         );
 
-        $user = User::query()->findOrFail($registered->id);
-        $business = Business::query()->where('user_id', $user->id)->sole();
-        $this->assertTrue($user->hasRole('frontend_user'));
+        $userQuery = User::query();
+        $user = $userQuery->findOrFail($registered->id);
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $user->id);
+        $business = $businessQuery->sole();
+        $this->assertTrue(
+            $user->hasRole('frontend_user'),
+        );
         $this->assertSame($business->id, $user->default_business_id);
         $this->assertSame('studio@billex.test', $business->email);
         $this->assertSame($email, $user->email);
+        $bankAccountQuery = BankAccount::query();
+        $bankAccountQuery->where('business_id', $business->id);
         $this->assertSame(
-            BankAccount::query()->where('business_id', $business->id)->sole()->id,
+            $bankAccountQuery->sole()->id,
             $business->default_bank_account_id,
         );
     }
@@ -53,7 +69,8 @@ final class RegistrationApplicationServiceTest extends TestCase
         $email = 'owner-' . uniqid() . '@billex.test';
 
         try {
-            $this->app->make(RegistrationApplicationService::class)->register(
+            $registrationService = $this->app->make(RegistrationApplicationService::class);
+            $registrationService->register(
                 new UserWriteData(
                     'Jana Nováková',
                     $email,

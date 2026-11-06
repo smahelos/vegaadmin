@@ -3,7 +3,10 @@
 return [
     // when dev mode is enabled basset will replace the changed assets by either checking if the url changed
     // or comparing the file hash with the one in the asset map
-    'dev_mode' => env('BASSET_DEV_MODE', env('APP_ENV') === 'local'),
+    'dev_mode' => env(
+        'BASSET_DEV_MODE',
+        env('APP_ENV') === 'local',
+    ),
 
     // verify ssl certificate while fetching assets
     'verify_ssl_certificate' => env('BASSET_VERIFY_SSL_CERTIFICATE', true),

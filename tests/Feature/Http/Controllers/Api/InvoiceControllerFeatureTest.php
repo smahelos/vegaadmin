@@ -39,7 +39,8 @@ class InvoiceControllerFeatureTest extends TestCase
         // Prepare invoices dataset
         $this->stub = new InMemoryInvoiceServiceStub;
         $this->stub->seed($this->backendAdminUser, $this->frontendUser);
-        app()->instance(InvoiceListingApplicationServiceInterface::class, $this->stub);
+        $application = app();
+        $application->instance(InvoiceListingApplicationServiceInterface::class, $this->stub);
     }
 
     // ---------------------------------------------------------------
@@ -49,35 +50,43 @@ class InvoiceControllerFeatureTest extends TestCase
     public function admin_can_get_any_invoice_by_route_param(): void
     {
         $invoice = $this->stub->invoices[1]; // owned by regular user
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/invoice/' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/invoice/' . $invoice->id);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     #[Test]
     public function user_can_get_own_invoice_by_route_param(): void
     {
         $invoice = $this->stub->invoices[0]; // owned by frontend user
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/' . $invoice->id);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     #[Test]
     public function user_cannot_access_foreign_invoice(): void
     {
         $foreign = $this->stub->invoices[2]; // owned by admin
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/' . $foreign->id);
-        $response->assertStatus(403)->assertJson(['error' => __('users.auth.unauthorized')]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/' . $foreign->id);
+        $assertionResponse = $response->assertStatus(403);
+        $assertionResponse->assertJson(
+            ['error' => __('users.auth.unauthorized')],
+        );
     }
 
     #[Test]
     public function get_invoice_returns_404_when_not_found(): void
     {
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/999999');
-        $response->assertStatus(404)->assertJson(['error' => __('invoices.messages.not_found')]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/999999');
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
+            ['error' => __('invoices.messages.not_found')],
+        );
     }
 
     #[Test]
@@ -85,7 +94,10 @@ class InvoiceControllerFeatureTest extends TestCase
     {
         $invoice = $this->stub->invoices[0];
         $response = $this->getJson('/api/invoice/' . $invoice->id);
-        $response->assertStatus(401)->assertJson(['error' => __('users.auth.unauthenticated')]);
+        $assertionResponse = $response->assertStatus(401);
+        $assertionResponse->assertJson(
+            ['error' => __('users.auth.unauthenticated')],
+        );
     }
 
     // ---------------------------------------------------------------
@@ -94,18 +106,22 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function query_variant_requires_id(): void
     {
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice');
-        $response->assertStatus(400)->assertJson(['error' => __('invoices.messages.id_required')]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice');
+        $assertionResponse = $response->assertStatus(400);
+        $assertionResponse->assertJson(
+            ['error' => __('invoices.messages.id_required')],
+        );
     }
 
     #[Test]
     public function query_variant_fetches_invoice(): void
     {
         $invoice = $this->stub->invoices[0];
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice?q=' . $invoice->id);
-        $response->assertStatus(200)->assertJson(['id' => $invoice->id]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice?q=' . $invoice->id);
+        $assertionResponse = $response->assertStatus(200);
+        $assertionResponse->assertJson(['id' => $invoice->id]);
     }
 
     // ---------------------------------------------------------------
@@ -114,8 +130,8 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function admin_list_returns_all_invoices(): void
     {
-        $response = $this->actingAs($this->backendAdminUser, 'backpack')
-            ->getJson('/api/admin/invoice?q=1'); // using existing route but with id to satisfy controller path; listInvoices not yet separate
+        $httpClient = $this->actingAs($this->backendAdminUser, 'backpack');
+        $response = $httpClient->getJson('/api/admin/invoice?q=1'); // using existing route but with id to satisfy controller path; listInvoices not yet separate
         // Because route hits getInvoice (not implemented list route) skip
         $this->assertTrue(true);
     }
@@ -126,13 +142,20 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function logs_error_and_returns_404_when_service_throws(): void
     {
-        Log::shouldReceive('error')->once()->withArgs(function ($msg, $ctx) {
-            return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
-        });
+        $expectation = Log::shouldReceive('error');
+        $expectation->once();
+        $expectation->withArgs(
+            function ($msg, $ctx) {
+                return str_contains($msg, 'API error: Invoice not found') && isset($ctx['invoice_id']);
+            },
+        );
         $this->stub->failOnId = 123456; // configure stub
-        $response = $this->actingAs($this->frontendUser, 'web')
-            ->getJson('/api/invoice/123456');
-        $response->assertStatus(404)->assertJson(['error' => __('invoices.messages.not_found')]);
+        $httpClient = $this->actingAs($this->frontendUser, 'web');
+        $response = $httpClient->getJson('/api/invoice/123456');
+        $assertionResponse = $response->assertStatus(404);
+        $assertionResponse->assertJson(
+            ['error' => __('invoices.messages.not_found')],
+        );
     }
 }
 
@@ -213,9 +236,9 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             issue_date: null,
             tax_point_date: null,
             due_in: null,
-            subtotal: Money::fromFloat((float) $inv->amount, 'CZK'),
-            total_tax: Money::fromFloat(0.0, 'CZK'),
-            total_amount: Money::fromFloat((float) $inv->amount, 'CZK'),
+            subtotal: Money::fromString((string) $inv->amount, 'CZK'),
+            total_tax: Money::fromString('0.00', 'CZK'),
+            total_amount: Money::fromString((string) $inv->amount, 'CZK'),
             payment_method_id: null,
             invoice_text: null,
             currency: 'CZK',

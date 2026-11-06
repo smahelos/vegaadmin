@@ -25,7 +25,8 @@ class CrudAccessService implements CrudAccessServiceInterface
             'delete',
         ]);
 
-        $table = $crud->getModel()->getTable();
+        $model = $crud->getModel();
+        $table = $model->getTable();
         // Derive entity name from table (e.g. users -> user, subscriptions -> subscription)
         $entity = Str::singular($table);
 

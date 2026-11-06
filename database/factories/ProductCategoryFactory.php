@@ -20,11 +20,12 @@ class ProductCategoryFactory extends Factory
      */
     public function definition(): array
     {
-        $name = $this->faker->unique()->word();
+        $unique = $this->faker->unique();
+        $name = $unique->word();
 
         return [
             'name' => $name,
-            'slug' => Str::slug($name) . '-' . $this->faker->unique()->numberBetween(1000, 9999),
+            'slug' => Str::slug($name) . '-' . $unique->numberBetween(1000, 9999),
             'description' => $this->faker->sentence(),
             'created_at' => now(),
             'updated_at' => now(),

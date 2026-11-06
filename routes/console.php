@@ -1,20 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Models\CronTask;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\Facades\Schema;
 
-// Explicitně registrujeme základní příkaz pro kontrolu faktur
-Schedule::command('invoices:check-payment-status')
-    ->dailyAt('09:00')
-    ->appendOutputTo(storage_path('logs/invoice-reminders.log'));
+// The invoice payment check runs whatever the database holds
+$event = Schedule::command('invoices:check-payment-status');
+$event->dailyAt('09:00');
+$event->appendOutputTo(
+    storage_path('logs/invoice-reminders.log'),
+);
 
-// Dynamické načítání úloh z databáze (pro Backpack rozhraní)
+// Tasks managed in the Backpack admin come from the database
 try {
     if (Schema::hasTable('cron_tasks')) {
-        $cronTasks = CronTask::where('is_active', true)->get();
+        $query = CronTask::where('is_active', true);
+        $cronTasks = $query->get();
 
         foreach ($cronTasks as $task) {
             $event = Schedule::command($task->command);
@@ -25,7 +31,7 @@ try {
                 switch ($task->frequency) {
                     case 'daily':
                         if ($task->run_at) {
-                            $time = is_string($task->run_at) ? $task->run_at : Carbon\Carbon::parse($task->run_at)->format('H:i');
+                            $time = $task->run_at->format('H:i');
                             $event->dailyAt($time);
                         } else {
                             $event->daily();
@@ -33,7 +39,7 @@ try {
                         break;
                     case 'weekly':
                         if ($task->day_of_week !== null && $task->run_at) {
-                            $time = is_string($task->run_at) ? $task->run_at : Carbon\Carbon::parse($task->run_at)->format('H:i');
+                            $time = $task->run_at->format('H:i');
                             $event->weeklyOn($task->day_of_week, $time);
                         } else {
                             $event->weekly();
@@ -41,7 +47,7 @@ try {
                         break;
                     case 'monthly':
                         if ($task->day_of_month !== null && $task->run_at) {
-                            $time = is_string($task->run_at) ? $task->run_at : Carbon\Carbon::parse($task->run_at)->format('H:i');
+                            $time = $task->run_at->format('H:i');
                             $event->monthlyOn($task->day_of_month, $time);
                         } else {
                             $event->monthly();
@@ -52,23 +58,37 @@ try {
                 }
             }
 
-            // Zapisovat výstup do logů
-            $event->appendOutputTo(storage_path("logs/cron-{$task->id}.log"));
+            // Each task writes its output to its own log
+            $event->appendOutputTo(
+                storage_path("logs/cron-{$task->id}.log"),
+            );
 
-            // Aktualizovat čas posledního běhu a výstup
-            $event->after(function () use ($task): void {
-                $task->last_run = now();
-                $task->last_output = file_exists(storage_path("logs/cron-{$task->id}.log"))
-                    ? file_get_contents(storage_path("logs/cron-{$task->id}.log"))
-                    : null;
-                $task->save();
-            });
+            // Store the time of the last run and its output
+            $event->after(
+                function () use ($task): void {
+                    $task->last_run = now();
+                    $logPath = storage_path("logs/cron-{$task->id}.log");
+                    if (file_exists($logPath)) {
+                        $task->last_output = file_get_contents($logPath);
+                    } else {
+                        $task->last_output = null;
+                    }
+                    $task->save();
+                },
+            );
         }
     }
 } catch (Exception $e) {
-    Log::error('Chyba při načítání cron úloh: ' . $e->getMessage());
+    Log::error(
+        'Cron task loading failed',
+        ['exception' => $e],
+    );
 }
 
-Artisan::command('inspire', function (): void {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote');
+$command = Artisan::command(
+    'inspire',
+    function (): void {
+        $this->comment(Inspiring::quote());
+    },
+);
+$command->purpose('Display an inspiring quote');

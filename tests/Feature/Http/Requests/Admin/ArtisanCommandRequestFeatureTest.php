@@ -24,7 +24,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_data(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $validData = [
             'name' => 'Test Command',
@@ -51,15 +52,17 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
-        $this->assertArrayHasKey('category_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
+        $this->assertArrayHasKey('command', $errors->toArray());
+        $this->assertArrayHasKey('category_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_long_name(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $invalidData = [
             'name' => str_repeat('a', 256),
@@ -71,13 +74,15 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('name', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('name', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_long_command(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $invalidData = [
             'name' => 'Test Command',
@@ -89,14 +94,17 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('command', $errors->toArray());
     }
 
     #[Test]
     public function validation_fails_with_duplicate_command(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
-        ArtisanCommand::factory()->create(['command' => 'existing:command']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $artisanCommandFactory->create(['command' => 'existing:command']);
 
         $invalidData = [
             'name' => 'Test Command',
@@ -108,14 +116,17 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('command', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('command', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_same_command_for_update(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
-        $command = ArtisanCommand::factory()->create(['command' => 'existing:command']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create(['command' => 'existing:command']);
 
         $validData = [
             'name' => 'Updated Command',
@@ -145,13 +156,15 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('category_id', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('category_id', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_minimal_required_data(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $validData = [
             'name' => 'Minimal Command',
@@ -168,7 +181,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_nullable_fields_set_to_null(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $validData = [
             'name' => 'Test Command',
@@ -187,7 +201,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_invalid_boolean_is_active(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $invalidData = [
             'name' => 'Test Command',
@@ -200,13 +215,15 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('is_active', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('is_active', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_boolean_values_for_is_active(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $validData1 = [
             'name' => 'Test Command 1',
@@ -234,7 +251,8 @@ class ArtisanCommandRequestFeatureTest extends TestCase
     #[Test]
     public function validation_fails_with_negative_sort_order(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $invalidData = [
             'name' => 'Test Command',
@@ -247,13 +265,15 @@ class ArtisanCommandRequestFeatureTest extends TestCase
         $validator = Validator::make($invalidData, $request->rules());
 
         $this->assertFalse($validator->passes());
-        $this->assertArrayHasKey('sort_order', $validator->errors()->toArray());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('sort_order', $errors->toArray());
     }
 
     #[Test]
     public function validation_passes_with_valid_sort_order(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $validData = [
             'name' => 'Test Command',

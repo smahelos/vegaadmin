@@ -16,19 +16,24 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function can_create_artisan_command_with_factory(): void
     {
-        $command = ArtisanCommand::factory()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create();
 
-        $this->assertDatabaseHas('artisan_commands', [
-            'id' => $command->id,
-            'name' => $command->name,
-            'command' => $command->command,
-        ]);
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            [
+                'id' => $command->id,
+                'name' => $command->name,
+                'command' => $command->command,
+            ],
+        );
     }
 
     #[Test]
     public function fillable_attributes_can_be_mass_assigned(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $data = [
             'name' => 'Test Command',
@@ -50,7 +55,8 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function casts_work_correctly(): void
     {
-        $command = ArtisanCommand::factory()->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create([
             'is_active' => 1,
             'sort_order' => '20',
         ]);
@@ -63,8 +69,10 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function belongs_to_category_relationship(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
-        $command = ArtisanCommand::factory()->create(['category_id' => $category->id]);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create(['category_id' => $category->id]);
 
         $this->assertInstanceOf(ArtisanCommandCategory::class, $command->category);
         $this->assertEquals($category->id, $command->category->id);
@@ -74,7 +82,8 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function can_create_command_without_optional_fields(): void
     {
-        $category = ArtisanCommandCategory::factory()->create();
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category = $artisanCommandCategoryFactory->create();
 
         $data = [
             'name' => 'Minimal Command',
@@ -92,7 +101,8 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function factory_creates_valid_command_format(): void
     {
-        $command = ArtisanCommand::factory()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create();
 
         $this->assertStringStartsWith('php artisan ', $command->command);
         $this->assertNotEmpty($command->name);
@@ -102,8 +112,11 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function factory_states_work_correctly(): void
     {
-        $activeCommand = ArtisanCommand::factory()->active()->create();
-        $inactiveCommand = ArtisanCommand::factory()->inactive()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $activeFactory = $artisanCommandFactory->active();
+        $activeCommand = $activeFactory->create();
+        $inactiveFactory = $artisanCommandFactory->inactive();
+        $inactiveCommand = $inactiveFactory->create();
 
         $this->assertTrue($activeCommand->is_active);
         $this->assertFalse($inactiveCommand->is_active);
@@ -112,7 +125,8 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function can_update_command(): void
     {
-        $command = ArtisanCommand::factory()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create();
 
         $newData = [
             'name' => 'Updated Command',
@@ -122,16 +136,20 @@ class ArtisanCommandFeatureTest extends TestCase
 
         $command->update($newData);
 
-        $this->assertDatabaseHas('artisan_commands', array_merge(
-            ['id' => $command->id],
-            $newData,
-        ));
+        $this->assertDatabaseHas(
+            'artisan_commands',
+            array_merge(
+                ['id' => $command->id],
+                $newData,
+            ),
+        );
     }
 
     #[Test]
     public function can_delete_command(): void
     {
-        $command = ArtisanCommand::factory()->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create();
         $commandId = $command->id;
 
         $command->delete();
@@ -142,8 +160,9 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function boolean_cast_works_with_is_active(): void
     {
-        $activeCommand = ArtisanCommand::factory()->create(['is_active' => 1]);
-        $inactiveCommand = ArtisanCommand::factory()->create(['is_active' => 0]);
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $activeCommand = $artisanCommandFactory->create(['is_active' => 1]);
+        $inactiveCommand = $artisanCommandFactory->create(['is_active' => 0]);
 
         $this->assertTrue($activeCommand->is_active);
         $this->assertFalse($inactiveCommand->is_active);
@@ -154,11 +173,13 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function can_create_multiple_commands_with_different_categories(): void
     {
-        $category1 = ArtisanCommandCategory::factory()->create(['name' => 'Cache']);
-        $category2 = ArtisanCommandCategory::factory()->create(['name' => 'Database']);
+        $artisanCommandCategoryFactory = ArtisanCommandCategory::factory();
+        $category1 = $artisanCommandCategoryFactory->create(['name' => 'Cache']);
+        $category2 = $artisanCommandCategoryFactory->create(['name' => 'Database']);
 
-        $command1 = ArtisanCommand::factory()->create(['category_id' => $category1->id]);
-        $command2 = ArtisanCommand::factory()->create(['category_id' => $category2->id]);
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command1 = $artisanCommandFactory->create(['category_id' => $category1->id]);
+        $command2 = $artisanCommandFactory->create(['category_id' => $category2->id]);
 
         $this->assertEquals('Cache', $command1->category->name);
         $this->assertEquals('Database', $command2->category->name);
@@ -167,7 +188,8 @@ class ArtisanCommandFeatureTest extends TestCase
     #[Test]
     public function sort_order_has_default_value_when_not_specified(): void
     {
-        $command = ArtisanCommand::factory()->create(['sort_order' => 0]);
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create(['sort_order' => 0]);
 
         $this->assertEquals(0, $command->sort_order);
         $this->assertIsInt($command->sort_order);
@@ -177,7 +199,8 @@ class ArtisanCommandFeatureTest extends TestCase
     public function can_have_commands_with_parameters_description(): void
     {
         $parametersDesc = 'Use --force to override existing files';
-        $command = ArtisanCommand::factory()->create([
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $command = $artisanCommandFactory->create([
             'parameters_description' => $parametersDesc,
         ]);
 
@@ -188,11 +211,15 @@ class ArtisanCommandFeatureTest extends TestCase
     public function relationship_eager_loading_works(): void
     {
         // The query reads the whole table; start without the seeded cron command
-        ArtisanCommand::query()->delete();
+        $artisanCommandQuery = ArtisanCommand::query();
+        $artisanCommandQuery->delete();
 
-        $commands = ArtisanCommand::factory()->count(3)->create();
+        $artisanCommandFactory = ArtisanCommand::factory();
+        $artisanCommandFactory = $artisanCommandFactory->count(3);
+        $commands = $artisanCommandFactory->create();
 
-        $commandsWithCategory = ArtisanCommand::with('category')->get();
+        $artisanCommandQuery = ArtisanCommand::with('category');
+        $commandsWithCategory = $artisanCommandQuery->get();
 
         $this->assertCount(3, $commandsWithCategory);
         foreach ($commandsWithCategory as $command) {

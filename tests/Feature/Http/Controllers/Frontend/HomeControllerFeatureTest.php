@@ -12,7 +12,9 @@ class HomeControllerFeatureTest extends TestCase
     public function guest_sees_login_view_when_not_authenticated(): void
     {
         $locale = config('app.locale');
-        $response = $this->get(route('frontend.home.test', ['locale' => $locale]));
+        $response = $this->get(
+            route('frontend.home.test', ['locale' => $locale]),
+        );
         $response->assertStatus(200);
         $response->assertViewIs('auth.login');
     }
@@ -20,13 +22,18 @@ class HomeControllerFeatureTest extends TestCase
     #[Test]
     public function authenticated_user_is_redirected_to_dashboard(): void
     {
-        $user = User::factory()->create();
+        $userFactory = User::factory();
+        $user = $userFactory->create();
         $this->actingAs($user, 'web');
 
         $locale = config('app.locale');
 
-        $response = $this->get(route('frontend.home.test', ['locale' => $locale]));
+        $response = $this->get(
+            route('frontend.home.test', ['locale' => $locale]),
+        );
         $response->assertStatus(302);
-        $response->assertRedirect(route('frontend.dashboard', ['locale' => $locale]));
+        $response->assertRedirect(
+            route('frontend.dashboard', ['locale' => $locale]),
+        );
     }
 }

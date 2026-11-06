@@ -125,12 +125,12 @@
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">{{ $product->invoices_count ?? $product->invoices->count() }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <!-- View button -->
-                        <a href="{{ route('frontend.product.show', ['id' => $product->id, 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.product.show', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
                             title="{{ __('products.actions.view') }}" class="text-indigo-500 hover:text-[#490BF4] mr-3">
                             <i class="fas fa-eye"></i>
                         </a>
                         <!-- Edit button -->
-                        <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => app()->getLocale()]) }}"
+                        <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
                             title="{{ __('products.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
@@ -140,7 +140,7 @@
                             <i class="fas fa-trash-alt"></i>
                         </a>
                         <form id="delete-form-{{ $product->id }}"
-                            action="{{ route('frontend.product.destroy', ['id' => $product->id, 'locale' => app()->getLocale()]) }}" method="POST" class="hidden">
+                            action="{{ route('frontend.product.destroy', ['id' => $product->id, 'locale' => App::getLocale()]) }}" method="POST" class="hidden">
                             @csrf
                             @method('DELETE')
                         </form>
@@ -165,7 +165,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">{{ __('products.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('products.titles.empty_message') }}</p>
-        <a href="{{ route('frontend.product.create', ['locale' => app()->getLocale()]) }}"
+        <a href="{{ route('frontend.product.create', ['locale' => App::getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('products.actions.new') }}
         </a>

@@ -22,7 +22,13 @@ final class StatisticsFilterTest extends TestCase
             contactIds: [],
         );
 
-        $this->assertSame('2026-07-01', $filter->start(new DateTimeImmutable('2026-10-24'))->format('Y-m-d'));
+        $start = $filter->start(
+            new DateTimeImmutable('2026-10-24'),
+        );
+        $this->assertSame(
+            '2026-07-01',
+            $start->format('Y-m-d'),
+        );
     }
 
     #[Test]
@@ -35,6 +41,12 @@ final class StatisticsFilterTest extends TestCase
             contactIds: [],
         );
 
-        $this->assertSame('2026-05-15', $filter->start(new DateTimeImmutable('2026-10-24'))->format('Y-m-d'));
+        $start = $filter->start(
+            new DateTimeImmutable('2026-10-24'),
+        );
+        $this->assertSame(
+            '2026-05-15',
+            $start->format('Y-m-d'),
+        );
     }
 }
