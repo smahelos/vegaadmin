@@ -1,6 +1,6 @@
 # Technical Design: Businesses and Contacts
 
-Date: 2026-10-26. Status: agreed technical specification for step 7 of the order of work ([TECH_DEBT](../TECH_DEBT.md)). Documentation reviewed 2026-10-30 without changing product decisions.
+Date: 2026-10-26. Status: agreed technical specification for step 7 of the order of work ([TECH_DEBT](../TECH_DEBT.md)). Documentation reviewed 2026-10-30 without changing product decisions; 2026-11-06 the limit configuration points to D-047.
 Product requirements: [PRD: Moje firmy a kontakty](../prd/PRD_BUSINESSES_AND_CONTACTS.md) (version 1.2). Decision: [D-045](../adr/D-045-businesses-and-contacts.md).
 Implementation status and acceptance coverage: [VERIFICATION_BUSINESSES_AND_CONTACTS.md](../prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md).
 
@@ -73,7 +73,7 @@ The generated unique key, the CHECK with restricting foreign keys and the compos
 
 ### Capacity limits (Q8, Q9, Q10)
 
-No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. Limits `limit_active_businesses_basic` (10) and `limit_active_contacts_basic` (16): entity types `business` / `contact`, `metric_type` `active`, `period_type` `lifetime`; the UELS dashboard shows the counted rows for `active`. The owner's limit applies in the admin too, without bypass: `can_create_{business,contact}_unlimited` is not introduced. The old `limit_yearly_{clients,suppliers}_basic`, the party `UsageRecordingHandler`, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
+No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. The limits are the `businesses` and `contacts` values of the owner's plan role ([D-047](../adr/D-047-entity-limits.md), which replaced the `limit_active_*` permissions and the UELS dashboard on 2026-11-06). The owner's limit applies in the admin too, without bypass: `can_create_{business,contact}_unlimited` is not introduced. The old `limit_yearly_{clients,suppliers}_basic`, the party `UsageRecordingHandler`, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
 
 ### Events (Q26)
 

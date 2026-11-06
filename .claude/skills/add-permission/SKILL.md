@@ -9,7 +9,7 @@ description: >-
 
 # Add, rename or remove a permission
 
-Naming and where checks belong: `rules/permissions.md`. Entity limits (`limit_*`) are plan configuration, not catalog entries — this skill does not handle them.
+Naming and where checks belong: `rules/permissions.md`. Entity limits (`role_limits`, D-047) are plan configuration, not permissions — this skill does not handle them.
 
 1. **Pick the name.** `can_{view,create,update,delete}_<entity>` for CRUD, `can_<verb>_<entity>` for other actions; web-guard permissions get the `frontend.` prefix. Look in `app/Infrastructure/Authorization/PermissionCatalog.php` first: if the entity already has the permission for this action, use it and stop here.
 2. **Edit the catalog.** Add the name to `PermissionCatalog::PERMISSIONS[<guard>]`, keeping the list's order; add it to the default permissions of the frontend roles in `PermissionCatalog::ROLES` if they should have it. The `admin` role receives every backpack permission automatically.
