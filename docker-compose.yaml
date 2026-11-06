@@ -45,8 +45,9 @@ services:
             - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
         depends_on:
             - "app"
+        # Every published port listens on this machine only, as pma does
         ports:
-            - 80:80
+            - 127.0.0.1:80:80
         networks:
             - billex-network
 
@@ -73,7 +74,7 @@ services:
             MYSQL_USER: ${DB_USERNAME}
             TZ: "Europe/Prague"
         ports:
-            - 3306:3306
+            - 127.0.0.1:3306:3306
         networks:
             - billex-network
         healthcheck:
@@ -105,8 +106,8 @@ services:
         logging:
             driver: 'none'
         ports:
-            - 1025:1025
-            - 8025:8025
+            - 127.0.0.1:1025:1025
+            - 127.0.0.1:8025:8025
         networks:
             - billex-network
 

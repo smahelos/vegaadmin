@@ -7,7 +7,6 @@ use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\BusinessController;
 use App\Http\Controllers\Frontend\ContactController;
 use App\Http\Controllers\Frontend\DashboardController;
-use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\InvoiceContactController;
 use App\Http\Controllers\Frontend\InvoiceController;
 use App\Http\Controllers\Frontend\PageController;
@@ -153,10 +152,6 @@ $registrar->group(
                         $route = Route::get('/login', [LoginController::class, 'showLoginForm']);
                         $route->name('frontend.login');
                         Route::post('/login', [LoginController::class, 'login']);
-
-                        // Test route for HomeController (used only in automated tests to verify behavior)
-                        $route = Route::get('/test-home-controller', [HomeController::class, 'index']);
-                        $route->name('frontend.home.test');
                     },
                 );
 
