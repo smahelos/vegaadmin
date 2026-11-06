@@ -11,9 +11,11 @@ use App\Application\User\Services\UserApplicationService;
 use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
 use App\Domain\User\Contracts\EntityLimitUsageRepositoryInterface;
+use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\Contracts\LocaleServiceInterface;
 use App\Domain\User\Contracts\PermissionLimitResolverInterface;
+use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
@@ -26,6 +28,8 @@ use App\Domain\User\Services\UserService;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Infrastructure\Authorization\Services\CrudAccessService;
+use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
+use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EntityLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EntityLimitUsageRepository;
@@ -93,6 +97,16 @@ class UserServiceProvider extends ServiceProvider
         $this->app->bind(
             EntityLimitUsageRepositoryInterface::class,
             EntityLimitUsageRepository::class,
+        );
+
+        $this->app->bind(
+            RoleLimitReadRepositoryInterface::class,
+            EloquentRoleLimitRepository::class,
+        );
+
+        $this->app->bind(
+            LimitedEntityCounterInterface::class,
+            EloquentLimitedEntityCounter::class,
         );
 
         $this->app->bind(

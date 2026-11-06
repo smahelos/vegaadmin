@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-06T15:04:36+00:00",
+    "generated_at": "2026-11-06T19:21:18+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -485,6 +485,14 @@
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\EntityLimitUsageRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EntityLimitUsageRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\RoleLimitReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentRoleLimitRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\User\\Contracts\\LimitedEntityCounterInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentLimitedEntityCounter"
                 },
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserReadRepositoryInterface",
@@ -1279,6 +1287,14 @@
                 "method": "bind"
             }
         },
+        "App\\Domain\\User\\Contracts\\LimitedEntityCounterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentLimitedEntityCounter",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
         "App\\Domain\\User\\Contracts\\LocaleServiceInterface": {
             "status": "ok",
             "actual": {
@@ -1291,6 +1307,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\User\\Services\\PermissionLimitResolver",
+                "provider": "App\\Providers\\UserServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\User\\Contracts\\RoleLimitReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentRoleLimitRepository",
                 "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }

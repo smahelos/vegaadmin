@@ -12,6 +12,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentUserMapper as Mapper;
 use App\Models\User;
+use DateTimeImmutable;
 
 class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWriteRepositoryInterface
 {
@@ -82,6 +83,14 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
         $query->whereKey($id->toInt());
         $query->lockForUpdate();
         $query->firstOrFail();
+    }
+
+    public function planRoleAssignedAt(UserId $id): ?DateTimeImmutable
+    {
+        $query = User::query();
+        $user = $query->findOrFail($id->toInt());
+
+        return $user->getAttribute('plan_role_assigned_at');
     }
 
     public function assignRole(UserId $id, string $role): void

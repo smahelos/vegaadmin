@@ -12,7 +12,7 @@ use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Reference data the application needs to run in every environment: statuses, VAT rates, payment
- * methods, banks, categories, archive policies and the entity limits of the frontend roles. Rows
+ * methods, banks, categories, archive policies and the limits of the frontend plan roles. Rows
  * are matched by their natural key, so running it again updates them instead of adding copies.
  */
 final class ReferenceDataSeeder extends Seeder
@@ -266,6 +266,29 @@ final class ReferenceDataSeeder extends Seeder
         ],
     ];
 
+    /**
+     * Limits of the plan roles (D-047): null unlimited, 0 not allowed. The values are decided with the plans in
+     * TECH_DEBT step 19.
+     *
+     * @var array<string, array{invoices: ?int, expenses: ?int, businesses: ?int, contacts: ?int, products: ?int}>
+     */
+    private const PLAN_ROLE_LIMITS = [
+        'frontend_user' => [
+            'invoices' => 10,
+            'expenses' => 10,
+            'businesses' => 10,
+            'contacts' => 16,
+            'products' => 5,
+        ],
+        'frontend_user_plus' => [
+            'invoices' => null,
+            'expenses' => 10,
+            'businesses' => 10,
+            'contacts' => 16,
+            'products' => 5,
+        ],
+    ];
+
     public function run(): void
     {
         DB::transaction(
@@ -278,6 +301,7 @@ final class ReferenceDataSeeder extends Seeder
                 $this->seedProductCategories();
                 $this->seedArchivePolicies();
                 $this->seedEntityLimits();
+                $this->seedRoleLimits();
             },
         );
     }
@@ -428,6 +452,18 @@ final class ReferenceDataSeeder extends Seeder
 
         $registrar = app(PermissionRegistrar::class);
         $registrar->forgetCachedPermissions();
+    }
+
+    private function seedRoleLimits(): void
+    {
+        foreach (self::PLAN_ROLE_LIMITS as $role => $limits) {
+            $webRole = Role::findByName($role, 'web');
+            $this->upsert(
+                'role_limits',
+                ['role_id' => $webRole->id],
+                $limits,
+            );
+        }
     }
 
     /**
