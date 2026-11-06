@@ -4,7 +4,7 @@ Known gaps between the code and the intended architecture (see `AGENTS.md`, `doc
 
 ## Order of work
 
-Decided 2026-11-06, replacing the priority order of 2026-10-23: the steps follow their dependencies, not their importance. A step that others build on goes before them, and work that touches the same files is done in the same step. The done steps 1–7 keep their numbers, which other documents refer to; the open steps are numbered in their order from 8.
+Decided 2026-11-06, replacing the priority order of 2026-10-23: the steps follow their dependencies, not their importance. A step that others build on goes before them, and work that touches the same files is done in the same step. The done steps 1–8 keep their numbers, which other documents refer to; the open steps are numbered in their order from 9.
 
 Each open step has a section below with its items. An item without a **Status** line has not been started; an item that is partly done says what is left. A resolved item is removed, and a step is struck through once its section is empty. An item found later goes into the step that touches its code.
 
@@ -17,12 +17,12 @@ Each open step has a section below with its items. An item without a **Status** 
 5. ~~"Test runs and CI are slower than they need to be" with the `tests/Unit` part of "Tests that pin structure instead of behaviour" — every later branch runs the suite many times.~~ Done 2026-10-25 (branches `ls-test-speed`, `ls-unit-tests`): no more migrating again after tests that left their transaction, no Basset downloads; `tests/Unit` holds only behaviour tests without Laravel and runs as its own CI job without MySQL. `schema:dump` was deferred, see "Test runs and CI are slower than they need to be".
 6. ~~What an issued invoice freezes must be right first: "Modern and minimal PDFs always print …", "VAT rates are typed into the database by hand", "Calculate due dates through `InvoiceDueDate`", "Statuses are looked up by string slugs and labelled in English".~~ Done 2026-10-25 (branch `ls-invoice-print`): the PDFs print the stored tax point date, invoice text and payment method (`PaymentMethodCode`) in the PDF language, the tax point date is required, due dates go through `InvoiceDueDate`, PDF dates through `DateFormatterInterface`; invoice statuses are the `InvoiceStatus` enum and overdue is derived from the due date, which also made the payment reminders work again. Left over: "VAT rates by the supplier's country", "Status labels are translated in the model"; found on the way: "Dates outside the PDFs are formatted by hand"; the admin form could not save an invoice (its request required a field the form does not send), fixed on the branch.
 7. ~~Businesses and contacts: "Clients and suppliers mix the user's businesses with their contacts" and "Optional client and supplier fields cannot be cleared" with "Rename IČO and DIČ to `company_number` and `vat_number`", "Build `BankAccount` and validate bank accounts through it" and the print/QR/reminder DTO names from "Data class names and properties" (`docs/adr/D-045-businesses-and-contacts.md`, `docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`).~~ Done 2026-10-31 (branch `ls-businesses-contacts`, PR #66), implemented and verified as [the verification map](prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md) records. Left to step 12: locking the issued document, its stored PDF, issue-time numbering, the variable symbol and product archiving; to step 13: the full received-document model and the Business tax profile.
+8. ~~Entity limit design: "The entity limit system needs a decided design".~~ Done 2026-11-06 (branch `ls-entity-limit-design`): `docs/adr/D-047-entity-limits.md` and `docs/prd/PRD_ENTITY_LIMITS.md` accepted, the Entity limits section of `rules/permissions.md` rewritten; step 10 converts the code.
 
 **Open**
 
-8. [Entity limit design](#step-8-entity-limit-design) — not started; next. Documentation only: the ADR and `rules/permissions.md` decide what steps 9 and 10 change.
 9. [Permission naming](#step-9-permission-naming) — in progress. The security gaps found in steps 2 and 7 were closed 2026-11-06 (branch `ls-security-gaps`, PR #74: frontend invoice writes, cron tasks, GoPay callbacks, operation permissions of the admin CRUD screens, published Docker ports, a test-only route). Before step 10, which changes the same requests, and step 19, whose plans grant the permissions.
-10. [Entity limit conversion](#step-10-entity-limit-conversion) — not started; needs the design of step 8 and the permission names of step 9.
+10. [Entity limit conversion](#step-10-entity-limit-conversion) — not started; needs the design of step 8 (D-047) and the permission names of step 9.
 11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting and value object accessors, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
@@ -37,22 +37,6 @@ Each open step has a section below with its items. An item without a **Status** 
 22. [Frontend, API and routes](#step-22-frontend-api-and-routes) — not started: "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 23. [After the conversion](#step-23-after-the-conversion) — not started: Larastan up to `max`, architecture tests instead of the guards.
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
-
-## Step 8: Entity limit design
-
-### The entity limit system needs a decided design
-- **Where:** `entity_limits` and `entity_limit_usage` with their models, `UniversalLimitService`, `PermissionLimitResolver`, `EntityLimitUsageRepository`, the usage recording handlers, `UELSController`, `UELSDashboardController`, the `EntityLimit` and `EntityUsage` CRUD controllers
-- **Problem:** `metric_type` takes `count`, `value`, `size` and `active`, but the application records only `count` usages. `current_value` counts the uses of a limit, a whole number, yet the column is `decimal`, `recordUsage()` takes `int|float` and the usage CRUD prints it as euros or bytes. The defects below and the User items of "Conversion to the standard" sit in the same code. `EntityUsageCrudController` keeps its shape without `declare(strict_types=1)` and `final`, because `number_format()` and `formatBytes()` receive the decimal string, which strict types reject.
-- **Analysis (2026-11-06, code, seeds and the original UELS documents in commit `a65aaffb` of the Bitbucket history):**
-  - Of several period limits of one entity only one applies. The service picks the period with the largest capacity per month (daily × 30, weekly × 4 + 2, yearly / 12) and checks and records only that one: with the seeded 3 invoices a day, 15 a week and 10 a month only the daily limit holds, about 90 invoices a month. The original documentation describes this ("the system uses the highest limit"); the seeded values read as if all of them should apply.
-  - Frontend invoices are checked twice: in `InvoiceRequest`, outside the transaction and with a bypass through `frontend.unlimited_access.invoice`, which the catalog does not have, and in `InvoiceCrudApplicationService` inside it.
-  - The expense bypass reads the owner's backpack permissions instead of the acting admin's (`ExpenseApplicationService`), and no expense limit is seeded.
-  - Product limits are not enforced: `Frontend\ProductController::store()` asks `canUserCreateEntity()`, which only checks that some limit above zero exists, and the admin `ProductRequest` checks the admin's own limit instead of the owner's.
-  - The admin requests of taxes, banks, payment methods and product categories run a limit check for entity types without limit rows, so only `can_create_<entity>_unlimited` lets anyone create them: a second create permission, not a limit.
-  - The capacity limits of businesses and contacts (`CapacityLimit`) follow `rules/permissions.md`.
-  - Usage is recorded by the `InvoiceCreated`, `ExpenseCreated` and `ProductCreated` handlers, only for the chosen period; a failed recording is only logged.
-  - Unused: the metric types `value` and `size`, `entity_limits.default_period`, the entity types `user` and `page` of `EntityLimit::ENTITY_TYPES`; anonymous limits (`__anonymous_user__`) can be configured in the admin and are shown through the UELS API, but no guest creation is checked or recorded.
-- **Fix:** decide in an ADR whether every period limit of an entity applies; whether products have a period or a capacity limit (a capacity limit needs product archiving, which then moves from step 12 to step 10); whether admin reference data keeps limits; which entities are limited; and delete what stays unused. Update `rules/permissions.md`; step 10 converts the system with `/convert-to-standard`, `EntityUsageCrudController` included.
 
 ## Step 9: Permission naming
 
@@ -70,25 +54,10 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 10: Entity limit conversion
 
-### UELS API routes shadow each other
-- **Where:** `routes/api.php` (`/uels` and `/uels/{id}` in the frontend group, `/uels` and `/uels/{entity}` in the public `auth:web` group)
-- **Problem:** two routes share each URI, so `api.uels` (`getUELS`) and `api.uels.entity` are never reached; `/uels/{entity}` answers with `getUELSById`.
-- **Fix:** one route per endpoint inside the `api.require.frontend` group, delete the endpoints without a consumer (`http.md`, API responses).
-
-### UELS dashboard bulk reset fails
-- **Where:** `app/Http/Controllers/Admin/UELSDashboardController.php::bulkResetUsage()`
-- **Problem:** the action passes a `User` model to `UniversalLimitService::resetUsage(?int $userId, …)` and ends with a `TypeError` (500). Its validation marks both checkboxes `accepted`, so resetting only anonymous usage or only users cannot be submitted at all.
-- **Fix:** pass the user id, make both options optional (at least one required), cover the action with a feature test.
-
-### Hardcoded units in the usage CRUD
-- **Where:** `app/Http/Controllers/Admin/EntityUsageCrudController.php` (`formatBytes()`), `resources/views/admin/uels-dashboard.blade.php`, `resources/js/uels-manager.js`
-- **Problem:** value-based usages print a fixed `€` and sizes `KB`, although `current_value` is a count; the widget title in `uels-manager.js` prints the raw entity type and period slugs. The unreachable reset actions and the request of the read-only CRUD were deleted (branch `ls-dead-code`).
-- **Fix:** display `current_value` as the design above decides, pass translated labels to the widget script.
-
-### UELS still uses untyped projections
-- **Where:** `UELSController` and its application interface
-- **Problem:** limit information travels as arrays and ad-hoc JSON.
-- **Fix:** UELS DTOs, domain read ports and JsonResources.
+### Entity limits do not follow D-047
+- **Where:** `entity_limits` and `entity_limit_usage` with their models, the `limit_*` permissions and `ReferenceDataSeeder::ENTITY_LIMITS` / `ROLE_LIMITS`, `UniversalLimitService`, `PermissionLimitResolver`, `EntityLimitUsageRepository`, `CapacityLimit`, the usage recording handlers of `InvoiceCreated`, `ExpenseCreated` and `ProductCreated`, the UELS cache and `UELSPermissionChangeListener`, `UELSController` and its routes in `routes/api.php`, `UELSDashboardController`, the `EntityLimit` and `EntityUsage` CRUD controllers, `resources/js/uels-manager.js`, the `uels-*` Blade components and their use in the invoice and product views, the limit checks in `InvoiceRequest`, the admin `ProductRequest` and the admin requests of taxes, banks, payment methods and product categories, `Frontend\ProductController::store()`, the expense bypass in `ExpenseApplicationService`, the `can_create_<entity>_unlimited` permissions, the `paths` of `rules/permissions.md`
+- **Problem:** the old system (context of D-047): only one of several period limits applies, the highest limit of several roles wins, usage is a separately written counter that can drift, frontend invoices are checked twice, product limits are not enforced, the expense bypass reads the owner's permissions, reference data need an "unlimited" permission to be created at all, and its API routes shadow each other, the dashboard's bulk reset fails with a `TypeError` and the usage CRUD prints counts as euros and bytes.
+- **Fix:** convert to D-047 with `/convert-to-standard`: the `role_limits` table and its Backpack CRUD with `can_{view,create,update,delete}_role_limit` (`add-permission`), the time the plan role was assigned stored with the user and set at registration, one domain service checking capacity and monthly quota inside the creating and restoring use cases, usage rendered in Blade on the dashboard, the create forms and the admin user detail, the refusal message in four locales (`add-translation`), rate limits with their values in a new `config/billex.php`; delete everything listed under Where that D-047 removes, with a migration removing the `limit_*` and `can_create_<entity>_unlimited` permissions. Tests cover PRD A01–A14 and A17; A04 waits for issuing in step 12.
 
 ## Step 11: Foundations for the rewrites
 
@@ -256,7 +225,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### Plan roles are not built
 - **Where:** roles `frontend_user` and `frontend_user_plus`, `ReferenceDataSeeder::ROLE_LIMITS`, `DevelopmentDataSeeder`
 - **Problem:** the frontend roles do not match the plans. Decided 2026-10-25: `frontend_user` after registration without a subscription, with the lowest limits; `frontend_user_s1` replaces `frontend_user_plus` for the cheaper plan; `frontend_user_s2` for the dearer one; perhaps `frontend_user_s3` later. The limit values are to be decided again.
-- **Fix:** the roles with their permissions and limits, assigned when a subscription is activated; the development seeder switches from `frontend_user_plus`.
+- **Fix:** the roles with their permissions and their `role_limits` values; `subscription_plans.role_id`, activation assigns the plan's role and the end of a subscription `frontend_user`, both setting the role assignment time (D-047 point 10); the plan pages generate the limit lines from `role_limits` and the manual features lose any limit values (PRD Entity limits 4.6, A15–A16); the development seeder switches from `frontend_user_plus`.
 
 ### Typed GoPay request with real customer data
 - **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`, `app/Domain/Payment/Services/SubscriptionPaymentService.php`
