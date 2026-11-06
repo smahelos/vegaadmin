@@ -2,7 +2,7 @@
 
 This is the canonical repository guidance for Codex, Claude and other coding agents. Codex reads `AGENTS.md`; `.claude/CLAUDE.md` imports this same file for Claude. Keep shared project instructions here and maintain one copy of each detailed rule or workflow. Tool entry files must not introduce a separate project standard.
 
-Read the full set of rule files in `.claude/rules/` once per session before changing files, and reread a rule when it changes. Their `paths` metadata describes applicability; apply the rules governing the current change. References and skill bodies are read when their listed task needs them. Explicit user instructions take precedence over repository guidance; a local handoff does not authorize a commit, push or PR.
+Before changing code, read the rules in `.claude/rules/` whose `paths` metadata matches the files you change, and `architecture.md` when you add a class or decide where code belongs; a rule without `paths` (`translations.md`) applies to every change. Reread a rule when it changes. References and skill bodies are read when their listed task needs them. Explicit user instructions take precedence over repository guidance; a local handoff does not authorize a commit, push or PR.
 
 ## Project
 
@@ -14,7 +14,7 @@ Billex is not in production. There is no backward compatibility to keep: classes
 
 The rules in `.claude/rules/` describe the **target standard**. Much of the existing code predates it (see the conversion backlog in `docs/TECH_DEBT.md`), so the surrounding code is not a template: when a rule and the existing code disagree, the rule wins. Every new or changed line follows the rules. Rule violations you notice in the code you touch are listed to the user with a proposed conversion; converting whole files or contexts is its own task, run with the `/convert-to-standard` skill.
 
-The following catalog is shared by both agents. Read the same files regardless of which agent is running; path-scoped automatic loading by one tool is not a substitute for this shared loading rule:
+The following catalog is shared by both agents. Claude Code loads a rule automatically when it reads a file matching the rule's `paths`; Codex finds the matching rules through the `paths` frontmatter of each file:
 
 - [`.claude/rules/php.md`](.claude/rules/php.md) — PHP style: strict types, `final`, typing, naming, exceptions, comments (all PHP)
 - [`.claude/rules/architecture.md`](.claude/rules/architecture.md) — layers and allowed dependencies, bounded contexts, ports and interfaces, data classes (DTO / WriteData / Result), events, composition roots, architecture guards
