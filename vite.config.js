@@ -17,7 +17,6 @@ export default defineConfig({
                 'resources/js/image-preview.js',
                 'resources/js/template-selector.js',
                 'resources/js/template-selector-updating.js',
-                'resources/js/uels-manager.js',
             ],
             refresh: true,
         }),

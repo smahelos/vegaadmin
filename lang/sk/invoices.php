@@ -181,7 +181,6 @@ return [
         'template_set' => 'Šablóna faktúry bola úspešne nastavená.',
         'limit_exceeded' => 'Dosiahli ste mesačný limit faktúr svojho tarifu (:limit).',
         'status_changed' => 'Stav faktúry bol úspešne zmenený.',
-        'limits_error' => 'Limity faktúr momentálne nie je možné načítať.',
         'create_failed' => 'Nepodarilo sa vytvoriť faktúru.',
         'update_failed' => 'Nepodarilo sa aktualizovať faktúru.',
         'expired' => 'Platnosť faktúry vypršela, kontaktujte prosím vystaviteľa pre nový odkaz.',

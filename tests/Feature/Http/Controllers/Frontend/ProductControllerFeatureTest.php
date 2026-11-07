@@ -177,60 +177,6 @@ class ProductControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function index_shows_the_product_limit_and_usage(): void
-    {
-        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
-        $entityLimitQuery->update(['limit_value' => 2]);
-        $this->limitService->recordUsage(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-
-        $httpClient = $this->actingAs($this->user, 'web');
-        $response = $httpClient->get(
-            route('frontend.products', ['locale' => 'cs']),
-        );
-
-        $response->assertViewHas(
-            'limitsData',
-            [
-                'limit' => 2,
-                'current_usage' => 1,
-                'allowed' => true,
-            ],
-        );
-    }
-
-    #[Test]
-    public function index_does_not_allow_a_new_product_at_the_limit(): void
-    {
-        $entityLimitQuery = EntityLimit::where('permission_name', 'frontend.can_create_edit_product');
-        $entityLimitQuery->update(['limit_value' => 1]);
-        $this->limitService->recordUsage(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-
-        $httpClient = $this->actingAs($this->user, 'web');
-        $response = $httpClient->get(
-            route('frontend.products', ['locale' => 'cs']),
-        );
-
-        $response->assertViewHas(
-            'limitsData',
-            [
-                'limit' => 1,
-                'current_usage' => 1,
-                'allowed' => false,
-            ],
-        );
-    }
-
-    #[Test]
     public function index_requires_authentication(): void
     {
         $response = $this->get(
@@ -251,7 +197,7 @@ class ProductControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertViewIs('frontend.products.create');
-        $response->assertViewHas(['fields', 'limitsData']);
+        $response->assertViewHas('fields');
     }
 
     #[Test]

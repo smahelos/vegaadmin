@@ -60,14 +60,6 @@
     </div>
 </div>
 
-{{-- UELS Widget --}}
-@auth
-<div class="mb-6">
-    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}"
-        entity-name="{{ __('entity_limits.entity_types.invoice.singular') }}" :show-modal="true" />
-</div>
-@endauth
-
 <!-- Main invoice information -->
 <div class="mb-6">
     <div class="space-y-6">
@@ -463,10 +455,6 @@
     </div>
 </div>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
 @endsection
 
 @push('after_scripts')
@@ -541,10 +529,5 @@
     window.csfrToken = "{{ csrf_token() }}";
 </script>
 @vite('resources/js/template-selector-updating.js')
-
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth
 
 @endpush

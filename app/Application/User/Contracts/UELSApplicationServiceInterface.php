@@ -18,13 +18,4 @@ interface UELSApplicationServiceInterface
         string $metricType = 'count',
         string $periodType = 'daily',
     ): array;
-
-    /**
-     * Proxy to Domain UniversalLimitServiceInterface::getBestPeriodType
-     */
-    public function getBestPeriodType(
-        ?int $userId,
-        string $entityType,
-        string $metricType = 'count',
-    ): string;
 }

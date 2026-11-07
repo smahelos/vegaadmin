@@ -1,10 +1,10 @@
 {
     "summary": {
         "total_controllers": 57,
-        "avg_loc": 189.42,
+        "avg_loc": 188.09,
         "avg_eloquent_static_calls": 0.82,
         "controllers_with_direct_db_calls": 2,
-        "timestamp": "2026-11-06T22:07:16+00:00"
+        "timestamp": "2026-11-07T14:14:20+00:00"
     },
     "controllers": {
         "Http/Controllers/Frontend/PageController.php": {
@@ -40,12 +40,12 @@
             "public_method_count": 2
         },
         "Http/Controllers/Frontend/ProductController.php": {
-            "loc": 267,
+            "loc": 215,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
             "constructor_domain_injections": 0,
-            "public_method_count": 8
+            "public_method_count": 7
         },
         "Http/Controllers/Frontend/DashboardController.php": {
             "loc": 25,
@@ -80,7 +80,7 @@
             "public_method_count": 3
         },
         "Http/Controllers/Frontend/InvoiceController.php": {
-            "loc": 423,
+            "loc": 399,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,

@@ -6,7 +6,6 @@ use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
@@ -24,7 +23,6 @@ use App\Application\Invoice\Services\InvoicePdfApplicationService;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
 use App\Application\Invoice\Services\Specialized\InvoiceCrudApplicationService;
 use App\Application\Invoice\Services\Specialized\InvoiceFormApplicationService;
-use App\Application\Invoice\Services\Specialized\InvoiceLimitApplicationService;
 use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationService;
 use App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
@@ -190,11 +188,6 @@ class InvoiceServiceProvider extends ServiceProvider
         $this->app->bind(
             InvoiceStatusApplicationServiceInterface::class,
             InvoiceStatusApplicationService::class,
-        );
-
-        $this->app->bind(
-            InvoiceLimitApplicationServiceInterface::class,
-            InvoiceLimitApplicationService::class,
         );
     }
 

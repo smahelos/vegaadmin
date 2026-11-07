@@ -48,14 +48,6 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
     @endif
 </div>
 
-{{-- UELS Widget --}}
-@auth
-<div class="mb-6">
-    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}"
-        entity-name="{{ __('entity_limits.entity_types.invoice.singular') }}" :show-modal="true" />
-</div>
-@endauth
-
 <form id="invoice-form" method="POST"
     action="{{ route('frontend.invoice.update', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
     enctype="multipart/form-data" data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}" data-is-editing="true"
@@ -592,10 +584,6 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
     </div>
 </div>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
 @endsection
 
 @push('scripts')
@@ -607,8 +595,4 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
 @vite('resources/js/image-preview.js')
 @vite('resources/js/template-selector.js')
 
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth
 @endpush

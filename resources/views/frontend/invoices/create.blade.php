@@ -1,6 +1,7 @@
 @extends('layouts.frontend')
 
 @use('App\Domain\Payment\Enums\PaymentMethodCode')
+@use('App\Domain\User\Enums\LimitedEntity')
 @use('Carbon\CarbonImmutable')
 {{-- Taken before the payment method options are replaced by their labels below --}}
 @php
@@ -97,11 +98,9 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
     @endif
 </div>
 
-{{-- UELS Widget --}}
 @auth
 <div class="mb-6">
-    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}"
-        entity-name="{{ __('entity_limits.entity_types.invoice.singular') }}" :show-modal="true" />
+    <x-entity-usage :entity="LimitedEntity::INVOICE" />
 </div>
 @endauth
 
@@ -436,7 +435,6 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                     <x-invoice-item-errors />
                 </div>
 
-
                 <div class="flex justify-end">
                     <button type="button" id="add-invoice-item"
                         class="mt-2 py-2 px-5 shadow-sm dark:shadow-none shadow-indigo-600/30 text-md font-semibold rounded-sm text-white hover:text-white bg-[#490BF4] hover:bg-indigo-400 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
@@ -725,10 +723,6 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
     </div>
 </div>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
 @endsection
 
 @push('scripts')
@@ -833,8 +827,4 @@ function addClassToNumOfWordsInStrByClass(selectClass, addClass, numWords = 1, s
 @vite('resources/js/image-preview.js')
 @vite('resources/js/template-selector.js')
 
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth
 @endpush

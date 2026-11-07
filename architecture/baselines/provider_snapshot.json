@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-06T19:21:18+00:00",
+    "generated_at": "2026-11-07T14:13:50+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -280,10 +280,6 @@
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceStatusApplicationServiceInterface",
                     "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceStatusApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceLimitApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceLimitApplicationService"
                 }
             ],
             "singleton": []
@@ -587,14 +583,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\InvoiceFrontendActionsApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceLimitApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceLimitApplicationService",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }

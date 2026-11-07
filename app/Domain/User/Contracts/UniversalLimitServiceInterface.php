@@ -57,15 +57,6 @@ interface UniversalLimitServiceInterface
     ): array;
 
     /**
-     * Get the best (largest) period type allowed for user & entity.
-     */
-    public function getBestPeriodType(
-        ?int $userId,
-        string $entityType,
-        string $metricType = 'count',
-    ): string;
-
-    /**
      * Rich aggregated info for widgets/dashboards.
      *
      * @return array Entity limit information

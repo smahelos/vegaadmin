@@ -179,7 +179,6 @@ return [
         'no_invoices' => 'You don’t have any invoices yet.',
         'no_invoices_description' => 'Start creating your first invoice.',
         'template_set' => 'Invoice template has been successfully set.',
-        'limits_error' => 'Unable to load invoice limits at this moment.',
         'create_failed' => 'Failed to create invoice.',
         'update_failed' => 'Failed to update invoice.',
         'limit_exceeded' => 'You have reached your plan\'s monthly limit of invoices (:limit).',

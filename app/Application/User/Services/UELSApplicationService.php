@@ -29,16 +29,4 @@ class UELSApplicationService implements UELSApplicationServiceInterface
             $periodType,
         );
     }
-
-    public function getBestPeriodType(
-        ?int $userId,
-        string $entityType,
-        string $metricType = 'count',
-    ): string {
-        return $this->limitService->getBestPeriodType(
-            $userId,
-            $entityType,
-            $metricType,
-        );
-    }
 }

@@ -392,7 +392,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** `__()` on the remaining calls; drop `messages()` that repeat `lang/*/validation.php`; move the dashboard and user activity texts to `lang/*/admin/dashboard.php` (or their entity files); pass the app name and year to the email texts as parameters; delete unreferenced keys file by file. Convert with `/convert-to-standard` context by context.
 
 ### Comments
-- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), commented-out logging and unused timing/counters in `app/Domain/Shared/Events/DomainEventDispatcher.php`, `TODO`s without an item here
+- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), commented-out logging and unused timing/counters in `app/Domain/Shared/Events/DomainEventDispatcher.php`, the commented-out invoice lookup with a Czech `TODO` in `InvoiceFrontendActionsApplicationService::orchestrate()`, `TODO`s without an item here
 - **Fix:** per `rules/php.md` (Comments, Readability), with each affected context's conversion: English explanations of non-obvious reasons, remove commented-out code and unused timing/counters.
 
 ### Move cache invalidation from observers to domain event handlers

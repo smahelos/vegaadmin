@@ -179,7 +179,6 @@ return [
         'no_invoices' => 'Keine Rechnungen gefunden.',
         'no_invoices_description' => 'Starten Sie die Erstellung Ihrer ersten Rechnung.',
         'template_set' => 'Die Vorlage der Rechnung wurde erfolgreich festgelegt.',
-        'limits_error' => 'Rechnungslimits können derzeit nicht geladen werden.',
         'create_failed' => 'Rechnung konnte nicht erstellt werden.',
         'update_failed' => 'Rechnung konnte nicht aktualisiert werden.',
         'limit_exceeded' => 'Sie haben das monatliche Rechnungslimit Ihres Tarifs erreicht (:limit).',

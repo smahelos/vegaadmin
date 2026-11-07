@@ -193,6 +193,29 @@ final class EntityLimitTest extends TestCase
     }
 
     #[Test]
+    public function usage_reports_the_count_and_the_limit_the_check_compares(): void
+    {
+        $owner = $this->ownerWithLimits(['invoices' => 2, 'products' => null]);
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(
+            ['user_id' => $owner->id, 'created_at' => '2026-11-02 08:00:00'],
+        );
+        $invoiceFactory->create(
+            ['user_id' => $owner->id, 'created_at' => '2026-10-30 08:00:00'],
+        );
+        $limits = $this->limits();
+        $ownerId = UserId::fromInt($owner->id);
+
+        $invoices = $limits->usage($ownerId, LimitedEntity::INVOICE);
+        $products = $limits->usage($ownerId, LimitedEntity::PRODUCT);
+
+        $this->assertSame(1, $invoices->used);
+        $this->assertSame(2, $invoices->limit);
+        $this->assertSame(0, $products->used);
+        $this->assertNull($products->limit);
+    }
+
+    #[Test]
     public function refuses_a_user_with_several_plan_roles(): void
     {
         $owner = $this->ownerWithLimits(['contacts' => null]);

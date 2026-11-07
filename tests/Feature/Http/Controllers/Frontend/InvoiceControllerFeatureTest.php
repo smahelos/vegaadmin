@@ -471,18 +471,6 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function show_returns_view_with_limits_data(): void
-    {
-        $this->actingAs($this->user, 'web');
-        $response = $this->get(
-            route('frontend.invoice.show', ['locale' => 'en', 'id' => $this->invoice->id]),
-        );
-        $response->assertOk();
-        $response->assertViewIs('frontend.invoices.show');
-        $response->assertViewHas('limitsData');
-    }
-
-    #[Test]
     public function download_invoice_preview_streams_pdf(): void
     {
         $this->actingAs($this->user, 'web');
@@ -544,7 +532,7 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function show_view_displays_invoice_and_limits(): void
+    public function show_view_displays_the_invoice(): void
     {
         $this->actingAs($this->user, 'web');
         $response = $this->get(

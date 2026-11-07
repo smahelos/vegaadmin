@@ -181,7 +181,6 @@ return [
         'template_set' => 'Šablona faktury byla úspěšně nastavena.',
         'limit_exceeded' => 'Dosáhli jste měsíčního limitu faktur svého tarifu (:limit).',
         'status_changed' => 'Stav faktury byl úspěšně změněn.',
-        'limits_error' => 'Nelze načíst limity faktur v tomto okamžiku.',
         'create_failed' => 'Nepodařilo se vytvořit fakturu.',
         'update_failed' => 'Nepodařilo se aktualizovat fakturu.',
         'expired' => 'Platnost faktury vypršela, kontaktujte prosím vystavitele pro nový odkaz.',

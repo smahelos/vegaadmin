@@ -3,7 +3,6 @@
 namespace App\Application\Invoice\Services\Specialized;
 
 use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\DTO\InvoiceFormDTO;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
@@ -32,7 +31,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         private PaymentMethodDtoReadRepositoryInterface $paymentMethodRepository,
         private TaxDtoReadRepositoryInterface $taxRepository,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
-        private InvoiceLimitApplicationServiceInterface $invoiceLimitService,
         private InvoiceServiceInterface $invoiceService,
         private InvoiceDtoReadRepositoryInterface $invoices,
         private InvoiceContactApplicationService $invoiceContacts,
@@ -74,9 +72,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         // Suggested invoice number
         $suggestedNumber = $this->getNextInvoiceNumber($userId);
 
-        // Limits data
-        $limitsData = $this->getInvoicesLimit($userId);
-
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
         $fieldSet = $fieldSetFactory->build($paymentMethods);
 
@@ -87,7 +82,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
                 'invoiceProducts' => $invoiceProducts,
                 'taxRates' => $taxRates,
                 'suggestedNumber' => $suggestedNumber,
-                'limitsData' => $limitsData,
                 'userLoggedIn' => true,
             ],
         );
@@ -123,7 +117,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $taxRates = $this->taxRepository->getDphRatesForDropdown();
         // Prefill existing invoice products for edit UI
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
-        $limitsData = $this->getInvoicesLimit($userId);
 
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
         $fieldSet = $fieldSetFactory->build($paymentMethods);
@@ -135,7 +128,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
                 'paymentMethods' => $paymentMethods,
                 'taxRates' => $taxRates,
                 'invoiceProducts' => $invoiceProducts,
-                'limitsData' => $limitsData,
                 'user' => $user,
                 'userLoggedIn' => true,
             ],
@@ -157,7 +149,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         ]);
 
         $invoiceProducts = $this->productReadRepository->allForInvoice($invoiceId);
-        $limitsData = $this->getInvoicesLimit($userId);
 
         // The stored parties; the contact only tells whether the customer is linked to the address book
         $owner = UserId::fromInt($userId);
@@ -180,7 +171,6 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         $fieldSetDto = new FieldSetDTO([]);
         $meta = [
             'invoice' => $invoice,
-            'limitsData' => $limitsData,
             'paymentAmount' => $invoice->payment_amount_money,
             'subtotal' => $invoice->subtotal_money,
             'totalTax' => $invoice->total_tax_money,
@@ -199,17 +189,5 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
     public function getNextInvoiceNumber(int $userId): string
     {
         return $this->generateNextInvoiceNumber($userId);
-    }
-
-    /**
-     * Get invoices limit (legacy compatibility)
-     */
-    private function getInvoicesLimit(int $userId): array
-    {
-        $limitInfo = $this->invoiceLimitService->getLimitInfo(
-            new UserId($userId),
-        );
-
-        return $limitInfo;
     }
 }

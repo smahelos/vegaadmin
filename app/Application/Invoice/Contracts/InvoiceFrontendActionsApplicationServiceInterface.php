@@ -4,7 +4,6 @@ namespace App\Application\Invoice\Contracts;
 
 use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
-use App\Models\User;
 
 /**
  * Frontend-specific lightweight actions for invoices.
@@ -25,13 +24,6 @@ interface InvoiceFrontendActionsApplicationServiceInterface
         int $invoiceId,
         string $template,
     ): InvoiceActionResult;
-
-    /**
-     * Get invoices limit data for user (limit, current_usage, allowed).
-     *
-     * @return array{limit:int,current_usage:int,allowed:bool}
-     */
-    public function getLimitData(int $userId): InvoiceActionResult;
 
     /**
      * Orchestrate multiple frontend actions in a single call using command object.

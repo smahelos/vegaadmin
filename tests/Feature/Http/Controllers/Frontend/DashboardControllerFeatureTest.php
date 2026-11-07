@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
@@ -59,6 +60,24 @@ final class DashboardControllerFeatureTest extends TestCase
             && $dashboard->statistics->contactCount === 1
             && $dashboard->statistics->totalAmount->getAmount() === '123.45',
         );
+    }
+
+    #[Test]
+    public function the_dashboard_shows_the_usage_of_every_plan_limit(): void
+    {
+        $httpClient = $this->actingAs(
+            $this->frontendUser(),
+        );
+        $httpResponse = $httpClient->get(
+            route('frontend.dashboard', ['locale' => 'cs']),
+        );
+
+        $httpResponse->assertOk();
+        foreach (LimitedEntity::cases() as $entity) {
+            $httpResponse->assertSee(
+                __('role_limits.usage.' . $entity->value),
+            );
+        }
     }
 
     #[Test]

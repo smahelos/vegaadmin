@@ -1,5 +1,7 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\User\Enums\LimitedEntity')
+
 @section('content')
 <div class="mb-6 flex justify-between items-center">
     <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight pt-3">{{
@@ -17,11 +19,9 @@
     </div>
 </div>
 
-{{-- UELS Widget --}}
 @auth
 <div class="mb-6">
-    <x-uels-limit-widget entity-type="product" :limit="$limitsData['limit']"
-        entity-name="{{ __('entity_limits.entity_types.product.singular') }}" :show-modal="true" />
+    <x-entity-usage :entity="LimitedEntity::PRODUCT" />
 </div>
 @endauth
 
@@ -144,7 +144,6 @@
                             @enderror
                         </div>
 
-
                         <!-- Product Image -->
                         @elseif ($field['name'] === 'image')
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -232,11 +231,6 @@
         <input type="hidden" name="lang" value="{{ App::getLocale() }}">
 </form>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
-
 @endsection
 
 @push('scripts')
@@ -255,8 +249,3 @@
 </script>
 @vite('resources/js/image-preview.js')
 @endpush
-
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth

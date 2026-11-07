@@ -106,11 +106,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
         $taxRates = $taxRates->toArray();
         // Guest context: no authenticated user ID => use 0 sentinel to start sequence at YYYY0001
         $suggestedNumber = $this->invoiceFormService->getNextInvoiceNumber(0);
-        $limitsData = [
-            'limit' => 0,
-            'current_usage' => 0,
-            'allowed' => false,
-        ];
         $invoiceProducts = [];
         $fieldSetFactory = app(InvoiceCreateFieldSetFactory::class);
         $fieldSet = $fieldSetFactory->build($paymentMethods);
@@ -120,7 +115,6 @@ class GuestInvoiceApplicationService implements GuestInvoiceApplicationServiceIn
             'paymentMethods',
             'taxRates',
             'suggestedNumber',
-            'limitsData',
             'invoiceProducts',
             'fields',
         );

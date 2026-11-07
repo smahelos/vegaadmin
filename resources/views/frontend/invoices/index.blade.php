@@ -1,5 +1,7 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\User\Enums\LimitedEntity')
+
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight pt-3">{{ __('invoices.titles.index') }}</h1>
@@ -8,10 +10,9 @@
     </a>
 </div>
 
-{{-- UELS Widget --}}
 @auth
 <div class="mb-6">
-    <x-uels-limit-widget entity-type="invoice" limit="{{ $limitsData['limit'] }}" entity-name="{{ __('entity_limits.entity_types.invoice.singular') }}" :show-modal="true" />
+    <x-entity-usage :entity="LimitedEntity::INVOICE" />
 </div>
 @endauth
 
@@ -24,15 +25,4 @@
     </div>
 </div>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
 @endsection
-
-@push('after_scripts')
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth
-@endpush

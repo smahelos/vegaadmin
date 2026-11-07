@@ -3,7 +3,6 @@
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceLimitApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoiceActionResult;
@@ -22,7 +21,6 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
 {
     public function __construct(
         private InvoiceStatusApplicationServiceInterface $invoiceStatus,
-        private InvoiceLimitApplicationServiceInterface $invoiceLimit,
         private InvoiceReadRepositoryInterface $invoiceReadRepository,
         private InvoiceServiceInterface $invoiceService,
         private StatusDtoRepositoryInterface $statusRepository,
@@ -111,31 +109,6 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
         }
     }
 
-    public function getLimitData(int $userId): InvoiceActionResult
-    {
-        try {
-            $data = $this->invoiceLimit->getLimitInfo(
-                new UserId($userId),
-            );
-
-            return InvoiceActionResult::success(data: $data);
-        } catch (\Throwable $e) {
-            Log::warning('InvoiceFrontendActions getLimitData failed', [
-                'user_id' => $userId,
-                'error' => $e->getMessage(),
-            ]);
-
-            return InvoiceActionResult::failure(
-                'invoices.messages.limits_error',
-                data: [
-                    'limit' => 0,
-                    'current_usage' => 0,
-                    'allowed' => false,
-                ],
-            );
-        }
-    }
-
     /**
      * Execute multiple lightweight frontend actions atomically from caller perspective using immutable command.
      * Non-fatal failures accumulate; any sub-action failure returns FAILURE with aggregated errors.
@@ -180,7 +153,7 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
             // Use first granular error key instead of generic update_error for better UX / i18n specificity.
             $primaryErrorKey = reset($errors) ?: 'invoices.messages.update_error';
 
-            return InvoiceActionResult::failure($primaryErrorKey, data: ['errors' => $errors, 'messages' => $messages]);
+            return InvoiceActionResult::failure($primaryErrorKey);
         }
         $invoice = null;
         if ($actions->includeInvoice && !empty($messages)) {
@@ -211,7 +184,6 @@ class InvoiceFrontendActionsApplicationService implements InvoiceFrontendActions
 
         return InvoiceActionResult::success(
             message: $messages ? $messages[0] : null,
-            data: ['messages' => $messages],
             invoice: $invoice,
         );
     }

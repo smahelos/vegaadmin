@@ -10,6 +10,7 @@ use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
+use App\Domain\User\DTO\EntityUsageDTO;
 use App\Domain\User\DTO\RoleLimitDTO;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
@@ -54,6 +55,20 @@ final class EntityLimit
         if ($used >= $limit) {
             throw new EntityLimitExceededException($entity, $limit);
         }
+    }
+
+    /**
+     * The same limit and count the check compares, for display: outside the creating transaction it may be stale.
+     *
+     * @throws AmbiguousPlanRoleException
+     */
+    public function usage(UserId $owner, LimitedEntity $entity): EntityUsageDTO
+    {
+        return new EntityUsageDTO(
+            $entity,
+            $this->used($owner, $entity),
+            $this->limit($owner, $entity),
+        );
     }
 
     private function limit(UserId $owner, LimitedEntity $entity): ?int
