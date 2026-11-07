@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
+use App\Application\User\Services\PlanRoleChange;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -217,29 +219,38 @@ class UserCrudController extends CrudController
     /**
      * Custom store method for password hashing
      */
-    public function store(): RedirectResponse
+    public function store(PlanRoleChange $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(
             $this->handlePasswordInput($this->crud->getRequest()),
         );
         $this->crud->unsetValidation();
+        $response = $this->traitStore();
+        $planRoles->recordIfChanged(
+            UserId::fromInt((int) $this->crud->entry->id),
+            [],
+        );
 
-        return $this->traitStore();
+        return $response;
     }
 
     /**
      * Custom update method for password hashing
      */
-    public function update(): RedirectResponse
+    public function update(PlanRoleChange $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(
             $this->handlePasswordInput($this->crud->getRequest()),
         );
         $this->crud->unsetValidation();
+        $userId = UserId::fromInt((int) $this->crud->getCurrentEntryId());
+        $before = $planRoles->planRoles($userId);
+        $response = $this->traitUpdate();
+        $planRoles->recordIfChanged($userId, $before);
 
-        return $this->traitUpdate();
+        return $response;
     }
 
     /**

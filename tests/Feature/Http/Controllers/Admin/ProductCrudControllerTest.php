@@ -6,6 +6,7 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 use App\Models\EntityLimit;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -169,7 +170,7 @@ class ProductCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function store_assigns_the_admin_as_owner_when_none_is_sent(): void
+    public function store_creates_the_product_for_the_chosen_owner(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
         $name = 'Product ' . uniqid();
@@ -178,6 +179,7 @@ class ProductCrudControllerTest extends TestCase
             '/admin/product',
             [
                 'name' => $name,
+                'user_id' => $this->regularUser->id,
                 'price' => 100,
                 'currency' => 'CZK',
             ],
@@ -185,6 +187,45 @@ class ProductCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertSessionHasNoErrors();
         $httpResponse->assertRedirect();
 
-        $this->assertDatabaseHas('products', ['name' => $name, 'user_id' => $this->adminUser->id]);
+        $this->assertDatabaseHas('products', ['name' => $name, 'user_id' => $this->regularUser->id]);
+    }
+
+    #[Test]
+    public function store_requires_an_owner(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $httpResponse = $this->post(
+            '/admin/product',
+            [
+                'name' => 'Product ' . uniqid(),
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $httpResponse->assertSessionHasErrors('user_id');
+    }
+
+    #[Test]
+    public function an_owner_without_a_plan_role_gets_no_product_whatever_the_admin_may_do(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $name = 'Product ' . uniqid();
+
+        $httpResponse = $this->post(
+            '/admin/product',
+            [
+                'name' => $name,
+                'user_id' => $owner->id,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $httpResponse->assertRedirect();
+        $this->assertDatabaseMissing('products', ['name' => $name]);
     }
 }

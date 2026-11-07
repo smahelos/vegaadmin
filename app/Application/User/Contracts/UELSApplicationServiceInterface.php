@@ -10,11 +10,6 @@ interface UELSApplicationServiceInterface
     public function getEntityLimitInfo(?int $userId, string $entityType): array;
 
     /**
-     * Proxy to Domain UniversalLimitServiceInterface::canUserCreateEntityWithPeriodType
-     */
-    public function canUserCreateEntity(?int $userId, string $entityType): bool;
-
-    /**
      * Proxy to Domain UniversalLimitServiceInterface::getUsageStatistics
      */
     public function getUsageStatistics(

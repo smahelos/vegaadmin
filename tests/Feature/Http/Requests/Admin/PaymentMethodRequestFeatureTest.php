@@ -3,10 +3,7 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\PaymentMethodRequest;
-use App\Models\EntityLimit;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -19,26 +16,10 @@ class PaymentMethodRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    private UniversalLimitService $limitService;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->setUpAdminTestEnvironment();
-
-        $this->limitService = app(UniversalLimitService::class);
-
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_payment_method',
-                'entity_type' => 'payment_method',
-                'limit_value' => 100,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
 
         $route = Route::post(
             '/test-payment-method',
@@ -160,69 +141,5 @@ class PaymentMethodRequestFeatureTest extends TestCase
             'name' => 'No Perm',
         ]);
         $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function payment_method_creation_respects_limits(): void
-    {
-        $this->revokeUnlimitedAccess('payment_method');
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
-        $entityLimitQuery->update(['limit_value' => 1]);
-        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
-        $paymentMethodQuery->delete();
-        $httpResponse = $this->postJson(
-            '/test-payment-method',
-            [
-                'name' => 'First Method',
-                'slug' => PaymentMethodCode::OTHER->value,
-            ],
-        );
-        $httpResponse->assertStatus(200);
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'payment_method',
-            'count',
-            'monthly',
-            'backpack',
-        );
-        $this->expectException(EntityLimitExceededException::class);
-        $request = new class extends PaymentMethodRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Second Method']);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $request->authorize();
-    }
-
-    #[Test]
-    public function payment_method_update_bypasses_limits(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'payment_method');
-        $entityLimitQuery->update(['limit_value' => 0]);
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'payment_method',
-            'count',
-            'monthly',
-            'backpack',
-        );
-        $request = new class extends PaymentMethodRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Updated']);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-pay']);
-        $request->setMethod('PUT');
-        $this->assertTrue($request->authorize());
     }
 }

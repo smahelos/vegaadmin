@@ -55,16 +55,6 @@ class EntityLimitFactory extends Factory
     }
 
     /**
-     * Indicate that the limit is active.
-     */
-    public function active(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'is_active' => true,
-        ]);
-    }
-
-    /**
      * Create a count-based limit.
      */
     public function countLimit(int $maxCount = 10): static
@@ -88,15 +78,5 @@ class EntityLimitFactory extends Factory
                 'permission_name' => "can_create_edit_{$entityType}",
             ],
         );
-    }
-
-    /**
-     * Create a monthly limit.
-     */
-    public function monthly(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'period_type' => 'monthly',
-        ]);
     }
 }

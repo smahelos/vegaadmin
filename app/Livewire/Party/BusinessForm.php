@@ -100,7 +100,7 @@ final class BusinessForm extends Component
             }
             $saved = true;
         } catch (EntityLimitExceededException $e) {
-            $this->limitMessage = __('businesses.messages.limit_exceeded');
+            $this->limitMessage = __('businesses.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         } catch (DuplicateCompanyNumberException $e) {

@@ -18,7 +18,8 @@ use InvalidArgumentException;
 
 /**
  * Counts the rows of the limited entities directly, so the User context needs no repository of the contexts that
- * already depend on it.
+ * already depend on it. The counts are locking reads: a plain read would see the transaction's earlier snapshot and
+ * miss a record another request committed while this one waited for the owner's lock.
  */
 final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterface
 {
@@ -38,6 +39,7 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
         if ($entity !== LimitedEntity::PRODUCT) {
             $query->whereNull('archived_at');
         }
+        $query->lockForUpdate();
 
         return $query->count();
     }
@@ -64,6 +66,7 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
             '>=',
             $since->setTimezone($storedZone),
         );
+        $query->lockForUpdate();
 
         return $query->count();
     }

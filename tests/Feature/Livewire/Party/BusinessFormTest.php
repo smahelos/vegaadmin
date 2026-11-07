@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Party;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\BusinessForm;
 use App\Models\Address;
 use App\Models\BankAccount;
@@ -229,7 +230,7 @@ final class BusinessFormTest extends TestCase
     #[Test]
     public function the_capacity_limit_stops_a_new_business(): void
     {
-        $this->limitActive('business', 1);
+        $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $this->user->id]);
 
@@ -238,7 +239,10 @@ final class BusinessFormTest extends TestCase
         $component->call('save');
         $component->assertSet(
             'limitMessage',
-            __('businesses.messages.limit_exceeded'),
+            __('businesses.messages.limit_exceeded', ['limit' => 1]),
+        );
+        $component->assertSee(
+            __('subscriptions.actions.view_plans'),
         );
         $component->assertNoRedirect();
 

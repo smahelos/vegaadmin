@@ -25,6 +25,8 @@ final class ContactDetail extends Component
 
     public ?string $errorMessage = null;
 
+    public ?string $limitMessage = null;
+
     public ?string $successMessage = null;
 
     public function mount(ContactApplicationService $contacts, int $contactId): void
@@ -48,12 +50,13 @@ final class ContactDetail extends Component
     {
         $this->requirePermission('frontend.can_restore_contact');
         $this->errorMessage = null;
+        $this->limitMessage = null;
         $this->successMessage = null;
 
         try {
             $contacts->restore($this->userId(), $this->currentId());
-        } catch (EntityLimitExceededException) {
-            $this->errorMessage = __('contacts.messages.limit_exceeded');
+        } catch (EntityLimitExceededException $e) {
+            $this->limitMessage = __('contacts.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         }

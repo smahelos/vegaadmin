@@ -10,9 +10,11 @@ use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\RegistrationNumber;
 use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\EntityLimit;
+use App\Models\RoleLimit;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
 
 /**
  * Owners with the plan role that carries the business and contact limits, and party data for the services.
@@ -34,14 +36,14 @@ trait BuildsParties
     }
 
     /**
-     * Changes the seeded capacity of the frontend_user plan within the test transaction.
+     * Changes the seeded limit of the frontend_user plan role within the test transaction.
      */
-    private function limitActive(string $entityType, int $limit): void
+    private function limitFrontendUser(LimitedEntity $entity, ?int $limit): void
     {
-        $entityLimitQuery = EntityLimit::query();
-        $entityLimitQuery->where('entity_type', $entityType);
-        $entityLimitQuery->where('metric_type', 'active');
-        $entityLimitQuery->update(['limit_value' => $limit]);
+        $role = Role::findByName('frontend_user', 'web');
+        $roleLimitQuery = RoleLimit::query();
+        $roleLimitQuery->where('role_id', $role->id);
+        $roleLimitQuery->update([$entity->value => $limit]);
     }
 
     private function profile(

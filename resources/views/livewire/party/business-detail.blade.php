@@ -37,6 +37,7 @@
     </div>
 
     <x-status-messages :error="$errorMessage" :success="$successMessage" />
+    <x-limit-exceeded :message="$limitMessage" />
 
     @if ($choosingNewDefault)
         <x-form.card class="mb-6" :title="__('businesses.titles.choose_new_default')">

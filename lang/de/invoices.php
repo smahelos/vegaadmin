@@ -182,7 +182,7 @@ return [
         'limits_error' => 'Rechnungslimits können derzeit nicht geladen werden.',
         'create_failed' => 'Rechnung konnte nicht erstellt werden.',
         'update_failed' => 'Rechnung konnte nicht aktualisiert werden.',
-        'limit_exceeded' => 'Sie haben Ihr Rechnungslimit erreicht.',
+        'limit_exceeded' => 'Sie haben das monatliche Rechnungslimit Ihres Tarifs erreicht (:limit).',
         'status_changed' => 'Rechnungsstatus wurde erfolgreich geändert.',
         'expired' => 'Der Link zum Herunterladen der Rechnung ist abgelaufen. Bitte kontaktieren Sie den Aussteller, um einen neuen Link zu erhalten.',
         'saved_to_contacts' => 'Der Kunde wurde in den Kontakten gespeichert.',

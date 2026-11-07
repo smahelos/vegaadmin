@@ -9,7 +9,6 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
-use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
 use App\Models\Invoice;
@@ -297,7 +296,6 @@ final class InvoiceCrudController extends CrudController
             $request->toWriteData(),
             $request->partySelection(),
             $request->products(),
-            UserId::fromInt((int) backpack_user()->id),
         );
 
         return $this->mutationResponse($result);

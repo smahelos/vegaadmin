@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Party;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\ContactDetail;
 use App\Models\Contact;
 use App\Models\User;
@@ -30,7 +31,7 @@ final class ContactDetailTest extends TestCase
     #[Test]
     public function archiving_frees_a_place_that_restoring_takes_again(): void
     {
-        $this->limitActive('contact', 1);
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 1);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
@@ -46,8 +47,8 @@ final class ContactDetailTest extends TestCase
         $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
         $component->call('restore');
         $component->assertSet(
-            'errorMessage',
-            __('contacts.messages.limit_exceeded'),
+            'limitMessage',
+            __('contacts.messages.limit_exceeded', ['limit' => 1]),
         );
         $this->assertNotNull($contact->fresh()?->archived_at);
 

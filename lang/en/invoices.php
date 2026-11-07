@@ -182,7 +182,7 @@ return [
         'limits_error' => 'Unable to load invoice limits at this moment.',
         'create_failed' => 'Failed to create invoice.',
         'update_failed' => 'Failed to update invoice.',
-        'limit_exceeded' => 'You have reached your invoice limit.',
+        'limit_exceeded' => 'You have reached your plan\'s monthly limit of invoices (:limit).',
         'status_changed' => 'Invoice status was successfully changed.',
         'expired' => 'Invoice link has expired, please contact the issuer for a new link.',
         'saved_to_contacts' => 'The customer has been saved to contacts.',

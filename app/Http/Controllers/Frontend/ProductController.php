@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Frontend;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Application\User\Contracts\UELSApplicationServiceInterface as UELSService;
+use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Infrastructure\Forms\Products\ProductFormFields;
@@ -72,21 +73,6 @@ class ProductController extends Controller
         $validatedData = $request->validated();
         $user = Auth::user();
 
-        // Check entity limits before creation
-        if ($user) {
-            $canCreate = $this->limitService->canUserCreateEntity($user->id, 'product');
-            if (!$canCreate) {
-                $redirector = redirect();
-                $redirect = $redirector->back();
-                $redirect->withInput();
-
-                return $redirect->with(
-                    'error',
-                    trans('products.messages.limit_exceeded'),
-                );
-            }
-        }
-
         // Handle image upload if present
         if ($request->hasFile('image')) {
             $validatedData['image'] = $request->file('image');
@@ -104,6 +90,9 @@ class ProductController extends Controller
                 'success',
                 trans('products.messages.created'),
             );
+        } catch (EntityLimitExceededException $e) {
+            // The exception handler answers it with the limit message
+            throw $e;
         } catch (ValidationException $e) {
             // Handle file upload validation errors with detailed messages
             $redirector = redirect();

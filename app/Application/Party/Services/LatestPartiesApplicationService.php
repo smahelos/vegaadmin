@@ -8,7 +8,7 @@ use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\ContactDTO;
-use App\Domain\User\Enums\EntityType;
+use App\Domain\Party\Enums\PartyKind;
 use App\Domain\User\ValueObjects\UserId;
 
 final class LatestPartiesApplicationService
@@ -21,11 +21,11 @@ final class LatestPartiesApplicationService
     ) {}
 
     /** @return list<BusinessDTO|ContactDTO> */
-    public function listLatest(UserId $userId, EntityType $kind): array
+    public function listLatest(UserId $userId, PartyKind $kind): array
     {
         return match ($kind) {
-            EntityType::BUSINESS => $this->businesses->listLatestActiveForUser($userId, self::LIMIT),
-            EntityType::CONTACT => $this->contacts->listLatestActiveForUser($userId, self::LIMIT),
+            PartyKind::BUSINESS => $this->businesses->listLatestActiveForUser($userId, self::LIMIT),
+            PartyKind::CONTACT => $this->contacts->listLatestActiveForUser($userId, self::LIMIT),
         };
     }
 }

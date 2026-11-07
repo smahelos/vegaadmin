@@ -21,6 +21,7 @@ use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -59,40 +60,28 @@ class ExceptionHandling
             fn (ExpenseAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
         );
 
-        // Entity limit exceeded
+        // A plan limit is reached: the message names the limit and the frontend links it to the plans
         $exceptions->render(
-            function (EntityLimitExceededException $e, $request) {
-                // JSON first: standardized payload with translated message
+            function (EntityLimitExceededException $e, Request $request): JsonResponse|RedirectResponse {
+                $message = self::limitMessage($e);
+
                 if ($request->expectsJson()) {
-                    $translated = __($e->getMessageKey(), $e->getContext());
+                    $application = app();
                     $responseFactory = response();
 
                     return $responseFactory->json(
                         [
-                            'message' => $translated,
-                            'message_key' => $e->getMessageKey(),
-                            'context' => $e->getContext(),
-                            'limit' => $e->getLimitData(),
+                            'message' => $message,
+                            'plans_url' => route('subscriptions.index', ['locale' => $application->getLocale()]),
                         ],
                         403,
                     );
                 }
-                // Route-specific UX: keep existing shortcuts for common flows
-                if (self::isInvoiceRoute($request)) {
-                    $redirect = back();
-                    $redirect->withInput();
 
-                    return $redirect->with(
-                        'error',
-                        __('invoices.messages.limit_exceeded'),
-                    );
-                }
+                $session = session();
+                $session->flash('limit_exceeded', true);
 
-                // Generic redirect with translated key from exception
-                return self::back(
-                    $request,
-                    __($e->getMessageKey(), $e->getContext()),
-                );
+                return self::back($request, $message);
             },
         );
 
@@ -299,6 +288,19 @@ class ExceptionHandling
     /**
      * Back to the form with a translated message: an alert in the admin, a flash message on the frontend.
      */
+    private static function limitMessage(EntityLimitExceededException $e): string
+    {
+        $replace = ['limit' => $e->limit];
+
+        return match ($e->entity) {
+            LimitedEntity::INVOICE => __('invoices.messages.limit_exceeded', $replace),
+            LimitedEntity::EXPENSE => __('expenses.messages.limit_exceeded', $replace),
+            LimitedEntity::BUSINESS => __('businesses.messages.limit_exceeded', $replace),
+            LimitedEntity::CONTACT => __('contacts.messages.limit_exceeded', $replace),
+            LimitedEntity::PRODUCT => __('products.messages.limit_exceeded', $replace),
+        };
+    }
+
     private static function back(Request $request, string $message): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {

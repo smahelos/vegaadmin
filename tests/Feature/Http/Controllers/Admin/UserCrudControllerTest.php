@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Models\User;
+use DateTimeImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
+use Tests\Support\Fakes\Shared\FixedClock;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -131,6 +135,54 @@ class UserCrudControllerTest extends TestCase
         ]);
     }
 
+    #[Test]
+    public function changing_the_plan_role_restarts_the_quota_window(): void
+    {
+        $this->fixClock('2026-11-06 10:00:00');
+        $this->actingAs($this->adminUser, 'backpack');
+        $user = $this->userWithPlanRole('2026-11-01 08:00:00');
+        $plus = Role::findByName('frontend_user_plus', 'web');
+
+        $response = $this->put(
+            '/admin/user/' . $user->id,
+            $this->roleUpdate($user, $plus),
+        );
+
+        $response->assertSessionHasNoErrors();
+        $user = $user->fresh();
+        $this->assertTrue(
+            $user->hasRole('frontend_user_plus'),
+        );
+        $this->assertFalse(
+            $user->hasRole('frontend_user'),
+        );
+        $this->assertSame(
+            '2026-11-06 10:00:00',
+            $user->plan_role_assigned_at?->format('Y-m-d H:i:s'),
+        );
+    }
+
+    #[Test]
+    public function an_update_keeping_the_plan_role_keeps_the_quota_window(): void
+    {
+        $this->fixClock('2026-11-06 10:00:00');
+        $this->actingAs($this->adminUser, 'backpack');
+        $user = $this->userWithPlanRole('2026-11-01 08:00:00');
+        $role = Role::findByName('frontend_user', 'web');
+
+        $response = $this->put(
+            '/admin/user/' . $user->id,
+            $this->roleUpdate($user, $role),
+        );
+
+        $response->assertSessionHasNoErrors();
+        $user = $user->fresh();
+        $this->assertSame(
+            '2026-11-01 08:00:00',
+            $user->plan_role_assigned_at?->format('Y-m-d H:i:s'),
+        );
+    }
+
     /**
      * Test user deletion process.
      */
@@ -189,5 +241,43 @@ class UserCrudControllerTest extends TestCase
         $this->assertTrue(
             Hash::check($testPassword, $user->password),
         );
+    }
+
+    private function fixClock(string $now): void
+    {
+        $this->app->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable($now),
+            ),
+        );
+    }
+
+    private function userWithPlanRole(string $assigned): User
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create(['email' => 'plan-' . uniqid() . '@billex.test']);
+        $user->assignRole(
+            Role::findByName('frontend_user', 'web'),
+        );
+        $user->forceFill(['plan_role_assigned_at' => $assigned]);
+        $user->save();
+
+        return $user;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function roleUpdate(User $user, Role $role): array
+    {
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'roles' => [$role->id],
+            'roles_show' => [$role->id],
+            'permissions' => [],
+        ];
     }
 }

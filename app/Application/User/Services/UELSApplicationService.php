@@ -16,11 +16,6 @@ class UELSApplicationService implements UELSApplicationServiceInterface
         return $this->limitService->getEntityLimitInfo($userId, $entityType);
     }
 
-    public function canUserCreateEntity(?int $userId, string $entityType): bool
-    {
-        return $this->limitService->canUserCreateEntity($userId, $entityType);
-    }
-
     public function getUsageStatistics(
         ?int $userId,
         string $entityType,

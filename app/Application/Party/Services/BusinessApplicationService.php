@@ -20,7 +20,6 @@ use App\Domain\Party\Exceptions\BusinessArchivedException;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Services\BusinessCreator;
-use App\Domain\Party\Services\CapacityLimit;
 use App\Domain\Party\Services\DuplicateFinder;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
@@ -29,7 +28,8 @@ use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
-use App\Domain\User\Enums\EntityType;
+use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
@@ -41,7 +41,7 @@ final class BusinessApplicationService
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly BusinessWriteRepositoryInterface $businessWriter,
         private readonly BusinessCreator $creator,
-        private readonly CapacityLimit $capacity,
+        private readonly EntityLimit $limits,
         private readonly DuplicateFinder $duplicates,
         private readonly UserWriteRepositoryInterface $users,
         private readonly TransactionBoundaryInterface $transactions,
@@ -55,11 +55,15 @@ final class BusinessApplicationService
         ?BankAccountWriteData $firstAccount,
     ): BusinessDTO {
         return $this->transactions->transaction(
-            fn (): BusinessDTO => $this->creator->create(
-                $userId,
-                $data,
-                $firstAccount,
-            ),
+            function () use ($userId, $data, $firstAccount): BusinessDTO {
+                $this->limits->assertCanCreate($userId, LimitedEntity::BUSINESS);
+
+                return $this->creator->create(
+                    $userId,
+                    $data,
+                    $firstAccount,
+                );
+            },
         );
     }
 
@@ -135,7 +139,7 @@ final class BusinessApplicationService
                     return;
                 }
 
-                $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
+                $this->limits->assertCanCreate($userId, LimitedEntity::BUSINESS);
                 $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
 
                 $this->businessWriter->restore($id);

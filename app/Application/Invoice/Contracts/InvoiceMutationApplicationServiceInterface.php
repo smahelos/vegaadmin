@@ -21,7 +21,6 @@ interface InvoiceMutationApplicationServiceInterface
         InvoiceWriteData $data,
         InvoicePartySelection $parties,
         array $products,
-        ?UserId $actorId = null,
     ): InvoiceActionResult;
 
     /**

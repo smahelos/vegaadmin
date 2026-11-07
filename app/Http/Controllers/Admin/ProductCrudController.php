@@ -17,14 +17,12 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
 {
-    use CreateOperation {
-        store as traitStore;
-    }
+    use CreateOperation;
     use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
@@ -179,20 +177,16 @@ final class ProductCrudController extends CrudController
             __('products.hints.slug'),
         );
 
+        // The owner's plan limits the products, so the admin picks whose catalogue the product joins
         $field = CRUD::field('user_id');
-        $field->type('hidden');
+        $field->type('select2');
         $field->label(
             __('products.fields.user_id'),
         );
         $field->entity('user');
+        $field->model(User::class);
         $field->attribute('name');
-        $field->options(
-            function ($query) {
-                $query->orderBy('name', 'ASC');
-
-                return $query->get();
-            },
-        );
+        $field->allows_null(false);
 
         $field = CRUD::field('price');
         $field->type('number');
@@ -297,31 +291,30 @@ final class ProductCrudController extends CrudController
     /**
      * Define what happens when the Update operation is loaded.
      */
+    /**
+     * Moving a product to another owner would bypass that owner's limit, so the owner is fixed after creation.
+     */
     protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
+        $field = CRUD::field('user_id');
+        $field->type('hidden');
     }
 
-    /**
-     * Ensure user_id is always set to the current backpack user before storing.
-     */
-    protected function beforeEntityStore(): void
+    public function store(): RedirectResponse
     {
-        if (backpack_user()) {
-            $request = $this->crud->getRequest();
-            if (!$request->has('user_id') || empty($request->input('user_id'))) {
-                $request->merge(['user_id' => backpack_user()->id]);
-            }
-        }
-    }
+        $this->crud->hasAccessOrFail('create');
+        $request = $this->crud->validateRequest();
+        $product = $this->productService->createProduct(
+            $request->validated(),
+            (int) $request->validated('user_id'),
+        );
+        $alerts = Alert::success(
+            __('products.messages.created'),
+        );
+        $alerts->flash();
+        $this->crud->setSaveAction();
 
-    /**
-     * Override store only for user assignment; usage recorded by ProductObserver.
-     */
-    public function store(): JsonResponse|RedirectResponse
-    {
-        $this->beforeEntityStore();
-
-        return $this->traitStore();
+        return $this->crud->performSaveAction($product->id);
     }
 }

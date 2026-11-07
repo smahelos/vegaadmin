@@ -52,13 +52,7 @@ final class EntityLimit
         $used = $this->used($owner, $entity);
 
         if ($used >= $limit) {
-            throw new EntityLimitExceededException(
-                [
-                    'entity_type' => $entity->value,
-                    'limit' => $limit,
-                    'current_usage' => $used,
-                ],
-            );
+            throw new EntityLimitExceededException($entity, $limit);
         }
     }
 

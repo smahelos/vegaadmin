@@ -6,7 +6,9 @@ use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitSe
 use App\Models\EntityLimit;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
+use App\Models\RoleLimit;
 use App\Models\User;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
@@ -301,33 +303,75 @@ class ProductControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function store_handles_limit_exceeded_gracefully(): void
+    public function a_refused_product_returns_back_with_the_limit_and_a_link_to_the_plans(): void
     {
         $this->actingAs($this->user, 'web');
+        $this->limitProducts(0);
+        $productData = $this->productInput();
 
-        $entityLimitQuery = EntityLimit::where(
+        $httpClient = $this->from('/previous');
+        $response = $httpClient->post(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $productData,
+        );
+
+        $response->assertRedirect('/previous');
+        $response->assertSessionHas(
+            'error',
+            __('products.messages.limit_exceeded', ['limit' => 0]),
+        );
+        $response->assertSessionHas('limit_exceeded', true);
+        $this->assertDatabaseMissing('products', ['name' => $productData['name']]);
+
+        $page = $this->get(
+            route('frontend.products', ['locale' => 'cs']),
+        );
+        $page->assertSee(
+            __('subscriptions.actions.view_plans'),
+        );
+    }
+
+    #[Test]
+    public function a_refused_json_product_answers_403_with_the_limit_and_the_plans_url(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $this->limitProducts(2);
+        $productFactory = Product::factory(2);
+        $productFactory->create(['user_id' => $this->user->id]);
+
+        $response = $this->postJson(
+            route('frontend.product.store', ['locale' => 'cs']),
+            $this->productInput(),
+        );
+
+        $response->assertForbidden();
+        $response->assertJson(
             [
-                'permission_name' => 'frontend.can_create_edit_product',
+                'message' => __('products.messages.limit_exceeded', ['limit' => 2]),
+                'plans_url' => route('subscriptions.index', ['locale' => App::getLocale()]),
             ],
         );
-        $entityLimitQuery->update(['limit_value' => 0]);
+    }
 
-        $productData = [
+    /**
+     * @return array<string, mixed>
+     */
+    private function productInput(): array
+    {
+        return [
             'name' => 'Test Product ' . uniqid(),
             'description' => 'Test Description',
             'price' => 99.99,
             'currency' => 'CZK',
             'unit' => 'pieces',
         ];
+    }
 
-        $response = $this->post(
-            route('frontend.product.store', ['locale' => 'cs']),
-            $productData,
-        );
-
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
-        $this->assertDatabaseMissing('products', ['name' => $productData['name']]);
+    private function limitProducts(int $limit): void
+    {
+        $role = Role::findByName('frontend_user', 'web');
+        $roleLimitQuery = RoleLimit::where('role_id', $role->id);
+        $roleLimitQuery->update(['products' => $limit]);
     }
 
     #[Test]

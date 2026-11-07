@@ -16,6 +16,7 @@ use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Models\Contact;
 use App\Models\User;
@@ -193,7 +194,7 @@ final class ContactApplicationServiceTest extends TestCase
     #[Test]
     public function archiving_frees_a_place_and_restoring_needs_one(): void
     {
-        $this->limitActive('contact', 1);
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 1);
         $user = $this->frontendUser();
         $first = $this->contacts->create(
             $this->idOf($user),

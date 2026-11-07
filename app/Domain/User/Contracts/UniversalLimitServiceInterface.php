@@ -71,11 +71,4 @@ interface UniversalLimitServiceInterface
      * @return array Entity limit information
      */
     public function getEntityLimitInfo(?int $userId, string $entityType): array;
-
-    /**
-     * Check if user can create specific entity type (any metric/period).
-     *
-     * @return bool True if user can create entity
-     */
-    public function canUserCreateEntity(?int $userId, string $entityType): bool;
 }

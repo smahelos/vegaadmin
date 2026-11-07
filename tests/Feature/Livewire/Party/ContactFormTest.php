@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Party;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\ContactForm;
 use App\Models\Address;
 use App\Models\Business;
@@ -129,7 +130,7 @@ final class ContactFormTest extends TestCase
     #[Test]
     public function the_capacity_limit_stops_a_new_contact(): void
     {
-        $this->limitActive('contact', 1);
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 1);
         $contactFactory = Contact::factory();
         $contactFactory->create(['user_id' => $this->user->id]);
 
@@ -138,7 +139,7 @@ final class ContactFormTest extends TestCase
         $component->call('save');
         $component->assertSet(
             'limitMessage',
-            __('contacts.messages.limit_exceeded'),
+            __('contacts.messages.limit_exceeded', ['limit' => 1]),
         );
 
         $contactQuery = Contact::query();

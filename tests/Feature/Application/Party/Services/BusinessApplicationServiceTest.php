@@ -12,6 +12,7 @@ use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Models\BankAccount;
 use App\Models\Business;
@@ -237,7 +238,7 @@ final class BusinessApplicationServiceTest extends TestCase
     #[Test]
     public function restoring_needs_a_free_place_while_editing_stays_possible(): void
     {
-        $this->limitActive('business', 1);
+        $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $user = $this->frontendUser();
         $kept = $this->businesses->create(
             $this->idOf($user),

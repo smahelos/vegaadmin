@@ -2,10 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\ProductRequest;
-use App\Models\EntityLimit;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Tax;
@@ -28,8 +25,6 @@ class ProductRequestFeatureTest extends TestCase
     use CreatesAdminTestEnvironment;
 
     private User $productUser;
-
-    private UniversalLimitService $limitService;
 
     private Tax $tax;
 
@@ -58,8 +53,6 @@ class ProductRequestFeatureTest extends TestCase
         $this->category = $productCategoryFactory->create();
 
         // Initialize limit service
-        $this->limitService = app(UniversalLimitService::class);
-
         // Define test routes
         $route = Route::post(
             '/test-product',
@@ -493,18 +486,6 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_passes_for_authenticated_user(): void
     {
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_product',
-                'entity_type' => 'product',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
-
         $httpClient = $this->actingAs($this->adminUser, 'backpack');
         $httpResponse = $httpClient->postJson(
             '/test-product',
@@ -550,114 +531,6 @@ class ProductRequestFeatureTest extends TestCase
             ],
         );
         $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function product_creation_respects_global_entity_limits(): void
-    {
-        $this->revokeUnlimitedAccess('product');
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_product',
-                'entity_type' => 'product',
-                'limit_value' => 1,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
-
-        // First creation passes
-        $httpResponse = $this->postJson(
-            '/test-product',
-            [
-                'name' => 'Product One',
-                'user_id' => $this->productUser->id,
-                'price' => 10,
-                'currency' => 'CZK',
-            ],
-        );
-        $httpResponse->assertStatus(200);
-
-        // Record usage manually (authorize only checks)
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'product',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        // Second creation exceeds limit via direct authorize()
-        $this->expectException(EntityLimitExceededException::class);
-        $request = new class extends ProductRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(
-            [
-                'name' => 'Product Two',
-                'user_id' => $this->productUser->id,
-                'price' => 20,
-                'currency' => 'CZK',
-            ],
-        );
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $request->authorize();
-    }
-
-    #[Test]
-    public function product_update_bypasses_limit_checks(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_product',
-                'entity_type' => 'product',
-                'limit_value' => 0,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
-
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'product',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $request = new class extends ProductRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(
-            [
-                'name' => 'Updated Product',
-                'user_id' => $this->productUser->id,
-                'price' => 30,
-                'currency' => 'CZK',
-            ],
-        );
-        $request->setRouteResolver(
-            fn () => (object) ['parameter' => fn ($n) => 'existing-product-id'],
-        );
-        $request->setMethod('PUT');
-        $this->assertTrue($request->authorize());
     }
 
     #[Test]

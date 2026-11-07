@@ -20,7 +20,7 @@ return [
         'updated' => 'The contact has been updated.',
         'archived' => 'The contact has been archived.',
         'restored' => 'The contact has been restored.',
-        'limit_exceeded' => 'You have reached the limit of active contacts. Archive a contact or upgrade your plan.',
+        'limit_exceeded' => 'You have reached your plan\'s limit of active contacts (:limit). Archive a contact or upgrade your plan.',
         'confirm_archive' => 'Do you really want to archive the contact? It will not be offered on new documents.',
     ],
     'titles' => [

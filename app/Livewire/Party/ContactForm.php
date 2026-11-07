@@ -95,8 +95,8 @@ final class ContactForm extends Component
                 );
             }
             $saved = true;
-        } catch (EntityLimitExceededException) {
-            $this->limitMessage = __('contacts.messages.limit_exceeded');
+        } catch (EntityLimitExceededException $e) {
+            $this->limitMessage = __('contacts.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         } catch (DuplicateCompanyNumberException $e) {

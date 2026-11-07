@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Api;
 
 use App\Application\User\Contracts\UELSApplicationServiceInterface;
-use App\Domain\User\Enums\EntityType;
+use App\Domain\Party\Enums\PartyKind;
 use App\Http\Controllers\Controller;
 use Carbon\CarbonImmutable;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -30,7 +30,7 @@ final class UELSController extends Controller
     public function getEntityData(Request $request, string $entity): JsonResponse
     {
         $user = $request->user();
-        $metricType = EntityType::tryFrom($entity) === null ? 'count' : 'active';
+        $metricType = PartyKind::tryFrom($entity) === null ? 'count' : 'active';
 
         $validEntities = [
             'contact',

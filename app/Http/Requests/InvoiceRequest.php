@@ -20,30 +20,32 @@ use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
 use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-final class InvoiceRequest extends BaseEntityRequest
+final class InvoiceRequest extends FormRequest
 {
     /**
-     * Override authorization to allow guest invoice creation on specific route.
-     * Guests can access the guest store endpoint (temporary invoice creation) without authentication.
+     * Guests may use the guest store endpoint (a temporary invoice that is never stored) without an account.
      */
     public function authorize(): bool
     {
         if ($this->isGuestStore()) {
-            return true; // Skip parent authorization & limit checks for guest temporary invoices
+            return true;
         }
 
-        if ($this->boolean('save_customer_to_contacts')) {
-            $user = $this->user();
-            if ($user?->can('frontend.can_create_contact') !== true) {
-                return false;
-            }
+        $user = $this->user();
+        if ($this->boolean('save_customer_to_contacts') && $user?->can('frontend.can_create_contact') !== true) {
+            return false;
         }
 
-        return parent::authorize();
+        if ($this->isMethod('POST')) {
+            return $user?->can('frontend.can_create_invoice') === true;
+        }
+
+        return $user?->can('frontend.can_update_invoice') === true;
     }
 
     /**
@@ -97,23 +99,6 @@ final class InvoiceRequest extends BaseEntityRequest
         }
 
         return parent::wantsJson();
-    }
-
-    /**
-     * Get the entity type for limit checking
-     */
-    protected function getEntityType(): string
-    {
-        return 'invoice';
-    }
-
-    protected function getRequiredPermission(): string
-    {
-        if ($this->isCreatingEntity()) {
-            return 'frontend.can_create_invoice';
-        }
-
-        return 'frontend.can_update_invoice';
     }
 
     /**

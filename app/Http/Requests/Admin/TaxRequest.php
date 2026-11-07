@@ -2,26 +2,18 @@
 
 namespace App\Http\Requests\Admin;
 
-class TaxRequest extends BaseEntityRequest
-{
-    /**
-     * Entity type for limit checks
-     */
-    protected function getEntityType(): string
-    {
-        return 'tax';
-    }
+use Illuminate\Foundation\Http\FormRequest;
 
-    /**
-     * Required permission name
-     */
-    protected function getRequiredPermission(): string
+class TaxRequest extends FormRequest
+{
+    public function authorize(): bool
     {
-        if ($this->isCreatingEntity()) {
-            return 'can_create_tax';
+        $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_tax') === true;
         }
 
-        return 'can_update_tax';
+        return $user?->can('can_update_tax') === true;
     }
 
     /**

@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Architecture;
 
-use App\Http\Requests\Admin\BaseEntityRequest as AdminBaseEntityRequest;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use PHPUnit\Framework\Attributes\Test;
 use Symfony\Component\Finder\Finder;
@@ -78,39 +77,6 @@ class PermissionCatalogCoverageTest extends TestCase
                 array_unique($missing),
             ),
             'Permissions missing in PermissionCatalog',
-        );
-    }
-
-    #[Test]
-    public function admin_limit_bypass_permissions_are_in_the_catalog(): void
-    {
-        $missing = [];
-        $finder = new Finder;
-        $finder->files();
-        $finder->in(
-            app_path('Http/Requests/Admin'),
-        );
-        $finder->name('*.php');
-        foreach ($finder as $file) {
-            $class = 'App\\Http\\Requests\\Admin\\' . $file->getBasename('.php');
-            $reflection = new \ReflectionClass($class);
-            if ($reflection->isAbstract() || !$reflection->isSubclassOf(AdminBaseEntityRequest::class)) {
-                continue;
-            }
-
-            // Admin\BaseEntityRequest::hasUnlimitedAccess() checks can_create_{entity}_unlimited
-            $entityTypeMethod = $reflection->getMethod('getEntityType');
-            $entityType = $entityTypeMethod->invoke($reflection->newInstance());
-            $permission = "can_create_{$entityType}_unlimited";
-            if (!PermissionCatalog::has($permission, PermissionCatalog::BACKPACK)) {
-                $missing[] = $permission . ' (' . $file->getFilename() . ')';
-            }
-        }
-
-        $this->assertSame(
-            [],
-            $missing,
-            'Limit bypass permissions missing in PermissionCatalog',
         );
     }
 }

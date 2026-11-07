@@ -87,14 +87,6 @@ final class PermissionCatalog
             'can_view_status',
             'can_view_tax',
             'can_view_user',
-            // Bypass of the entity limits when creating in the admin (Admin\BaseEntityRequest)
-            'can_create_bank_unlimited',
-            'can_create_expense_unlimited',
-            'can_create_invoice_unlimited',
-            'can_create_payment_method_unlimited',
-            'can_create_product_unlimited',
-            'can_create_product_category_unlimited',
-            'can_create_tax_unlimited',
         ],
         self::WEB => [
             'frontend.api.access',

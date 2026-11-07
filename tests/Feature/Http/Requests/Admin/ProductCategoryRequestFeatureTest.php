@@ -2,10 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\ProductCategoryRequest;
-use App\Models\EntityLimit;
 use App\Models\ProductCategory;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
@@ -22,8 +19,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    private UniversalLimitService $limitService;
-
     /**
      * Set up test environment.
      */
@@ -36,21 +31,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
 
         $productCategoryFactory = ProductCategory::factory();
         $productCategoryFactory->create();
-        $this->limitService = app(UniversalLimitService::class);
-
-        // Provide generous limit for default tests
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_product',
-                'entity_type' => 'product_category',
-                'limit_value' => 100,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
-
         // Define test routes
         $route = Route::post(
             '/test-product-category',
@@ -290,70 +270,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
             'name' => 'No Perm Category',
         ]);
         $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function category_creation_respects_global_entity_limits(): void
-    {
-        $this->revokeUnlimitedAccess('product_category');
-        $this->actingAs($this->adminUser, 'backpack');
-        // Strict limit 1
-        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
-        $entityLimitQuery->update(['limit_value' => 1]);
-
-        $httpResponse = $this->postJson('/test-product-category', [
-            'name' => 'First Cat',
-        ]);
-        $httpResponse->assertStatus(200);
-
-        // Manually record usage so second authorize fails
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'product_category',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $this->expectException(EntityLimitExceededException::class);
-        $request = new class extends ProductCategoryRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Second Cat']);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $request->authorize();
-    }
-
-    #[Test]
-    public function category_update_bypasses_limit_checks(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'product_category');
-        $entityLimitQuery->update(['limit_value' => 0]);
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'product_category',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $request = new class extends ProductCategoryRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Updated Cat']);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-cat']);
-        $request->setMethod('PUT');
-        $this->assertTrue($request->authorize());
     }
 
     #[Test]

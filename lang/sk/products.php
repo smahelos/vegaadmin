@@ -76,7 +76,7 @@ return [
         'image_deleted' => 'Obrázok bol úspešne zmazaný.',
         'image_error' => 'Chyba pri nahrávaní obrázku.',
         'no_products_found' => 'Neboli nájdené žiadne produkty.',
-        'limit_exceeded' => 'Dosiahli ste limit počtu produktov.',
+        'limit_exceeded' => 'Dosiahli ste limit produktov svojho tarifu (:limit).',
         'confirm_delete' => 'Naozaj chcete produkt zmazať?',
         'tax_not_loaded' => 'Neznáma daň',
     ],

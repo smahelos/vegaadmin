@@ -43,15 +43,6 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         );
     }
 
-    public function countActiveForUserForUpdate(UserId $userId): int
-    {
-        return $this->records->countActiveForUser(
-            Contact::query(),
-            $userId,
-            true,
-        );
-    }
-
     public function listLatestActiveForUser(UserId $userId, int $limit): array
     {
         return array_map(

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Domain\Party\Services;
+namespace Tests\Feature\Domain\User\Services;
 
 use App\Application\Party\Services\BusinessApplicationService;
 use App\Application\Party\Services\ContactApplicationService;
@@ -21,7 +21,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
 
-final class CapacityLimitTest extends TestCase
+final class EntityLimitLockingTest extends TestCase
 {
     use BuildsParties;
 
@@ -75,11 +75,11 @@ final class CapacityLimitTest extends TestCase
         $other = $this->secondConnection();
         $ownerId = $this->committedUser($other);
         $table = $business ? 'businesses' : 'contacts';
-        $permission = $business ? 'limit_active_businesses_basic' : 'limit_active_contacts_basic';
         $limitQuery = $other->prepare(
-            'SELECT limit_value FROM entity_limits WHERE permission_name = ? AND is_active = 1',
+            'SELECT role_limits.' . $table . ' FROM role_limits JOIN roles ON roles.id = role_limits.role_id'
+            . ' WHERE roles.name = ? AND roles.guard_name = ?',
         );
-        $limitQuery->execute([$permission]);
+        $limitQuery->execute(['frontend_user', 'web']);
         $limit = (int) $limitQuery->fetchColumn();
         $this->assertGreaterThan(0, $limit);
         $insert = $other->prepare(

@@ -32,6 +32,8 @@ final class BusinessDetail extends Component
 
     public ?string $errorMessage = null;
 
+    public ?string $limitMessage = null;
+
     public ?string $successMessage = null;
 
     public function mount(BusinessApplicationService $businesses, int $businessId): void
@@ -82,12 +84,13 @@ final class BusinessDetail extends Component
     {
         $this->requirePermission('frontend.can_restore_business');
         $this->errorMessage = null;
+        $this->limitMessage = null;
         $this->successMessage = null;
 
         try {
             $businesses->restore($this->userId(), $this->currentId());
-        } catch (EntityLimitExceededException) {
-            $this->errorMessage = __('businesses.messages.limit_exceeded');
+        } catch (EntityLimitExceededException $e) {
+            $this->limitMessage = __('businesses.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         }

@@ -4,6 +4,7 @@ namespace App\Domain\User\Services;
 
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
+use App\Domain\Party\Enums\PartyKind;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
@@ -11,7 +12,6 @@ use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
 use App\Domain\User\Contracts\EntityLimitUsageRepositoryInterface;
 use App\Domain\User\Contracts\PermissionLimitResolverInterface;
 use App\Domain\User\Contracts\UniversalLimitServiceInterface;
-use App\Domain\User\Enums\EntityType;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
@@ -378,11 +378,11 @@ class UniversalLimitService implements UniversalLimitServiceInterface
 
         // A capacity limit has no usage rows: the user's active records are the usage
         if ($metricType === self::ACTIVE_METRIC) {
-            return match (EntityType::tryFrom($entityType)) {
-                EntityType::BUSINESS => $this->businesses->countActiveForUser(
+            return match (PartyKind::tryFrom($entityType)) {
+                PartyKind::BUSINESS => $this->businesses->countActiveForUser(
                     UserId::fromInt($userId),
                 ),
-                EntityType::CONTACT => $this->contacts->countActiveForUser(
+                PartyKind::CONTACT => $this->contacts->countActiveForUser(
                     UserId::fromInt($userId),
                 ),
                 null => 0,

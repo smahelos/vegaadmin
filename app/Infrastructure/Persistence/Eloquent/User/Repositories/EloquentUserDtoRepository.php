@@ -99,4 +99,11 @@ class EloquentUserDtoRepository implements UserReadRepositoryInterface, UserWrit
         $user = $query->findOrFail($id->toInt());
         $user->assignRole($role);
     }
+
+    public function recordPlanRoleAssignment(UserId $id, DateTimeImmutable $assigned): void
+    {
+        $query = User::query();
+        $query->whereKey($id->toInt());
+        $query->update(['plan_role_assigned_at' => $assigned]);
+    }
 }

@@ -17,9 +17,9 @@ use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 use RuntimeException;
 
@@ -30,7 +30,7 @@ final class ExpenseApplicationService
         private readonly ExpenseWriteRepositoryInterface $writer,
         private readonly ExpensePartiesAssembler $parties,
         private readonly TransactionBoundaryInterface $transactions,
-        private readonly UniversalLimitServiceInterface $limits,
+        private readonly EntityLimit $limits,
         private readonly UserPermissionServiceInterface $permissions,
         private readonly EventPublisherInterface $events,
         private readonly FileUploadServiceInterface $files,
@@ -111,23 +111,8 @@ final class ExpenseApplicationService
                 function (?string $logo) use ($userId, $data, $id, $stored, &$uploaded, &$removed): ExpenseDTO {
                     return $this->transactions->transaction(
                         function () use ($userId, $data, $id, $stored, $logo, &$uploaded, &$removed): ExpenseDTO {
-                            if (
-                                $id === null
-                                && !in_array(
-                                    'can_create_expense_unlimited',
-                                    $this->permissions->getUserPermissions($userId->toInt(), 'backpack'),
-                                    true,
-                                )
-                            ) {
-                                $check = $this->limits->checkLimit(
-                                    $userId->toInt(),
-                                    'expense',
-                                    'count',
-                                    $this->limits->getBestPeriodType($userId->toInt(), 'expense'),
-                                );
-                                if (!$check['allowed']) {
-                                    throw new EntityLimitExceededException($check);
-                                }
+                            if ($id === null) {
+                                $this->limits->assertCanCreate($userId, LimitedEntity::EXPENSE);
                             }
                             $parties = $this->parties->assemble(
                                 $userId,

@@ -8,16 +8,15 @@ use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Contact;
-use App\Models\EntityLimit;
 use App\Models\Expense;
 use App\Models\FileHash;
+use App\Models\RoleLimit;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\Support\BuildsExpenseInput;
 use Tests\Support\BuildsInvoiceInput;
@@ -282,79 +281,23 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function the_limit_belongs_to_the_owner_and_creation_records_usage_once(): void
+    public function an_expense_an_admin_creates_counts_against_the_owners_quota(): void
     {
+        $role = Role::findByName('frontend_user', 'web');
+        $roleLimitQuery = RoleLimit::where('role_id', $role->id);
+        $roleLimitQuery->update(['expenses' => 1]);
         [$business] = $this->issuerOf($this->regularUser);
-        $this->regularUser->givePermissionTo('can_create_expense');
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'entity_type' => 'expense',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'limit_value' => 1,
-                'permission_name' => 'can_create_expense',
-                'is_active' => true,
-            ],
-        );
         $data = $this->expenseInput($business);
         $httpResponse = $this->post('/admin/expense', $data);
-        $httpResponse->assertSessionHasNoErrors();
-        $this->assertDatabaseHas(
-            'entity_limit_usage',
-            [
-                'user_id' => $this->regularUser->id,
-                'entity_type' => 'expense',
-                'current_value' => 1,
-            ],
-        );
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
+        $this->assertDatabaseHas('expenses', ['reference_number' => $data['reference_number']]);
         $httpResponse = $this->post(
             '/admin/expense',
             array_replace($data, ['reference_number' => 'blocked']),
         );
         $httpResponse->assertRedirect();
         $this->assertDatabaseMissing('expenses', ['reference_number' => 'blocked']);
-    }
-
-    #[Test]
-    public function a_web_plan_allowance_is_consumed_when_an_admin_creates_an_expense(): void
-    {
-        $this->regularUser->assignRole(
-            Role::findByName('frontend_user', 'web'),
-        );
-        $this->regularUser->givePermissionTo(
-            Permission::findByName('frontend.can_create_invoice', 'web'),
-        );
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'entity_type' => 'expense',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'limit_value' => 1,
-                'permission_name' => 'frontend.can_create_invoice',
-                'is_active' => true,
-            ],
-        );
-        [$business] = $this->issuerOf($this->regularUser);
-        $data = $this->expenseInput($business);
-        $httpResponse = $this->post('/admin/expense', $data);
-        $httpResponse = $httpResponse->assertSessionHasNoErrors();
-        $httpResponse->assertRedirect();
-        $this->assertDatabaseHas(
-            'entity_limit_usage',
-            [
-                'user_id' => $this->regularUser->id,
-                'entity_type' => 'expense',
-                'current_value' => 1,
-            ],
-        );
-        $httpResponse = $this->post(
-            '/admin/expense',
-            array_replace($data, ['reference_number' => 'WEB-BLOCKED']),
-        );
-        $httpResponse->assertRedirect();
-        $this->assertDatabaseMissing('expenses', ['reference_number' => 'WEB-BLOCKED']);
     }
 
     #[Test]

@@ -2,10 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\TaxRequest;
-use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -21,8 +18,6 @@ class TaxRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    private UniversalLimitService $limitService;
-
     /**
      * Set up test environment.
      */
@@ -32,21 +27,6 @@ class TaxRequestFeatureTest extends TestCase
 
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
-
-        $this->limitService = app(UniversalLimitService::class);
-
-        // Provide generous default limit for taxes
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_tax',
-                'entity_type' => 'tax',
-                'limit_value' => 100,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
 
         // Define test routes
         $route = Route::post(
@@ -257,89 +237,6 @@ class TaxRequestFeatureTest extends TestCase
             'rate' => 5,
         ]);
         $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function tax_creation_respects_global_entity_limits(): void
-    {
-        $this->revokeUnlimitedAccess('tax');
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
-        $entityLimitQuery->update(['limit_value' => 1]);
-
-        $httpResponse = $this->postJson('/test-tax', [
-            'name' => 'Tax One',
-            'rate' => 5,
-        ]);
-        $httpResponse->assertStatus(200);
-
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'tax',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $this->expectException(EntityLimitExceededException::class);
-        $request = new class extends TaxRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Tax Two', 'rate' => 10]);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $request->authorize();
-    }
-
-    #[Test]
-    public function admin_creation_bypasses_entity_limits(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
-        $entityLimitQuery->update(['limit_value' => 0]);
-
-        $request = new class extends TaxRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Tax', 'rate' => 10]);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $this->assertTrue($request->authorize());
-    }
-
-    #[Test]
-    public function tax_update_bypasses_limit_checks(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'tax');
-        $entityLimitQuery->update(['limit_value' => 0]);
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'tax',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $request = new class extends TaxRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Updated Tax', 'rate' => 15]);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 'existing-tax']);
-        $request->setMethod('PUT');
-        $this->assertTrue($request->authorize());
     }
 
     /**
