@@ -8,6 +8,7 @@ use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\ContactDetail;
 use App\Models\Contact;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -57,6 +58,27 @@ final class ContactDetailTest extends TestCase
         $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
         $component->call('restore');
         $this->assertNull($contact->fresh()?->archived_at);
+    }
+
+    #[Test]
+    public function restoring_counts_against_the_creation_rate_limit(): void
+    {
+        Config::set('billex.rate_limits.create', 1);
+        $this->freezeTime();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->call('archive');
+        $component->call('restore');
+        $component->call('archive');
+        $component->call('restore');
+
+        $component->assertSet(
+            'errorMessage',
+            __('general.messages.too_many_requests', ['seconds' => 60]),
+        );
+        $this->assertNotNull($contact->fresh()?->archived_at);
     }
 
     #[Test]

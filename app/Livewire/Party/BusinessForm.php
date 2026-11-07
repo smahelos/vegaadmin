@@ -15,6 +15,7 @@ use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
+use App\Livewire\Shared\ThrottlesCreation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -30,6 +31,7 @@ final class BusinessForm extends Component
     use EditsPartyDetails;
     use EditsPartyLogo;
     use ProvidesPartyOptions;
+    use ThrottlesCreation;
 
     public PartyDetailsForm $party;
 
@@ -37,6 +39,8 @@ final class BusinessForm extends Component
 
     #[Locked]
     public ?int $businessId = null;
+
+    public ?string $errorMessage = null;
 
     public ?string $limitMessage = null;
 
@@ -66,6 +70,7 @@ final class BusinessForm extends Component
         $this->requirePermission(
             $creating ? 'frontend.can_create_business' : 'frontend.can_update_business',
         );
+        $this->errorMessage = null;
         $this->limitMessage = null;
 
         $this->validate($this->rules());
@@ -78,6 +83,13 @@ final class BusinessForm extends Component
         $profile = $this->party->profile();
         if (!$this->passesDuplicateCheck($profile)) {
             return;
+        }
+
+        if ($creating) {
+            $this->errorMessage = $this->creationThrottled();
+            if ($this->errorMessage !== null) {
+                return;
+            }
         }
 
         $logo = $this->logoPath($logos);

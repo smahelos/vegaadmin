@@ -421,6 +421,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
 - **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard and UELS scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
 
+### Error pages are Laravel's defaults
+- **Where:** `resources/views/errors/` does not exist; Backpack ships its own error views in `vendor/backpack/crud/src/resources/views/ui/errors/`
+- **Problem:** the frontend shows Laravel's English error pages without the Billex layout in every locale, including the 429 of the creation rate limits (D-047).
+- **Fix (decided 2026-11-07):** own error pages in the frontend layout, in four locales (`add-translation`), for at least 403, 404, 419, 429, 500 and 503; decide whether the admin keeps Backpack's error views.
+
 ### Dates outside the PDFs are formatted by hand
 - **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the remaining Livewire invoice widgets)
 - **Problem:** the PDFs format dates through `DateFormatterInterface` in their language, but the frontend, the admin and the reminder emails print the Czech format for every locale.

@@ -8,6 +8,7 @@ use App\Application\Party\Services\ContactApplicationService;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
+use App\Livewire\Shared\ThrottlesCreation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -19,6 +20,7 @@ final class ContactDetail extends Component
 {
     use ActsForUser;
     use ProvidesPartyOptions;
+    use ThrottlesCreation;
 
     #[Locked]
     public int $contactId;
@@ -49,9 +51,13 @@ final class ContactDetail extends Component
     public function restore(ContactApplicationService $contacts): void
     {
         $this->requirePermission('frontend.can_restore_contact');
-        $this->errorMessage = null;
         $this->limitMessage = null;
         $this->successMessage = null;
+
+        $this->errorMessage = $this->creationThrottled();
+        if ($this->errorMessage !== null) {
+            return;
+        }
 
         try {
             $contacts->restore($this->userId(), $this->currentId());

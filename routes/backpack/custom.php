@@ -69,6 +69,7 @@ Route::group(
         $route = Route::post('business/{id}/restore', [BusinessCrudController::class, 'restore']);
         $route->whereNumber('id');
         $route->name('admin.businesses.restore');
+        $route->middleware('throttle:create');
         $route = Route::post('business/{id}/set-default', [BusinessCrudController::class, 'setDefault']);
         $route->whereNumber('id');
         $route->name('admin.businesses.set-default');
@@ -79,6 +80,7 @@ Route::group(
         $route = Route::post('contact/{id}/restore', [ContactCrudController::class, 'restore']);
         $route->whereNumber('id');
         $route->name('admin.contacts.restore');
+        $route->middleware('throttle:create');
         Route::crud('bank-account', BankAccountCrudController::class);
         $route = Route::post('bank-account/{id}/archive', [BankAccountCrudController::class, 'archive']);
         $route->whereNumber('id');

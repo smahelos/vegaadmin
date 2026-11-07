@@ -12,6 +12,7 @@ use App\Models\Business;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
@@ -225,6 +226,27 @@ final class BusinessFormTest extends TestCase
             2,
             $businessQuery->count(),
         );
+    }
+
+    #[Test]
+    public function a_new_business_shares_the_creation_rate_limit_with_the_other_creation_paths(): void
+    {
+        Config::set('billex.rate_limits.create', 1);
+        $this->freezeTime();
+        $this->post('/cs/product');
+
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Příliš rychle');
+        $component->call('save');
+
+        $component->assertSet(
+            'errorMessage',
+            __('general.messages.too_many_requests', ['seconds' => 60]),
+        );
+        $component->assertNoRedirect();
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $this->user->id);
+        $this->assertSame(0, $businessQuery->count());
     }
 
     #[Test]

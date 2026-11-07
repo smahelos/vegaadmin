@@ -38,6 +38,13 @@ final class BusinessCrudController extends CrudController
     use StoresPartyLogo;
     use UpdateOperation;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $throttle = $this->middleware('throttle:create');
+        $throttle->only('store');
+    }
+
     public function setup(): void
     {
         $this->setupParty(

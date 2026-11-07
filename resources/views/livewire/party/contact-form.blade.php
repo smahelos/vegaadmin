@@ -1,4 +1,5 @@
 <div>
+    <x-status-messages :error="$errorMessage" />
     <x-limit-exceeded :message="$limitMessage" />
 
     <x-party.duplicates :blocking="$blockingDuplicate" :warnings="$duplicateWarnings" />

@@ -39,6 +39,13 @@ final class InvoiceCrudController extends CrudController
     use ShowOperation;
     use UpdateOperation;
 
+    public function __construct()
+    {
+        parent::__construct();
+        $throttle = $this->middleware('throttle:create');
+        $throttle->only('store');
+    }
+
     /**
      * Configure the CrudPanel object
      */

@@ -38,6 +38,8 @@ final class ProductCrudController extends CrudController
         TaxServiceInterface $taxesService,
     ) {
         parent::__construct();
+        $throttle = $this->middleware('throttle:create');
+        $throttle->only('store');
         $this->productService = $productService;
         $this->taxesService = $taxesService;
     }
