@@ -32,5 +32,6 @@ return [
         'products' => 'Products',
         'approaching' => 'You are approaching the limit.',
         'reached' => 'The limit has been reached.',
+        'ambiguous' => 'The user has several plan roles with limits; keep only one.',
     ],
 ];

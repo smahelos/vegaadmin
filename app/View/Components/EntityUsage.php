@@ -36,15 +36,6 @@ final class EntityUsage extends Component
             $this->entity,
         );
 
-        // Warned from 80 %, full once the limit is reached; unlimited and not allowed have no bar
-        $limit = (int) $usage->limit;
-        $full = $limit > 0 && $usage->used >= $limit;
-        $percent = 0;
-        if ($limit > 0) {
-            $percent = intdiv($usage->used * 100, $limit);
-            $percent = min(100, $percent);
-        }
-
         return view(
             'components.entity-usage',
             [
@@ -52,11 +43,11 @@ final class EntityUsage extends Component
                 'label' => __('role_limits.usage.' . $this->entity->value),
                 'barId' => 'usage-' . $this->entity->value,
                 'percent' => Number::percentage(
-                    $percent,
+                    $usage->percent(),
                     locale: App::getLocale(),
                 ),
-                'full' => $full,
-                'near' => !$full && $percent >= 80,
+                'full' => $usage->full(),
+                'near' => $usage->near(),
                 'plansUrl' => route(
                     'subscriptions.index',
                     ['locale' => App::getLocale()],

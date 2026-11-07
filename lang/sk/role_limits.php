@@ -32,5 +32,6 @@ return [
         'products' => 'Produkty',
         'approaching' => 'Blížite sa k limitu.',
         'reached' => 'Limit je vyčerpaný.',
+        'ambiguous' => 'Používateľ má viac tarifných rolí s limitmi, ponechajte mu len jednu.',
     ],
 ];

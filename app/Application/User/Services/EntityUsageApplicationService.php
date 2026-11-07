@@ -23,4 +23,19 @@ final class EntityUsageApplicationService
     {
         return $this->limits->usage($owner, $entity);
     }
+
+    /**
+     * @return list<EntityUsageDTO>
+     *
+     * @throws AmbiguousPlanRoleException
+     */
+    public function usages(UserId $owner): array
+    {
+        $usages = [];
+        foreach (LimitedEntity::cases() as $entity) {
+            $usages[] = $this->limits->usage($owner, $entity);
+        }
+
+        return $usages;
+    }
 }

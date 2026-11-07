@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Shared\Time\Contracts\ClockInterface;
+use App\Models\Product;
 use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -240,6 +241,44 @@ class UserCrudControllerTest extends TestCase
         $this->assertNotEquals($testPassword, $user->password);
         $this->assertTrue(
             Hash::check($testPassword, $user->password),
+        );
+    }
+
+    #[Test]
+    public function the_user_detail_shows_the_users_plan_usage(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $user = $this->userWithPlanRole('2026-11-01 08:00:00');
+        $productFactory = Product::factory(2);
+        $productFactory->create(['user_id' => $user->id]);
+
+        $response = $this->get('/admin/user/' . $user->id . '/show');
+
+        $response->assertOk();
+        $response->assertSeeTextInOrder(
+            [
+                __('role_limits.usage.title'),
+                __('role_limits.usage.products'),
+                '2 /',
+                '5',
+            ],
+        );
+    }
+
+    #[Test]
+    public function the_user_detail_warns_about_several_plan_roles(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $user = $this->userWithPlanRole('2026-11-01 08:00:00');
+        $user->assignRole(
+            Role::findByName('frontend_user_plus', 'web'),
+        );
+
+        $response = $this->get('/admin/user/' . $user->id . '/show');
+
+        $response->assertOk();
+        $response->assertSeeText(
+            __('role_limits.usage.ambiguous'),
         );
     }
 

@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
+use App\Application\User\Services\EntityUsageApplicationService;
 use App\Application\User\Services\PlanRoleChange;
+use App\Domain\User\DTO\EntityUsageDTO;
+use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\User;
@@ -206,6 +209,15 @@ class UserCrudController extends CrudController
                 ],
             ],
         );
+        $entry = $this->crud->getCurrentEntry();
+        $column = $this->crud->column('entity_usage');
+        $column->type('entity_usage');
+        $column->label(
+            __('role_limits.usage.title'),
+        );
+        $column->value(
+            $this->usages((int) $entry->getKey()),
+        );
         $column = $this->crud->column('created_at');
         $column->label(
             __('users.fields.created_at'),
@@ -214,6 +226,23 @@ class UserCrudController extends CrudController
         $column->label(
             __('users.fields.updated_at'),
         );
+    }
+
+    /**
+     * The user's usage of every plan limit; null when they hold several plan roles, so the admin can fix them.
+     *
+     * @return list<EntityUsageDTO>|null
+     */
+    private function usages(int $userId): ?array
+    {
+        $usageService = app(EntityUsageApplicationService::class);
+        try {
+            return $usageService->usages(
+                UserId::fromInt($userId),
+            );
+        } catch (AmbiguousPlanRoleException) {
+            return null;
+        }
     }
 
     /**
