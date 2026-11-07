@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'statuses' => [
+        'unlimited' => 'Unlimited',
+        'not_allowed' => 'Not allowed',
+    ],
     'usage' => [
         'title' => 'Plan usage',
         'invoices' => 'Invoices this month',
@@ -8,7 +12,7 @@ return [
         'businesses' => 'Active businesses',
         'contacts' => 'Active contacts',
         'products' => 'Products',
-        'unlimited' => 'Unlimited',
-        'not_allowed' => 'Not allowed',
+        'approaching' => 'You are approaching the limit.',
+        'reached' => 'The limit has been reached.',
     ],
 ];

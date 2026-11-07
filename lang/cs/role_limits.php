@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'statuses' => [
+        'unlimited' => 'Neomezeně',
+        'not_allowed' => 'Nepovoleno',
+    ],
     'usage' => [
         'title' => 'Využití tarifu',
         'invoices' => 'Faktury tento měsíc',
@@ -8,7 +12,7 @@ return [
         'businesses' => 'Aktivní firmy',
         'contacts' => 'Aktivní kontakty',
         'products' => 'Produkty',
-        'unlimited' => 'Neomezeně',
-        'not_allowed' => 'Nepovoleno',
+        'approaching' => 'Blížíte se limitu.',
+        'reached' => 'Limit je vyčerpán.',
     ],
 ];

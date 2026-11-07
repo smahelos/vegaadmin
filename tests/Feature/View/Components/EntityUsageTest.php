@@ -17,7 +17,7 @@ final class EntityUsageTest extends TestCase
     private const TEMPLATE = '<x-entity-usage :entity="$entity" />';
 
     #[Test]
-    public function shows_the_usage_against_the_limit_with_a_meter(): void
+    public function warns_from_eighty_percent_of_the_limit(): void
     {
         $owner = $this->frontendUser();
         $this->limitFrontendUser(LimitedEntity::CONTACT, 5);
@@ -37,15 +37,60 @@ final class EntityUsageTest extends TestCase
             __('role_limits.usage.contacts'),
         );
         $view->assertSee('4 / 5');
-        // Yellow from 4 of 5, red only at 5 of 5
+        $view->assertSee('max="5" value="4"', false);
         $view->assertSee(
-            'max="5" low="4" high="4.5" optimum="0" value="4"',
-            false,
+            __('role_limits.usage.approaching'),
+        );
+        $view->assertDontSee(
+            __('role_limits.usage.reached'),
         );
     }
 
     #[Test]
-    public function shows_an_unlimited_value_without_a_meter(): void
+    public function shows_a_reached_limit_with_a_link_to_the_plans(): void
+    {
+        $owner = $this->frontendUser();
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 2);
+        $contactFactory = Contact::factory(2);
+        $contactFactory->create(['user_id' => $owner->id]);
+        $this->actingAs($owner, 'web');
+
+        $view = $this->blade(
+            self::TEMPLATE,
+            ['entity' => LimitedEntity::CONTACT],
+        );
+
+        $view->assertSee('2 / 2');
+        $view->assertSee(
+            __('role_limits.usage.reached'),
+        );
+        $view->assertSee(
+            __('subscriptions.actions.view_plans'),
+        );
+    }
+
+    #[Test]
+    public function shows_no_warning_below_eighty_percent(): void
+    {
+        $owner = $this->frontendUser();
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 10);
+        $contactFactory = Contact::factory(7);
+        $contactFactory->create(['user_id' => $owner->id]);
+        $this->actingAs($owner, 'web');
+
+        $view = $this->blade(
+            self::TEMPLATE,
+            ['entity' => LimitedEntity::CONTACT],
+        );
+
+        $view->assertSee('7 / 10');
+        $view->assertDontSee(
+            __('subscriptions.actions.view_plans'),
+        );
+    }
+
+    #[Test]
+    public function shows_an_unlimited_value_without_a_bar(): void
     {
         $owner = $this->frontendUser();
         $this->limitFrontendUser(LimitedEntity::INVOICE, null);
@@ -57,9 +102,9 @@ final class EntityUsageTest extends TestCase
         );
 
         $view->assertSee(
-            __('role_limits.usage.unlimited'),
+            __('role_limits.statuses.unlimited'),
         );
-        $view->assertDontSee('<meter', false);
+        $view->assertDontSee('<progress', false);
     }
 
     #[Test]
@@ -75,9 +120,9 @@ final class EntityUsageTest extends TestCase
         );
 
         $view->assertSee(
-            __('role_limits.usage.not_allowed'),
+            __('role_limits.statuses.not_allowed'),
         );
-        $view->assertDontSee('<meter', false);
+        $view->assertDontSee('<progress', false);
     }
 
     #[Test]
