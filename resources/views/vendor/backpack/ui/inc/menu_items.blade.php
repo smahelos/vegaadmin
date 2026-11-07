@@ -12,6 +12,10 @@
         :link="backpack_url('role')" />
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.permissions') }}" icon="la la-key"
         :link="backpack_url('permission')" />
+    @if($user->hasPermissionTo('can_view_role_limit', 'backpack'))
+    <x-backpack::menu-dropdown-item title="{{ __('role_limits.entity.plural') }}" icon="la la-sliders-h"
+        :link="backpack_url('role-limit')" />
+    @endif
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.entity.plural') }}" icon="la la-handshake"
         :link="backpack_url('subscription')" />
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.plans.entity.plural') }}" icon="la la-id-card"

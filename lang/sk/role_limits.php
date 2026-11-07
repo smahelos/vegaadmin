@@ -1,7 +1,25 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Limit roly',
+        'plural' => 'Limity rolí',
+    ],
+    'fields' => [
+        'role' => 'Rola',
+        'invoices' => 'Faktúry za mesiac',
+        'expenses' => 'Výdavky za mesiac',
+        'businesses' => 'Firmy',
+        'contacts' => 'Kontakty',
+        'products' => 'Produkty',
+    ],
+    'hints' => [
+        'role' => 'Len roly webu, ktoré ešte nemajú limity.',
+        'quota' => 'Počet vytvorených za kalendárny mesiac, najskôr od pridelenia roly.',
+        'capacity' => 'Počet aktívnych záznamov naraz.',
+    ],
     'statuses' => [
+        'limited' => 'Počet',
         'unlimited' => 'Neobmedzene',
         'not_allowed' => 'Nepovolené',
     ],

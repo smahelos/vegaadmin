@@ -1,7 +1,25 @@
 <?php
 
 return [
+    'entity' => [
+        'singular' => 'Rollenlimit',
+        'plural' => 'Rollenlimits',
+    ],
+    'fields' => [
+        'role' => 'Rolle',
+        'invoices' => 'Rechnungen pro Monat',
+        'expenses' => 'Ausgaben pro Monat',
+        'businesses' => 'Firmen',
+        'contacts' => 'Kontakte',
+        'products' => 'Produkte',
+    ],
+    'hints' => [
+        'role' => 'Nur Web-Rollen, die noch keine Limits haben.',
+        'quota' => 'Anzahl der pro Kalendermonat erstellten Einträge, frühestens ab der Rollenzuweisung gezählt.',
+        'capacity' => 'Anzahl gleichzeitig aktiver Einträge.',
+    ],
     'statuses' => [
+        'limited' => 'Anzahl',
         'unlimited' => 'Unbegrenzt',
         'not_allowed' => 'Nicht erlaubt',
     ],

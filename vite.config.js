@@ -11,6 +11,7 @@ export default defineConfig({
                 'resources/js/app.js',
                 'resources/js/admin/document-form.js',
                 'resources/js/admin/invoice-items.js',
+                'resources/js/admin/role-limit-field.js',
                 'resources/js/invoice-form.js',
                 'resources/js/slug-generator.js',
                 'resources/js/product-selector.js',

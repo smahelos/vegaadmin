@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\PaymentMethodCrudController;
 use App\Http\Controllers\Admin\PerformanceMetricCrudController;
 use App\Http\Controllers\Admin\ProductCategoryCrudController;
 use App\Http\Controllers\Admin\ProductCrudController;
+use App\Http\Controllers\Admin\RoleLimitCrudController;
 use App\Http\Controllers\Admin\StatusCategoryCrudController;
 use App\Http\Controllers\Admin\StatusCrudController;
 use App\Http\Controllers\Admin\SubscriptionCrudController;
@@ -124,6 +125,7 @@ Route::group(
         Route::crud('subscription-plan', SubscriptionPlanCrudController::class);
         Route::crud('subscription', SubscriptionCrudController::class);
         Route::crud('subscription-plan-feature', SubscriptionPlanFeatureCrudController::class);
+        Route::crud('role-limit', RoleLimitCrudController::class);
 
         // UELS Dashboard and Management Routes
         $route = Route::get('uels-dashboard', [UELSDashboardController::class, 'index']);

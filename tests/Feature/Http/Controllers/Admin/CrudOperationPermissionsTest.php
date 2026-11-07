@@ -43,6 +43,7 @@ final class CrudOperationPermissionsTest extends TestCase
             'payment method' => ['payment-method', 'can_view_payment_method'],
             'product' => ['product', 'can_view_product'],
             'product category' => ['product-category', 'can_view_product'],
+            'role limit' => ['role-limit', 'can_view_role_limit'],
             'status' => ['status', 'can_view_status'],
             'status category' => ['status-category', 'can_view_status'],
             'tax' => ['tax', 'can_view_tax'],
