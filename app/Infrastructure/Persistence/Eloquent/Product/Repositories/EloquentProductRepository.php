@@ -18,17 +18,6 @@ class EloquentProductRepository implements ProductRepositoryInterface
         return new Product($attributes);
     }
 
-    public function findByIdAny(int $id): ?Product
-    {
-        $query = Product::with([
-            'category',
-            'tax',
-            'invoices',
-        ]);
-
-        return $query->find($id);
-    }
-
     /**
      * @throws ModelNotFoundException
      */

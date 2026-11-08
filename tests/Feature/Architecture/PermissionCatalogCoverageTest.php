@@ -13,13 +13,6 @@ use Tests\TestCase;
  */
 class PermissionCatalogCoverageTest extends TestCase
 {
-    /**
-     * Checked only in the non-profile branch of UserRequest, which no route reaches.
-     */
-    private const UNREACHABLE = [
-        'frontend.can_create_edit_user',
-    ];
-
     #[Test]
     public function permissions_checked_in_code_are_in_the_catalog(): void
     {
@@ -57,14 +50,7 @@ class PermissionCatalogCoverageTest extends TestCase
                 );
                 foreach ($matches[1] as $permission) {
                     $guard = str_starts_with($permission, 'frontend.') ? PermissionCatalog::WEB : PermissionCatalog::BACKPACK;
-                    if (
-                        !PermissionCatalog::has($permission, $guard)
-                        && !in_array(
-                            $permission,
-                            self::UNREACHABLE,
-                            true,
-                        )
-                    ) {
+                    if (!PermissionCatalog::has($permission, $guard)) {
                         $missing[] = "{$guard}:{$permission} (" . $file->getRelativePathname() . ')';
                     }
                 }

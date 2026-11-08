@@ -8,6 +8,7 @@ use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
@@ -26,7 +27,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
 {
     public function __construct(
         private readonly ProductDomainService $productDomainService,
-        private readonly ProductAuthorizationService $authService,
+        private readonly UserPermissionServiceInterface $permissions,
         private readonly ProductInputValidationService $validationService,
         private readonly FileUploadServiceInterface $fileService,
         private readonly ProductFormDataServiceInterface $formDataService,
@@ -104,16 +105,12 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         }
     }
 
-    public function findProduct(int $userId, int $id): ProductDTO
+    private function findProduct(int $userId, int $id): ProductDTO
     {
-        $productId = ProductId::fromInt($id);
-        $userVO = UserId::fromInt($userId);
-
-        if ($this->authService->canAccessAnyProducts($userId)) {
-            $product = $this->productDomainService->findProductAny($productId);
-        } else {
-            $product = $this->productDomainService->findProductForUser($productId, $userVO);
-        }
+        $product = $this->productDomainService->findProductForUser(
+            ProductId::fromInt($id),
+            UserId::fromInt($userId),
+        );
 
         if (!$product) {
             throw new ModelNotFoundException('Product not found');
@@ -122,56 +119,68 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         return $product;
     }
 
-    /**
-     * Check if user can view product (without loading Eloquent model).
-     */
-    public function authorizeViewProduct(int $userId, int $productId): void
+    public function authorizeCreateProduct(int $userId): void
     {
-        $productDto = $this->productDomainService->findProductForUser(
-            ProductId::fromInt($productId),
-            UserId::fromInt($userId),
-        );
-
-        if ($productDto === null) {
-            abort(404, 'Product not found');
-        }
-
-        if (!$this->authService->canViewProduct($userId, $productDto->user_id)) {
-            abort(403, 'Unauthorized to view this product');
-        }
+        $this->requirePermission($userId, 'frontend.can_create_product');
     }
 
-    /**
-     * Check if user can update product (without loading Eloquent model).
-     */
-    public function authorizeUpdateProduct(int $userId, int $productId): void
+    public function authorizeViewProduct(int $userId, int $productId): ProductDTO
     {
-        $productDto = $this->productDomainService->findProductForUser(
-            ProductId::fromInt($productId),
-            UserId::fromInt($userId),
+        return $this->authorizeProduct(
+            $userId,
+            $productId,
+            'frontend.can_view_product',
         );
-
-        if (!$this->authService->canUpdateProduct($userId, $productDto->user_id)) {
-            abort(403, 'Unauthorized to update this product');
-        }
     }
 
-    /**
-     * Check if user can delete product (without loading Eloquent model).
-     */
+    public function authorizeUpdateProduct(int $userId, int $productId): ProductDTO
+    {
+        return $this->authorizeProduct(
+            $userId,
+            $productId,
+            'frontend.can_update_product',
+        );
+    }
+
     public function authorizeDeleteProduct(int $userId, int $productId): void
     {
-        $productDto = $this->productDomainService->findProductForUser(
-            ProductId::fromInt($productId),
-            UserId::fromInt($userId),
+        $this->authorizeProduct(
+            $userId,
+            $productId,
+            'frontend.can_delete_product',
         );
+    }
 
-        if ($productDto === null) {
-            abort(404, 'Product not found');
-        }
+    /**
+     * Another user's product is reported as not found, so its existence stays hidden.
+     *
+     * @throws ModelNotFoundException
+     * @throws AuthorizationException
+     */
+    private function authorizeProduct(
+        int $userId,
+        int $productId,
+        string $permission,
+    ): ProductDTO {
+        $product = $this->findProduct($userId, $productId);
+        $this->requirePermission($userId, $permission);
 
-        if (!$this->authService->canDeleteProduct($userId, $productDto->user_id)) {
-            throw new AuthorizationException('User cannot delete this product');
+        return $product;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    private function requirePermission(int $userId, string $permission): void
+    {
+        if (
+            !in_array(
+                $permission,
+                $this->permissions->getUserPermissions($userId),
+                true,
+            )
+        ) {
+            throw new AuthorizationException('The user lacks the permission for this product');
         }
     }
 

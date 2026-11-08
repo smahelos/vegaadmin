@@ -11,34 +11,6 @@ use App\Models\User;
  */
 class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
 {
-    public function isWebAdmin(int $userId): bool
-    {
-        $query = User::query();
-        $user = $query->find($userId);
-        if (!$user || !method_exists($user, 'hasRole')) {
-            return false;
-        }
-        try {
-            return (bool) $user->hasRole('admin');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    public function isBackpackAdmin(int $userId): bool
-    {
-        $query = User::query();
-        $user = $query->find($userId);
-        if (!$user || !method_exists($user, 'hasRole')) {
-            return false;
-        }
-        try {
-            return (bool) $user->hasRole('admin', 'backpack');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
     public function hasBackpackPermission(int $userId, string $permission): bool
     {
         $query = User::query();
@@ -48,34 +20,6 @@ class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
         }
         try {
             return (bool) $user->hasPermissionTo($permission, 'backpack');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    public function hasBackpackViewPermission(int $userId, string $entityType): bool
-    {
-        $query = User::query();
-        $user = $query->find($userId);
-        if (!$user || !method_exists($user, 'hasPermissionTo')) {
-            return false;
-        }
-        try {
-            return (bool) $user->hasPermissionTo("can_view_{$entityType}", 'backpack');
-        } catch (\Throwable) {
-            return false;
-        }
-    }
-
-    public function hasFrontendUserRole(int $userId): bool
-    {
-        $query = User::query();
-        $user = $query->find($userId);
-        if (!$user || !method_exists($user, 'hasRole')) {
-            return false;
-        }
-        try {
-            return $user->hasRole('frontend_user') || $user->hasRole('frontend_user_plus');
         } catch (\Throwable) {
             return false;
         }

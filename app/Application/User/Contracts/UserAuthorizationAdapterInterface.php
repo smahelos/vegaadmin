@@ -9,27 +9,7 @@ namespace App\Application\User\Contracts;
 interface UserAuthorizationAdapterInterface
 {
     /**
-     * Check if user has web admin role.
-     */
-    public function isWebAdmin(int $userId): bool;
-
-    /**
-     * Check if user has backpack admin role.
-     */
-    public function isBackpackAdmin(int $userId): bool;
-
-    /**
      * Check if user has specific permission in backpack guard.
      */
     public function hasBackpackPermission(int $userId, string $permission): bool;
-
-    /**
-     * Summary of hasBackpackViewPermission
-     */
-    public function hasBackpackViewPermission(int $userId, string $entityType): bool;
-
-    /**
-     * Check if user has frontend user role.
-     */
-    public function hasFrontendUserRole(int $userId): bool;
 }

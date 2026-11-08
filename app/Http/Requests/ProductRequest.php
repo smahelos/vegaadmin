@@ -17,7 +17,12 @@ class ProductRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return Auth::check();
+        $user = Auth::user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('frontend.can_create_product') === true;
+        }
+
+        return $user?->can('frontend.can_update_product') === true;
     }
 
     /**

@@ -37,6 +37,9 @@ class ProductController extends Controller
      */
     public function create(): View
     {
+        $user = Auth::user();
+        $this->productService->authorizeCreateProduct($user->id);
+
         // Get form data from service
         $formData = $this->productService->getFormData();
 
@@ -115,10 +118,7 @@ class ProductController extends Controller
     {
         $user = Auth::user();
 
-        // Efficient authorization without loading Eloquent model
-        $this->productService->authorizeViewProduct($user->id, $id);
-
-        $product = $this->productService->findProduct($user->id, $id); // Get DTO for view
+        $product = $this->productService->authorizeViewProduct($user->id, $id);
 
         return view(
             'frontend.products.show',
@@ -133,10 +133,7 @@ class ProductController extends Controller
     {
         $user = Auth::user();
 
-        // Efficient authorization without loading Eloquent model
-        $this->productService->authorizeUpdateProduct($user->id, $id);
-
-        $product = $this->productService->findProduct($user->id, $id); // Get DTO for view
+        $product = $this->productService->authorizeUpdateProduct($user->id, $id);
 
         // Get form data from service
         $formData = $this->productService->getFormData();
@@ -161,12 +158,12 @@ class ProductController extends Controller
         string $locale,
         int $id,
     ): RedirectResponse {
+        $user = Auth::user();
+
+        // Outside the try: its 404 and 403 must not become the generic error redirect
+        $this->productService->authorizeUpdateProduct($user->id, $id);
+
         try {
-            $user = Auth::user();
-
-            // Efficient authorization without loading Eloquent model
-            $this->productService->authorizeUpdateProduct($user->id, $id);
-
             $data = $request->validated();
 
             // Handle image upload if present

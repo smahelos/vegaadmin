@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPlanPolicy;
 use App\Infrastructure\Authorization\Policies\Payment\SubscriptionPolicy;
 use App\Models\Subscription;
-use App\Models\SubscriptionPlan;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -17,7 +15,6 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         Subscription::class => SubscriptionPolicy::class,
-        SubscriptionPlan::class => SubscriptionPlanPolicy::class,
     ];
 
     /**

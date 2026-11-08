@@ -35,6 +35,7 @@ final class InvoiceCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -59,20 +60,15 @@ final class InvoiceCrudController extends CrudController
             __('invoices.entity.singular'),
             __('invoices.entity.plural'),
         );
-        foreach (
+        $this->denyOperationsWithout(
             [
-                'list' => 'view',
-                'show' => 'view',
-                'create' => 'create',
-                'update' => 'update',
-                'delete' => 'delete',
-            ] as $operation => $permission
-        ) {
-            $user = backpack_user();
-            if ($user?->can('can_' . $permission . '_invoice') !== true) {
-                CRUD::denyAccess($operation);
-            }
-        }
+                'list' => 'can_view_invoice',
+                'show' => 'can_view_invoice',
+                'create' => 'can_create_invoice',
+                'update' => 'can_update_invoice',
+                'delete' => 'can_delete_invoice',
+            ],
+        );
     }
 
     /**

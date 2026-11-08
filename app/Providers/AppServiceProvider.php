@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Http\Controllers\Admin\PermissionCrudController;
+use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
 use App\View\Components\ApplicationLogo;
 use App\View\Components\CurrencySelect;
@@ -10,6 +12,9 @@ use App\View\Components\DropdownLink;
 use App\View\Components\NavLink;
 use App\View\Components\ResponsiveNavLink;
 use App\View\Components\Select;
+use Backpack\PermissionManager\app\Http\Controllers\PermissionCrudController as PackagePermissionCrudController;
+use Backpack\PermissionManager\app\Http\Controllers\RoleCrudController as PackageRoleCrudController;
+use Backpack\PermissionManager\app\Http\Controllers\UserCrudController as PackageUserCrudController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
@@ -26,11 +31,18 @@ class AppServiceProvider extends ServiceProvider
         // Load Backpack helpers
         require_once app_path('Helpers/BackpackHelpers.php');
 
-        // Bind PermissionManager's UserCrudController to our custom controller
-        // This allows us to override the default user management functionality
+        // PermissionManager's routes name its own controllers; these bindings put ours in their place
         $this->app->bind(
-            \Backpack\PermissionManager\app\Http\Controllers\UserCrudController::class,
+            PackageUserCrudController::class,
             UserCrudController::class,
+        );
+        $this->app->bind(
+            PackageRoleCrudController::class,
+            RoleCrudController::class,
+        );
+        $this->app->bind(
+            PackagePermissionCrudController::class,
+            PermissionCrudController::class,
         );
     }
 

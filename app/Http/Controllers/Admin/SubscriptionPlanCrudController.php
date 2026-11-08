@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\SubscriptionPlanRequest;
 use App\Models\SubscriptionPlan;
@@ -26,11 +25,11 @@ use Prologue\Alerts\Facades\Alert;
 class SubscriptionPlanCrudController extends CrudController
 {
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
-    // Access control is configured via CrudAccessServiceInterface in setup()
 
     /**
      * Configure the CrudPanel object and check user permissions
@@ -46,10 +45,15 @@ class SubscriptionPlanCrudController extends CrudController
             __('subscriptions.plans.entity.plural'),
         );
 
-        // Configure access using centralized service
-        $userId = optional(backpack_user())->id ?? 0;
-        $crudAccess = app(CrudAccessServiceInterface::class);
-        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_subscription_plan',
+                'show' => 'can_view_subscription_plan',
+                'create' => 'can_create_subscription_plan',
+                'update' => 'can_update_subscription_plan',
+                'delete' => 'can_delete_subscription_plan',
+            ],
+        );
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Product;
 
+use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
 use App\Models\Product;
@@ -22,6 +23,7 @@ use Throwable;
  */
 class ProductListSelect extends Component
 {
+    use ActsForUser;
     use Paginates;
     use Sorts;
 
@@ -131,6 +133,8 @@ class ProductListSelect extends Component
      */
     public function selectProduct(int $id): bool
     {
+        $this->requirePermission('frontend.can_view_product');
+
         try {
             $query = Product::where('user_id', Auth::id());
             $product = $query->findOrFail($id);
@@ -199,6 +203,8 @@ class ProductListSelect extends Component
      */
     public function render(): View
     {
+        $this->requirePermission('frontend.can_view_product');
+
         try {
             $searchTerm = $this->search;
 

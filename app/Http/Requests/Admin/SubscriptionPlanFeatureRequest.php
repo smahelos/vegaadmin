@@ -13,8 +13,11 @@ class SubscriptionPlanFeatureRequest extends FormRequest
     public function authorize(): bool
     {
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_subscription_plan_feature') === true;
+        }
 
-        return $user?->hasPermissionTo('can_create_edit_subscription_plan_feature', 'backpack') === true;
+        return $user?->can('can_update_subscription_plan_feature') === true;
     }
 
     /**

@@ -6,7 +6,9 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Bank;
+use App\Models\Expense;
 use App\Models\ExpenseCategory;
+use App\Models\Invoice;
 use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\PaymentMethod;
@@ -14,6 +16,9 @@ use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Status;
 use App\Models\StatusCategory;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
+use App\Models\SubscriptionPlanFeature;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -37,16 +42,24 @@ final class CrudOperationPermissionsTest extends TestCase
         return [
             'archive policy' => ['archive-policy', 'can_configure_system'],
             'bank' => ['bank', 'can_view_bank'],
+            'expense' => ['expense', 'can_view_expense'],
             'expense category' => ['expense-category', 'can_view_expense'],
+            'invoice' => ['invoice', 'can_view_invoice'],
             'page' => ['page', 'can_view_page'],
             'page category' => ['page-category', 'can_view_page'],
             'payment method' => ['payment-method', 'can_view_payment_method'],
+            'permission' => ['permission', 'can_view_permission'],
             'product' => ['product', 'can_view_product'],
             'product category' => ['product-category', 'can_view_product'],
+            'role' => ['role', 'can_view_role'],
             'role limit' => ['role-limit', 'can_view_role_limit'],
             'status' => ['status', 'can_view_status'],
             'status category' => ['status-category', 'can_view_status'],
+            'subscription' => ['subscription', 'can_view_subscription'],
+            'subscription plan' => ['subscription-plan', 'can_view_subscription_plan'],
+            'subscription plan feature' => ['subscription-plan-feature', 'can_view_subscription_plan_feature'],
             'tax' => ['tax', 'can_view_tax'],
+            'user' => ['user', 'can_view_user'],
         ];
     }
 
@@ -63,10 +76,20 @@ final class CrudOperationPermissionsTest extends TestCase
                 'can_view_bank',
                 Bank::class,
             ],
+            'expense' => [
+                'expense',
+                'can_view_expense',
+                Expense::class,
+            ],
             'expense category' => [
                 'expense-category',
                 'can_view_expense',
                 ExpenseCategory::class,
+            ],
+            'invoice' => [
+                'invoice',
+                'can_view_invoice',
+                Invoice::class,
             ],
             'page' => [
                 'page',
@@ -83,6 +106,11 @@ final class CrudOperationPermissionsTest extends TestCase
                 'can_view_payment_method',
                 PaymentMethod::class,
             ],
+            'permission' => [
+                'permission',
+                'can_view_permission',
+                Permission::class,
+            ],
             'product' => [
                 'product',
                 'can_view_product',
@@ -92,6 +120,11 @@ final class CrudOperationPermissionsTest extends TestCase
                 'product-category',
                 'can_view_product',
                 ProductCategory::class,
+            ],
+            'role' => [
+                'role',
+                'can_view_role',
+                Role::class,
             ],
             'status' => [
                 'status',
@@ -103,10 +136,30 @@ final class CrudOperationPermissionsTest extends TestCase
                 'can_view_status',
                 StatusCategory::class,
             ],
+            'subscription' => [
+                'subscription',
+                'can_view_subscription',
+                Subscription::class,
+            ],
+            'subscription plan' => [
+                'subscription-plan',
+                'can_view_subscription_plan',
+                SubscriptionPlan::class,
+            ],
+            'subscription plan feature' => [
+                'subscription-plan-feature',
+                'can_view_subscription_plan_feature',
+                SubscriptionPlanFeature::class,
+            ],
             'tax' => [
                 'tax',
                 'can_view_tax',
                 Tax::class,
+            ],
+            'user' => [
+                'user',
+                'can_view_user',
+                User::class,
             ],
         ];
     }
@@ -206,6 +259,12 @@ final class CrudOperationPermissionsTest extends TestCase
             $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
 
             return $paymentMethodQuery->firstOrFail();
+        }
+
+        if ($model === Role::class || $model === Permission::class) {
+            return $model::create(
+                ['name' => uniqid('screen_'), 'guard_name' => 'web'],
+            );
         }
 
         $factory = $model::factory();

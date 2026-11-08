@@ -52,11 +52,6 @@ final class ProductServiceTest extends TestCase
                 return null;
             }
 
-            public function findByIdAny(ProductId $id): ?ProductDTO
-            {
-                return null;
-            }
-
             public function findByIdForUser(ProductId $id, UserId $userId): ?ProductDTO
             {
                 return null;

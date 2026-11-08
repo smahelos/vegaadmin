@@ -4,24 +4,42 @@
         trans('backpack::base.dashboard') }}</a></li>
 
 {{-- 1. User Management --}}
-@if($user->hasPermissionTo('can_create_edit_user', 'backpack'))
+@if($user->hasPermissionTo('can_view_user', 'backpack') ||
+$user->hasPermissionTo('can_view_role', 'backpack') ||
+$user->hasPermissionTo('can_view_permission', 'backpack') ||
+$user->hasPermissionTo('can_view_role_limit', 'backpack') ||
+$user->hasPermissionTo('can_view_subscription', 'backpack') ||
+$user->hasPermissionTo('can_view_subscription_plan', 'backpack') ||
+$user->hasPermissionTo('can_view_subscription_plan_feature', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.user_management.title') }}" icon="la la-users text-primary">
+    @if($user->hasPermissionTo('can_view_user', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.users') }}" icon="la la-user"
         :link="backpack_url('user')" />
+    @endif
+    @if($user->hasPermissionTo('can_view_role', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.roles') }}" icon="la la-group"
         :link="backpack_url('role')" />
+    @endif
+    @if($user->hasPermissionTo('can_view_permission', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.permissions') }}" icon="la la-key"
         :link="backpack_url('permission')" />
+    @endif
     @if($user->hasPermissionTo('can_view_role_limit', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('role_limits.entity.plural') }}" icon="la la-sliders-h"
         :link="backpack_url('role-limit')" />
     @endif
+    @if($user->hasPermissionTo('can_view_subscription', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.entity.plural') }}" icon="la la-handshake"
         :link="backpack_url('subscription')" />
+    @endif
+    @if($user->hasPermissionTo('can_view_subscription_plan', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.plans.entity.plural') }}" icon="la la-id-card"
         :link="backpack_url('subscription-plan')" />
+    @endif
+    @if($user->hasPermissionTo('can_view_subscription_plan_feature', 'backpack'))
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.features.entity.plural') }}"
         icon="la la-check-square" :link="backpack_url('subscription-plan-feature')" />
+    @endif
 </x-backpack::menu-dropdown>
 @endif
 

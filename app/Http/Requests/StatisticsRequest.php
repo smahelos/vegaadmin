@@ -18,7 +18,7 @@ final class StatisticsRequest extends FormRequest
     {
         $user = $this->user('web');
 
-        return $user?->can('frontend.api.statistics') === true;
+        return $user?->can('frontend.can_view_statistics') === true;
     }
 
     /**
