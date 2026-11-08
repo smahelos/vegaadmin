@@ -45,6 +45,7 @@ class ProductRequest extends FormRequest
             'category_id' => 'nullable|exists:product_categories,id',
             'description' => 'nullable',
             'is_default' => 'boolean',
+            'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ];
 
@@ -82,6 +83,7 @@ class ProductRequest extends FormRequest
             'category_id' => __('products.fields.category_id'),
             'description' => __('products.fields.description'),
             'is_default' => __('products.fields.is_default'),
+            'is_active' => __('products.fields.is_active'),
             'image' => __('products.fields.image'),
         ];
     }

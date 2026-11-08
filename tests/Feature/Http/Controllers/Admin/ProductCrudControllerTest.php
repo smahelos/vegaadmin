@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
@@ -58,6 +59,78 @@ class ProductCrudControllerTest extends TestCase
         $httpResponse->assertRedirect();
 
         $this->assertDatabaseHas('products', ['name' => $name, 'user_id' => $this->regularUser->id]);
+    }
+
+    #[Test]
+    public function store_keeps_the_active_checkbox(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Product ' . uniqid();
+
+        $httpResponse = $this->post(
+            '/admin/product',
+            [
+                'name' => $name,
+                'user_id' => $this->regularUser->id,
+                'price' => 100,
+                'currency' => 'CZK',
+                'is_active' => 1,
+            ],
+        );
+        $httpResponse->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('products', ['name' => $name, 'is_active' => true]);
+    }
+
+    #[Test]
+    public function store_answers_an_ajax_request_with_json(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $name = 'Product ' . uniqid();
+
+        $httpResponse = $this->post(
+            '/admin/product',
+            [
+                'name' => $name,
+                'user_id' => $this->regularUser->id,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+            ['X-Requested-With' => 'XMLHttpRequest'],
+        );
+
+        $httpResponse->assertOk();
+        $this->assertDatabaseHas('products', ['name' => $name]);
+    }
+
+    #[Test]
+    public function update_keeps_the_owner_whatever_the_form_sends(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->regularUser->id]);
+        $name = 'Renamed ' . uniqid();
+
+        $httpResponse = $this->put(
+            '/admin/product/' . $product->id,
+            [
+                'id' => $product->id,
+                'name' => $name,
+                'user_id' => $this->adminUser->id,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        );
+        $httpResponse->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product->id,
+                'name' => $name,
+                'user_id' => $this->regularUser->id,
+            ],
+        );
     }
 
     #[Test]

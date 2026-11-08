@@ -19,7 +19,9 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
@@ -29,7 +31,7 @@ final class ProductCrudController extends CrudController
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
-    use UpdateOperation; // Usage recording via generic observer
+    use UpdateOperation;
 
     private ProductApplicationServiceInterface $productService;
 
@@ -296,19 +298,25 @@ final class ProductCrudController extends CrudController
     }
 
     /**
-     * Define what happens when the Update operation is loaded.
-     */
-    /**
-     * Moving a product to another owner would bypass that owner's limit, so the owner is fixed after creation.
+     * Moving a product to another owner would bypass that owner's limit, so the owner is fixed after creation:
+     * the hidden field only feeds the validation and the usage shown on the form, it is never saved.
      */
     protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
         $field = CRUD::field('user_id');
         $field->type('hidden');
+        $saved = array_diff(
+            $this->crud->getAllFieldNames(),
+            ['user_id'],
+        );
+        CRUD::setOperationSetting(
+            'strippedRequest',
+            fn (Request $request): array => $request->only($saved),
+        );
     }
 
-    public function store(): RedirectResponse
+    public function store(): JsonResponse|RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
         $request = $this->crud->validateRequest();
