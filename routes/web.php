@@ -59,6 +59,7 @@ $registrar->group(
                         $route->name('frontend.invoice.create');
                         $route = Route::post('/invoice', [InvoiceController::class, 'store']);
                         $route->name('frontend.invoice.store');
+                        $route->middleware('throttle:create');
                         $route = Route::get('/invoice/{id}', [InvoiceController::class, 'show']);
                         $route->name('frontend.invoice.show');
                         $route = Route::get('/invoice/{id}/edit', [InvoiceController::class, 'edit']);
@@ -76,6 +77,7 @@ $registrar->group(
                         $route = Route::post('/invoices/{invoice}/save-to-contacts', [InvoiceContactController::class, 'saveToContacts']);
                         $route->whereNumber('invoice');
                         $route->name('frontend.invoices.save-to-contacts');
+                        $route->middleware('throttle:create');
                         $route = Route::post('/invoices/{invoice}/link-contact', [InvoiceContactController::class, 'linkContact']);
                         $route->whereNumber('invoice');
                         $route->name('frontend.invoices.link-contact');
@@ -117,6 +119,7 @@ $registrar->group(
                         $route->name('frontend.product.create');
                         $route = Route::post('/product', [ProductController::class, 'store']);
                         $route->name('frontend.product.store');
+                        $route->middleware('throttle:create');
                         $route = Route::delete('/product/{id}', [ProductController::class, 'destroy']);
                         $route->name('frontend.product.destroy');
                         $route = Route::get('/product/{id}', [ProductController::class, 'show']);
@@ -165,6 +168,7 @@ $registrar->group(
 
                 $route = Route::post('/guest-invoices', [InvoiceController::class, 'storeGuest']);
                 $route->name('frontend.invoice.store.guest');
+                $route->middleware('throttle:guest_invoice');
                 $route->withoutMiddleware(['auth']);
 
                 // Download invoice with token (for guests)

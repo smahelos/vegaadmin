@@ -12,14 +12,4 @@ interface DomainEvent
      * Get the event name (typically the class name)
      */
     public function getEventName(): string;
-
-    /**
-     * Get unique event ID for tracking
-     */
-    public function getEventId(): string;
-
-    /**
-     * Get event payload data
-     */
-    public function getPayload(): array;
 }

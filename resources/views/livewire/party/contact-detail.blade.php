@@ -29,6 +29,7 @@
     </div>
 
     <x-status-messages :error="$errorMessage" :success="$successMessage" />
+    <x-limit-exceeded :message="$limitMessage" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <x-detail.card :title="__('parties.sections.basic')" :badge="__('contacts.entity.singular')">

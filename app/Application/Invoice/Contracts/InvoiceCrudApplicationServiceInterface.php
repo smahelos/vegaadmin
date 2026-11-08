@@ -21,7 +21,6 @@ interface InvoiceCrudApplicationServiceInterface
         InvoiceWriteData $data,
         InvoicePartySelection $parties,
         array $products,
-        ?UserId $actorId = null,
     ): InvoiceDTO;
 
     /**

@@ -30,7 +30,7 @@ return [
         'default_archived' => 'An archived business cannot be the default.',
         'default_required' => 'Choose another default business before archiving the default one.',
         'new_default_archived' => 'The chosen new default business is archived.',
-        'limit_exceeded' => 'You have reached the limit of active businesses. Archive a business or upgrade your plan.',
+        'limit_exceeded' => 'You have reached your plan\'s limit of active businesses (:limit). Archive a business or upgrade your plan.',
         'confirm_archive' => 'Do you really want to archive the business? It will not be offered on new documents.',
         'choose_new_default' => 'This business is the default. Choose which of the other active businesses becomes the default.',
         'no_logo' => 'The business has no logo.',

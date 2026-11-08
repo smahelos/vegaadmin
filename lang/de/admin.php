@@ -29,12 +29,6 @@ return [
         'automation' => 'Automatisierung',
         'statuses' => 'Status',
     ],
-    'uels' => [
-        'title' => 'Entitätslimits-Verwaltung',
-        'dashboard' => 'UELS Dashboard',
-        'configuration' => 'Konfiguration',
-        'monitoring' => 'Überwachung',
-    ],
     'cache' => [
         'title' => 'Cache-Verwaltung',
         'clear_cache' => 'Cache leeren',

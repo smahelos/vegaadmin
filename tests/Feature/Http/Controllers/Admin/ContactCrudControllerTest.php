@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Models\Contact;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
@@ -66,7 +67,7 @@ final class ContactCrudControllerTest extends TestCase
     public function the_owners_capacity_limit_applies_in_the_admin(): void
     {
         $owner = $this->frontendUser();
-        $this->limitActive('contact', 0);
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 0);
 
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->post(

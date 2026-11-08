@@ -2,25 +2,18 @@
 
 namespace App\Http\Requests\Admin;
 
-/**
- * Admin Bank Request
- *
- * Extends BaseEntityRequest to enforce permissions and entity limits
- * Permissions: can_create_bank, can_update_bank
- * Entity type (limits): bank
- */
-class BankRequest extends BaseEntityRequest
+use Illuminate\Foundation\Http\FormRequest;
+
+class BankRequest extends FormRequest
 {
-    /**
-     * Get required permission for bank operations.
-     */
-    protected function getRequiredPermission(): string
+    public function authorize(): bool
     {
-        if ($this->isCreatingEntity()) {
-            return 'can_create_bank';
+        $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_bank') === true;
         }
 
-        return 'can_update_bank';
+        return $user?->can('can_update_bank') === true;
     }
 
     /**

@@ -76,7 +76,7 @@ return [
         'image_deleted' => 'Image was successfully deleted.',
         'image_error' => 'Error uploading image.',
         'no_products_found' => 'No products found.',
-        'limit_exceeded' => 'You have reached your product limit.',
+        'limit_exceeded' => 'You have reached your plan\'s limit of products (:limit).',
         'confirm_delete' => 'Do you really want to delete this product?',
         'tax_not_loaded' => 'Unknown tax',
     ],

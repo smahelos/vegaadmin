@@ -17,14 +17,6 @@
     </div>
 </div>
 
-{{-- UELS Widget --}}
-@auth
-<div class="mb-6">
-    <x-uels-limit-widget entity-type="product" :limit="$limitsData['limit']"
-        entity-name="{{ __('entity_limits.entity_types.product.singular') }}" :show-modal="true" />
-</div>
-@endauth
-
 <form action="{{ route('frontend.product.update', ['locale' => App::getLocale(), 'id' => $product->id]) }}"
     method="POST" enctype="multipart/form-data">
     @csrf
@@ -251,11 +243,6 @@
         <input type="hidden" name="lang" value="{{ App::getLocale() }}">
 </form>
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
-
 @endsection
 
 @push('scripts')
@@ -274,8 +261,3 @@
 </script>
 @vite('resources/js/image-preview.js')
 @endpush
-
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth

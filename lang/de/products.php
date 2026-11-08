@@ -76,7 +76,7 @@ return [
         'image_deleted' => 'Bild wurde erfolgreich gelöscht.',
         'image_error' => 'Fehler beim Hochladen des Bildes.',
         'no_products_found' => 'Es wurden keine Produkte gefunden.',
-        'limit_exceeded' => 'Sie haben Ihr Produktlimit erreicht.',
+        'limit_exceeded' => 'Sie haben das Produktlimit Ihres Tarifs erreicht (:limit).',
         'confirm_delete' => 'Möchten Sie dieses Produkt wirklich löschen?',
         'tax_not_loaded' => 'Unbekannte Steuer',
     ],

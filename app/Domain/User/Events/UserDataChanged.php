@@ -15,14 +15,8 @@ final class UserDataChanged implements DomainEvent
      */
     public readonly string $changeType;
 
-    /** Occurrence timestamp for potential auditing. */
-    public readonly \DateTimeImmutable $occurredOn;
-
     /** The ID of the user whose data changed. */
     public readonly int $userId;
-
-    /** Event ID for tracking purposes */
-    private readonly string $eventId;
 
     /**
      * Create a new event instance
@@ -34,29 +28,11 @@ final class UserDataChanged implements DomainEvent
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
-        $this->occurredOn = new \DateTimeImmutable('now');
-        $this->eventId = uniqid('user_', true);
     }
 
     /** {@inheritDoc} */
     public function getEventName(): string
     {
         return self::class;
-    }
-
-    /** {@inheritDoc} */
-    public function getEventId(): string
-    {
-        return $this->eventId;
-    }
-
-    /** {@inheritDoc} */
-    public function getPayload(): array
-    {
-        return [
-            'user_id' => $this->userId,
-            'change_type' => $this->changeType,
-            'occurred_on' => $this->occurredOn->format('Y-m-d H:i:s'),
-        ];
     }
 }

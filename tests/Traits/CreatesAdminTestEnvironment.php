@@ -44,12 +44,16 @@ trait CreatesAdminTestEnvironment
             $this->adminUser = $userFactory->create();
         }
         $this->adminUser->assignRole($adminRole);
+        // The admin tests create documents and products for these accounts, and a plan role allows that
+        $planRole = Role::findByName('frontend_user', 'web');
+        $this->adminUser->assignRole($planRole);
 
         // Create regular user with limited role (if not already set)
         if (!isset($this->regularUser)) {
             $this->regularUser = $userFactory->create();
         }
         $this->regularUser->assignRole($backendUserRole);
+        $this->regularUser->assignRole($planRole);
 
         // Get backpack.access permission if it exists
         $permissionQuery = Permission::where('name', 'backpack.access');
@@ -58,15 +62,5 @@ trait CreatesAdminTestEnvironment
         if ($backpackAccessPermission) {
             $this->regularUser->givePermissionTo($backpackAccessPermission);
         }
-    }
-
-    /**
-     * Take the admin role's bypass of the entity limits (can_create_{entity}_unlimited) away,
-     * so that admin creation is limited like any user without the bypass.
-     */
-    protected function revokeUnlimitedAccess(string $entityType): void
-    {
-        $role = Role::findByName('admin', 'backpack');
-        $role->revokePermissionTo("can_create_{$entityType}_unlimited");
     }
 }

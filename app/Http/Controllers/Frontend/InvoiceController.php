@@ -48,12 +48,7 @@ class InvoiceController extends Controller
      */
     public function index(): View
     {
-        $limitsData = $this->resolveLimits();
-
-        return view(
-            'frontend.invoices.index',
-            compact('limitsData'),
-        );
+        return view('frontend.invoices.index');
     }
 
     /**
@@ -448,27 +443,5 @@ class InvoiceController extends Controller
                 $result->message ?? ($ok ? 'invoices.messages.updated' : 'invoices.messages.update_error'),
             ),
         );
-    }
-
-    /**
-     * Centralize limit resolution through application service.
-     */
-    private function resolveLimits(): array
-    {
-        $user = Auth::user();
-        $result = $user ? $this->invoiceFrontendActions->getLimitData($user->id) : null;
-        if (!$result || $result->status !== InvoiceActionStatus::SUCCESS) {
-            return [
-                'limit' => 0,
-                'current_usage' => 0,
-                'allowed' => false,
-            ];
-        }
-
-        return $result->data ?? [
-            'limit' => 0,
-            'current_usage' => 0,
-            'allowed' => false,
-        ];
     }
 }

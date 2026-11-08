@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Models\Address;
 use App\Models\Business;
 use App\Models\User;
@@ -90,7 +91,7 @@ final class BusinessCrudControllerTest extends TestCase
     public function the_owners_capacity_limit_applies_in_the_admin(): void
     {
         $owner = $this->frontendUser();
-        $this->limitActive('business', 1);
+        $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $businessFactory = Business::factory();
         $businessFactory->create(['user_id' => $owner->id]);
 

@@ -10,7 +10,6 @@ use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Geography\Enums\Country;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
@@ -39,81 +38,6 @@ class InvoicePdfApplicationServiceTest extends TestCase
             ['name' => 'frontend.can_create_invoice', 'guard_name' => 'web'],
         );
         $this->user->givePermissionTo('frontend.can_create_invoice');
-        // Register fake limit service BEFORE resolving application services
-        $fakeLimit = new class implements UniversalLimitServiceInterface
-        {
-            public function checkLimit(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                string $periodType = 'daily',
-                int|float $value = 1,
-            ): array {
-                return [
-                    'allowed' => true,
-                    'current_usage' => 0,
-                    'limit' => 50,
-                    'remaining' => 50,
-                    'entity_type' => $entityType,
-                    'metric_type' => $metricType,
-                    'period_type' => $periodType,
-                    'reason' => 'within_limit',
-                ];
-            }
-
-            public function recordUsage(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                ?string $periodType = 'daily',
-                ?string $guard = 'web',
-                int|float $value = 1,
-            ): bool {
-                return true;
-            }
-
-            public function resetUsage(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                ?string $periodType = 'daily',
-            ): bool {
-                return true;
-            }
-
-            public function getUsageStatistics(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                ?string $periodType = 'daily',
-            ): array {
-                return [
-                    'current_usage' => 0,
-                    'limit' => 50,
-                    'allowed' => true,
-                ];
-            }
-
-            public function getBestPeriodType(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-            ): string {
-                return 'daily';
-            }
-
-            public function getEntityLimitInfo(?int $userId, string $entityType): array
-            {
-                return [];
-            }
-
-            public function canUserCreateEntity(?int $userId, string $entityType): bool
-            {
-                return true;
-            }
-        };
-        $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
-        // Now resolve services
         $this->pdfService = app(InvoicePdfApplicationServiceInterface::class);
     }
 

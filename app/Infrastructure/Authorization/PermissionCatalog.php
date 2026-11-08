@@ -9,8 +9,7 @@ namespace App\Infrastructure\Authorization;
  * system roles. PermissionCatalogSync writes it to the database (additively). After changing
  * the catalog, add a migration that runs the sync again.
  *
- * Not in the catalog: UELS limit_* permissions (plan configuration, created with their
- * entity_limits rows) and permissions that only PermissionManager users create.
+ * Not in the catalog: permissions that only PermissionManager users create.
  */
 final class PermissionCatalog
 {
@@ -44,6 +43,7 @@ final class PermissionCatalog
             'can_create_page',
             'can_create_payment_method',
             'can_create_product',
+            'can_create_role_limit',
             'can_create_status',
             'can_create_tax',
             'can_create_user',
@@ -55,6 +55,7 @@ final class PermissionCatalog
             'can_update_page',
             'can_update_payment_method',
             'can_update_product',
+            'can_update_role_limit',
             'can_update_status',
             'can_update_tax',
             'can_update_user',
@@ -64,6 +65,7 @@ final class PermissionCatalog
             'can_delete_page',
             'can_delete_payment_method',
             'can_delete_product',
+            'can_delete_role_limit',
             'can_delete_status',
             'can_delete_tax',
             'can_delete_user',
@@ -80,17 +82,10 @@ final class PermissionCatalog
             'can_view_page',
             'can_view_payment_method',
             'can_view_product',
+            'can_view_role_limit',
             'can_view_status',
             'can_view_tax',
             'can_view_user',
-            // Bypass of the entity limits when creating in the admin (Admin\BaseEntityRequest)
-            'can_create_bank_unlimited',
-            'can_create_expense_unlimited',
-            'can_create_invoice_unlimited',
-            'can_create_payment_method_unlimited',
-            'can_create_product_unlimited',
-            'can_create_product_category_unlimited',
-            'can_create_tax_unlimited',
         ],
         self::WEB => [
             'frontend.api.access',

@@ -78,6 +78,7 @@ return [
     ],
     'messages' => [
         'delete_referenced' => 'The record cannot be deleted because other records use it, such as documents.',
+        'too_many_requests' => 'You are creating too quickly. Try again in :seconds seconds.',
     ],
     'colors' => [
         'green' => 'Green',

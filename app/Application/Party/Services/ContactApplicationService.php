@@ -16,7 +16,6 @@ use App\Domain\Party\Events\ContactCreated;
 use App\Domain\Party\Events\ContactRestored;
 use App\Domain\Party\Events\ContactUpdated;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
-use App\Domain\Party\Services\CapacityLimit;
 use App\Domain\Party\Services\DuplicateFinder;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
@@ -24,7 +23,8 @@ use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
-use App\Domain\User\Enums\EntityType;
+use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
@@ -35,7 +35,7 @@ final class ContactApplicationService
     public function __construct(
         private readonly ContactReadRepositoryInterface $contacts,
         private readonly ContactWriteRepositoryInterface $contactWriter,
-        private readonly CapacityLimit $capacity,
+        private readonly EntityLimit $limits,
         private readonly DuplicateFinder $duplicates,
         private readonly TransactionBoundaryInterface $transactions,
         private readonly EventPublisherInterface $events,
@@ -46,10 +46,10 @@ final class ContactApplicationService
     {
         return $this->transactions->transaction(
             function () use ($userId, $data): ContactDTO {
-                $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
+                $this->limits->assertCanCreate($userId, LimitedEntity::CONTACT);
                 $contact = $this->contactWriter->create($userId, $data);
                 $this->events->publish(
-                    new ContactCreated($contact->id, $userId),
+                    new ContactCreated($userId),
                 );
 
                 return $contact;
@@ -67,7 +67,7 @@ final class ContactApplicationService
                 $this->get($userId, $id);
                 $contact = $this->contactWriter->update($id, $data);
                 $this->events->publish(
-                    new ContactUpdated($id, $userId),
+                    new ContactUpdated($userId),
                 );
 
                 return $contact;
@@ -86,7 +86,7 @@ final class ContactApplicationService
 
                 $this->contactWriter->archive($id, $this->clock->now());
                 $this->events->publish(
-                    new ContactArchived($id, $userId),
+                    new ContactArchived($userId),
                 );
             },
         );
@@ -104,10 +104,10 @@ final class ContactApplicationService
                     return;
                 }
 
-                $this->capacity->assertCanActivate($userId, EntityType::CONTACT);
+                $this->limits->assertCanCreate($userId, LimitedEntity::CONTACT);
                 $this->contactWriter->restore($id);
                 $this->events->publish(
-                    new ContactRestored($id, $userId),
+                    new ContactRestored($userId),
                 );
             },
         );

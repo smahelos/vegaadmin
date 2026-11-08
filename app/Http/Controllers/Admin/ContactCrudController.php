@@ -9,9 +9,11 @@ use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ContactRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
+use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Models\Contact;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -36,6 +38,13 @@ final class ContactCrudController extends CrudController
     use ShowOperation;
     use StoresPartyLogo;
     use UpdateOperation;
+
+    public function __construct()
+    {
+        parent::__construct();
+        $throttle = $this->middleware('throttle:create');
+        $throttle->only('store');
+    }
 
     public function setup(): void
     {
@@ -180,6 +189,9 @@ final class ContactCrudController extends CrudController
     {
         CRUD::setValidation(ContactRequest::class);
         $this->addOwnerField();
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::CONTACT),
+        );
         $this->addProfileFields();
         $this->addContactPersonField();
         CRUD::addFields(PartyFormFields::logo());
@@ -188,6 +200,9 @@ final class ContactCrudController extends CrudController
     protected function setupUpdateOperation(): void
     {
         CRUD::setValidation(ContactRequest::class);
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::CONTACT),
+        );
         $this->addProfileFields($this->entry()->address);
         $this->addContactPersonField();
         CRUD::addFields(PartyFormFields::logo());

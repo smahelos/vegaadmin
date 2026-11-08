@@ -37,6 +37,7 @@ return [
     'messages' => [
         'created' => 'Výdaj byl vytvořen.',
         'updated' => 'Výdaj byl upraven.',
+        'limit_exceeded' => 'Dosáhli jste měsíčního limitu výdajů svého tarifu (:limit).',
     ],
     'filters' => [
         'date_range' => 'Časové období',

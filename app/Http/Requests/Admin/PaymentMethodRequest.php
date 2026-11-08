@@ -3,22 +3,19 @@
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class PaymentMethodRequest extends BaseEntityRequest
+class PaymentMethodRequest extends FormRequest
 {
-    protected function getEntityType(): string
+    public function authorize(): bool
     {
-        return 'payment_method';
-    }
-
-    protected function getRequiredPermission(): string
-    {
-        if ($this->isCreatingEntity()) {
-            return 'can_create_payment_method';
+        $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_payment_method') === true;
         }
 
-        return 'can_update_payment_method';
+        return $user?->can('can_update_payment_method') === true;
     }
 
     public function rules(): array

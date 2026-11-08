@@ -30,7 +30,7 @@ return [
         'default_archived' => 'Archivovaná firma nemůže být výchozí.',
         'default_required' => 'Před archivací výchozí firmy zvolte jinou výchozí firmu.',
         'new_default_archived' => 'Zvolená nová výchozí firma je archivovaná.',
-        'limit_exceeded' => 'Dosáhli jste limitu počtu aktivních firem. Archivujte některou firmu nebo si rozšiřte tarif.',
+        'limit_exceeded' => 'Dosáhli jste limitu aktivních firem svého tarifu (:limit). Archivujte některou firmu nebo si rozšiřte tarif.',
         'confirm_archive' => 'Opravdu chcete firmu archivovat? Na nových dokladech nebude k dispozici.',
         'choose_new_default' => 'Tato firma je výchozí. Zvolte, která z ostatních aktivních firem bude výchozí.',
         'no_logo' => 'Firma nemá logo.',

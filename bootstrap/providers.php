@@ -5,7 +5,6 @@ use App\Providers\AppServiceProvider;
 use App\Providers\AuthServiceProvider;
 use App\Providers\BladeServiceProvider;
 use App\Providers\ContentServiceProvider;
-use App\Providers\DomainEventsServiceProvider;
 use App\Providers\EventServiceProvider;
 use App\Providers\InvoiceServiceProvider;
 use App\Providers\PartyServiceProvider;
@@ -24,9 +23,6 @@ return [
     EventServiceProvider::class,
     RouteServiceProvider::class,
     BladeServiceProvider::class,
-
-    // Domain Events provider (Global)
-    DomainEventsServiceProvider::class,
 
     // Bounded context composition roots (ADR D-042)
     SharedServiceProvider::class,

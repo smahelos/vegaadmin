@@ -2,31 +2,22 @@
 
 namespace App\Http\Requests\Admin;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
-class ProductCategoryRequest extends BaseEntityRequest
+class ProductCategoryRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    /**
-     * Entity type for limit checks
-     */
-    protected function getEntityType(): string
-    {
-        return 'product_category';
-    }
-
     /**
      * Categories are managed with the product permissions
      */
-    protected function getRequiredPermission(): string
+    public function authorize(): bool
     {
-        if ($this->isCreatingEntity()) {
-            return 'can_create_product';
+        $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_product') === true;
         }
 
-        return 'can_update_product';
+        return $user?->can('can_update_product') === true;
     }
 
     /**

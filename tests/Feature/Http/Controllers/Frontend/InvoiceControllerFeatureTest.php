@@ -7,9 +7,7 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
 use App\Models\Contact;
-use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\User;
@@ -24,8 +22,6 @@ class InvoiceControllerFeatureTest extends TestCase
     use BuildsInvoiceInput, CreatesFrontendTestEnvironment;
 
     private Invoice $invoice;
-
-    private UniversalLimitService $limitService;
 
     protected function setUp(): void
     {
@@ -44,28 +40,6 @@ class InvoiceControllerFeatureTest extends TestCase
             [
                 'user_id' => $this->user->id,
                 'template' => 'default',
-            ],
-        );
-
-        $this->createInvoiceEntityLimit();
-
-        $this->limitService = app(UniversalLimitService::class);
-    }
-
-    /**
-     * Create entity limit for invoices to allow test operations
-     */
-    private function createInvoiceEntityLimit(): void
-    {
-        EntityLimit::create(
-            [
-                'permission_name' => 'frontend.can_create_invoice',
-                'entity_type' => 'invoice',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'description' => 'Invoice limit for frontend tests',
-                'is_active' => true,
             ],
         );
     }
@@ -315,57 +289,6 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function invoice_creation_records_entity_usage(): void
-    {
-        $this->actingAs($this->user, 'web');
-
-        [$business, $account] = $this->issuerOf($this->user);
-
-        // Check initial usage
-        $initialCheck = $this->limitService->checkLimit(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $initialUsage = $initialCheck['current_usage'] ?? 0;
-
-        $invoiceData = $this->invoiceInput($business, $account);
-
-        // Act
-        $response = $this->post(
-            route('frontend.invoice.store', ['locale' => 'cs']),
-            $invoiceData,
-        );
-
-        // Assert
-        $response->assertRedirect(
-            route('frontend.invoices', ['locale' => 'cs']),
-        );
-        $response->assertSessionHas('success');
-
-        // Check usage after creation
-        $newCheck = $this->limitService->checkLimit(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $newUsage = $newCheck['current_usage'] ?? 0;
-
-        $this->assertEquals($initialUsage + 1, $newUsage);
-
-        // Verify invoice was created
-        $this->assertDatabaseHas(
-            'invoices',
-            [
-                'invoice_vs' => $invoiceData['invoice_vs'],
-                'user_id' => $this->user->id,
-            ],
-        );
-    }
-
-    #[Test]
     public function the_form_creates_an_invoice_and_an_edit_replaces_everything_it_sent(): void
     {
         $this->actingAs($this->user, 'web');
@@ -418,68 +341,6 @@ class InvoiceControllerFeatureTest extends TestCase
             $invoice->issue_date->format('Y-m-d'),
         );
         $this->assertSame(30, $invoice->due_in);
-    }
-
-    #[Test]
-    public function invoice_creation_respects_entity_limits(): void
-    {
-        $this->actingAs($this->user, 'web');
-
-        // Ensure the limit is set to 1 for this test
-        // we need to set limit to 1, so update data in database
-        $entityLimitQuery = EntityLimit::where(
-            [
-                'permission_name' => 'frontend.can_create_invoice',
-            ],
-        );
-        $entityLimitQuery->update(['limit_value' => 1]);
-
-        // First invoice creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertTrue($checkBeforeFirst['allowed']);
-
-        $invoiceFactory = Invoice::factory();
-        $invoice1 = $invoiceFactory->create(['user_id' => $this->user->id]);
-        $result = $this->limitService->recordUsage(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertTrue($result, 'recordUsage should return true when successful');
-
-        // Second invoice creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit(
-            $this->user->id,
-            'invoice',
-            'count',
-            'monthly',
-        );
-        $this->assertFalse($checkBeforeSecond['allowed']);
-        $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-
-        // Verify first invoice was created
-        $this->assertDatabaseHas('invoices', [
-            'id' => $invoice1->id,
-            'user_id' => $this->user->id,
-        ]);
-    }
-
-    #[Test]
-    public function show_returns_view_with_limits_data(): void
-    {
-        $this->actingAs($this->user, 'web');
-        $response = $this->get(
-            route('frontend.invoice.show', ['locale' => 'en', 'id' => $this->invoice->id]),
-        );
-        $response->assertOk();
-        $response->assertViewIs('frontend.invoices.show');
-        $response->assertViewHas('limitsData');
     }
 
     #[Test]
@@ -544,7 +405,7 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function show_view_displays_invoice_and_limits(): void
+    public function show_view_displays_the_invoice(): void
     {
         $this->actingAs($this->user, 'web');
         $response = $this->get(
@@ -628,9 +489,7 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function store_refuses_to_save_a_customer_whose_company_number_is_in_the_contacts(): void
     {
-        $this->user->givePermissionTo(
-            ['frontend.can_create_contact', 'limit_active_contacts_basic'],
-        );
+        $this->user->givePermissionTo('frontend.can_create_contact');
         $contactFactory = Contact::factory();
         $existing = $contactFactory->create(
             ['user_id' => $this->user->id, 'company_number' => '27082440'],

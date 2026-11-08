@@ -10,21 +10,18 @@ use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
-use App\Domain\Invoice\Events\InvoiceCreated;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
-use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 
 final class InvoiceService implements InvoiceServiceInterface
 {
     public function __construct(
-        private readonly EventPublisherInterface $events,
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriteRepository,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceReadRepository,
         private readonly InvoiceProductDtoWriteRepositoryInterface $invoiceProductRepository,
@@ -67,10 +64,6 @@ final class InvoiceService implements InvoiceServiceInterface
         );
 
         $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
-
-        $this->events->publish(
-            new InvoiceCreated($invoice, $userId->toInt()),
-        );
 
         return $invoice;
     }

@@ -1,8 +1,16 @@
 @extends('layouts.frontend')
 
+@use('App\Domain\User\Enums\LimitedEntity')
+
 @section('content')
 <div class="flex justify-between items-center mb-6">
     <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight pt-3">{{ __('dashboard.title') }}</h1>
+</div>
+<h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{{ __('role_limits.usage.title') }}</h2>
+<div class="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+    @foreach (LimitedEntity::cases() as $entity)
+        <x-entity-usage :entity="$entity" />
+    @endforeach
 </div>
 <div class="grid grid-cols-1 gap-6 dashboard-stats-container">
     <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">

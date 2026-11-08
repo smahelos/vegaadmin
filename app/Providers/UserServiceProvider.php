@@ -3,32 +3,26 @@
 namespace App\Providers;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
-use App\Application\User\Contracts\UELSApplicationServiceInterface;
 use App\Application\User\Contracts\UserApplicationServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
-use App\Application\User\Services\UELSApplicationService;
 use App\Application\User\Services\UserApplicationService;
 use App\Domain\Shared\Hash\Contracts\HashInterface;
-use App\Domain\User\Contracts\EntityLimitRepositoryInterface;
-use App\Domain\User\Contracts\EntityLimitUsageRepositoryInterface;
+use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\Contracts\LocaleServiceInterface;
-use App\Domain\User\Contracts\PermissionLimitResolverInterface;
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
+use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\Services\LocaleService;
-use App\Domain\User\Services\PermissionLimitResolver;
-use App\Domain\User\Services\UniversalLimitService;
 use App\Domain\User\Services\UserService;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Infrastructure\Authorization\Services\CrudAccessService;
+use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
+use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserDtoRepository;
-use App\Infrastructure\Persistence\Eloquent\User\Repositories\EntityLimitRepository;
-use App\Infrastructure\Persistence\Eloquent\User\Repositories\EntityLimitUsageRepository;
 use App\Infrastructure\Services\User\LaravelUserPermissionService;
 use App\Infrastructure\Shared\Locale\Services\LaravelLocaleAdapter;
 use Illuminate\Support\ServiceProvider;
@@ -61,16 +55,6 @@ class UserServiceProvider extends ServiceProvider
             UserServiceInterface::class,
             UserService::class,
         );
-
-        $this->app->bind(
-            PermissionLimitResolverInterface::class,
-            PermissionLimitResolver::class,
-        );
-
-        $this->app->bind(
-            UniversalLimitServiceInterface::class,
-            UniversalLimitService::class,
-        );
     }
 
     /**
@@ -86,13 +70,13 @@ class UserServiceProvider extends ServiceProvider
 
         // User repositories
         $this->app->bind(
-            EntityLimitRepositoryInterface::class,
-            EntityLimitRepository::class,
+            RoleLimitReadRepositoryInterface::class,
+            EloquentRoleLimitRepository::class,
         );
 
         $this->app->bind(
-            EntityLimitUsageRepositoryInterface::class,
-            EntityLimitUsageRepository::class,
+            LimitedEntityCounterInterface::class,
+            EloquentLimitedEntityCounter::class,
         );
 
         $this->app->bind(
@@ -132,11 +116,6 @@ class UserServiceProvider extends ServiceProvider
         $this->app->bind(
             UserApplicationServiceInterface::class,
             UserApplicationService::class,
-        );
-
-        $this->app->bind(
-            UELSApplicationServiceInterface::class,
-            UELSApplicationService::class,
         );
     }
 

@@ -56,6 +56,7 @@ return [
         'choose_plan' => 'Choose plan',
         'contact_support' => 'Contact support',
         'contact_support_team' => 'Contact our support team',
+        'view_plans' => 'View plans',
     ],
     'labels' => [
         'intro' => 'Choose the perfect plan for your business needs',

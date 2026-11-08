@@ -10,7 +10,6 @@ use App\Http\Requests\InvoiceRequest;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
-use App\Models\EntityLimit;
 use App\Models\PaymentMethod;
 use App\Models\Product;
 use App\Models\Tax;
@@ -534,20 +533,10 @@ final class InvoiceRequestFeatureTest extends TestCase
     #[Test]
     public function authorization_with_authenticated_user_succeeds(): void
     {
-        EntityLimit::create(
-            [
-                'permission_name' => 'frontend.can_create_invoice',
-                'entity_type' => 'invoice',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'description' => 'Invoice limit for frontend tests',
-                'is_active' => true,
-            ],
-        );
-        $this->actingAs($this->user, 'web');
+        $request = InvoiceRequest::create('/', 'POST');
+        $request->setUserResolver(fn (): User => $this->user);
 
-        $this->assertTrue((new InvoiceRequest)->authorize());
+        $this->assertTrue($request->authorize());
     }
 
     #[Test]

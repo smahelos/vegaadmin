@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Infrastructure\Authorization\PermissionCatalog;
-use App\Models\EntityLimitUsage;
+use App\Models\BankAccount;
+use App\Models\Business;
 use App\Models\PageCategory;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -56,35 +56,20 @@ final class ClosureColumnTest extends TestCase
     }
 
     #[Test]
-    public function renders_html_columns_with_escaped_values(): void
+    public function an_html_column_escapes_the_owner_name(): void
     {
-        $userFactory = User::factory();
-        $user = $userFactory->create(['name' => '<i>User ' . uniqid() . '</i>']);
-        $now = CarbonImmutable::now();
-        EntityLimitUsage::create(
-            [
-                'user_id' => $user->id,
-                'entity_type' => 'invoice',
-                'metric_type' => 'count',
-                'period_type' => 'monthly',
-                'period_start' => $now->startOfMonth(),
-                'period_end' => $now->endOfMonth(),
-                'current_value' => 0,
-                'last_reset_at' => now(),
-            ],
-        );
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['name' => '<i>Business ' . uniqid() . '</i>']);
+        $bankAccountFactory = BankAccount::factory();
+        $ownedAccountFactory = $bankAccountFactory->ownedBy($business);
+        $ownedAccountFactory->create();
 
         $row = $this->listRow(
-            '/admin/entity-usage',
-            e($user->name),
+            '/admin/bank-account',
+            e($business->name),
         );
 
-        $this->assertStringNotContainsString($user->name, $row);
-        $this->assertStringContainsString(
-            '<span class="badge text-bg-secondary">' . __('entity_limits.entity_types.invoice.singular') . '</span>',
-            $row,
-        );
-        $this->assertMatchesRegularExpression('/<span>\s*0\s*<\/span>/', $row);
+        $this->assertStringNotContainsString($business->name, $row);
     }
 
     /**

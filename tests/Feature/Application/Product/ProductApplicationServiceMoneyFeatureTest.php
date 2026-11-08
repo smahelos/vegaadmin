@@ -25,6 +25,7 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $data = [
             'name' => 'Money DTO Product',
             'price_money' => ['amount' => '123.45', 'currency' => 'czk'],
@@ -41,6 +42,7 @@ final class ProductApplicationServiceMoneyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $created = $this->productApp->createProduct(
             [
                 'name' => 'Legacy Price Product',

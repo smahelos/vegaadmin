@@ -38,7 +38,6 @@ final class InvoiceMutationApplicationService implements InvoiceMutationApplicat
         InvoiceWriteData $data,
         InvoicePartySelection $parties,
         array $products,
-        ?UserId $actorId = null,
     ): InvoiceActionResult {
         try {
             $invoice = $this->invoiceCrud->create(
@@ -46,7 +45,6 @@ final class InvoiceMutationApplicationService implements InvoiceMutationApplicat
                 $data,
                 $parties,
                 $products,
-                $actorId,
             );
 
             // Convert DTO back to Eloquent model for compatibility
@@ -62,12 +60,11 @@ final class InvoiceMutationApplicationService implements InvoiceMutationApplicat
             ContactNotFoundException|
             DuplicateCompanyNumberException|
             IncompleteBusinessAddressException|
-            IncompleteDocumentPartyException $e
+            IncompleteDocumentPartyException|
+            EntityLimitExceededException $e
         ) {
-            // The exception handler answers these as validation errors or a 404
+            // The exception handler answers these as validation errors, a 404 or the limit message
             throw $e;
-        } catch (EntityLimitExceededException $e) {
-            return InvoiceActionResult::failure($e->getMessageKey());
         } catch (\Throwable $e) {
             Log::error(
                 'Invoice create failed: ' . $e->getMessage() . json_encode($e->getTrace()),
@@ -113,8 +110,6 @@ final class InvoiceMutationApplicationService implements InvoiceMutationApplicat
         ) {
             // The exception handler answers these as validation errors or a 404
             throw $e;
-        } catch (EntityLimitExceededException $e) {
-            return InvoiceActionResult::failure($e->getMessageKey());
         } catch (\Throwable $e) {
             Log::error('Invoice update failed: ' . $e->getMessage());
 

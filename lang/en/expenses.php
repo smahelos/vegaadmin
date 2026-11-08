@@ -37,6 +37,7 @@ return [
     'messages' => [
         'created' => 'Expense created.',
         'updated' => 'Expense updated.',
+        'limit_exceeded' => 'You have reached your plan\'s monthly limit of expenses (:limit).',
     ],
     'filters' => [
         'date_range' => 'Date Range',

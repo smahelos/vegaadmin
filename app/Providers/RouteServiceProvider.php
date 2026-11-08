@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
@@ -58,6 +60,30 @@ class RouteServiceProvider extends ServiceProvider
                 $limit = Limit::perMinute(60);
 
                 return $limit->by($request->user()?->id ?: $request->ip());
+            },
+        );
+
+        // Unhashed keys ("create:<user id>") let Livewire actions count against the same bucket (ThrottlesCreation)
+        ThrottleRequests::shouldHashKeys(false);
+        RateLimiter::for(
+            'create',
+            function (Request $request): Limit {
+                $limit = Limit::perMinute(
+                    Config::integer('billex.rate_limits.create'),
+                );
+                $user = $request->user() ?? $request->user('backpack');
+
+                return $limit->by((string) ($user?->getAuthIdentifier() ?? $request->ip()));
+            },
+        );
+        RateLimiter::for(
+            'guest_invoice',
+            function (Request $request): Limit {
+                $limit = Limit::perMinute(
+                    Config::integer('billex.rate_limits.guest_invoice'),
+                );
+
+                return $limit->by((string) $request->ip());
             },
         );
     }

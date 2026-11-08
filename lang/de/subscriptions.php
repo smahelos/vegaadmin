@@ -56,6 +56,7 @@ return [
         'choose_plan' => 'Plan wählen',
         'contact_support' => 'Support kontaktieren',
         'contact_support_team' => 'Kontaktieren Sie unser Support-Team',
+        'view_plans' => 'Tarife anzeigen',
     ],
     'labels' => [
         'intro' => 'Wählen Sie den passenden Plan für Ihr Unternehmen',

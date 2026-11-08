@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Infrastructure\Forms\Invoice;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Infrastructure\Forms\Party\PartyFormFields;
+use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentDocumentPartyOptionMapper;
 use App\Models\BankAccount;
 use App\Models\Business;
@@ -72,6 +74,19 @@ final class AdminDocumentFormFields
             $query = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
             $fields[3]['bank_transfer_method_id'] = $query->value('id');
         }
+        array_splice(
+            $fields,
+            1,
+            0,
+            [
+                [
+                    ...EntityUsageFormFields::field(
+                        $role === 'customer' ? LimitedEntity::INVOICE : LimitedEntity::EXPENSE,
+                    ),
+                    'wrapper' => ['class' => 'form-group col-12 col-md-6'],
+                ],
+            ],
+        );
 
         return $fields;
     }

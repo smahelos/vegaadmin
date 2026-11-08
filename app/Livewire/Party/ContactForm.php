@@ -14,6 +14,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
+use App\Livewire\Shared\ThrottlesCreation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -28,6 +29,7 @@ final class ContactForm extends Component
     use EditsPartyDetails;
     use EditsPartyLogo;
     use ProvidesPartyOptions;
+    use ThrottlesCreation;
 
     public PartyDetailsForm $party;
 
@@ -35,6 +37,8 @@ final class ContactForm extends Component
     public ?int $contactId = null;
 
     public string $contactPerson = '';
+
+    public ?string $errorMessage = null;
 
     public ?string $limitMessage = null;
 
@@ -65,6 +69,7 @@ final class ContactForm extends Component
         $this->requirePermission(
             $creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact',
         );
+        $this->errorMessage = null;
         $this->limitMessage = null;
 
         $this->validate($this->rules());
@@ -73,6 +78,13 @@ final class ContactForm extends Component
         $profile = $this->party->profile();
         if (!$this->passesDuplicateCheck($profile)) {
             return;
+        }
+
+        if ($creating) {
+            $this->errorMessage = $this->creationThrottled();
+            if ($this->errorMessage !== null) {
+                return;
+            }
         }
 
         $contactPerson = trim($this->contactPerson);
@@ -95,8 +107,8 @@ final class ContactForm extends Component
                 );
             }
             $saved = true;
-        } catch (EntityLimitExceededException) {
-            $this->limitMessage = __('contacts.messages.limit_exceeded');
+        } catch (EntityLimitExceededException $e) {
+            $this->limitMessage = __('contacts.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         } catch (DuplicateCompanyNumberException $e) {

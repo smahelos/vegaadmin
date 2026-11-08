@@ -17,11 +17,4 @@ interface UserPermissionServiceInterface
      * @return array Array of permission names
      */
     public function getUserPermissions(int $userId, string $guard = 'web'): array;
-
-    /**
-     * Check if user exists.
-     *
-     * @return bool True if user exists
-     */
-    public function userExists(int $userId): bool;
 }

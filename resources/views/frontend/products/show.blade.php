@@ -23,14 +23,6 @@
     </div>
 </div>
 
-{{-- UELS Widget --}}
-@auth
-<div class="mb-6">
-    <x-uels-limit-widget entity-type="product" :limit="$limitsData['limit']"
-        entity-name="{{ __('entity_limits.entity_types.product.singular') }}" :show-modal="true" />
-</div>
-@endauth
-
 <!-- Main product information -->
 <div class="mb-6">
     <div class="space-y-6">
@@ -175,14 +167,4 @@
 
 <!-- We could add related invoices/orders here if needed -->
 
-{{-- UELS Modal --}}
-@auth
-<x-uels-modal />
-@endauth
-
 @endsection
-
-{{-- UELS JavaScript Integration --}}
-@auth
-<x-uels-scripts />
-@endauth

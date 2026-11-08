@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Http\Requests\Admin\BankRequest;
 use App\Models\Bank;
-use App\Models\EntityLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
@@ -18,27 +15,10 @@ class BankRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
-    private UniversalLimitService $limitService;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->setUpAdminTestEnvironment();
-
-        $this->limitService = app(UniversalLimitService::class);
-
-        // Seed a generous default limit for banks
-        $entityLimitFactory = EntityLimit::factory();
-        $entityLimitFactory->create(
-            [
-                'permission_name' => 'can_create_bank',
-                'entity_type' => 'bank',
-                'limit_value' => 50,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'is_active' => true,
-            ],
-        );
 
         $route = Route::post(
             '/test-bank',
@@ -175,78 +155,6 @@ class BankRequestFeatureTest extends TestCase
             ],
         );
         $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function bank_creation_respects_limits(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'bank');
-        $entityLimitQuery->update(['limit_value' => 1]);
-        $httpResponse = $this->postJson(
-            '/test-bank',
-            [
-                'name' => 'First Bank',
-                'code' => 'LIM01',
-                'country' => 'CZ',
-            ],
-        );
-        $httpResponse->assertStatus(200);
-        // Record usage manually
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'bank',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $this->expectException(EntityLimitExceededException::class);
-        $request = new class extends BankRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(
-            [
-                'name' => 'Second',
-                'code' => 'LIM02',
-                'country' => 'CZ',
-            ],
-        );
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => null]);
-        $request->setMethod('POST');
-        $this->assertFalse($request->authorize()); // Exception expected before false
-    }
-
-    #[Test]
-    public function bank_update_bypasses_limits(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $entityLimitQuery = EntityLimit::where('entity_type', 'bank');
-        $entityLimitQuery->update(['limit_value' => 0]);
-        // Simulate that usage already at limit
-        $this->limitService->recordUsage(
-            $this->adminUser->id,
-            'bank',
-            'count',
-            'monthly',
-            'backpack',
-        );
-
-        $request = new class extends BankRequest
-        {
-            public function rules(): array
-            {
-                return [];
-            }
-        };
-        $request->replace(['name' => 'Updated']);
-        $request->setRouteResolver(fn () => (object) ['parameter' => fn ($n) => 99]);
-        $request->setMethod('PUT');
-        $this->assertTrue($request->authorize());
     }
 
     #[Test]

@@ -8,6 +8,8 @@ use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
+use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -28,6 +30,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         private readonly ProductInputValidationService $validationService,
         private readonly FileUploadServiceInterface $fileService,
         private readonly ProductFormDataServiceInterface $formDataService,
+        private readonly EntityLimit $limits,
     ) {}
 
     public function getFormData(): array
@@ -42,12 +45,14 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         $this->validationService->validateProductBusinessRules($data, $userId);
 
         $writeData = ProductWriteData::fromArray($data);
+        $owner = UserId::fromInt($userId);
 
         return DB::transaction(
-            fn () => $this->productDomainService->createProduct(
-                $writeData,
-                UserId::fromInt($userId),
-            ),
+            function () use ($writeData, $owner): ProductDTO {
+                $this->limits->assertCanCreate($owner, LimitedEntity::PRODUCT);
+
+                return $this->productDomainService->createProduct($writeData, $owner);
+            },
         );
     }
 

@@ -30,7 +30,7 @@ return [
         'default_archived' => 'Archivovaná firma nemôže byť predvolená.',
         'default_required' => 'Pred archiváciou predvolenej firmy zvoľte inú predvolenú firmu.',
         'new_default_archived' => 'Zvolená nová predvolená firma je archivovaná.',
-        'limit_exceeded' => 'Dosiahli ste limit počtu aktívnych firiem. Archivujte niektorú firmu alebo si rozšírte tarif.',
+        'limit_exceeded' => 'Dosiahli ste limit aktívnych firiem svojho tarifu (:limit). Archivujte niektorú firmu alebo si rozšírte tarif.',
         'confirm_archive' => 'Naozaj chcete firmu archivovať? Na nových dokladoch nebude k dispozícii.',
         'choose_new_default' => 'Táto firma je predvolená. Zvoľte, ktorá z ostatných aktívnych firiem bude predvolená.',
         'no_logo' => 'Firma nemá logo.',

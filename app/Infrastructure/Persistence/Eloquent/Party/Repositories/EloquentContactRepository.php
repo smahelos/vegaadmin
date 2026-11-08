@@ -34,24 +34,6 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);
     }
 
-    public function countActiveForUser(UserId $userId): int
-    {
-        return $this->records->countActiveForUser(
-            Contact::query(),
-            $userId,
-            false,
-        );
-    }
-
-    public function countActiveForUserForUpdate(UserId $userId): int
-    {
-        return $this->records->countActiveForUser(
-            Contact::query(),
-            $userId,
-            true,
-        );
-    }
-
     public function listLatestActiveForUser(UserId $userId, int $limit): array
     {
         return array_map(

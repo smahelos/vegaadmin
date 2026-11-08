@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\StatisticsController;
-use App\Http\Controllers\Api\UELSController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,18 +52,6 @@ $registrar->group(
         $route->whereNumber('id');
         $route->name('invoice');
 
-        // UELS
-        $route = Route::get('/uels', [UELSController::class, 'getUELS']);
-        $route->name('uels');
-        $route = Route::get('/uels/{id}', [UELSController::class, 'getUELSById']);
-        $route->name('uels.id');
-
-        // UELS (Universal Entity Limit System) API endpoints
-        $route = Route::get('/uels/{entity}/data', [UELSController::class, 'getEntityData']);
-        $route->name('uels.entity-data');
-        $route = Route::get('/uels/all-entities', [UELSController::class, 'getAllEntitiesData']);
-        $route->name('uels.all-entities');
-
         // Dashboard charts
         $route = Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue']);
         $route->name('statistics.monthly-revenue');
@@ -97,17 +84,6 @@ $registrar->group(
         $route->name('exchange-rate');
         $route = Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency']);
         $route->name('convert-currency');
-
-        // UELS - Universal Entity Limit System
-        $registrar = Route::middleware('auth:web');
-        $registrar->group(
-            function (): void {
-                $route = Route::get('/uels/{entity}', [UELSController::class, 'getEntityData']);
-                $route->name('uels.entity');
-                $route = Route::get('/uels', [UELSController::class, 'getAllEntitiesData']);
-                $route->name('uels.all');
-            },
-        );
     },
 );
 

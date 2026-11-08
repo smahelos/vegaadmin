@@ -37,6 +37,7 @@ return [
     'messages' => [
         'created' => 'Ausgabe erstellt.',
         'updated' => 'Ausgabe aktualisiert.',
+        'limit_exceeded' => 'Sie haben das monatliche Ausgabenlimit Ihres Tarifs erreicht (:limit).',
     ],
     'filters' => [
         'date_range' => 'Datumsbereich',

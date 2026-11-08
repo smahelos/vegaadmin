@@ -13,8 +13,7 @@ use App\Http\Controllers\Admin\CronTaskCrudController;
 use App\Http\Controllers\Admin\DatabaseDashboardController;
 use App\Http\Controllers\Admin\DatabaseMaintenanceLogCrudController;
 use App\Http\Controllers\Admin\DocumentPartyCrudController;
-use App\Http\Controllers\Admin\EntityLimitCrudController;
-use App\Http\Controllers\Admin\EntityUsageCrudController;
+use App\Http\Controllers\Admin\EntityUsageController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
@@ -26,13 +25,13 @@ use App\Http\Controllers\Admin\PaymentMethodCrudController;
 use App\Http\Controllers\Admin\PerformanceMetricCrudController;
 use App\Http\Controllers\Admin\ProductCategoryCrudController;
 use App\Http\Controllers\Admin\ProductCrudController;
+use App\Http\Controllers\Admin\RoleLimitCrudController;
 use App\Http\Controllers\Admin\StatusCategoryCrudController;
 use App\Http\Controllers\Admin\StatusCrudController;
 use App\Http\Controllers\Admin\SubscriptionCrudController;
 use App\Http\Controllers\Admin\SubscriptionPlanCrudController;
 use App\Http\Controllers\Admin\SubscriptionPlanFeatureCrudController;
 use App\Http\Controllers\Admin\TaxCrudController;
-use App\Http\Controllers\Admin\UELSDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------
@@ -56,6 +55,8 @@ Route::group(
         $route->name('admin.document-parties.contacts');
         $route = Route::get('document-parties/accounts', [DocumentPartyCrudController::class, 'accounts']);
         $route->name('admin.document-parties.accounts');
+        $route = Route::get('entity-usage', [EntityUsageController::class, 'show']);
+        $route->name('admin.entity-usage.show');
         $route = Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog']);
         $route->name('admin.invoice-items.catalog');
         $route = Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview']);
@@ -68,6 +69,7 @@ Route::group(
         $route = Route::post('business/{id}/restore', [BusinessCrudController::class, 'restore']);
         $route->whereNumber('id');
         $route->name('admin.businesses.restore');
+        $route->middleware('throttle:create');
         $route = Route::post('business/{id}/set-default', [BusinessCrudController::class, 'setDefault']);
         $route->whereNumber('id');
         $route->name('admin.businesses.set-default');
@@ -78,6 +80,7 @@ Route::group(
         $route = Route::post('contact/{id}/restore', [ContactCrudController::class, 'restore']);
         $route->whereNumber('id');
         $route->name('admin.contacts.restore');
+        $route->middleware('throttle:create');
         Route::crud('bank-account', BankAccountCrudController::class);
         $route = Route::post('bank-account/{id}/archive', [BankAccountCrudController::class, 'archive']);
         $route->whereNumber('id');
@@ -124,18 +127,7 @@ Route::group(
         Route::crud('subscription-plan', SubscriptionPlanCrudController::class);
         Route::crud('subscription', SubscriptionCrudController::class);
         Route::crud('subscription-plan-feature', SubscriptionPlanFeatureCrudController::class);
-
-        // UELS Dashboard and Management Routes
-        $route = Route::get('uels-dashboard', [UELSDashboardController::class, 'index']);
-        $route->name('admin.uels.dashboard');
-        $route = Route::post('uels-dashboard/bulk-reset', [UELSDashboardController::class, 'bulkResetUsage']);
-        $route->name('admin.uels.bulk-reset');
-        $route = Route::post('uels-dashboard/user-analysis', [UELSDashboardController::class, 'getUserLimitAnalysis']);
-        $route->name('admin.uels.user-analysis');
-        $route = Route::get('uels-dashboard/export', [UELSDashboardController::class, 'exportUsageData']);
-        $route->name('admin.uels.export');
-        Route::crud('entity-limit', EntityLimitCrudController::class);
-        Route::crud('entity-usage', EntityUsageCrudController::class);
+        Route::crud('role-limit', RoleLimitCrudController::class);
 
         // Cache Management Routes
         $route = Route::post('cache/clear', [CacheManagementController::class, 'clearCache']);

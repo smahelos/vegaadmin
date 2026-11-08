@@ -20,7 +20,7 @@ return [
         'updated' => 'Der Kontakt wurde geändert.',
         'archived' => 'Der Kontakt wurde archiviert.',
         'restored' => 'Der Kontakt wurde wiederhergestellt.',
-        'limit_exceeded' => 'Sie haben die Höchstzahl aktiver Kontakte erreicht. Archivieren Sie einen Kontakt oder erweitern Sie Ihren Tarif.',
+        'limit_exceeded' => 'Sie haben die Höchstzahl aktiver Kontakte Ihres Tarifs erreicht (:limit). Archivieren Sie einen Kontakt oder erweitern Sie Ihren Tarif.',
         'confirm_archive' => 'Möchten Sie den Kontakt wirklich archivieren? Für neue Belege steht er dann nicht zur Verfügung.',
     ],
     'titles' => [

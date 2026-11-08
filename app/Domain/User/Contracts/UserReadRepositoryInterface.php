@@ -6,6 +6,7 @@ use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\ValueObjects\UserId;
+use DateTimeImmutable;
 
 /**
  * Service contract for user operations.
@@ -35,4 +36,9 @@ interface UserReadRepositoryInterface
      * @return PaginatedResult<UserDTO>
      */
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult;
+
+    /**
+     * When the user's current plan role was assigned; null when no assignment was recorded.
+     */
+    public function planRoleAssignedAt(UserId $id): ?DateTimeImmutable;
 }

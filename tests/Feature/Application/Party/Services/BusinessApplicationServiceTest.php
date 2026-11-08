@@ -6,17 +6,25 @@ namespace Tests\Feature\Application\Party\Services;
 
 use App\Application\Party\Services\BusinessApplicationService;
 use App\Domain\Party\DTO\BusinessWriteData;
+use App\Domain\Party\Events\BusinessArchived;
+use App\Domain\Party\Events\BusinessCreated;
+use App\Domain\Party\Events\BusinessRestored;
+use App\Domain\Party\Events\BusinessUpdated;
+use App\Domain\Party\Events\DefaultBusinessChanged;
+use App\Domain\Party\Events\PartyEvent;
 use App\Domain\Party\Exceptions\BusinessArchivedException;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
@@ -237,7 +245,7 @@ final class BusinessApplicationServiceTest extends TestCase
     #[Test]
     public function restoring_needs_a_free_place_while_editing_stays_possible(): void
     {
-        $this->limitActive('business', 1);
+        $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $user = $this->frontendUser();
         $kept = $this->businesses->create(
             $this->idOf($user),
@@ -427,6 +435,59 @@ final class BusinessApplicationServiceTest extends TestCase
                 'archived_at' => null,
             ],
         );
+    }
+
+    #[Test]
+    public function every_change_of_a_business_publishes_its_event_for_the_owner(): void
+    {
+        Event::fake(
+            [
+                BusinessArchived::class,
+                BusinessCreated::class,
+                BusinessRestored::class,
+                BusinessUpdated::class,
+                DefaultBusinessChanged::class,
+            ],
+        );
+        // Resolved after the fake, so the publisher dispatches to it
+        $businesses = $this->app->make(BusinessApplicationService::class);
+        $user = $this->frontendUser();
+
+        $business = $businesses->create(
+            $this->idOf($user),
+            $this->data('Only'),
+            null,
+        );
+        $businesses->update(
+            $this->idOf($user),
+            $business->id,
+            $this->data('Renamed'),
+        );
+        $businesses->archive(
+            $this->idOf($user),
+            $business->id,
+            null,
+        );
+        $businesses->restore(
+            $this->idOf($user),
+            $business->id,
+        );
+
+        foreach (
+            [
+                BusinessCreated::class,
+                BusinessUpdated::class,
+                BusinessArchived::class,
+                BusinessRestored::class,
+            ] as $event
+        ) {
+            Event::assertDispatched(
+                $event,
+                fn (PartyEvent $published): bool => $published->userId->toInt() === $user->id,
+            );
+        }
+        // Set on creation, dropped with the last active business, set again on its restore
+        Event::assertDispatchedTimes(DefaultBusinessChanged::class, 3);
     }
 
     private function data(

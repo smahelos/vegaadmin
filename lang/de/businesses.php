@@ -30,7 +30,7 @@ return [
         'default_archived' => 'Eine archivierte Firma kann nicht Standard sein.',
         'default_required' => 'Wählen Sie vor dem Archivieren der Standardfirma eine andere Standardfirma.',
         'new_default_archived' => 'Die gewählte neue Standardfirma ist archiviert.',
-        'limit_exceeded' => 'Sie haben die Höchstzahl aktiver Firmen erreicht. Archivieren Sie eine Firma oder erweitern Sie Ihren Tarif.',
+        'limit_exceeded' => 'Sie haben die Höchstzahl aktiver Firmen Ihres Tarifs erreicht (:limit). Archivieren Sie eine Firma oder erweitern Sie Ihren Tarif.',
         'confirm_archive' => 'Möchten Sie die Firma wirklich archivieren? Für neue Belege steht sie dann nicht zur Verfügung.',
         'choose_new_default' => 'Diese Firma ist die Standardfirma. Wählen Sie, welche der anderen aktiven Firmen Standard wird.',
         'no_logo' => 'Die Firma hat kein Logo.',

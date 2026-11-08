@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface;
 use App\Models\Invoice;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
@@ -21,77 +20,6 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
         $this->user->givePermissionTo(
             Permission::findByName('frontend.can_update_invoice', 'web'),
         );
-        // Fake permissive limits using only generic methods (specialized removed in refactor)
-        $fakeLimit = new class implements UniversalLimitServiceInterface
-        {
-            public function checkLimit(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                string $periodType = 'daily',
-                int|float $value = 1,
-            ): array {
-                return [
-                    'allowed' => true,
-                    'limit' => PHP_INT_MAX,
-                    'current_usage' => 0,
-                    'period_type' => $periodType,
-                ];
-            }
-
-            public function recordUsage(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                ?string $periodType = 'daily',
-                ?string $guard = 'web',
-                int|float $value = 1,
-            ): bool {
-                return true;
-            }
-
-            public function resetUsage(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                string $periodType = 'daily',
-            ): bool {
-                return true;
-            }
-
-            public function getUsageStatistics(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-                string $periodType = 'daily',
-            ): array {
-                return [
-                    'current_usage' => 0,
-                    'limit' => PHP_INT_MAX,
-                    'allowed' => true,
-                ];
-            }
-
-            public function getBestPeriodType(
-                ?int $userId,
-                string $entityType,
-                string $metricType = 'count',
-            ): string {
-                return 'daily';
-            }
-
-            public function getEntityLimitInfo(?int $userId, string $entityType): array
-            {
-                return [];
-            }
-
-            public function canUserCreateEntity(?int $userId, string $entityType): bool
-            {
-                return true;
-            }
-            // Temporary compatibility wrappers (will disappear after interface refactor)
-        };
-        $this->app->instance(UniversalLimitServiceInterface::class, $fakeLimit);
     }
 
     #[Test]

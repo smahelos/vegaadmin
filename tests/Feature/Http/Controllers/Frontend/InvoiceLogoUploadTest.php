@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\BankAccount;
 use App\Models\Business;
-use App\Models\EntityLimit;
 use App\Models\Invoice;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -38,17 +37,6 @@ final class InvoiceLogoUploadTest extends TestCase
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
-        EntityLimit::create(
-            [
-                'permission_name' => 'frontend.can_create_invoice',
-                'entity_type' => 'invoice',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'description' => 'Invoice limit for frontend tests',
-                'is_active' => true,
-            ],
-        );
         Storage::fake('public');
 
         [$this->business, $this->account] = $this->issuerOf($this->user);

@@ -97,6 +97,39 @@ class ManageUserPermissionsFeatureTest extends TestCase
     }
 
     #[Test]
+    public function only_a_plan_role_change_restarts_the_quota_window(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+
+        $command = $this->pendingCommand(
+            'user:permissions',
+            [
+                'action' => 'assign-role',
+                '--user' => $user->email,
+                '--role' => 'test_role',
+            ],
+        );
+        $command->assertExitCode(0);
+        $command->run();
+        $user->refresh();
+        $this->assertNull($user->plan_role_assigned_at);
+
+        $command = $this->pendingCommand(
+            'user:permissions',
+            [
+                'action' => 'assign-role',
+                '--user' => $user->email,
+                '--role' => 'frontend_user_plus',
+            ],
+        );
+        $command->assertExitCode(0);
+        $command->run();
+        $user->refresh();
+        $this->assertNotNull($user->plan_role_assigned_at);
+    }
+
+    #[Test]
     public function command_removes_role_from_user(): void
     {
         $userFactory = User::factory();

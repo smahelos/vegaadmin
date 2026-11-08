@@ -78,6 +78,7 @@ return [
     ],
     'messages' => [
         'delete_referenced' => 'Záznam nemožno vymazať, pretože ho používajú iné záznamy, napríklad doklady.',
+        'too_many_requests' => 'Zakladáte príliš rýchlo. Skúste to znova o :seconds s.',
     ],
     'colors' => [
         'green' => 'Zelená',

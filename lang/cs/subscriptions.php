@@ -56,6 +56,7 @@ return [
         'choose_plan' => 'Vybrat plán',
         'contact_support' => 'Kontaktovat podporu',
         'contact_support_team' => 'Kontaktujte náš tým podpory',
+        'view_plans' => 'Zobrazit tarify',
     ],
     'labels' => [
         'intro' => 'Vyberte si plán, který odpovídá potřebám vašeho podnikání',

@@ -78,6 +78,7 @@ return [
     ],
     'messages' => [
         'delete_referenced' => 'Záznam nelze smazat, protože ho používají jiné záznamy, například doklady.',
+        'too_many_requests' => 'Zakládáte příliš rychle. Zkuste to znovu za :seconds s.',
     ],
     'colors' => [
         'green' => 'Zelená',

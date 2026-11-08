@@ -3,6 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
+use App\Application\User\Services\EntityUsageApplicationService;
+use App\Application\User\Services\PlanRoleApplicationService;
+use App\Domain\User\DTO\EntityUsageDTO;
+use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -38,6 +43,12 @@ class UserCrudController extends CrudController
 
     // Access control is configured via application CrudAccessServiceInterface in setup()
     use UserFormFields;
+
+    public function __construct(
+        private readonly EntityUsageApplicationService $entityUsages,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object and check user permissions
@@ -204,6 +215,15 @@ class UserCrudController extends CrudController
                 ],
             ],
         );
+        $entry = $this->crud->getCurrentEntry();
+        $column = $this->crud->column('entity_usage');
+        $column->type('entity_usage');
+        $column->label(
+            __('role_limits.usage.title'),
+        );
+        $column->value(
+            $this->usages((int) $entry->getKey()),
+        );
         $column = $this->crud->column('created_at');
         $column->label(
             __('users.fields.created_at'),
@@ -215,31 +235,56 @@ class UserCrudController extends CrudController
     }
 
     /**
+     * The user's usage of every plan limit; null when they hold several plan roles, so the admin can fix them.
+     *
+     * @return list<EntityUsageDTO>|null
+     */
+    private function usages(int $userId): ?array
+    {
+        try {
+            return $this->entityUsages->usages(
+                UserId::fromInt($userId),
+            );
+        } catch (AmbiguousPlanRoleException) {
+            return null;
+        }
+    }
+
+    /**
      * Custom store method for password hashing
      */
-    public function store(): RedirectResponse
+    public function store(PlanRoleApplicationService $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(
             $this->handlePasswordInput($this->crud->getRequest()),
         );
         $this->crud->unsetValidation();
+        $response = $this->traitStore();
+        $planRoles->recordIfChanged(
+            UserId::fromInt((int) $this->crud->entry->id),
+            [],
+        );
 
-        return $this->traitStore();
+        return $response;
     }
 
     /**
      * Custom update method for password hashing
      */
-    public function update(): RedirectResponse
+    public function update(PlanRoleApplicationService $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(
             $this->handlePasswordInput($this->crud->getRequest()),
         );
         $this->crud->unsetValidation();
+        $userId = UserId::fromInt((int) $this->crud->getCurrentEntryId());
+        $before = $planRoles->planRoles($userId);
+        $response = $this->traitUpdate();
+        $planRoles->recordIfChanged($userId, $before);
 
-        return $this->traitUpdate();
+        return $response;
     }
 
     /**

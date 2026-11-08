@@ -20,7 +20,7 @@ return [
         'updated' => 'Kontakt byl upraven.',
         'archived' => 'Kontakt byl archivován.',
         'restored' => 'Kontakt byl obnoven.',
-        'limit_exceeded' => 'Dosáhli jste limitu počtu aktivních kontaktů. Archivujte některý kontakt nebo si rozšiřte tarif.',
+        'limit_exceeded' => 'Dosáhli jste limitu aktivních kontaktů svého tarifu (:limit). Archivujte některý kontakt nebo si rozšiřte tarif.',
         'confirm_archive' => 'Opravdu chcete kontakt archivovat? Na nových dokladech nebude k dispozici.',
     ],
     'titles' => [

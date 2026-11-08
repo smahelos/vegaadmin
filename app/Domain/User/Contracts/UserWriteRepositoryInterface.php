@@ -6,6 +6,7 @@ use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
+use DateTimeImmutable;
 
 /**
  * Service contract for user permission operations.
@@ -40,4 +41,9 @@ interface UserWriteRepositoryInterface
     public function lockForUpdate(UserId $id): void;
 
     public function assignRole(UserId $id, string $role): void;
+
+    /**
+     * Starts the monthly quota window of the user's new plan role.
+     */
+    public function recordPlanRoleAssignment(UserId $id, DateTimeImmutable $assigned): void;
 }

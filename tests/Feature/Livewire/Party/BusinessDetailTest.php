@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Party;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\BusinessDetail;
 use App\Models\Business;
 use App\Models\User;
@@ -80,7 +81,7 @@ final class BusinessDetailTest extends TestCase
     #[Test]
     public function restoring_needs_a_free_place(): void
     {
-        $this->limitActive('business', 1);
+        $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $this->business();
         $businessFactory = Business::factory();
         $archivedFactory = $businessFactory->archived();
@@ -89,8 +90,8 @@ final class BusinessDetailTest extends TestCase
         $component = Livewire::test(BusinessDetail::class, ['businessId' => $archived->id]);
         $component->call('restore');
         $component->assertSet(
-            'errorMessage',
-            __('businesses.messages.limit_exceeded'),
+            'limitMessage',
+            __('businesses.messages.limit_exceeded', ['limit' => 1]),
         );
 
         $this->assertNotNull($archived->fresh()?->archived_at);

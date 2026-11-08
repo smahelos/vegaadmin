@@ -10,6 +10,7 @@ use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
+use App\Livewire\Shared\ThrottlesCreation;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -22,6 +23,7 @@ final class BusinessDetail extends Component
 {
     use ActsForUser;
     use ProvidesPartyOptions;
+    use ThrottlesCreation;
 
     #[Locked]
     public int $businessId;
@@ -31,6 +33,8 @@ final class BusinessDetail extends Component
     public string $newDefault = '';
 
     public ?string $errorMessage = null;
+
+    public ?string $limitMessage = null;
 
     public ?string $successMessage = null;
 
@@ -81,13 +85,18 @@ final class BusinessDetail extends Component
     public function restore(BusinessApplicationService $businesses): void
     {
         $this->requirePermission('frontend.can_restore_business');
-        $this->errorMessage = null;
+        $this->limitMessage = null;
         $this->successMessage = null;
+
+        $this->errorMessage = $this->creationThrottled();
+        if ($this->errorMessage !== null) {
+            return;
+        }
 
         try {
             $businesses->restore($this->userId(), $this->currentId());
-        } catch (EntityLimitExceededException) {
-            $this->errorMessage = __('businesses.messages.limit_exceeded');
+        } catch (EntityLimitExceededException $e) {
+            $this->limitMessage = __('businesses.messages.limit_exceeded', ['limit' => $e->limit]);
 
             return;
         }

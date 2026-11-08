@@ -22,8 +22,8 @@ Each open step has a section below with its items. An item without a **Status** 
 **Open**
 
 9. [Permission naming](#step-9-permission-naming) — in progress. The security gaps found in steps 2 and 7 were closed 2026-11-06 (branch `ls-security-gaps`, PR #74: frontend invoice writes, cron tasks, GoPay callbacks, operation permissions of the admin CRUD screens, published Docker ports, a test-only route). Before step 10, which changes the same requests, and step 19, whose plans grant the permissions.
-10. [Entity limit conversion](#step-10-entity-limit-conversion) — not started; needs the design of step 8 (D-047) and the permission names of step 9.
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting and value object accessors, which every later step uses.
+10. ~~Entity limit conversion: "Entity limits do not follow D-047".~~ Done 2026-11-07 (branch `ls-entity-limit-conversion`): `role_limits` with its admin CRUD screen, the plan role assignment time on `users`, the `EntityLimit` domain service in every use case that creates or restores a limited entity, usage on the dashboard, the create and list pages and the admin user detail, rate limits in `config/billex.php`; the old system with its tables, `limit_*` and `can_create_<entity>_unlimited` permissions, API, dashboard and CRUD screens is deleted.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -52,13 +52,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the coverage test still allowlists `frontend.can_create_edit_user`, which no code checks any more, and the profile test still creates it and grants it to its user.
 - **Fix:** drop the allowlist and the profile test's permission setup.
 
-## Step 10: Entity limit conversion
-
-### Entity limits do not follow D-047
-- **Where:** `entity_limits` and `entity_limit_usage` with their models, the `limit_*` permissions and `ReferenceDataSeeder::ENTITY_LIMITS` / `ROLE_LIMITS`, `UniversalLimitService`, `PermissionLimitResolver`, `EntityLimitUsageRepository`, `CapacityLimit`, the usage recording handlers of `InvoiceCreated`, `ExpenseCreated` and `ProductCreated`, the UELS cache and `UELSPermissionChangeListener`, `UELSController` and its routes in `routes/api.php`, `UELSDashboardController`, the `EntityLimit` and `EntityUsage` CRUD controllers, `resources/js/uels-manager.js`, the `uels-*` Blade components and their use in the invoice and product views, the limit checks in `InvoiceRequest`, the admin `ProductRequest` and the admin requests of taxes, banks, payment methods and product categories, `Frontend\ProductController::store()`, the expense bypass in `ExpenseApplicationService`, the `can_create_<entity>_unlimited` permissions, the `paths` of `rules/permissions.md`
-- **Problem:** the old system (context of D-047): only one of several period limits applies, the highest limit of several roles wins, usage is a separately written counter that can drift, frontend invoices are checked twice, product limits are not enforced, the expense bypass reads the owner's permissions, reference data need an "unlimited" permission to be created at all, and its API routes shadow each other, the dashboard's bulk reset fails with a `TypeError` and the usage CRUD prints counts as euros and bytes.
-- **Fix:** convert to D-047 with `/convert-to-standard`: the `role_limits` table and its Backpack CRUD with `can_{view,create,update,delete}_role_limit` (`add-permission`), the time the plan role was assigned stored with the user and set at registration, one domain service checking capacity and monthly quota inside the creating and restoring use cases, usage rendered in Blade on the dashboard, the create forms and the admin user detail, the refusal message in four locales (`add-translation`), rate limits with their values in a new `config/billex.php`; delete everything listed under Where that D-047 removes, with a migration removing the `limit_*` and `can_create_<entity>_unlimited` permissions. Tests cover PRD A01–A14 and A17; A04 waits for issuing in step 12.
-
 ## Step 11: Foundations for the rewrites
 
 ### `ddd:guard` snapshot test fails now and then in parallel runs
@@ -85,6 +78,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** all 13 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
 - **Problem:** private state read through three naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, …).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
+
+### No developer documentation of how the system works
+- **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
+- **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
+- **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. An architecture test checks that every class and path quoted in `docs/` exists, so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
 
 ## Step 12: Issued invoices
 
@@ -121,7 +119,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### Products cannot be archived
 - **Where:** `products`, `ProductService::deleteProduct()` and the restricting foreign key from `invoice_products`.
 - **Problem:** products used on invoices cannot leave new selections while remaining identifiable on existing documents.
-- **Fix:** product archiving is part of step 12, or of step 10 if the entity limit design makes products a capacity limit. Business/contact archiving and restore are implemented in step 7: archived records leave new selections but remain in history and analytics; archive frees capacity, restore requires capacity, and archiving the last business leaves no default. The Czech identity constraint continues to cover archived records.
+- **Fix:** product archiving is part of step 12; products are a capacity limit (D-047), so archiving will free a place as deleting does now. Business/contact archiving and restore are implemented in step 7: archived records leave new selections but remain in history and analytics; archive frees capacity, restore requires capacity, and archiving the last business leaves no default. The Czech identity constraint continues to cover archived records.
 
 ## Step 13: Expenses as received documents
 
@@ -225,7 +223,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### Plan roles are not built
 - **Where:** roles `frontend_user` and `frontend_user_plus`, `ReferenceDataSeeder::ROLE_LIMITS`, `DevelopmentDataSeeder`
 - **Problem:** the frontend roles do not match the plans. Decided 2026-10-25: `frontend_user` after registration without a subscription, with the lowest limits; `frontend_user_s1` replaces `frontend_user_plus` for the cheaper plan; `frontend_user_s2` for the dearer one; perhaps `frontend_user_s3` later. The limit values are to be decided again.
-- **Fix:** the roles with their permissions and their `role_limits` values; `subscription_plans.role_id`, activation assigns the plan's role and the end of a subscription `frontend_user`, both setting the role assignment time (D-047 point 10); the plan pages generate the limit lines from `role_limits` and the manual features lose any limit values (PRD Entity limits 4.6, A15–A16); the development seeder switches from `frontend_user_plus`.
+- **Fix:** the roles with their permissions and their `role_limits` values; `subscription_plans.role_id`, activation assigns the plan's role and the end of a subscription `frontend_user`, both setting the role assignment time (D-047 point 10); the plan pages generate the limit lines from `role_limits` and the manual features lose any limit values (PRD Entity limits 4.6, A15–A16); the development seeder switches from `frontend_user_plus`. Assigning the role on activation and on the end of a subscription is the first domain handler (inside the payment's transaction, `architecture.md` Events): the dispatcher for domain handlers was deleted with the usage recording in step 10 and comes back with this handler.
 
 ### Typed GoPay request with real customer data
 - **Where:** `app/Infrastructure/Providers/Payment/GoPayGateway.php`, `app/Domain/Payment/Services/SubscriptionPaymentService.php`
@@ -265,9 +263,9 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Fix:** add the admin form request `App\Http\Requests\Admin\UserRequest` with an `email` rule and validate through it (`rules/admin.md`, `rules/http.md`).
 
 ### Admin list columns build display text by hand
-- **Where:** `app/Http/Controllers/Admin/{EntityUsage,EntityLimit,PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge HTML and classes in `Status::getColorPreviewAttribute()` and `UserActivitySummary::getActivityBadgeClassAttribute()`; hardcoded labels also in the `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
+- **Where:** `app/Http/Controllers/Admin/{PerformanceMetric,DatabaseMaintenanceLog}CrudController.php`; badge HTML and classes in `Status::getColorPreviewAttribute()` and `UserActivitySummary::getActivityBadgeClassAttribute()`; hardcoded labels also in the `Product`, `Invoice`, `Status`, `Subscription` and `ExpenseCategory` CRUD controllers
 - **Problem:** amounts and sizes are formatted with `'€' . number_format(...)` and private `formatBytes()` helpers, ignoring the locale and the entity's currency. Labels and cell texts are hardcoded English (`->label('User')`, `'Anonymous'`, `'Pending'`). The maintenance results and performance metadata closures put MySQL output (`Msg_text`, storage engine, metadata values) into HTML unescaped. Models return badge HTML (`getColorPreviewAttribute()`).
-- **Fix:** the `EntityUsage` and `EntityLimit` columns change with step 10. Amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
+- **Fix:** amounts through `MoneyFormatterInterface`, labels and texts as translation keys, every interpolated value through `e()` or a Blade column view, badge HTML out of the models into column views with the status as an enum (`rules/admin.md`, `rules/persistence.md`, `rules/translations.md`).
 
 ### Database dashboard shows invented metrics
 - **Where:** `app/Http/Controllers/Admin/DatabaseDashboardController.php` (`generateSampleDataForMetricType()`, cleanup type `sample`, the `sample_metrics` count), `app/Console/Commands/CleanPerformanceMetrics.php`, `resources/views/admin/database/dashboard.blade.php`
@@ -371,8 +369,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
 
 ### Validation in several places
-- **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`; entity limits checked in requests, controllers and observers
-- **Fix:** one rule set per entity in form requests, business validation in value objects, limit check once in the application service (`rules/http.md`, `rules/permissions.md`); the limit checks change in step 10.
+- **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Application/*/Services/*InputValidationService.php`, `app/Domain/*/Validation/`
+- **Fix:** one rule set per entity in form requests, business validation in value objects (`rules/http.md`).
 
 ### Directory layout
 - **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `BankRepository`, `Str`, `Config`
@@ -392,7 +390,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** `__()` on the remaining calls; drop `messages()` that repeat `lang/*/validation.php`; move the dashboard and user activity texts to `lang/*/admin/dashboard.php` (or their entity files); pass the app name and year to the email texts as parameters; delete unreferenced keys file by file. Convert with `/convert-to-standard` context by context.
 
 ### Comments
-- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), commented-out logging and unused timing/counters in `app/Domain/Shared/Events/DomainEventDispatcher.php`, `TODO`s without an item here
+- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), the commented-out invoice lookup with a Czech `TODO` in `InvoiceFrontendActionsApplicationService::orchestrate()`, `TODO`s without an item here
 - **Fix:** per `rules/php.md` (Comments, Readability), with each affected context's conversion: English explanations of non-obvious reasons, remove commented-out code and unused timing/counters.
 
 ### Move cache invalidation from observers to domain event handlers
@@ -420,6 +418,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
 - **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard and UELS scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
+
+### Error pages are Laravel's defaults
+- **Where:** `resources/views/errors/` does not exist; Backpack ships its own error views in `vendor/backpack/crud/src/resources/views/ui/errors/`
+- **Problem:** the frontend shows Laravel's English error pages without the Billex layout in every locale, including the 429 of the creation rate limits (D-047).
+- **Fix (decided 2026-11-07):** own error pages in the frontend layout, in four locales (`add-translation`), for at least 403, 404, 419, 429, 500 and 503; decide whether the admin keeps Backpack's error views.
 
 ### Dates outside the PDFs are formatted by hand
 - **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the remaining Livewire invoice widgets)
@@ -450,6 +453,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ## Step 24: Before production
 
+### Entity limit counts can deadlock across owners
+- **Where:** `EloquentLimitedEntityCounter::countActiveForUpdate` and `countCreatedSinceForUpdate`, `EloquentTransactionBoundary`
+- **Problem:** under REPEATABLE READ the locking `COUNT` takes next-key and gap locks on the `user_id` index, and these reach past one owner. Two neighbouring owners without rows who create their first record at the same time can each hold the gap the other's `INSERT` needs. MySQL then ends one transaction with error 1213, which nothing retries, so that user gets a 500. Found by reading the locking behaviour, not reproduced.
+- **Fix:** reproduce it with two connections, then either retry the transaction on a deadlock or stop locking the entity rows and read the count so that it sees committed rows while the owner's `users` row is locked.
+
 ### `backpack_pro()` override claims a PRO licence
 - **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`
 - **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.
@@ -461,8 +469,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix (decided 2026-10-25):** Sentry Cloud with the EU data region (chosen when the organisation is created, cannot be changed later), one project per environment or the `environment` tag. PHP: `sentry/sentry-laravel`, `Integration::handles($exceptions)` next to `ExceptionHandling::registerCallbacks()`, a `sentry` log channel at level `error` in `LOG_STACK` so logged-and-caught exceptions arrive without touching controllers, `send_default_pii` off and no SQL bindings (invoices hold clients' personal data), empty `SENTRY_LARAVEL_DSN` in `phpunit.xml`. Browser: `@sentry/browser` initialised first in `resources/js/app.js` and in the admin layout, no session replay until amounts and personal data are masked; inline `<script>` blocks in the layouts move into modules (`rules/frontend.md`) so no code runs before the SDK. Source maps: `build.sourcemap: 'hidden'` (Sentry matches them through the debug IDs the plugin injects), uploaded by `@sentry/vite-plugin` and deleted after the upload, never served; the plugin keeps them unless `sourcemaps.filesToDeleteAfterUpload` is set (`public/build/**/*.map`). The build that uploads them, in CI or on deploy, fails when `public/build` still contains a `.map` file.
 
 ### Erasing a user account
-- **Where:** `users` (soft deletes), `UserCrudController`, the restricting `user_id` foreign keys of `businesses`, `contacts`, `products`, `expenses`, `invoices` and `subscriptions`; cascading `entity_limit_usage`, `model_has_roles`, `model_has_permissions`
-- **Where:** `users` (soft deletes), `UserCrudController`, the restricting `user_id` foreign keys of `businesses`, `contacts`, `products`, `expenses`, `invoices` and `subscriptions`; cascading `entity_limit_usage`, `model_has_roles`, `model_has_permissions`
+- **Where:** `users` (soft deletes), `UserCrudController`, the restricting `user_id` foreign keys of `businesses`, `contacts`, `products`, `expenses`, `invoices` and `subscriptions`; cascading `model_has_roles`, `model_has_permissions`
 - **Problem:** there is no way to erase a user under GDPR. A database cascade would delete documents without the export and notice the law requires, so the foreign keys restrict and nothing disappears by accident. For the user's invoices, contacts and expenses Billex is a processor: the duty to archive them is the user's, and after the service ends Billex returns and deletes them (Art. 28(3)(g) GDPR). For the account, subscription and Billex's own invoices for it Billex is the controller and keeps them for 10 years as a legal obligation (Art. 17(3)(b)).
 - **Fix (proposed 2026-10-25, to be reviewed by a lawyer, with the terms of service and the data processing agreement):** an application use case, not a cascade: the user requests erasure and receives an export of all their data (invoice PDFs, expenses, businesses, contacts); the account is blocked at once; after the announced period the use case deletes their business data, credentials, tokens, logs and settings in dependency order; only Billex's documents for the subscription stay, with the minimum data about the user as customer.
 

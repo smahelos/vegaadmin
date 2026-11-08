@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Party;
 
+use App\Domain\User\Enums\LimitedEntity;
 use App\Livewire\Party\ContactDetail;
 use App\Models\Contact;
 use App\Models\User;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\URL;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
@@ -30,7 +32,7 @@ final class ContactDetailTest extends TestCase
     #[Test]
     public function archiving_frees_a_place_that_restoring_takes_again(): void
     {
-        $this->limitActive('contact', 1);
+        $this->limitFrontendUser(LimitedEntity::CONTACT, 1);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
 
@@ -46,8 +48,8 @@ final class ContactDetailTest extends TestCase
         $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
         $component->call('restore');
         $component->assertSet(
-            'errorMessage',
-            __('contacts.messages.limit_exceeded'),
+            'limitMessage',
+            __('contacts.messages.limit_exceeded', ['limit' => 1]),
         );
         $this->assertNotNull($contact->fresh()?->archived_at);
 
@@ -56,6 +58,27 @@ final class ContactDetailTest extends TestCase
         $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
         $component->call('restore');
         $this->assertNull($contact->fresh()?->archived_at);
+    }
+
+    #[Test]
+    public function restoring_counts_against_the_creation_rate_limit(): void
+    {
+        Config::set('billex.rate_limits.create', 1);
+        $this->freezeTime();
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+
+        $component = Livewire::test(ContactDetail::class, ['contactId' => $contact->id]);
+        $component->call('archive');
+        $component->call('restore');
+        $component->call('archive');
+        $component->call('restore');
+
+        $component->assertSet(
+            'errorMessage',
+            __('general.messages.too_many_requests', ['seconds' => 60]),
+        );
+        $this->assertNotNull($contact->fresh()?->archived_at);
     }
 
     #[Test]

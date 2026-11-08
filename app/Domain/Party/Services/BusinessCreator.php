@@ -15,12 +15,11 @@ use App\Domain\Party\Events\DefaultBusinessChanged;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
-use App\Domain\User\Enums\EntityType;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
  * Creates a business for the business screens and for registration alike, which call it inside their
- * transaction: the capacity check, the business with its address, its first bank account and the default
+ * transaction after the plan limit check: the business with its address, its first bank account and the default
  * selection succeed or fail together.
  */
 final class BusinessCreator
@@ -29,7 +28,6 @@ final class BusinessCreator
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly BusinessWriteRepositoryInterface $businessWriter,
         private readonly BankAccountWriteRepositoryInterface $accountWriter,
-        private readonly CapacityLimit $capacity,
         private readonly EventPublisherInterface $events,
     ) {}
 
@@ -42,7 +40,6 @@ final class BusinessCreator
         BusinessWriteData $data,
         ?BankAccountWriteData $firstAccount,
     ): BusinessDTO {
-        $this->capacity->assertCanActivate($userId, EntityType::BUSINESS);
         $isFirstActive = $this->businesses->countActiveForUserForUpdate($userId) === 0;
 
         $business = $this->businessWriter->create($userId, $data);
@@ -54,13 +51,13 @@ final class BusinessCreator
         }
 
         $this->events->publish(
-            new BusinessCreated($business->id, $userId),
+            new BusinessCreated($userId),
         );
 
         if ($isFirstActive) {
             $this->businessWriter->setDefaultForUser($userId, $business->id);
             $this->events->publish(
-                new DefaultBusinessChanged($business->id, $userId),
+                new DefaultBusinessChanged($userId),
             );
         }
 

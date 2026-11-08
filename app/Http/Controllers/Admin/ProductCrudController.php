@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Models\Product;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -19,17 +21,17 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
 {
-    use CreateOperation {
-        store as traitStore;
-    }
+    use CreateOperation;
     use GatesCrudOperations;
     use ListOperation;
     use RestrictedDeleteOperation;
     use ShowOperation;
-    use UpdateOperation; // Usage recording via generic observer
+    use UpdateOperation;
 
     private ProductApplicationServiceInterface $productService;
 
@@ -40,6 +42,8 @@ final class ProductCrudController extends CrudController
         TaxServiceInterface $taxesService,
     ) {
         parent::__construct();
+        $throttle = $this->middleware('throttle:create');
+        $throttle->only('store');
         $this->productService = $productService;
         $this->taxesService = $taxesService;
     }
@@ -179,19 +183,18 @@ final class ProductCrudController extends CrudController
             __('products.hints.slug'),
         );
 
+        // The owner's plan limits the products, so the admin picks whose catalogue the product joins
         $field = CRUD::field('user_id');
-        $field->type('hidden');
+        $field->type('select2');
         $field->label(
             __('products.fields.user_id'),
         );
         $field->entity('user');
+        $field->model(User::class);
         $field->attribute('name');
-        $field->options(
-            function ($query) {
-                $query->orderBy('name', 'ASC');
-
-                return $query->get();
-            },
+        $field->allows_null(false);
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::PRODUCT),
         );
 
         $field = CRUD::field('price');
@@ -295,33 +298,38 @@ final class ProductCrudController extends CrudController
     }
 
     /**
-     * Define what happens when the Update operation is loaded.
+     * Moving a product to another owner would bypass that owner's limit, so the owner is fixed after creation:
+     * the hidden field only feeds the validation and the usage shown on the form, it is never saved.
      */
     protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
+        $field = CRUD::field('user_id');
+        $field->type('hidden');
+        $saved = array_diff(
+            $this->crud->getAllFieldNames(),
+            ['user_id'],
+        );
+        CRUD::setOperationSetting(
+            'strippedRequest',
+            fn (Request $request): array => $request->only($saved),
+        );
     }
 
-    /**
-     * Ensure user_id is always set to the current backpack user before storing.
-     */
-    protected function beforeEntityStore(): void
-    {
-        if (backpack_user()) {
-            $request = $this->crud->getRequest();
-            if (!$request->has('user_id') || empty($request->input('user_id'))) {
-                $request->merge(['user_id' => backpack_user()->id]);
-            }
-        }
-    }
-
-    /**
-     * Override store only for user assignment; usage recorded by ProductObserver.
-     */
     public function store(): JsonResponse|RedirectResponse
     {
-        $this->beforeEntityStore();
+        $this->crud->hasAccessOrFail('create');
+        $request = $this->crud->validateRequest();
+        $product = $this->productService->createProduct(
+            $request->validated(),
+            (int) $request->validated('user_id'),
+        );
+        $alerts = Alert::success(
+            __('products.messages.created'),
+        );
+        $alerts->flash();
+        $this->crud->setSaveAction();
 
-        return $this->traitStore();
+        return $this->crud->performSaveAction($product->id);
     }
 }

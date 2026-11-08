@@ -29,12 +29,6 @@ return [
         'automation' => 'Automation',
         'statuses' => 'Statuses',
     ],
-    'uels' => [
-        'title' => 'Entity Limits Management',
-        'dashboard' => 'UELS Dashboard',
-        'configuration' => 'Configuration',
-        'monitoring' => 'Monitoring',
-    ],
     'system_config' => [
         'title' => 'System Configuration',
         'general_settings' => 'General Settings',

@@ -6,13 +6,11 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Reference data the application needs to run in every environment: statuses, VAT rates, payment
- * methods, banks, categories, archive policies and the entity limits of the frontend roles. Rows
+ * methods, banks, categories, archive policies and the limits of the frontend plan roles. Rows
  * are matched by their natural key, so running it again updates them instead of adding copies.
  */
 final class ReferenceDataSeeder extends Seeder
@@ -203,66 +201,25 @@ final class ReferenceDataSeeder extends Seeder
     ];
 
     /**
-     * Entity limits by permission: entity type, period, metric and limit value. A count limit counts what was
-     * created in the period; an active limit counts the records that are not archived (businesses, contacts).
+     * Limits of the plan roles (D-047): null unlimited, 0 not allowed. The values are decided with the plans in
+     * TECH_DEBT step 19.
      *
-     * @var array<string, array{string, string, string, int}>
+     * @var array<string, array{invoices: ?int, expenses: ?int, businesses: ?int, contacts: ?int, products: ?int}>
      */
-    private const ENTITY_LIMITS = [
-        'limit_daily_invoices_basic' => [
-            'invoice',
-            'daily',
-            'count',
-            3,
-        ],
-        'limit_weekly_invoices_basic' => [
-            'invoice',
-            'weekly',
-            'count',
-            15,
-        ],
-        'limit_monthly_invoices_basic' => [
-            'invoice',
-            'monthly',
-            'count',
-            10,
-        ],
-        'limit_active_businesses_basic' => [
-            'business',
-            'lifetime',
-            'active',
-            10,
-        ],
-        'limit_active_contacts_basic' => [
-            'contact',
-            'lifetime',
-            'active',
-            16,
-        ],
-        'limit_lifetime_products_basic' => [
-            'product',
-            'lifetime',
-            'count',
-            5,
-        ],
-    ];
-
-    /** @var array<string, list<string>> */
-    private const ROLE_LIMITS = [
+    private const PLAN_ROLE_LIMITS = [
         'frontend_user' => [
-            'limit_daily_invoices_basic',
-            'limit_weekly_invoices_basic',
-            'limit_monthly_invoices_basic',
-            'limit_active_businesses_basic',
-            'limit_active_contacts_basic',
-            'limit_lifetime_products_basic',
+            'invoices' => 10,
+            'expenses' => 10,
+            'businesses' => 10,
+            'contacts' => 16,
+            'products' => 5,
         ],
         'frontend_user_plus' => [
-            'limit_weekly_invoices_basic',
-            'limit_monthly_invoices_basic',
-            'limit_active_businesses_basic',
-            'limit_active_contacts_basic',
-            'limit_lifetime_products_basic',
+            'invoices' => null,
+            'expenses' => 10,
+            'businesses' => 10,
+            'contacts' => 16,
+            'products' => 5,
         ],
     ];
 
@@ -277,7 +234,7 @@ final class ReferenceDataSeeder extends Seeder
                 $this->seedExpenseCategories();
                 $this->seedProductCategories();
                 $this->seedArchivePolicies();
-                $this->seedEntityLimits();
+                $this->seedRoleLimits();
             },
         );
     }
@@ -398,36 +355,16 @@ final class ReferenceDataSeeder extends Seeder
         }
     }
 
-    private function seedEntityLimits(): void
+    private function seedRoleLimits(): void
     {
-        foreach (
-            self::ENTITY_LIMITS as $permission => [
-                $entityType,
-                $period,
-                $metric,
-                $limit,
-            ]
-        ) {
-            Permission::findOrCreate($permission, 'web');
+        foreach (self::PLAN_ROLE_LIMITS as $role => $limits) {
+            $webRole = Role::findByName($role, 'web');
             $this->upsert(
-                'entity_limits',
-                [
-                    'permission_name' => $permission,
-                    'entity_type' => $entityType,
-                    'period_type' => $period,
-                    'metric_type' => $metric,
-                ],
-                ['limit_value' => $limit, 'is_active' => 1],
+                'role_limits',
+                ['role_id' => $webRole->id],
+                $limits,
             );
         }
-
-        foreach (self::ROLE_LIMITS as $role => $permissions) {
-            $webRole = Role::findByName($role, 'web');
-            $webRole->givePermissionTo($permissions);
-        }
-
-        $registrar = app(PermissionRegistrar::class);
-        $registrar->forgetCachedPermissions();
     }
 
     /**

@@ -8,9 +8,12 @@ use App\Domain\Party\DTO\BankAccountWriteData;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\Services\BusinessCreator;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
+use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
@@ -25,7 +28,9 @@ final class RegistrationApplicationService
     public function __construct(
         private readonly UserWriteRepositoryInterface $users,
         private readonly BusinessCreator $businesses,
+        private readonly EntityLimit $limits,
         private readonly TransactionBoundaryInterface $transactions,
+        private readonly ClockInterface $clock,
     ) {}
 
     public function register(
@@ -40,6 +45,8 @@ final class RegistrationApplicationService
 
                 // The role carries the plan's limits, so it comes before the business that counts against them
                 $this->users->assignRole($userId, self::REGISTRATION_ROLE);
+                $this->users->recordPlanRoleAssignment($userId, $this->clock->now());
+                $this->limits->assertCanCreate($userId, LimitedEntity::BUSINESS);
                 $this->businesses->create(
                     $userId,
                     $business,

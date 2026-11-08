@@ -65,6 +65,9 @@
                     <span class="sr-only">Info</span>
                     <div>
                         <span class="font-medium">{{ session('error') }}</span>
+                        @if(session('limit_exceeded'))
+                        <a href="{{ route('subscriptions.index', ['locale' => App::getLocale()]) }}" class="font-medium underline">{{ __('subscriptions.actions.view_plans') }}</a>
+                        @endif
                     </div>
                 </div>
                 @endif

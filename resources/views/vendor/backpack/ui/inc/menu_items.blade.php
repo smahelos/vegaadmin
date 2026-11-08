@@ -12,6 +12,10 @@
         :link="backpack_url('role')" />
     <x-backpack::menu-dropdown-item title="{{ __('admin.user_management.permissions') }}" icon="la la-key"
         :link="backpack_url('permission')" />
+    @if($user->hasPermissionTo('can_view_role_limit', 'backpack'))
+    <x-backpack::menu-dropdown-item title="{{ __('role_limits.entity.plural') }}" icon="la la-sliders-h"
+        :link="backpack_url('role-limit')" />
+    @endif
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.entity.plural') }}" icon="la la-handshake"
         :link="backpack_url('subscription')" />
     <x-backpack::menu-dropdown-item title="{{ __('subscriptions.plans.entity.plural') }}" icon="la la-id-card"
@@ -142,23 +146,7 @@ $user->hasPermissionTo('can_view_status', 'backpack'))
 </x-backpack::menu-dropdown>
 @endif
 
-{{-- 8. Entity Limits Management (UELS) --}}
-@if($user->hasPermissionTo('can_configure_system', 'backpack'))
-<x-backpack::menu-dropdown title="{{ __('admin.uels.title') }}" icon="la la-shield-alt text-purple">
-    <x-backpack::menu-dropdown-item title="{{ __('admin.uels.dashboard') }}" icon="la la-tachometer-alt"
-        :link="backpack_url('uels-dashboard')" />
-
-    <x-backpack::menu-dropdown-header title="{{ __('admin.uels.configuration') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('entity_limits.entity.plural') }}" icon="la la-cog"
-        :link="backpack_url('entity-limit')" />
-
-    <x-backpack::menu-dropdown-header title="{{ __('admin.uels.monitoring') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('entity_limits.usages.entity.plural') }}" icon="la la-chart-bar"
-        :link="backpack_url('entity-usage')" />
-</x-backpack::menu-dropdown>
-@endif
-
-{{-- 9. System Configuration --}}
+{{-- 8. System Configuration --}}
 @if($user->hasPermissionTo('can_configure_system', 'backpack'))
 <x-backpack::menu-dropdown title="{{ __('admin.cache.title') }}" icon="la la-cogs text-danger">
     @include('admin.inc.menu_post_item', [

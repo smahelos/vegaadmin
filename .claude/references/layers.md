@@ -136,7 +136,7 @@ final class ContactApplicationService
     public function __construct(
         private readonly ContactReadRepositoryInterface $contacts,
         private readonly ContactWriteRepositoryInterface $contactWriter,
-        private readonly EntityLimitChecker $limits,
+        private readonly EntityLimit $limits,
         private readonly TransactionBoundaryInterface $transactions,
         private readonly EventPublisherInterface $events,
     ) {}
@@ -146,7 +146,7 @@ final class ContactApplicationService
         $contact = $this->transactions->transaction(
             function () use ($userId, $data): ContactDTO {
                 // capacity limit: locks the owner, counts active contacts (rules/permissions.md)
-                $this->limits->assertCanCreate($userId, EntityType::Contact);
+                $this->limits->assertCanCreate($userId, LimitedEntity::CONTACT);
 
                 return $this->contactWriter->create($userId, $data);
             },

@@ -30,7 +30,7 @@ class DddGuardDiAdvisoryTest extends TestCase
         }
         $this->tempControllerFile = $this->tempControllerDir . '/TempAdvisoryController.php';
 
-        $serviceFqcn = 'App\\Domain\\User\\Services\\UniversalLimitService';
+        $serviceFqcn = 'App\\Domain\\User\\Services\\UserService';
         $code = <<<'PHP'
 <?php
 namespace App\\Http\\Controllers\\Temp_{$this->processId};
@@ -39,9 +39,9 @@ use REPLACE_FQCN;
 
 class TempAdvisoryController
 {
-    private UniversalLimitService $service;
+    private UserService $service;
 
-    public function __construct(UniversalLimitService $service)
+    public function __construct(UserService $service)
     {
     // Store the service to avoid unused variable notice
     $this->service = $service;
@@ -135,17 +135,17 @@ PHP;
     #[Test]
     public function di_scan_reports_hard_violation_when_interface_exists(): void
     {
-        // Arrange: create a controller that imports UniversalLimitService (interface now exists => violation)
+        // Arrange: create a controller that imports UserService (interface now exists => violation)
         $controllerFile = $this->tempControllerDir . '/TempViolationController.php';
         $code = <<<'PHP'
 <?php
 namespace App\Http\Controllers\Temp;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
+use App\Domain\User\Contracts\UserServiceInterface as UserService;
 
 class TempViolationController
 {
-    public function __construct(UniversalLimitService $service) {}
+    public function __construct(UserService $service) {}
 }
 PHP;
         file_put_contents($controllerFile, $code);

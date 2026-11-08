@@ -4,29 +4,20 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Http\Requests\Rules\UniquePerUser;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class ProductRequest extends BaseEntityRequest
+class ProductRequest extends FormRequest
 {
-    /**
-     * Get the entity type for limit checking
-     */
-    protected function getEntityType(): string
+    public function authorize(): bool
     {
-        return 'product';
-    }
-
-    /**
-     * Get required permission for product operations
-     */
-    protected function getRequiredPermission(): string
-    {
-        if ($this->isCreatingEntity()) {
-            return 'can_create_product';
+        $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_product') === true;
         }
 
-        return 'can_update_product';
+        return $user?->can('can_update_product') === true;
     }
 
     /**
@@ -54,6 +45,7 @@ class ProductRequest extends BaseEntityRequest
             'category_id' => 'nullable|exists:product_categories,id',
             'description' => 'nullable',
             'is_default' => 'boolean',
+            'is_active' => 'boolean',
             'image' => 'nullable|image|max:2048',
         ];
 
@@ -91,6 +83,7 @@ class ProductRequest extends BaseEntityRequest
             'category_id' => __('products.fields.category_id'),
             'description' => __('products.fields.description'),
             'is_default' => __('products.fields.is_default'),
+            'is_active' => __('products.fields.is_active'),
             'image' => __('products.fields.image'),
         ];
     }

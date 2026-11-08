@@ -78,6 +78,7 @@ return [
     ],
     'messages' => [
         'delete_referenced' => 'Der Eintrag kann nicht gelöscht werden, da andere Einträge ihn verwenden, zum Beispiel Belege.',
+        'too_many_requests' => 'Sie erstellen zu schnell. Versuchen Sie es in :seconds Sekunden erneut.',
     ],
     'colors' => [
         'green' => 'Grün',

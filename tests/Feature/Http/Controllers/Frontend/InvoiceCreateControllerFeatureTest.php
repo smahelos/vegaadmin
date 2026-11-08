@@ -30,7 +30,6 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
                 'invoiceProducts',
                 'taxRates',
                 'suggestedNumber',
-                'limitsData',
                 'fields',
                 'contactId',
                 'businessId',
