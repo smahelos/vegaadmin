@@ -19,9 +19,23 @@ interface LimitedEntityCounterInterface
     public function countActive(UserId $owner, LimitedEntity $entity): int;
 
     /**
+     * The same count as a locking read, for the transaction that creates or restores a record.
+     */
+    public function countActiveForUpdate(UserId $owner, LimitedEntity $entity): int;
+
+    /**
      * Records of a monthly quota created at or after the given time.
      */
     public function countCreatedSince(
+        UserId $owner,
+        LimitedEntity $entity,
+        DateTimeImmutable $since,
+    ): int;
+
+    /**
+     * The same count as a locking read, for the transaction that creates a record.
+     */
+    public function countCreatedSinceForUpdate(
         UserId $owner,
         LimitedEntity $entity,
         DateTimeImmutable $since,

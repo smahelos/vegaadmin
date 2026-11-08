@@ -453,6 +453,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ## Step 24: Before production
 
+### Entity limit counts can deadlock across owners
+- **Where:** `EloquentLimitedEntityCounter::countActiveForUpdate` and `countCreatedSinceForUpdate`, `EloquentTransactionBoundary`
+- **Problem:** under REPEATABLE READ the locking `COUNT` takes next-key and gap locks on the `user_id` index, and these reach past one owner. Two neighbouring owners without rows who create their first record at the same time can each hold the gap the other's `INSERT` needs. MySQL then ends one transaction with error 1213, which nothing retries, so that user gets a 500. Found by reading the locking behaviour, not reproduced.
+- **Fix:** reproduce it with two connections, then either retry the transaction on a deadlock or stop locking the entity rows and read the count so that it sees committed rows while the owner's `users` row is locked.
+
 ### `backpack_pro()` override claims a PRO licence
 - **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`
 - **Problem:** the override lifts Backpack's PRO gates, which Billex's own filters need (`CrudFilter` refuses to work without PRO). Outside the `local` environment, Backpack sends usage stats to backpackforlaravel.com on about 1 in 100 admin requests, including `BACKPACK_PRO_VERSION => backpack_pro()`, so production would report a PRO licence it does not have. PRO-only operations (`FetchOperation`, `InlineCreateOperation`, `CloneOperation`, `BulkDeleteOperation`) would fail with a missing class instead of a clear error.

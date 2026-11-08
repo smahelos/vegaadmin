@@ -32,16 +32,15 @@ final readonly class EntityUsageDTO
         );
     }
 
-    public function full(): bool
+    // A limit of 0 allows nothing, so it is full from the start
+    public function isFull(): bool
     {
-        return $this->limit !== null
-            && $this->limit > 0
-            && $this->used >= $this->limit;
+        return $this->limit !== null && $this->used >= $this->limit;
     }
 
     // Warned from 80 % until the limit is reached
-    public function near(): bool
+    public function isNear(): bool
     {
-        return !$this->full() && $this->percent() >= 80;
+        return !$this->isFull() && $this->percent() >= 80;
     }
 }

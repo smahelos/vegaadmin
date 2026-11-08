@@ -14,16 +14,64 @@ use App\Models\Invoice;
 use App\Models\Product;
 use DateTimeImmutable;
 use DateTimeZone;
+use Illuminate\Database\Eloquent\Builder;
 use InvalidArgumentException;
 
 /**
  * Counts the rows of the limited entities directly, so the User context needs no repository of the contexts that
- * already depend on it. The counts are locking reads: a plain read would see the transaction's earlier snapshot and
- * miss a record another request committed while this one waited for the owner's lock.
+ * already depend on it. The ForUpdate counts are locking reads: a plain read would see the transaction's earlier
+ * snapshot and miss a record another request committed while this one waited for the owner's lock.
  */
 final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterface
 {
     public function countActive(UserId $owner, LimitedEntity $entity): int
+    {
+        $query = $this->activeRecords($owner, $entity);
+
+        return $query->count();
+    }
+
+    public function countActiveForUpdate(UserId $owner, LimitedEntity $entity): int
+    {
+        $query = $this->activeRecords($owner, $entity);
+        $query->lockForUpdate();
+
+        return $query->count();
+    }
+
+    public function countCreatedSince(
+        UserId $owner,
+        LimitedEntity $entity,
+        DateTimeImmutable $since,
+    ): int {
+        $query = $this->recordsCreatedSince(
+            $owner,
+            $entity,
+            $since,
+        );
+
+        return $query->count();
+    }
+
+    public function countCreatedSinceForUpdate(
+        UserId $owner,
+        LimitedEntity $entity,
+        DateTimeImmutable $since,
+    ): int {
+        $query = $this->recordsCreatedSince(
+            $owner,
+            $entity,
+            $since,
+        );
+        $query->lockForUpdate();
+
+        return $query->count();
+    }
+
+    /**
+     * @return Builder<Business>|Builder<Contact>|Builder<Product>
+     */
+    private function activeRecords(UserId $owner, LimitedEntity $entity): Builder
     {
         $query = match ($entity) {
             LimitedEntity::BUSINESS => Business::query(),
@@ -39,16 +87,18 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
         if ($entity !== LimitedEntity::PRODUCT) {
             $query->whereNull('archived_at');
         }
-        $query->lockForUpdate();
 
-        return $query->count();
+        return $query;
     }
 
-    public function countCreatedSince(
+    /**
+     * @return Builder<Invoice>|Builder<Expense>
+     */
+    private function recordsCreatedSince(
         UserId $owner,
         LimitedEntity $entity,
         DateTimeImmutable $since,
-    ): int {
+    ): Builder {
         $query = match ($entity) {
             LimitedEntity::INVOICE => Invoice::query(),
             LimitedEntity::EXPENSE => Expense::query(),
@@ -66,8 +116,7 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
             '>=',
             $since->setTimezone($storedZone),
         );
-        $query->lockForUpdate();
 
-        return $query->count();
+        return $query;
     }
 }

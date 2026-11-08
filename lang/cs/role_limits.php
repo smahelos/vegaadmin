@@ -33,5 +33,6 @@ return [
         'approaching' => 'Blížíte se limitu.',
         'reached' => 'Limit je vyčerpán.',
         'ambiguous' => 'Uživatel má víc tarifních rolí s limity, ponechte mu jen jednu.',
+        'unavailable' => 'Využití tohoto limitu teď nelze zobrazit. Kontaktujte prosím podporu.',
     ],
 ];

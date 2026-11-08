@@ -29,9 +29,9 @@
                             <progress aria-labelledby="usage-{{ $usage->entity->value }}" max="{{ $usage->limit }}" value="{{ $usage->used }}"
                                 @class([
                                     'progress',
-                                    'entity-usage-full' => $usage->full(),
-                                    'entity-usage-near' => $usage->near(),
-                                    'entity-usage-ok' => !$usage->full() && !$usage->near(),
+                                    'entity-usage-full' => $usage->isFull(),
+                                    'entity-usage-near' => $usage->isNear(),
+                                    'entity-usage-ok' => !$usage->isFull() && !$usage->isNear(),
                                 ])></progress>
                         @endif
                     </td>

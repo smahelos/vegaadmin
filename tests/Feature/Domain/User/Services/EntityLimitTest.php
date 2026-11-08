@@ -18,6 +18,7 @@ use App\Models\Product;
 use App\Models\RoleLimit;
 use App\Models\User;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -213,6 +214,25 @@ final class EntityLimitTest extends TestCase
         $this->assertSame(2, $invoices->limit);
         $this->assertSame(0, $products->used);
         $this->assertNull($products->limit);
+    }
+
+    #[Test]
+    public function showing_the_usage_takes_no_locks(): void
+    {
+        $owner = $this->ownerWithLimits(['invoices' => 2, 'contacts' => 2]);
+        $limits = $this->limits();
+        $ownerId = UserId::fromInt($owner->id);
+        DB::enableQueryLog();
+
+        $limits->usage($ownerId, LimitedEntity::INVOICE);
+        $limits->usage($ownerId, LimitedEntity::CONTACT);
+
+        $statements = array_column(DB::getQueryLog(), 'query');
+        $this->assertNotEmpty($statements);
+        $this->assertStringNotContainsString(
+            'for update',
+            implode(' ', $statements),
+        );
     }
 
     #[Test]

@@ -50,7 +50,7 @@ final class EntityLimit
             return;
         }
 
-        $used = $this->used($owner, $entity);
+        $used = $this->usedForUpdate($owner, $entity);
 
         if ($used >= $limit) {
             throw new EntityLimitExceededException($entity, $limit);
@@ -100,6 +100,19 @@ final class EntityLimit
         }
 
         return $this->counter->countCreatedSince(
+            $owner,
+            $entity,
+            $this->quotaWindowStart($owner),
+        );
+    }
+
+    private function usedForUpdate(UserId $owner, LimitedEntity $entity): int
+    {
+        if (!$entity->isMonthlyQuota()) {
+            return $this->counter->countActiveForUpdate($owner, $entity);
+        }
+
+        return $this->counter->countCreatedSinceForUpdate(
             $owner,
             $entity,
             $this->quotaWindowStart($owner),

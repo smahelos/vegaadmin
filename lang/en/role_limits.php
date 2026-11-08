@@ -33,5 +33,6 @@ return [
         'approaching' => 'You are approaching the limit.',
         'reached' => 'The limit has been reached.',
         'ambiguous' => 'The user has several plan roles with limits; keep only one.',
+        'unavailable' => 'The usage of this limit cannot be shown right now. Please contact support.',
     ],
 ];

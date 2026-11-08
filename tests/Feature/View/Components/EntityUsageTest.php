@@ -122,7 +122,29 @@ final class EntityUsageTest extends TestCase
         $view->assertSee(
             __('role_limits.statuses.not_allowed'),
         );
+        $view->assertSee('fa-exclamation-triangle', false);
+        $view->assertDontSee('fa-check-circle', false);
         $view->assertDontSee('<progress', false);
+    }
+
+    #[Test]
+    public function shows_a_notice_instead_of_failing_for_several_plan_roles(): void
+    {
+        $owner = $this->frontendUser();
+        $owner->assignRole('frontend_user_plus');
+        $this->actingAs($owner, 'web');
+
+        $view = $this->blade(
+            self::TEMPLATE,
+            ['entity' => LimitedEntity::CONTACT],
+        );
+
+        $view->assertSee(
+            __('role_limits.usage.contacts'),
+        );
+        $view->assertSee(
+            __('role_limits.usage.unavailable'),
+        );
     }
 
     #[Test]

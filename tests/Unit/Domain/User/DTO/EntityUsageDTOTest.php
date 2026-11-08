@@ -57,7 +57,7 @@ final class EntityUsageDTOTest extends TestCase
                 3,
                 0,
                 0,
-                false,
+                true,
                 false,
             ],
         ];
@@ -79,7 +79,7 @@ final class EntityUsageDTOTest extends TestCase
         );
 
         $this->assertSame($percent, $usage->percent());
-        $this->assertSame($full, $usage->full());
-        $this->assertSame($near, $usage->near());
+        $this->assertSame($full, $usage->isFull());
+        $this->assertSame($near, $usage->isNear());
     }
 }

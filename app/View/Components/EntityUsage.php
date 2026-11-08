@@ -6,6 +6,7 @@ namespace App\View\Components;
 
 use App\Application\User\Services\EntityUsageApplicationService;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -31,23 +32,33 @@ final class EntityUsage extends Component
             return '';
         }
 
-        $usage = $this->usages->usage(
-            UserId::fromInt((int) $userId),
-            $this->entity,
-        );
+        $label = __('role_limits.usage.' . $this->entity->value);
+
+        try {
+            $usage = $this->usages->usage(
+                UserId::fromInt((int) $userId),
+                $this->entity,
+            );
+        } catch (AmbiguousPlanRoleException) {
+            // Creating stays refused, but the page showing the usage must still open
+            return view(
+                'components.entity-usage',
+                ['usage' => null, 'label' => $label],
+            );
+        }
 
         return view(
             'components.entity-usage',
             [
                 'usage' => $usage,
-                'label' => __('role_limits.usage.' . $this->entity->value),
+                'label' => $label,
                 'barId' => 'usage-' . $this->entity->value,
                 'percent' => Number::percentage(
                     $usage->percent(),
                     locale: App::getLocale(),
                 ),
-                'full' => $usage->full(),
-                'near' => $usage->near(),
+                'full' => $usage->isFull(),
+                'near' => $usage->isNear(),
                 'plansUrl' => route(
                     'subscriptions.index',
                     ['locale' => App::getLocale()],

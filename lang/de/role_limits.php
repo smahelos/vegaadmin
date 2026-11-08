@@ -33,5 +33,6 @@ return [
         'approaching' => 'Sie nähern sich dem Limit.',
         'reached' => 'Das Limit ist erreicht.',
         'ambiguous' => 'Der Benutzer hat mehrere Tarifrollen mit Limits, lassen Sie ihm nur eine.',
+        'unavailable' => 'Die Nutzung dieses Limits kann derzeit nicht angezeigt werden. Bitte wenden Sie sich an den Support.',
     ],
 ];
