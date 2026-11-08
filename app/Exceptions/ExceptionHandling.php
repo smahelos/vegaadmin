@@ -285,9 +285,6 @@ class ExceptionHandling
         return $redirect->withErrors([$field => $message]);
     }
 
-    /**
-     * Back to the form with a translated message: an alert in the admin, a flash message on the frontend.
-     */
     private static function limitMessage(EntityLimitExceededException $e): string
     {
         $replace = ['limit' => $e->limit];
@@ -301,6 +298,9 @@ class ExceptionHandling
         };
     }
 
+    /**
+     * Back to the form with a translated message: an alert in the admin, a flash message on the frontend.
+     */
     private static function back(Request $request, string $message): JsonResponse|RedirectResponse
     {
         if ($request->expectsJson()) {

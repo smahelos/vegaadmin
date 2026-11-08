@@ -14,7 +14,7 @@ use App\Domain\User\ValueObjects\UserId;
  * A change of the plan role restarts the monthly quota window (D-047 point 2), also when an admin changes the
  * roles by hand.
  */
-final class PlanRoleChange
+final class PlanRoleApplicationService
 {
     public function __construct(
         private readonly RoleLimitReadRepositoryInterface $roleLimits,

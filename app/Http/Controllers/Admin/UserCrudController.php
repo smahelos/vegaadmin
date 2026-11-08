@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Application\User\Services\EntityUsageApplicationService;
-use App\Application\User\Services\PlanRoleChange;
+use App\Application\User\Services\PlanRoleApplicationService;
 use App\Domain\User\DTO\EntityUsageDTO;
 use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
@@ -248,7 +248,7 @@ class UserCrudController extends CrudController
     /**
      * Custom store method for password hashing
      */
-    public function store(PlanRoleChange $planRoles): RedirectResponse
+    public function store(PlanRoleApplicationService $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(
@@ -267,7 +267,7 @@ class UserCrudController extends CrudController
     /**
      * Custom update method for password hashing
      */
-    public function update(PlanRoleChange $planRoles): RedirectResponse
+    public function update(PlanRoleApplicationService $planRoles): RedirectResponse
     {
         $this->crud->setRequest($this->crud->validateRequest());
         $this->crud->setRequest(

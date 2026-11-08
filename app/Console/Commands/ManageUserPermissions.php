@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Application\User\Services\PlanRoleChange;
+use App\Application\User\Services\PlanRoleApplicationService;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
 use Illuminate\Console\Command;
@@ -31,7 +31,7 @@ class ManageUserPermissions extends Command
     /**
      * Execute the console command.
      */
-    public function handle(PlanRoleChange $planRoles): int
+    public function handle(PlanRoleApplicationService $planRoles): int
     {
         $action = $this->argument('action');
 
@@ -103,7 +103,7 @@ class ManageUserPermissions extends Command
     /**
      * Assign role to user
      */
-    private function assignRole(PlanRoleChange $planRoles): int
+    private function assignRole(PlanRoleApplicationService $planRoles): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
@@ -147,7 +147,7 @@ class ManageUserPermissions extends Command
     /**
      * Remove role from user
      */
-    private function removeRole(PlanRoleChange $planRoles): int
+    private function removeRole(PlanRoleApplicationService $planRoles): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
