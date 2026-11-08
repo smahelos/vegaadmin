@@ -4,7 +4,6 @@ namespace App\Infrastructure\Services\User;
 
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Models\User;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 /**
@@ -16,54 +15,36 @@ use Illuminate\Support\Facades\Log;
 class LaravelUserPermissionService implements UserPermissionServiceInterface
 {
     /**
-     * Cache key prefix for user permissions
-     */
-    private const CACHE_PREFIX = 'user_permissions_';
-
-    /**
-     * Cache TTL in seconds (30 minutes)
-     */
-    private const CACHE_TTL = 1800;
-
-    /**
      * Get all permission names for a user.
      */
     public function getUserPermissions(int $userId, string $guard = 'web'): array
     {
-        $cacheKey = self::CACHE_PREFIX . "{$userId}_{$guard}";
+        $user = User::find($userId);
 
-        return Cache::remember(
-            $cacheKey,
-            self::CACHE_TTL,
-            function () use ($userId, $guard) {
-                $user = User::find($userId);
+        if (!$user) {
+            Log::debug('UserPermissionService: User not found', [
+                'user_id' => $userId,
+                'guard' => $guard,
+            ]);
 
-                if (!$user) {
-                    Log::debug('UserPermissionService: User not found', [
-                        'user_id' => $userId,
-                        'guard' => $guard,
-                    ]);
+            return [];
+        }
 
-                    return [];
-                }
+        $permissions = $user->getAllPermissions();
+        $permissionNames = $permissions->pluck('name');
+        $permissionNames = $permissionNames->unique();
+        $permissionNames = $permissionNames->values();
+        $permissionNames = $permissionNames->toArray();
 
-                $permissions = $user->getAllPermissions();
-                $permissionNames = $permissions->pluck('name');
-                $permissionNames = $permissionNames->unique();
-                $permissionNames = $permissionNames->values();
-                $permissionNames = $permissionNames->toArray();
-
-                Log::debug(
-                    'UserPermissionService: Retrieved user permissions',
-                    [
-                        'user_id' => $userId,
-                        'guard' => $guard,
-                        'permissions_count' => count($permissionNames),
-                    ],
-                );
-
-                return $permissionNames;
-            },
+        Log::debug(
+            'UserPermissionService: Retrieved user permissions',
+            [
+                'user_id' => $userId,
+                'guard' => $guard,
+                'permissions_count' => count($permissionNames),
+            ],
         );
+
+        return $permissionNames;
     }
 }

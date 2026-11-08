@@ -24,11 +24,25 @@ final class ProductPermissionsTest extends TestCase
     {
         return [
             'index' => ['index'],
+            'create' => ['create'],
             'store' => ['store'],
             'show' => ['show'],
             'edit' => ['edit'],
             'update' => ['update'],
             'destroy' => ['destroy'],
+        ];
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function ownedActions(): array
+    {
+        return [
+            'show' => ['show', 'frontend.can_view_product'],
+            'edit' => ['edit', 'frontend.can_update_product'],
+            'update' => ['update', 'frontend.can_update_product'],
+            'destroy' => ['destroy', 'frontend.can_delete_product'],
         ];
     }
 
@@ -65,18 +79,77 @@ final class ProductPermissionsTest extends TestCase
     }
 
     #[Test]
-    public function a_permission_does_not_reach_the_product_of_another_user(): void
+    #[DataProvider('ownedActions')]
+    public function a_permission_does_not_reach_the_product_of_another_user(string $action, string $permission): void
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.can_delete_product');
+        $user->givePermissionTo($permission);
         $product = $this->productOf($userFactory->create());
         $this->actingAs($user, 'web');
 
-        $response = $this->callAction('destroy', $product);
+        $response = $this->callAction($action, $product);
 
         $response->assertNotFound();
         $this->assertModelExists($product);
+    }
+
+    #[Test]
+    public function a_revoked_permission_stops_applying_at_once(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $owner->givePermissionTo('frontend.can_view_product');
+        $product = $this->productOf($owner);
+        $this->actingAs($owner, 'web');
+
+        $response = $this->callAction('show', $product);
+        $response->assertOk();
+
+        $owner->revokePermissionTo('frontend.can_view_product');
+
+        $response = $this->callAction('show', $product);
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function the_create_link_needs_the_create_permission(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->givePermissionTo('frontend.can_view_product');
+        $this->actingAs($user, 'web');
+        $locale = ['locale' => 'cs'];
+        $createUrl = route('frontend.product.create', $locale);
+
+        $response = $this->get(
+            route('frontend.products', $locale),
+        );
+        $response->assertDontSee($createUrl);
+
+        $user->givePermissionTo('frontend.can_create_product');
+
+        $response = $this->get(
+            route('frontend.products', $locale),
+        );
+        $response->assertSee($createUrl);
+    }
+
+    #[Test]
+    public function the_invoice_form_offers_the_product_picker_only_with_the_view_permission(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $this->actingAs($user, 'web');
+        $url = route('frontend.invoice.create', ['locale' => 'cs']);
+
+        $response = $this->get($url);
+        $response->assertDontSee('select-product');
+
+        $user->givePermissionTo('frontend.can_view_product');
+
+        $response = $this->get($url);
+        $response->assertSee('select-product');
     }
 
     private function callAction(string $action, Product $product): TestResponse
@@ -92,6 +165,9 @@ final class ProductPermissionsTest extends TestCase
         return match ($action) {
             'index' => $this->get(
                 route('frontend.products', $locale),
+            ),
+            'create' => $this->get(
+                route('frontend.product.create', $locale),
             ),
             'store' => $this->post(
                 route('frontend.product.store', $locale),

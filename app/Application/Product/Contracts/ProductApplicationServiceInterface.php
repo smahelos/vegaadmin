@@ -33,17 +33,22 @@ interface ProductApplicationServiceInterface
     public function deleteProduct(int $productId, int $userId): void;
 
     /**
-     * Check if user can view product (without loading Eloquent model).
+     * Check if user can create a product.
      */
-    public function authorizeViewProduct(int $userId, int $productId): void;
+    public function authorizeCreateProduct(int $userId): void;
 
     /**
-     * Check if user can update product (without loading Eloquent model).
+     * Return the product the user can view.
      */
-    public function authorizeUpdateProduct(int $userId, int $productId): void;
+    public function authorizeViewProduct(int $userId, int $productId): ProductDTO;
 
     /**
-     * Check if user can delete product (without loading Eloquent model).
+     * Return the product the user can update.
+     */
+    public function authorizeUpdateProduct(int $userId, int $productId): ProductDTO;
+
+    /**
+     * Check if user can delete product.
      */
     public function authorizeDeleteProduct(int $userId, int $productId): void;
 
@@ -56,9 +61,4 @@ interface ProductApplicationServiceInterface
      * Get all product categories
      */
     public function getAllCategories(): array;
-
-    /**
-     * Find a product by ID for the given user.
-     */
-    public function findProduct(int $userId, int $id): ProductDTO;
 }

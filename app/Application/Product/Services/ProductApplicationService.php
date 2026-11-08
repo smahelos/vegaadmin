@@ -105,7 +105,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         }
     }
 
-    public function findProduct(int $userId, int $id): ProductDTO
+    private function findProduct(int $userId, int $id): ProductDTO
     {
         $product = $this->productDomainService->findProductForUser(
             ProductId::fromInt($id),
@@ -119,18 +119,23 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         return $product;
     }
 
-    public function authorizeViewProduct(int $userId, int $productId): void
+    public function authorizeCreateProduct(int $userId): void
     {
-        $this->authorizeProduct(
+        $this->requirePermission($userId, 'frontend.can_create_product');
+    }
+
+    public function authorizeViewProduct(int $userId, int $productId): ProductDTO
+    {
+        return $this->authorizeProduct(
             $userId,
             $productId,
             'frontend.can_view_product',
         );
     }
 
-    public function authorizeUpdateProduct(int $userId, int $productId): void
+    public function authorizeUpdateProduct(int $userId, int $productId): ProductDTO
     {
-        $this->authorizeProduct(
+        return $this->authorizeProduct(
             $userId,
             $productId,
             'frontend.can_update_product',
@@ -156,9 +161,18 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         int $userId,
         int $productId,
         string $permission,
-    ): void {
-        $this->findProduct($userId, $productId);
+    ): ProductDTO {
+        $product = $this->findProduct($userId, $productId);
+        $this->requirePermission($userId, $permission);
 
+        return $product;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    private function requirePermission(int $userId, string $permission): void
+    {
         if (
             !in_array(
                 $permission,

@@ -93,7 +93,6 @@ class UserServiceProvider extends ServiceProvider
             SpatieAuthorizationAdapter::class,
         );
 
-        // CRUD access service for Backpack
         // User permissions service
         $this->app->bind(
             UserPermissionServiceInterface::class,
