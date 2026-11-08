@@ -176,7 +176,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         if (
             !in_array(
                 $permission,
-                $this->permissions->getUserPermissions($userId, 'web'),
+                $this->permissions->getUserPermissions($userId),
                 true,
             )
         ) {

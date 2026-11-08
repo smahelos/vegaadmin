@@ -52,7 +52,7 @@ final class InvoiceItemsApplicationService
 
     private function assertCanEdit(UserId $actorId): void
     {
-        $permissions = $this->permissions->getUserPermissions($actorId->toInt(), 'backpack');
+        $permissions = $this->permissions->getUserPermissions($actorId->toInt());
         if (
             !in_array(
                 'can_create_invoice',

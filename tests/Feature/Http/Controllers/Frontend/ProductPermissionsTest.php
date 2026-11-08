@@ -136,6 +136,32 @@ final class ProductPermissionsTest extends TestCase
     }
 
     #[Test]
+    public function the_product_screens_offer_only_the_permitted_actions(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $owner->givePermissionTo('frontend.can_view_product');
+        $product = $this->productOf($owner);
+        $this->actingAs($owner, 'web');
+        $editUrl = route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]);
+        $deleteForm = 'delete-form-' . $product->id;
+
+        $response = $this->callAction('index', $product);
+        $response->assertDontSee($editUrl);
+        $response->assertDontSee($deleteForm);
+        $response = $this->callAction('show', $product);
+        $response->assertDontSee($editUrl);
+
+        $owner->givePermissionTo('frontend.can_update_product', 'frontend.can_delete_product');
+
+        $response = $this->callAction('index', $product);
+        $response->assertSee($editUrl);
+        $response->assertSee($deleteForm);
+        $response = $this->callAction('show', $product);
+        $response->assertSee($editUrl);
+    }
+
+    #[Test]
     public function the_invoice_form_offers_the_product_picker_only_with_the_view_permission(): void
     {
         $userFactory = User::factory();

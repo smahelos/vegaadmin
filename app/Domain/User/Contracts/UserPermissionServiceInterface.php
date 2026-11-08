@@ -16,5 +16,5 @@ interface UserPermissionServiceInterface
      *
      * @return array Array of permission names
      */
-    public function getUserPermissions(int $userId, string $guard = 'web'): array;
+    public function getUserPermissions(int $userId): array;
 }

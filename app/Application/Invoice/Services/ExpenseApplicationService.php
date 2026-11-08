@@ -74,7 +74,7 @@ final class ExpenseApplicationService
         if (
             !in_array(
                 $permission,
-                $this->permissions->getUserPermissions($actorId->toInt(), 'backpack'),
+                $this->permissions->getUserPermissions($actorId->toInt()),
                 true,
             )
         ) {

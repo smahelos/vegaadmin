@@ -69,7 +69,7 @@ final class InvoiceListApplicationService
         if (
             !in_array(
                 'frontend.can_view_invoice',
-                $this->permissions->getUserPermissions($userId->toInt(), 'web'),
+                $this->permissions->getUserPermissions($userId->toInt()),
                 true,
             )
         ) {

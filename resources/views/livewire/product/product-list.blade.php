@@ -130,11 +130,14 @@
                             <i class="fas fa-eye"></i>
                         </a>
                         <!-- Edit button -->
+                        @can('frontend.can_update_product')
                         <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
                             title="{{ __('products.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
+                        @endcan
                         <!-- Delete button -->
+                        @can('frontend.can_delete_product')
                         <a href="#" title="{{ __('products.actions.delete') }}" class="text-red-600 hover:text-red-900"
                             onclick="event.preventDefault(); if(confirm('@php echo $confirmDeleteTxt; @endphp')) document.getElementById('delete-form-{{ $product->id }}').submit();">
                             <i class="fas fa-trash-alt"></i>
@@ -144,6 +147,7 @@
                             @csrf
                             @method('DELETE')
                         </form>
+                        @endcan
                     </td>
                 </tr>
                 @endforeach
