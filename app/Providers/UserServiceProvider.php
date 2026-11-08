@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Application\User\Contracts\UserApplicationServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
 use App\Application\User\Services\UserApplicationService;
@@ -19,7 +18,6 @@ use App\Domain\User\Services\LocaleService;
 use App\Domain\User\Services\UserService;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
-use App\Infrastructure\Authorization\Services\CrudAccessService;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserDtoRepository;
@@ -96,11 +94,6 @@ class UserServiceProvider extends ServiceProvider
         );
 
         // CRUD access service for Backpack
-        $this->app->bind(
-            CrudAccessServiceInterface::class,
-            CrudAccessService::class,
-        );
-
         // User permissions service
         $this->app->bind(
             UserPermissionServiceInterface::class,

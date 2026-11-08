@@ -13,7 +13,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
@@ -35,10 +34,6 @@ class ProductRequestFeatureTest extends TestCase
         // Set up frontend test environment with roles and permissions
         $this->setUpFrontendTestEnvironment();
 
-        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
-        $permissionQuery->where('guard_name', 'web');
-        $permission = $permissionQuery->first();
-
         // Create regular user with limited role
         if (!$this->user) {
             $userFactory = User::factory();
@@ -56,7 +51,9 @@ class ProductRequestFeatureTest extends TestCase
                 ],
             );
         }
-        $this->user->givePermissionTo($permission);
+        $this->user->givePermissionTo(
+            ['frontend.can_create_product', 'frontend.can_update_product'],
+        );
 
         // Create related models
         $this->tax = $this->createTax();

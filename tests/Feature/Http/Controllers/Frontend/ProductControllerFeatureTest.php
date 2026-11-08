@@ -9,7 +9,6 @@ use App\Models\User;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
@@ -24,11 +23,14 @@ class ProductControllerFeatureTest extends TestCase
 
         $this->setUpFrontendTestEnvironment();
 
-        // Create required permissions for 'web' guard
-        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_product');
-        $permissionQuery->where('guard_name', 'web');
-        $permission = $permissionQuery->first();
-        $this->user->givePermissionTo($permission);
+        $this->user->givePermissionTo(
+            [
+                'frontend.can_view_product',
+                'frontend.can_create_product',
+                'frontend.can_update_product',
+                'frontend.can_delete_product',
+            ],
+        );
     }
 
     #[Test]

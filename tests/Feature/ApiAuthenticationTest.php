@@ -30,9 +30,6 @@ final class ApiAuthenticationTest extends TestCase
         $this->assertTrue(
             $user->hasPermissionTo('frontend.can_view_contact', 'web'),
         );
-        $this->assertFalse(
-            $user->hasPermissionTo('frontend.api.extended', 'web'),
-        );
     }
 
     #[Test]
@@ -105,9 +102,6 @@ final class ApiAuthenticationTest extends TestCase
         $roleQuery = Role::where('name', 'frontend_user');
         $roleQuery->where('guard_name', 'web');
         $frontendRole = $roleQuery->first();
-        $roleQuery = Role::where('name', 'frontend_user_plus');
-        $roleQuery->where('guard_name', 'web');
-        $frontendPlusRole = $roleQuery->first();
 
         // Admin should have backpack permissions
         $this->assertTrue(
@@ -125,14 +119,6 @@ final class ApiAuthenticationTest extends TestCase
         // Frontend user should have basic frontend permissions
         $this->assertTrue(
             $frontendRole->hasPermissionTo('frontend.api.access', 'web'),
-        );
-        $this->assertFalse(
-            $frontendRole->hasPermissionTo('frontend.api.extended', 'web'),
-        );
-
-        // Frontend plus user should have extended permissions
-        $this->assertTrue(
-            $frontendPlusRole->hasPermissionTo('frontend.api.extended', 'web'),
         );
     }
 }

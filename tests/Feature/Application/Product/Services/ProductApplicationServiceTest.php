@@ -9,7 +9,6 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 final class ProductApplicationServiceTest extends TestCase
@@ -40,23 +39,6 @@ final class ProductApplicationServiceTest extends TestCase
         $this->expectException(ModelNotFoundException::class);
 
         $products->findProduct($other->id, $product->id);
-    }
-
-    #[Test]
-    public function find_product_returns_the_product_of_another_user_to_an_admin(): void
-    {
-        $userFactory = User::factory();
-        $owner = $userFactory->create();
-        $admin = $userFactory->create();
-        $admin->assignRole(
-            Role::findByName('admin', 'backpack'),
-        );
-        $product = $this->productOf($owner);
-
-        $products = app(ProductApplicationServiceInterface::class);
-        $found = $products->findProduct($admin->id, $product->id);
-
-        $this->assertSame($product->id, $found->id);
     }
 
     private function productOf(User $owner): Product

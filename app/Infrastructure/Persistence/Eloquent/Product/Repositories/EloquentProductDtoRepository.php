@@ -27,13 +27,6 @@ class EloquentProductDtoRepository implements ProductDtoReadRepositoryInterface,
         private readonly EloquentProductMapper $mapper,
     ) {}
 
-    public function findByIdAny(ProductId $id): ?ProductDTO
-    {
-        $product = $this->productRepository->findByIdAny($id->getValue());
-
-        return $product ? $this->mapper->toDto($product) : null;
-    }
-
     public function findByIdForUser(ProductId $id, UserId $userId): ?ProductDTO
     {
         $product = $this->productRepository->findByIdForUserInt($id->getValue(), $userId->toInt());

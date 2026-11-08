@@ -87,14 +87,6 @@ class ProductService implements ProductServiceInterface
     }
 
     /**
-     * Find product by ID for any user (admin access)
-     */
-    public function findProductAny(ProductId $productId): ?ProductDTO
-    {
-        return $this->productReadRepository->findByIdAny($productId);
-    }
-
-    /**
      * Find product by ID for specific user
      */
     public function findProductForUser(ProductId $productId, UserId $userId): ?ProductDTO

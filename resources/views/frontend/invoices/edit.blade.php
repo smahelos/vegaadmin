@@ -453,7 +453,9 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
             </div>
 
             <div class="product-list-content">
+                @can('frontend.can_view_product')
                 @livewire('product.product-list-select')
+                @endcan
             </div>
         </div>
     </div>

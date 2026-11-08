@@ -591,7 +591,9 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
             </div>
 
             <div class="product-list-content">
+                @can('frontend.can_view_product')
                 @livewire('product.product-list-select')
+                @endcan
             </div>
         </div>
     </div>

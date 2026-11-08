@@ -8,7 +8,6 @@ use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Application\Product\Contracts\ProductRepositoryInterface;
 use App\Application\Product\Mappers\ProductArrayMapper;
 use App\Application\Product\Services\ProductApplicationService;
-use App\Application\Product\Services\ProductAuthorizationService;
 use App\Application\Product\Services\ProductInputValidationService;
 use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
@@ -17,7 +16,6 @@ use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\Services\ProductService;
 use App\Domain\Product\Validation\ProductCreationValidator;
-use App\Infrastructure\Authorization\Policies\Product\ProductPolicy;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductCategoryObserver;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductObserver;
@@ -29,7 +27,6 @@ use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentProduct
 use App\Infrastructure\Services\Product\ProductFormDataService;
 use App\Models\Product;
 use App\Models\ProductCategory;
-use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -119,10 +116,6 @@ class ProductServiceProvider extends ServiceProvider
 
         // Application layer services
         $this->app->bind(
-            ProductAuthorizationService::class,
-        );
-
-        $this->app->bind(
             ProductInputValidationService::class,
         );
 
@@ -135,7 +128,5 @@ class ProductServiceProvider extends ServiceProvider
     {
         Product::observe(ProductObserver::class);
         ProductCategory::observe(ProductCategoryObserver::class);
-
-        Gate::policy(Product::class, ProductPolicy::class);
     }
 }

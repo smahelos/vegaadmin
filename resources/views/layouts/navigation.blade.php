@@ -39,7 +39,7 @@
                     </x-nav-link>
                     @endcan
 
-                    @if($user->hasPermissionTo('frontend.can_create_edit_product'))
+                    @if($user->hasPermissionTo('frontend.can_view_product'))
                     <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.product*')">
                         {{ __('general.navigation.products') }}
@@ -199,7 +199,7 @@
                     </x-responsive-nav-link>
                     @endcan
 
-            @if($user->hasPermissionTo('frontend.can_create_edit_product'))
+            @if($user->hasPermissionTo('frontend.can_view_product'))
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                 :active="Request::routeIs('frontend.product*')">
                 {{ __('general.navigation.products') }}

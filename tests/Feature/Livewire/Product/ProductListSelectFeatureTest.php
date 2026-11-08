@@ -22,6 +22,7 @@ class ProductListSelectFeatureTest extends TestCase
         $this->setupTestRoutes();
         $userFactory = User::factory();
         $this->user = $userFactory->create();
+        $this->user->givePermissionTo('frontend.can_view_product');
         $this->actingAs($this->user);
     }
 

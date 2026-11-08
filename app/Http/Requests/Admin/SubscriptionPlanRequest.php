@@ -25,10 +25,12 @@ class SubscriptionPlanRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        // Only allow logged in users with proper permissions
         $user = backpack_user();
+        if ($this->isMethod('POST')) {
+            return $user?->can('can_create_subscription_plan') === true;
+        }
 
-        return $user && $user->hasPermissionTo('can_create_edit_subscription_plan', 'backpack');
+        return $user?->can('can_update_subscription_plan') === true;
     }
 
     /**

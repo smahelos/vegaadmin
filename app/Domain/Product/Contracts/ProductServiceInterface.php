@@ -29,11 +29,6 @@ interface ProductServiceInterface
     public function deleteProduct(ProductId $productId): void;
 
     /**
-     * Find product by ID for any user (admin access)
-     */
-    public function findProductAny(ProductId $productId): ?ProductDTO;
-
-    /**
      * Find product by ID for specific user
      */
     public function findProductForUser(ProductId $productId, UserId $userId): ?ProductDTO;

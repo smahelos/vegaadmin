@@ -13,11 +13,6 @@ use App\Domain\User\ValueObjects\UserId;
 interface ProductDtoReadRepositoryInterface
 {
     /**
-     * Find product by ID for any user (admin access).
-     */
-    public function findByIdAny(ProductId $id): ?ProductDTO;
-
-    /**
      * Find product by ID for specific user.
      */
     public function findByIdForUser(ProductId $id, UserId $userId): ?ProductDTO;

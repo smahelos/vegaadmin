@@ -22,6 +22,7 @@ final class SharedProductCatalogTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->givePermissionTo('frontend.can_update_product');
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id]);
         $this->actingAs($user, 'web');
@@ -74,6 +75,7 @@ final class SharedProductCatalogTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->givePermissionTo('frontend.can_view_product');
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
         $productFactory->create(['name' => 'Other private product']);

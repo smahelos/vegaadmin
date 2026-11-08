@@ -21,7 +21,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-9. [Permission naming](#step-9-permission-naming) — in progress. The security gaps found in steps 2 and 7 were closed 2026-11-06 (branch `ls-security-gaps`, PR #74: frontend invoice writes, cron tasks, GoPay callbacks, operation permissions of the admin CRUD screens, published Docker ports, a test-only route). Before step 10, which changes the same requests, and step 19, whose plans grant the permissions.
+9. ~~Permission naming: "Permission naming".~~ Done 2026-11-08 (branch `ls-permission-naming`): one per-operation scheme with literal names, including the subscription, plan, plan feature and user screens; the PermissionManager role and permission screens gated by their own permissions; frontend products checked by permission; `<guard>.api.<entity>` removed.
 10. ~~Entity limit conversion: "Entity limits do not follow D-047".~~ Done 2026-11-07 (branch `ls-entity-limit-conversion`): `role_limits` with its admin CRUD screen, the plan role assignment time on `users`, the `EntityLimit` domain service in every use case that creates or restores a limited entity, usage on the dashboard, the create and list pages and the admin user detail, rate limits in `config/billex.php`; the old system with its tables, `limit_*` and `can_create_<entity>_unlimited` permissions, API, dashboard and CRUD screens is deleted.
 11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
@@ -37,20 +37,6 @@ Each open step has a section below with its items. An item without a **Status** 
 22. [Frontend, API and routes](#step-22-frontend-api-and-routes) — not started: "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 23. [After the conversion](#step-23-after-the-conversion) — not started: Larastan up to `max`, architecture tests instead of the guards.
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
-
-## Step 9: Permission naming
-
-### Permission naming
-- **Status:** in progress. Done 2026-11-06 (branch `ls-security-gaps`, PR #74): per-operation permissions for the admin CRUD screens of banks, cron tasks, expenses, pages, payment methods, products, statuses and taxes and for frontend invoices; what is left is below.
-- **Where:** `app/Infrastructure/Authorization/PermissionCatalog.php`; the remaining `can_create_edit_*` checks in the subscription, plan, plan feature and user requests, policies and menu, the frontend `ExpenseCategoryRequest`, `ProductPolicy` and `layouts/navigation.blade.php`; the frontend `ProductRequest`; `Admin\InvoiceCrudController` and `Admin\ExpenseCrudController`, which build the names by concatenation (`'can_' . $permission . '_invoice'`)
-- **Problem:** three schemes for the same entities: `can_create_edit_<entity>` (subscriptions, plans, plan features, users and the frontend products and expenses), `can_{view,create,update,delete}_<entity>` and `<guard>.api.<entity>`. `ProductPolicy` grants by role instead of permission. `PermissionCatalogCoverageTest` finds only literal names, so the two concatenated checks are not covered. The frontend `ProductRequest::authorize()` checks only that a user is signed in, so creating a product checks no permission (found 2026-11-06).
-- **Fix (decided 2026-10-20):** granular `can_{view,create,update,delete}_<entity>` (`frontend.` prefix for the web guard), other actions `can_<verb>_<entity>`, Backpack operations gated one by one through `GatesCrudOperations` with literal names; drop `can_create_edit_*` and `<guard>.api.<entity>` (keep `<guard>.api.access`). A migration removes the old permissions and grants the new ones to the roles and users that hold them, as `2026_11_06_000003_split_permissions_by_operation.php` does (`rules/permissions.md`).
-
-### Unreachable branch of the frontend user request
-- **Status:** in progress: the branch is gone from `app/Http/Requests/UserRequest.php`.
-- **Where:** `tests/Feature/Architecture/PermissionCatalogCoverageTest.php` (`UNREACHABLE`), `tests/Feature/Http/Controllers/Frontend/ProfileControllerFeatureTest.php` (`setUp()`)
-- **Problem:** the coverage test still allowlists `frontend.can_create_edit_user`, which no code checks any more, and the profile test still creates it and grants it to its user.
-- **Fix:** drop the allowlist and the profile test's permission setup.
 
 ## Step 11: Foundations for the rewrites
 
@@ -419,6 +405,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** `ProductWriteData::$price` as `?Money`, built at the boundary from one input shape; the validator and `ProductPrice` without floats; the requests limit the decimal places.
 
 ## Step 22: Frontend, API and routes
+
+### Permissions that nothing checks
+- **Where:** `PermissionCatalog` (`frontend.can_delete_invoice`, `frontend.can_view_subscription`, `frontend.can_create_subscription`), `Api\InvoiceController::getInvoice`
+- **Problem:** roles are granted these three permissions but no code checks them; no frontend route deletes an invoice and the subscription screens check only the signed-in user. `getInvoice` checks only `<guard>.api.access`, while `rules/permissions.md` requires an API endpoint to check the same entity permission as its screen. Found 2026-11-08 in step 9.
+- **Fix:** check each permission where its action exists, or remove it with a migration if the action is not planned; `getInvoice` checks `can_view_invoice` for the admin API and `frontend.can_view_invoice` for the frontend API.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.

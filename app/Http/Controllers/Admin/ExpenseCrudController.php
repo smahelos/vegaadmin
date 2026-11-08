@@ -36,6 +36,7 @@ final class ExpenseCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -61,20 +62,15 @@ final class ExpenseCrudController extends CrudController
             __('expenses.entity.plural'),
         );
 
-        foreach (
+        $this->denyOperationsWithout(
             [
-                'list' => 'view',
-                'show' => 'view',
-                'create' => 'create',
-                'update' => 'update',
-                'delete' => 'delete',
-            ] as $operation => $permission
-        ) {
-            $user = backpack_user();
-            if ($user?->can('can_' . $permission . '_expense') !== true) {
-                CRUD::denyAccess($operation);
-            }
-        }
+                'list' => 'can_view_expense',
+                'show' => 'can_view_expense',
+                'create' => 'can_create_expense',
+                'update' => 'can_update_expense',
+                'delete' => 'can_delete_expense',
+            ],
+        );
     }
 
     /**

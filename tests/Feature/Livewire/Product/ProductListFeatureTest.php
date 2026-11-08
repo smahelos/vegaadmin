@@ -20,6 +20,7 @@ class ProductListFeatureTest extends TestCase
         $this->setupTestRoutes();
         $userFactory = User::factory();
         $this->user = $userFactory->create();
+        $this->user->givePermissionTo('frontend.can_view_product');
     }
 
     /**
@@ -313,15 +314,11 @@ class ProductListFeatureTest extends TestCase
         $component = Livewire::test(ProductList::class);
         $component->assertStatus(200);
 
-        // Test behavior when not authenticated (Auth::id() returns null)
         $auth = auth();
         $auth->logout();
 
         $component = Livewire::test(ProductList::class);
-        $products = $component->viewData('products');
-
-        // Should return empty collection when no user authenticated
-        $this->assertEquals(0, $products->count());
+        $component->assertStatus(403);
     }
 
     #[Test]

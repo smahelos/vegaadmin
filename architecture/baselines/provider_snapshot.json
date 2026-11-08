@@ -1,11 +1,19 @@
 {
-    "generated_at": "2026-11-07T17:11:54+00:00",
+    "generated_at": "2026-11-08T17:18:55+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
                 {
                     "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\UserCrudController",
                     "concrete": "App\\Http\\Controllers\\Admin\\UserCrudController"
+                },
+                {
+                    "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\RoleCrudController",
+                    "concrete": "App\\Http\\Controllers\\Admin\\RoleCrudController"
+                },
+                {
+                    "abstract": "Backpack\\PermissionManager\\app\\Http\\Controllers\\PermissionCrudController",
+                    "concrete": "App\\Http\\Controllers\\Admin\\PermissionCrudController"
                 }
             ],
             "singleton": []
@@ -425,10 +433,6 @@
                     "concrete": "App\\Application\\Product\\Services\\ProductApplicationService"
                 },
                 {
-                    "abstract": "App\\Application\\Product\\Services\\ProductAuthorizationService",
-                    "concrete": "closure"
-                },
-                {
                     "abstract": "App\\Application\\Product\\Services\\ProductInputValidationService",
                     "concrete": "closure"
                 },
@@ -472,10 +476,6 @@
                 {
                     "abstract": "App\\Application\\User\\Contracts\\UserAuthorizationAdapterInterface",
                     "concrete": "App\\Infrastructure\\Authorization\\Adapters\\User\\SpatieAuthorizationAdapter"
-                },
-                {
-                    "abstract": "App\\Application\\User\\Contracts\\CrudAccessServiceInterface",
-                    "concrete": "App\\Infrastructure\\Authorization\\Services\\CrudAccessService"
                 },
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface",
@@ -719,14 +719,6 @@
             "actual": {
                 "implementation": "App\\Application\\Shared\\Money\\Services\\CurrencyApplicationService",
                 "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\User\\Contracts\\CrudAccessServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Authorization\\Services\\CrudAccessService",
-                "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }
         },

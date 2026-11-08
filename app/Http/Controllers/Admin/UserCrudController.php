@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\User\Contracts\CrudAccessServiceInterface;
 use App\Application\User\Services\EntityUsageApplicationService;
 use App\Application\User\Services\PlanRoleApplicationService;
 use App\Domain\User\DTO\EntityUsageDTO;
@@ -35,13 +34,12 @@ class UserCrudController extends CrudController
         store as traitStore;
     }
     use DeleteOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
     use UpdateOperation {
         update as traitUpdate;
     }
-
-    // Access control is configured via application CrudAccessServiceInterface in setup()
     use UserFormFields;
 
     public function __construct(
@@ -64,10 +62,15 @@ class UserCrudController extends CrudController
             __('users.entity.plural'),
         );
 
-        // Configure access using centralized service
-        $userId = optional(backpack_user())->id ?? 0;
-        $crudAccess = app(CrudAccessServiceInterface::class);
-        $crudAccess->configureCrudAccess($this->crud, (int) $userId);
+        $this->denyOperationsWithout(
+            [
+                'list' => 'can_view_user',
+                'show' => 'can_view_user',
+                'create' => 'can_create_user',
+                'update' => 'can_update_user',
+                'delete' => 'can_delete_user',
+            ],
+        );
     }
 
     /**

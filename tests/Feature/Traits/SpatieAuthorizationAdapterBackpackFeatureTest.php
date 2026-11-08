@@ -8,7 +8,6 @@ use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
@@ -23,7 +22,6 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         // Create required permissions/roles for backpack guard
         Permission::firstOrCreate(['name' => 'test.permission', 'guard_name' => 'backpack']);
         Permission::firstOrCreate(['name' => 'another.permission', 'guard_name' => 'backpack']);
-        Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
     }
 
     #[Test]
@@ -48,39 +46,6 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
 
         $this->assertTrue(
             $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
-        );
-    }
-
-    #[Test]
-    public function is_backpack_admin_true_when_role_assigned(): void
-    {
-        $userFactory = User::factory();
-        $user = $userFactory->create();
-        $roleQuery = Role::where('name', 'admin');
-        $roleQuery->where('guard_name', 'backpack');
-        $role = $roleQuery->first();
-        $user->assignRole($role);
-
-        $this->assertTrue(
-            $this->adapter->isBackpackAdmin($user->id),
-        );
-    }
-
-    #[Test]
-    public function has_backpack_view_permission_true_with_permission(): void
-    {
-        $userFactory = User::factory();
-        $user = $userFactory->create();
-        $permissionQuery = Permission::where('name', 'can_view_contact');
-        $permissionQuery->where('guard_name', 'backpack');
-        $viewPermission = $permissionQuery->first();
-        $user->givePermissionTo($viewPermission);
-
-        $this->assertTrue(
-            $this->adapter->hasBackpackViewPermission($user->id, 'contact'),
-        );
-        $this->assertFalse(
-            $this->adapter->hasBackpackViewPermission($user->id, 'business'),
         );
     }
 }

@@ -3,11 +3,9 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -19,13 +17,6 @@ class ProfileControllerFeatureTest extends TestCase
     {
         parent::setUp();
         $this->setUpFrontendTestEnvironment();
-        // Ensure user has necessary permission (frontend.can_create_edit_user) for UserRequest authorize
-        $permissionQuery = Permission::where('name', 'frontend.can_create_edit_user');
-        $permissionQuery->where('guard_name', 'web');
-        $perm = $permissionQuery->first();
-        if ($perm) {
-            $this->user->givePermissionTo($perm);
-        }
     }
 
     #[Test]
