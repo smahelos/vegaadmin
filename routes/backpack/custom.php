@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\CronTaskCrudController;
 use App\Http\Controllers\Admin\DatabaseDashboardController;
 use App\Http\Controllers\Admin\DatabaseMaintenanceLogCrudController;
 use App\Http\Controllers\Admin\DocumentPartyCrudController;
+use App\Http\Controllers\Admin\EntityUsageController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
@@ -54,6 +55,8 @@ Route::group(
         $route->name('admin.document-parties.contacts');
         $route = Route::get('document-parties/accounts', [DocumentPartyCrudController::class, 'accounts']);
         $route->name('admin.document-parties.accounts');
+        $route = Route::get('entity-usage', [EntityUsageController::class, 'show']);
+        $route->name('admin.entity-usage.show');
         $route = Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog']);
         $route->name('admin.invoice-items.catalog');
         $route = Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview']);

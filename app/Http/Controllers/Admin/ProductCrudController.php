@@ -7,8 +7,10 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Models\Product;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -189,6 +191,9 @@ final class ProductCrudController extends CrudController
         $field->model(User::class);
         $field->attribute('name');
         $field->allows_null(false);
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::PRODUCT),
+        );
 
         $field = CRUD::field('price');
         $field->type('number');

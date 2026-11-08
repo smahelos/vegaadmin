@@ -2,16 +2,7 @@
     Entity usage column (Billex implementation): a user's usage of each plan limit, read-only.
     The value is a list of EntityUsageDTO, or null when the user holds several plan roles.
 --}}
-@push('after_styles')
-    @once
-        <style>
-            /* Tabler paints the value of a native progress element with --tblr-primary */
-            .entity-usage-ok { --tblr-primary: var(--tblr-success); }
-            .entity-usage-near { --tblr-primary: var(--tblr-warning); }
-            .entity-usage-full { --tblr-primary: var(--tblr-danger); }
-        </style>
-    @endonce
-@endpush
+@include('admin.inc.entity_usage_styles')
 
 @if ($column['value'] === null)
     <span class="text-danger">{{ __('role_limits.usage.ambiguous') }}</span>

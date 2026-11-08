@@ -9,10 +9,12 @@ use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ArchiveBusinessRequest;
 use App\Http\Requests\Admin\BusinessRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
+use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Models\Business;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -207,6 +209,9 @@ final class BusinessCrudController extends CrudController
     {
         CRUD::setValidation(BusinessRequest::class);
         $this->addOwnerField();
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::BUSINESS),
+        );
         $this->addProfileFields();
         $this->addLogoField();
     }
@@ -214,6 +219,9 @@ final class BusinessCrudController extends CrudController
     protected function setupUpdateOperation(): void
     {
         CRUD::setValidation(BusinessRequest::class);
+        CRUD::addField(
+            EntityUsageFormFields::field(LimitedEntity::BUSINESS),
+        );
         $this->addProfileFields($this->entry()->address);
         $this->addLogoField();
     }
