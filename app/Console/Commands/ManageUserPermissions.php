@@ -2,6 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Application\User\Services\PlanRoleChange;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Spatie\Permission\Models\Permission;
@@ -29,7 +31,7 @@ class ManageUserPermissions extends Command
     /**
      * Execute the console command.
      */
-    public function handle(): int
+    public function handle(PlanRoleChange $planRoles): int
     {
         $action = $this->argument('action');
 
@@ -39,9 +41,9 @@ class ManageUserPermissions extends Command
             case 'list-permissions':
                 return $this->listPermissions();
             case 'assign-role':
-                return $this->assignRole();
+                return $this->assignRole($planRoles);
             case 'remove-role':
-                return $this->removeRole();
+                return $this->removeRole($planRoles);
             case 'show-user':
                 return $this->showUser();
             default:
@@ -101,7 +103,7 @@ class ManageUserPermissions extends Command
     /**
      * Assign role to user
      */
-    private function assignRole(): int
+    private function assignRole(PlanRoleChange $planRoles): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
@@ -133,7 +135,10 @@ class ManageUserPermissions extends Command
             return 0; // This is not an error, just a warning
         }
 
+        $userId = UserId::fromInt((int) $user->id);
+        $before = $planRoles->planRoles($userId);
         $user->assignRole($role);
+        $planRoles->recordIfChanged($userId, $before);
         $this->info("Role '{$roleName}' assigned to user {$user->email}");
 
         return 0;
@@ -142,7 +147,7 @@ class ManageUserPermissions extends Command
     /**
      * Remove role from user
      */
-    private function removeRole(): int
+    private function removeRole(PlanRoleChange $planRoles): int
     {
         $userInput = $this->option('user');
         $roleName = $this->option('role');
@@ -166,7 +171,10 @@ class ManageUserPermissions extends Command
             return 0; // This is not an error, just a warning
         }
 
+        $userId = UserId::fromInt((int) $user->id);
+        $before = $planRoles->planRoles($userId);
         $user->removeRole($roleName);
+        $planRoles->recordIfChanged($userId, $before);
         $this->info("Role '{$roleName}' removed from user {$user->email}");
 
         return 0;
