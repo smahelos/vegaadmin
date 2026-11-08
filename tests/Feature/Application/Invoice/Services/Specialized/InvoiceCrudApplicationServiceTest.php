@@ -18,7 +18,6 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Models\Address;
 use App\Models\Business;
 use App\Models\Contact;
-use App\Models\EntityLimitUsage;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\User;
@@ -101,8 +100,6 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
         $beforeAddresses = Address::count();
-        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $user->id);
-        $beforeUsage = $entityLimitUsageQuery->count();
         $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
         try {
             $invoiceService = $this->app->make(InvoiceCrudApplicationServiceInterface::class);
@@ -147,11 +144,6 @@ final class InvoiceCrudApplicationServiceTest extends TestCase
             $invoiceQuery->count(),
         );
         $this->assertSame($beforeAddresses, Address::count());
-        $entityLimitUsageQuery = EntityLimitUsage::where('user_id', $user->id);
-        $this->assertSame(
-            $beforeUsage,
-            $entityLimitUsageQuery->count(),
-        );
     }
 
     /**

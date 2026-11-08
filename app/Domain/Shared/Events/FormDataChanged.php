@@ -11,9 +11,6 @@ use App\Domain\Shared\Events\Contracts\DomainEvent;
  */
 final class FormDataChanged implements DomainEvent
 {
-    /** Occurrence timestamp for potential auditing. */
-    public readonly \DateTimeImmutable $occurredOn;
-
     /**
      * The type of change that occurred
      */
@@ -22,9 +19,6 @@ final class FormDataChanged implements DomainEvent
     /** The ID of the user whose data changed. */
     public readonly int $userId;
 
-    /** Event ID for tracking purposes */
-    private readonly string $eventId;
-
     public function __construct(
         int $userId,
         string $changeType = 'general',
@@ -32,29 +26,11 @@ final class FormDataChanged implements DomainEvent
     ) {
         $this->userId = (int) $userId;
         $this->changeType = $changeType;
-        $this->occurredOn = new \DateTimeImmutable('now');
-        $this->eventId = uniqid('user_', true);
     }
 
     /** {@inheritDoc} */
     public function getEventName(): string
     {
         return self::class;
-    }
-
-    /** {@inheritDoc} */
-    public function getEventId(): string
-    {
-        return $this->eventId;
-    }
-
-    /** {@inheritDoc} */
-    public function getPayload(): array
-    {
-        return [
-            'user_id' => $this->userId,
-            'change_type' => $this->changeType,
-            'occurred_on' => $this->occurredOn->format('Y-m-d H:i:s'),
-        ];
     }
 }

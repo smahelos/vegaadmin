@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\BankAccount;
 use App\Models\Business;
-use App\Models\EntityLimit;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\Tax;
@@ -39,17 +38,6 @@ final class InvoiceItemsFeatureTest extends TestCase
         if ($permission) {
             $this->user->givePermissionTo($permission);
         }
-        EntityLimit::create(
-            [
-                'permission_name' => 'frontend.can_create_invoice',
-                'entity_type' => 'invoice',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'description' => 'Invoice limit for item tests',
-                'is_active' => true,
-            ],
-        );
         $taxFactory = Tax::factory();
         foreach (['12.00', '21.00'] as $rate) {
             $taxFactory->create(

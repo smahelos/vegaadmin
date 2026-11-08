@@ -12,8 +12,6 @@ use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Services\ProductService;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\Shared\Events\Contracts\DomainEvent;
-use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Unit\Enums\Unit;
@@ -34,8 +32,6 @@ final class ProductServiceTest extends TestCase
     private object $writeSpy; // concrete stub instance to introspect captured values
 
     private ProductCreationValidator $validator;
-
-    private EventPublisherInterface $publisher;
 
     protected function setUp(): void
     {
@@ -192,21 +188,10 @@ final class ProductServiceTest extends TestCase
         $this->validator = new ProductCreationValidator(
             $this->createMock(Str::class),
         );
-        // No-op event publisher stub for unit tests
-        $this->publisher = new class implements EventPublisherInterface
-        {
-            public array $published = [];
-
-            public function publish(DomainEvent $event): void
-            {
-                $this->published[] = $event;
-            }
-        };
         $this->service = new ProductService(
             $this->readRepo,
             $this->writeRepo,
             $this->validator,
-            $this->publisher,
         );
     }
 

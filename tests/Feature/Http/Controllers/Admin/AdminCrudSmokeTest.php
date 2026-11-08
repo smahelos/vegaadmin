@@ -10,8 +10,6 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\CronTask;
 use App\Models\DatabaseMaintenanceLog;
-use App\Models\EntityLimit;
-use App\Models\EntityLimitUsage;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
@@ -29,7 +27,6 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use App\Models\Tax;
 use App\Models\User;
-use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\Route;
@@ -66,8 +63,6 @@ class AdminCrudSmokeTest extends TestCase
             'contact' => ['contact', Contact::class],
             'cron-task' => ['cron-task', CronTask::class],
             'database-maintenance-log' => ['database-maintenance-log', DatabaseMaintenanceLog::class],
-            'entity-limit' => ['entity-limit', EntityLimit::class],
-            'entity-usage' => ['entity-usage', EntityLimitUsage::class],
             'expense-category' => ['expense-category', ExpenseCategory::class],
             'expense' => ['expense', Expense::class],
             'invoice' => ['invoice', Invoice::class],
@@ -167,22 +162,6 @@ class AdminCrudSmokeTest extends TestCase
             $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
 
             return $paymentMethodQuery->firstOrFail();
-        }
-
-        if ($model === EntityLimitUsage::class) {
-            $now = CarbonImmutable::now();
-
-            return EntityLimitUsage::create(
-                [
-                    'user_id' => $this->adminUser->id,
-                    'entity_type' => 'invoice',
-                    'metric_type' => 'count',
-                    'period_type' => 'monthly',
-                    'period_start' => $now->startOfMonth(),
-                    'period_end' => $now->endOfMonth(),
-                    'current_value' => 1,
-                ],
-            );
         }
 
         return match ($model) {

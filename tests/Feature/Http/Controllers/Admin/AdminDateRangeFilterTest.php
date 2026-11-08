@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Models\EntityLimitUsage;
 use App\Models\Expense;
 use App\Models\Invoice;
 use Illuminate\Database\Eloquent\Model;
@@ -27,7 +26,6 @@ class AdminDateRangeFilterTest extends TestCase
         return [
             'invoice tax point date' => ['invoice', 'tax_point_date'],
             'expense date' => ['expense', 'expense_date'],
-            'entity usage period start' => ['entity-usage', 'period_start'],
         ];
     }
 
@@ -89,17 +87,6 @@ class AdminDateRangeFilterTest extends TestCase
         return match ($route) {
             'invoice' => $invoiceFactory->create([$filter => $date]),
             'expense' => $expenseFactory->create([$filter => $date]),
-            'entity-usage' => EntityLimitUsage::create(
-                [
-                    'user_id' => $this->adminUser->id,
-                    'entity_type' => 'invoice',
-                    'metric_type' => 'count',
-                    'period_type' => 'monthly',
-                    'period_start' => $date,
-                    'period_end' => $date . ' 23:59:59',
-                    'current_value' => 1,
-                ],
-            ),
         };
     }
 }

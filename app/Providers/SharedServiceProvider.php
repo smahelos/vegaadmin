@@ -35,7 +35,6 @@ use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Domain\Shared\Tax\Services\TaxService;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
-use App\Domain\Shared\Time\Contracts\PeriodServiceInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
 use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusDtoRepository;
@@ -52,7 +51,6 @@ use App\Infrastructure\Shared\Log\LaravelLogger;
 use App\Infrastructure\Shared\Session\LaravelSessionStore;
 use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
-use App\Infrastructure\Shared\Time\CarbonPeriodService;
 use App\Infrastructure\Shared\Time\IcuDateFormatter;
 use App\Infrastructure\Shared\Translation\LaravelTranslator;
 use Illuminate\Database\DatabaseTransactionsManager;
@@ -189,11 +187,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             ClockInterface::class,
             CarbonClock::class,
-        );
-
-        $this->app->bind(
-            PeriodServiceInterface::class,
-            CarbonPeriodService::class,
         );
 
         $this->app->bind(

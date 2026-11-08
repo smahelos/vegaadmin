@@ -201,7 +201,6 @@ final class DevelopmentDataSeeder extends Seeder
                 'businesses',
                 'contacts',
                 'products',
-                'entity_limit_usage',
             ] as $table
         ) {
             $query = DB::table($table);

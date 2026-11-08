@@ -31,8 +31,6 @@ interface ContactReadRepositoryInterface
         PageRequest $page,
     ): PaginatedResult;
 
-    public function countActiveForUser(UserId $userId): int;
-
     /**
      * The user's contacts, archived included, that share the company number, name or email with the profile;
      * which of them are duplicates is decided by DuplicateFinder.

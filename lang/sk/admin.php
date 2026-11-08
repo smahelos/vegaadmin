@@ -29,12 +29,6 @@ return [
         'automation' => 'Automatizácia',
         'statuses' => 'Stavy',
     ],
-    'uels' => [
-        'title' => 'Správa limitov entít',
-        'dashboard' => 'Dashboard UELS',
-        'configuration' => 'Konfigurácia',
-        'monitoring' => 'Monitorovanie',
-    ],
     'cache' => [
         'title' => 'Správa cache',
         'clear_cache' => 'Vymazať cache',

@@ -66,20 +66,4 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
             },
         );
     }
-
-    /**
-     * Check if user exists.
-     */
-    public function userExists(int $userId): bool
-    {
-        $query = User::where('id', $userId);
-        $exists = $query->exists();
-
-        Log::debug('UserPermissionService: User existence check', [
-            'user_id' => $userId,
-            'exists' => $exists,
-        ]);
-
-        return $exists;
-    }
 }

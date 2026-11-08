@@ -4,10 +4,8 @@ paths:
   - "app/Domain/User/**"
   - "app/Application/User/**"
   - "app/Http/Middleware/**"
-  - "app/Http/Requests/**/BaseEntityRequest.php"
-  - "app/Http/Controllers/Admin/EntityLimitCrudController.php"
-  - "app/Http/Controllers/Admin/UELSDashboardController.php"
-  - "app/Http/Controllers/Api/UELSController.php"
+  - "app/Http/Controllers/Admin/RoleLimitCrudController.php"
+  - "app/Http/Requests/Admin/RoleLimitRequest.php"
   - "config/permission.php"
 ---
 
@@ -26,7 +24,7 @@ paths:
 Design: `docs/adr/D-047-entity-limits.md`, behaviour: `docs/prd/PRD_ENTITY_LIMITS.md`.
 
 - A frontend user holds exactly one plan role (`web` guard). Its row in `role_limits` sets the limits, one nullable integer column per limited entity: `NULL` unlimited, `0` not allowed, `N` the limit. A role without a row allows no limited creation. Limits are never merged from several roles and are not permissions.
-- Two kinds of limit: **capacity** (businesses, contacts, products) caps the owner's active rows, so archiving or deleting frees a place and restoring takes one like creating; **monthly quota** (invoices, expenses) caps the rows created in the quota window, which starts at the later of the calendar month's start (application time zone) and the time the current plan role was assigned.
+- Two kinds of limit: **capacity** (businesses, contacts, products) caps the owner's active rows, so archiving or deleting frees a place and restoring takes one like creating; **monthly quota** (invoices, expenses) caps the rows created in the quota window, which starts at the later of the calendar month's start (`app.schedule_timezone`) and the time the current plan role was assigned.
 - Usage is counted from the entity's own rows: no usage table, counters or cache. Quota time is the system time of the action (creation, issuing once invoices are issued), never a date the user enters.
 - The limit belongs to the record's owner, also when an admin creates it. No permission bypasses a limit. Admin reference data have no limits.
 - The limit check runs once, in a domain service called by every use case that creates or restores a limited entity (registration's first business included), inside its transaction: it locks the owner's `users` row (`SELECT … FOR UPDATE`), reads the role's limit, counts the rows and lets the insert or restore run. Form requests, Livewire and Blade never check limits; Blade only shows usage rendered on the server.

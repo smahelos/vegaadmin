@@ -13,8 +13,6 @@ use App\Http\Controllers\Admin\CronTaskCrudController;
 use App\Http\Controllers\Admin\DatabaseDashboardController;
 use App\Http\Controllers\Admin\DatabaseMaintenanceLogCrudController;
 use App\Http\Controllers\Admin\DocumentPartyCrudController;
-use App\Http\Controllers\Admin\EntityLimitCrudController;
-use App\Http\Controllers\Admin\EntityUsageCrudController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
@@ -33,7 +31,6 @@ use App\Http\Controllers\Admin\SubscriptionCrudController;
 use App\Http\Controllers\Admin\SubscriptionPlanCrudController;
 use App\Http\Controllers\Admin\SubscriptionPlanFeatureCrudController;
 use App\Http\Controllers\Admin\TaxCrudController;
-use App\Http\Controllers\Admin\UELSDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // --------------------------
@@ -128,18 +125,6 @@ Route::group(
         Route::crud('subscription', SubscriptionCrudController::class);
         Route::crud('subscription-plan-feature', SubscriptionPlanFeatureCrudController::class);
         Route::crud('role-limit', RoleLimitCrudController::class);
-
-        // UELS Dashboard and Management Routes
-        $route = Route::get('uels-dashboard', [UELSDashboardController::class, 'index']);
-        $route->name('admin.uels.dashboard');
-        $route = Route::post('uels-dashboard/bulk-reset', [UELSDashboardController::class, 'bulkResetUsage']);
-        $route->name('admin.uels.bulk-reset');
-        $route = Route::post('uels-dashboard/user-analysis', [UELSDashboardController::class, 'getUserLimitAnalysis']);
-        $route->name('admin.uels.user-analysis');
-        $route = Route::get('uels-dashboard/export', [UELSDashboardController::class, 'exportUsageData']);
-        $route->name('admin.uels.export');
-        Route::crud('entity-limit', EntityLimitCrudController::class);
-        Route::crud('entity-usage', EntityUsageCrudController::class);
 
         // Cache Management Routes
         $route = Route::post('cache/clear', [CacheManagementController::class, 'clearCache']);

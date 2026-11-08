@@ -11,8 +11,7 @@
         "Http/Controllers/Api/InvoiceController.php",
         "Http/Controllers/Api/SessionController.php",
         "Http/Controllers/Api/StatisticsController.php",
-        "Http/Controllers/Api/UELSController.php",
         "Http/Controllers/Api/UserController.php"
     ],
-    "generated_at": "2026-10-27T09:11:30+00:00"
+    "generated_at": "2026-11-07T17:12:06+00:00"
 }

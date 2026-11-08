@@ -10,7 +10,6 @@ use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\User;
 use Database\Seeders\DevelopmentDataSeeder;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -105,13 +104,6 @@ final class DevelopmentDataSeederTest extends TestCase
             );
             $this->assertTrue(
                 $expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null),
-                $email,
-            );
-            $entityLimitUsageQuery = DB::table('entity_limit_usage');
-            $entityLimitUsageQuery->where('user_id', $user->id);
-            $this->assertSame(
-                0,
-                $entityLimitUsageQuery->count(),
                 $email,
             );
         }

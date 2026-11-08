@@ -7,11 +7,9 @@ use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
-use App\Domain\Product\Events\ProductCreated;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\User\ValueObjects\UserId;
 
 class ProductService implements ProductServiceInterface
@@ -38,7 +36,6 @@ class ProductService implements ProductServiceInterface
         ProductDtoReadRepositoryInterface $productReadRepository,
         ProductDtoWriteRepositoryInterface $productWriteRepository,
         ProductCreationValidator $validator,
-        private readonly EventPublisherInterface $events,
     ) {
         $this->productReadRepository = $productReadRepository;
         $this->productWriteRepository = $productWriteRepository;
@@ -61,14 +58,7 @@ class ProductService implements ProductServiceInterface
 
         $validatedWriteData = ProductWriteData::fromArray($validatedData);
 
-        $created = $this->productWriteRepository->create($validatedWriteData);
-
-        // Publish Domain Event for new product creation via unified publisher
-        $this->events->publish(
-            new ProductCreated($created, $userId->toInt()),
-        );
-
-        return $created;
+        return $this->productWriteRepository->create($validatedWriteData);
     }
 
     /**

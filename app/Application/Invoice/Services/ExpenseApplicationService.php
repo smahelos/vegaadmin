@@ -8,14 +8,12 @@ use App\Domain\Invoice\Contracts\ExpenseReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\ExpenseDTO;
 use App\Domain\Invoice\DTO\ExpenseWriteData;
-use App\Domain\Invoice\Events\ExpenseCreated;
 use App\Domain\Invoice\Exceptions\ExpenseAccessDeniedException;
 use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
 use App\Domain\Invoice\ValueObjects\ExpenseId;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
-use App\Domain\Shared\Events\Contracts\EventPublisherInterface;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
@@ -32,7 +30,6 @@ final class ExpenseApplicationService
         private readonly TransactionBoundaryInterface $transactions,
         private readonly EntityLimit $limits,
         private readonly UserPermissionServiceInterface $permissions,
-        private readonly EventPublisherInterface $events,
         private readonly FileUploadServiceInterface $files,
         private readonly DocumentLogoApplicationService $logos,
         private readonly ContactReadRepositoryInterface $contacts,
@@ -149,9 +146,6 @@ final class ExpenseApplicationService
                                     $data,
                                     $parties,
                                     $attachments,
-                                );
-                                $this->events->publish(
-                                    new ExpenseCreated($expense->id, $userId),
                                 );
                             } else {
                                 $expense = $this->writer->update(

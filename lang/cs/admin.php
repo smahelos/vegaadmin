@@ -29,12 +29,6 @@ return [
         'automation' => 'Automatizace',
         'statuses' => 'Stavy',
     ],
-    'uels' => [
-        'title' => 'Správa limitů entit',
-        'dashboard' => 'Dashboard UELS',
-        'configuration' => 'Konfigurace',
-        'monitoring' => 'Monitorování',
-    ],
     'system_config' => [
         'title' => 'Konfigurace systému',
         'general_settings' => 'Obecná nastavení',

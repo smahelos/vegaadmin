@@ -77,7 +77,7 @@ final class BusinessApplicationService
                 $this->get($userId, $id);
                 $business = $this->businessWriter->update($id, $data);
                 $this->events->publish(
-                    new BusinessUpdated($id, $userId),
+                    new BusinessUpdated($userId),
                 );
 
                 return $business;
@@ -114,13 +114,13 @@ final class BusinessApplicationService
                     );
                     $this->businessWriter->setDefaultForUser($userId, $replacement);
                     $this->events->publish(
-                        new DefaultBusinessChanged($replacement, $userId),
+                        new DefaultBusinessChanged($userId),
                     );
                 }
 
                 $this->businessWriter->archive($id, $this->clock->now());
                 $this->events->publish(
-                    new BusinessArchived($id, $userId),
+                    new BusinessArchived($userId),
                 );
             },
         );
@@ -144,13 +144,13 @@ final class BusinessApplicationService
 
                 $this->businessWriter->restore($id);
                 $this->events->publish(
-                    new BusinessRestored($id, $userId),
+                    new BusinessRestored($userId),
                 );
 
                 if ($isFirstActive) {
                     $this->businessWriter->setDefaultForUser($userId, $id);
                     $this->events->publish(
-                        new DefaultBusinessChanged($id, $userId),
+                        new DefaultBusinessChanged($userId),
                     );
                 }
             },
@@ -172,7 +172,7 @@ final class BusinessApplicationService
 
                 $this->businessWriter->setDefaultForUser($userId, $id);
                 $this->events->publish(
-                    new DefaultBusinessChanged($id, $userId),
+                    new DefaultBusinessChanged($userId),
                 );
             },
         );

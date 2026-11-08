@@ -49,7 +49,7 @@ final class ContactApplicationService
                 $this->limits->assertCanCreate($userId, LimitedEntity::CONTACT);
                 $contact = $this->contactWriter->create($userId, $data);
                 $this->events->publish(
-                    new ContactCreated($contact->id, $userId),
+                    new ContactCreated($userId),
                 );
 
                 return $contact;
@@ -67,7 +67,7 @@ final class ContactApplicationService
                 $this->get($userId, $id);
                 $contact = $this->contactWriter->update($id, $data);
                 $this->events->publish(
-                    new ContactUpdated($id, $userId),
+                    new ContactUpdated($userId),
                 );
 
                 return $contact;
@@ -86,7 +86,7 @@ final class ContactApplicationService
 
                 $this->contactWriter->archive($id, $this->clock->now());
                 $this->events->publish(
-                    new ContactArchived($id, $userId),
+                    new ContactArchived($userId),
                 );
             },
         );
@@ -107,7 +107,7 @@ final class ContactApplicationService
                 $this->limits->assertCanCreate($userId, LimitedEntity::CONTACT);
                 $this->contactWriter->restore($id);
                 $this->events->publish(
-                    new ContactRestored($id, $userId),
+                    new ContactRestored($userId),
                 );
             },
         );

@@ -16,12 +16,7 @@ use App\Domain\Shared\Events\FormDataChanged;
 use App\Domain\Shared\Listeners\InvalidateFormDataCache;
 use App\Domain\User\Events\UserDataChanged;
 use App\Domain\User\Listeners\InvalidateUserCache;
-use App\Infrastructure\Authorization\Listeners\UELSPermissionChangeListener;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Spatie\Permission\Events\PermissionAttached;
-use Spatie\Permission\Events\PermissionDetached;
-use Spatie\Permission\Events\RoleAttached;
-use Spatie\Permission\Events\RoleDetached;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -63,19 +58,6 @@ class EventServiceProvider extends ServiceProvider
         ],
         FormDataChanged::class => [
             InvalidateFormDataCache::class,
-        ],
-        // UELS Permission Change Events
-        PermissionAttached::class => [
-            UELSPermissionChangeListener::class,
-        ],
-        PermissionDetached::class => [
-            UELSPermissionChangeListener::class,
-        ],
-        RoleAttached::class => [
-            UELSPermissionChangeListener::class,
-        ],
-        RoleDetached::class => [
-            UELSPermissionChangeListener::class,
         ],
     ];
 

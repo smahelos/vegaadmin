@@ -347,14 +347,14 @@ final class ContactApplicationServiceTest extends TestCase
         $contacts = $this->app->make(ContactApplicationService::class);
         $user = $this->frontendUser();
 
-        $contact = $contacts->create(
+        $contacts->create(
             $this->idOf($user),
             new ContactWriteData($this->profile(), null),
         );
 
         Event::assertDispatched(
             ContactCreated::class,
-            fn (ContactCreated $event): bool => $event->contactId->equals($contact->id),
+            fn (ContactCreated $event): bool => $event->userId->toInt() === $user->id,
         );
     }
 

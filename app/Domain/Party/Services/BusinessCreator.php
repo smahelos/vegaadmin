@@ -51,13 +51,13 @@ final class BusinessCreator
         }
 
         $this->events->publish(
-            new BusinessCreated($business->id, $userId),
+            new BusinessCreated($userId),
         );
 
         if ($isFirstActive) {
             $this->businessWriter->setDefaultForUser($userId, $business->id);
             $this->events->publish(
-                new DefaultBusinessChanged($business->id, $userId),
+                new DefaultBusinessChanged($userId),
             );
         }
 

@@ -2,8 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\User\Contracts\UniversalLimitServiceInterface as UniversalLimitService;
-use App\Models\EntityLimit;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
 use App\Models\RoleLimit;
@@ -20,8 +18,6 @@ class ProductControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
 
-    private UniversalLimitService $limitService;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -33,134 +29,6 @@ class ProductControllerFeatureTest extends TestCase
         $permissionQuery->where('guard_name', 'web');
         $permission = $permissionQuery->first();
         $this->user->givePermissionTo($permission);
-
-        $this->createProductEntityLimit();
-
-        $this->limitService = app(UniversalLimitService::class);
-    }
-
-    /**
-     * Create entity limit for products to allow test operations
-     */
-    private function createProductEntityLimit(): void
-    {
-        EntityLimit::create(
-            [
-                'permission_name' => 'frontend.can_create_edit_product',
-                'entity_type' => 'product',
-                'limit_value' => 10,
-                'period_type' => 'monthly',
-                'metric_type' => 'count',
-                'description' => 'Product limit for frontend tests',
-                'is_active' => true,
-            ],
-        );
-    }
-
-    #[Test]
-    public function product_creation_records_entity_usage(): void
-    {
-        $this->actingAs($this->user, 'web');
-
-        // Check initial usage
-        $initialCheck = $this->limitService->checkLimit(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-        $initialUsage = $initialCheck['current_usage'] ?? 0;
-
-        $productData = [
-            'name' => 'Test Product ' . uniqid(),
-            'description' => 'Test Description',
-            'price' => 99.99,
-            'currency' => 'CZK',
-            'unit' => 'pieces',
-            'user_id' => $this->user->id,
-        ];
-
-        // Act
-        $response = $this->post(
-            route('frontend.product.store', ['locale' => 'cs']),
-            $productData,
-        );
-
-        // Assert
-        $response->assertRedirect(
-            route('frontend.products', ['locale' => 'cs']),
-        );
-        $response->assertSessionHas('success');
-
-        // Check usage after creation
-        $newCheck = $this->limitService->checkLimit(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-        $newUsage = $newCheck['current_usage'] ?? 0;
-
-        $this->assertEquals($initialUsage + 1, $newUsage);
-
-        // Verify product was created
-        $this->assertDatabaseHas(
-            'products',
-            [
-                'name' => $productData['name'],
-                'user_id' => $this->user->id,
-            ],
-        );
-    }
-
-    #[Test]
-    public function product_creation_respects_entity_limits(): void
-    {
-        $this->actingAs($this->user, 'web');
-
-        // Ensure the limit is set to 1 for this test
-        // we need to set limit to 1, so update data in database
-        $entityLimitQuery = EntityLimit::where(
-            [
-                'permission_name' => 'frontend.can_create_edit_product',
-            ],
-        );
-        $entityLimitQuery->update(['limit_value' => 1]);
-
-        // First product creation - should succeed
-        $checkBeforeFirst = $this->limitService->checkLimit(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-        $this->assertTrue($checkBeforeFirst['allowed']);
-
-        $productFactory = Product::factory();
-        $product1 = $productFactory->create(['user_id' => $this->user->id]);
-        $result = $this->limitService->recordUsage(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-        $this->assertTrue($result, 'recordUsage should return true when successful');
-
-        // Second product creation - should fail due to limit
-        $checkBeforeSecond = $this->limitService->checkLimit(
-            $this->user->id,
-            'product',
-            'count',
-            'monthly',
-        );
-        $this->assertFalse($checkBeforeSecond['allowed']);
-        $this->assertEquals('limit_exceeded', $checkBeforeSecond['reason']);
-
-        // Verify first product was created
-        $this->assertDatabaseHas('products', [
-            'id' => $product1->id,
-            'user_id' => $this->user->id,
-        ]);
     }
 
     #[Test]

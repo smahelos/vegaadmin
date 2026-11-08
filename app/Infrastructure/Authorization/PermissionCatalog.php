@@ -9,8 +9,7 @@ namespace App\Infrastructure\Authorization;
  * system roles. PermissionCatalogSync writes it to the database (additively). After changing
  * the catalog, add a migration that runs the sync again.
  *
- * Not in the catalog: UELS limit_* permissions (plan configuration, created with their
- * entity_limits rows) and permissions that only PermissionManager users create.
+ * Not in the catalog: permissions that only PermissionManager users create.
  */
 final class PermissionCatalog
 {
