@@ -44,6 +44,12 @@ class UserCrudController extends CrudController
     // Access control is configured via application CrudAccessServiceInterface in setup()
     use UserFormFields;
 
+    public function __construct(
+        private readonly EntityUsageApplicationService $entityUsages,
+    ) {
+        parent::__construct();
+    }
+
     /**
      * Configure the CrudPanel object and check user permissions
      */
@@ -235,9 +241,8 @@ class UserCrudController extends CrudController
      */
     private function usages(int $userId): ?array
     {
-        $usageService = app(EntityUsageApplicationService::class);
         try {
-            return $usageService->usages(
+            return $this->entityUsages->usages(
                 UserId::fromInt($userId),
             );
         } catch (AmbiguousPlanRoleException) {
