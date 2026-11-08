@@ -17,17 +17,18 @@ paths:
 
 - Two guards: `backpack` for the admin, `web` for frontend users. A permission belongs to exactly one guard; frontend permissions are prefixed `frontend.`.
 - Every permission the code checks is listed in `App\Infrastructure\Authorization\PermissionCatalog` (enforced by `PermissionCatalogCoverageTest`). A new permission goes into the catalog plus a new migration that runs `PermissionCatalogSync` again (pattern: `database/migrations/2026_10_25_000016_sync_permission_catalog.php`). The sync is additive: the `admin` role gets every backpack permission, frontend roles their defaults, `backend_user` nothing (PermissionManager only).
-- Names: `can_{view,create,update,delete}_<entity>` for CRUD — one permission per Backpack operation (List/Show, Create, Update, Delete, gated with `CRUD::allowAccess()` / `denyAccess()`) and per policy ability. Other actions are `can_<verb>_<entity>` (`can_cancel_subscription`, `can_run_cron_task`); `can_configure_system` and `can_create_<entity>_unlimited` stay as they are. API endpoints check the same entity permission as the screen; `<guard>.api.access` only grants entry to the API.
+- Names: `can_{view,create,update,delete}_<entity>` for CRUD — one permission per Backpack operation (List/Show, Create, Update, Delete, gated with `CRUD::allowAccess()` / `denyAccess()`) and per policy ability. Other actions are `can_<verb>_<entity>` (`can_cancel_subscription`, `can_run_cron_task`); `can_configure_system` stays as it is. API endpoints check the same entity permission as the screen; `<guard>.api.access` only grants entry to the API.
 - Removing or renaming a permission needs its own migration — the sync never deletes.
 - Permission checks run in form requests (`authorize()`) and in application services; Blade only hides what the user cannot do, it never is the check.
 
-## Entity limits (UELS)
+## Entity limits
 
-- Creating a limited entity (invoice, business, contact, product, …) is allowed only within the user's configured limit; **no configured limit means creation is not allowed**. The one exception is a guest invoice, which is never stored and is only offered for download.
-- A limit belongs to the owner of the record, also when an admin creates it for another user.
-- Two kinds of limit: a **period limit** counts creations in a period (`entity_limit_usage`); a **capacity limit** (`metric_type` `active`, `period_type` `lifetime`: businesses, contacts) caps the active rows, so archiving frees a place and restoring takes one like creating.
-- Limits are plan configuration: `limit_*` permissions with their `entity_limits` rows, assigned through the plan's role. They are not catalog entries.
-- Admin users bypass period limits through the catalog's `can_create_<entity>_unlimited` permissions. Capacity limits have no bypass.
-- The limit check runs once, in the application service that creates the entity, inside the same transaction as the insert. A period limit's usage is recorded by a handler of the entity's `…Created` domain event, so every creation path — frontend, admin, API — counts.
-- A capacity limit is checked by a domain service the use cases share (creation, restoration, registration's first business): it locks the owner's `users` row (`SELECT … FOR UPDATE`), counts the active rows and lets the insert or restore run in the same transaction. No usage is recorded; the rows are the count.
-- Time and periods come from `ClockInterface` and the requested period; never `now()` inside the limit services.
+Design: `docs/adr/D-047-entity-limits.md`, behaviour: `docs/prd/PRD_ENTITY_LIMITS.md`.
+
+- A frontend user holds exactly one plan role (`web` guard). Its row in `role_limits` sets the limits, one nullable integer column per limited entity: `NULL` unlimited, `0` not allowed, `N` the limit. A role without a row allows no limited creation. Limits are never merged from several roles and are not permissions.
+- Two kinds of limit: **capacity** (businesses, contacts, products) caps the owner's active rows, so archiving or deleting frees a place and restoring takes one like creating; **monthly quota** (invoices, expenses) caps the rows created in the quota window, which starts at the later of the calendar month's start (application time zone) and the time the current plan role was assigned.
+- Usage is counted from the entity's own rows: no usage table, counters or cache. Quota time is the system time of the action (creation, issuing once invoices are issued), never a date the user enters.
+- The limit belongs to the record's owner, also when an admin creates it. No permission bypasses a limit. Admin reference data have no limits.
+- The limit check runs once, in a domain service called by every use case that creates or restores a limited entity (registration's first business included), inside its transaction: it locks the owner's `users` row (`SELECT … FOR UPDATE`), reads the role's limit, counts the rows and lets the insert or restore run. Form requests, Livewire and Blade never check limits; Blade only shows usage rendered on the server.
+- A guest invoice is never stored and has no limit. Creation endpoints and the guest invoice are rate limited, the same for all plans, with the values in `config/billex.php`.
+- Time comes from `ClockInterface`; never `now()` inside the limit services.

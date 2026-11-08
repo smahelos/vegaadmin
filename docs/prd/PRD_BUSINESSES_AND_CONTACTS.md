@@ -1,7 +1,7 @@
 # PRD: Moje firmy a kontakty
 
 Datum: 2026-10-26. Verze: 1.2. Stav: schválená produktová specifikace.
-Dokumentační revize: 2026-10-30, bez změny produktových rozhodnutí.
+Dokumentační revize: 2026-10-30, bez změny produktových rozhodnutí; 2026-11-06 odkazy na pravidla UELS nahrazeny D-047.
 Technický návrh: [DESIGN_BUSINESSES_AND_CONTACTS.md](../design/DESIGN_BUSINESSES_AND_CONTACTS.md).
 Rozhodnutí: [D-045](../adr/D-045-businesses-and-contacts.md).
 Stav implementace a ověření: [VERIFICATION_BUSINESSES_AND_CONTACTS.md](VERIFICATION_BUSINESSES_AND_CONTACTS.md).
@@ -337,10 +337,10 @@ Jde o aktuální kapacitu, nikoli počet vytvoření za rok.
 
 První firma z registrace se započítává; konfigurace registračního tarifu
 musí její vytvoření umožnit. Konkrétní tarifní hodnoty tento PRD neurčuje.
-Chybějící konfigurace nepovoluje založení ani obnovu podle pravidel UELS.
+Chybějící konfigurace nepovoluje založení ani obnovu ([D-047](../adr/D-047-entity-limits.md)).
 Kapacitní limity firem a kontaktů nemají výjimku pro neomezené vytváření,
-ani v administraci; uplatní se limit vlastníka. Výjimky pro ostatní
-periodické limity zůstávají podle pravidel UELS. Toto upřesnění odpovídá
+ani v administraci; uplatní se limit vlastníka. Výjimky z ostatních
+limitů ruší D-047. Toto upřesnění odpovídá
 odsouhlasenému technickému návrhu Q8–Q10.
 
 Při snížení tarifu se nic automaticky nemaže ani nearchivuje. Čtení,
