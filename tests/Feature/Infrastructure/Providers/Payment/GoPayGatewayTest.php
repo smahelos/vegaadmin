@@ -44,6 +44,26 @@ final class GoPayGatewayTest extends TestCase
     }
 
     #[Test]
+    public function sends_the_return_and_notification_urls_in_the_callback_object(): void
+    {
+        $this->gateway->createPayment(
+            [
+                'amount' => 25.50,
+                'return_url' => 'https://billex.test/return',
+                'notify_url' => 'https://billex.test/notify',
+            ],
+        );
+
+        $this->assertSame(
+            [
+                'return_url' => 'https://billex.test/return',
+                'notification_url' => 'https://billex.test/notify',
+            ],
+            $this->payments->created[0]['callback'],
+        );
+    }
+
+    #[Test]
     public function reports_a_payment_the_gateway_refused(): void
     {
         $this->payments->failCreate = true;
