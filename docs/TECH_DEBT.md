@@ -280,7 +280,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 21: Conversion to the standard
 
-The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23). The application layer has already been converted to use cases in step 11 ("Permissions are not checked in the use case").
+The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23). The application layer is converted to use cases in step 11 ("Permissions are not checked in the use case"); do this step after it.
 
 ### PHP syntax and readability rollout
 - **Where:** project PHP, maintained PHP examples and authored PHP expressions in Blade; enforcement in `phpcs.xml`, `pint.json` and `phpcs/Billex/`.
