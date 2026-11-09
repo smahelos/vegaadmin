@@ -205,9 +205,9 @@ class PaymentControllerCallbackTest extends TestCase
             },
         );
 
-        // GoPay repeats a notification that does not get HTTP 200, so a failure is answered with 200 too
+        // GoPay repeats a notification that does not get HTTP 200
         $response = $this->getJson('/payment/notify?gateway=gopay&id=3000006529');
-        $assertionResponse = $response->assertOk();
-        $assertionResponse->assertJson(['status' => 'error']);
+        $response->assertStatus(503);
+        $response->assertJson(['status' => 'error']);
     }
 }

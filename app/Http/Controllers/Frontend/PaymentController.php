@@ -80,7 +80,7 @@ class PaymentController extends Controller
 
     /**
      * GoPay calls the notification URL with GET and the payment id in `id`, and repeats the call until it receives
-     * HTTP 200, so the answer is 200 whatever the processing did.
+     * HTTP 200, so a notification we could not process is answered with 503 to get it again.
      */
     public function notify(Request $request): JsonResponse
     {
@@ -106,6 +106,6 @@ class PaymentController extends Controller
 
         $responseFactory = response();
 
-        return $responseFactory->json(['status' => 'error']);
+        return $responseFactory->json(['status' => 'error'], 503);
     }
 }

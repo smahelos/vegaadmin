@@ -6,6 +6,7 @@ use App\Domain\Payment\Contracts\GatewayRegistryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
+use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
@@ -17,6 +18,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
 use Tests\TestCase;
 
@@ -324,6 +326,42 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
         $this->assertEquals('completed', $payment->status);
         $this->assertEquals('active', $subscription->status);
         $this->assertNotNull($subscription->starts_at);
+    }
+
+    #[Test]
+    public function callback_repeated_after_a_failed_activation_activates_the_subscription(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $application = app();
+        $application->instance(
+            SubscriptionDtoWriteRepositoryInterface::class,
+            new class implements SubscriptionDtoWriteRepositoryInterface
+            {
+                public function activateById(int $subscriptionId, int $durationDays): bool
+                {
+                    throw new RuntimeException('Activation failed');
+                }
+            },
+        );
+        $failingService = app(SubscriptionPaymentServiceInterface::class);
+        $callback = ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'];
+
+        $failed = $failingService->handlePaymentCallback('fake', $callback);
+
+        $this->assertFalse($failed['success']);
+        $payment = Payment::find($process['payment_id']);
+        $this->assertSame('pending', $payment->status);
+
+        $repeated = $this->service->handlePaymentCallback('fake', $callback);
+
+        $this->assertTrue($repeated['success']);
+        $subscription->refresh();
+        $this->assertSame('active', $subscription->status);
     }
 
     #[Test]

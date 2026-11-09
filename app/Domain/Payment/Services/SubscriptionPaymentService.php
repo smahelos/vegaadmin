@@ -237,21 +237,24 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             $oldStatus = $payment->status;
             $newStatus = $result['status'] ?? 'unknown';
 
-            // Update payment status
-            $this->paymentsWrite->updateById(
-                $payment->id,
-                new PaymentWriteData(
-                    status: $newStatus,
-                    gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
-                ),
-            );
+            // One transaction: a repeated notification must not find the payment completed and skip a failed activation
+            $this->tx->transaction(
+                function () use ($payment, $newStatus, $oldStatus, $gatewayPaymentId): void {
+                    $this->paymentsWrite->updateById(
+                        $payment->id,
+                        new PaymentWriteData(
+                            status: $newStatus,
+                            gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
+                        ),
+                    );
 
-            // Handle subscription status updates
-            if ($payment->subscription_id && $newStatus === 'completed' && $oldStatus !== 'completed') {
-                $this->activateSubscriptionById((int) $payment->subscription_id);
-            } elseif ($payment->subscription_id && $newStatus === 'failed') {
-                $this->handleFailedPaymentById((int) $payment->subscription_id);
-            }
+                    if ($payment->subscription_id && $newStatus === 'completed' && $oldStatus !== 'completed') {
+                        $this->activateSubscriptionById((int) $payment->subscription_id);
+                    } elseif ($payment->subscription_id && $newStatus === 'failed') {
+                        $this->handleFailedPaymentById((int) $payment->subscription_id);
+                    }
+                },
+            );
 
             $this->logger->log(
                 'info',
