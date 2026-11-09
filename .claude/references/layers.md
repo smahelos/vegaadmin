@@ -60,7 +60,7 @@ interface ContactWriteRepositoryInterface
 }
 ```
 
-Ports are Domain, so `ReadScope` and `WriteScope` are too (`App\Domain\Shared\Authorization\ValueObjects`).
+Ports are Domain, so `ReadScope` and `WriteScope` are too (`App\Domain\Shared\Authorization\ValueObjects`). A Command reads with the `ReadScope` its `WriteScope` holds: `$this->contacts->findById($command->id, $scope->read)`.
 
 ## Infrastructure — repository and mapper
 
@@ -170,7 +170,7 @@ final readonly class CreateContact extends OwnedUseCase implements CommandInterf
 
     public static function access(): Access
     {
-        return Access::permission(Permission::CONTACT_CREATE);
+        return Access::permissionWithOwner(Permission::CONTACT_CREATE);
     }
 }
 

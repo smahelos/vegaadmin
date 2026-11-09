@@ -467,7 +467,8 @@ se odstraní, skuteční API konzumenti dostanou explicitní resources.
 Frontend spravuje data aktuálního účtu. Administrace vyžaduje výslovná
 oprávnění pro zobrazení, založení, úpravu, archivaci, obnovu a výchozí
 volby příslušné entity. Oprávnění k vytvoření faktury samo nepovoluje
-vytvořit či upravit kontakt. Účty a adresy podléhají oprávnění svého vlastníka.
+vytvořit či upravit kontakt. Účty mají vlastní oprávnění `bank_account.view`
+a `bank_account.update`; adresy podléhají oprávnění svého vlastníka.
 Granulární katalog se zavede pro dotčené entity; ostatní zůstávají
 v samostatném kroku přejmenování oprávnění.
 

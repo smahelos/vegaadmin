@@ -53,7 +53,7 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 
 ## Bounded contexts
 
-- A context's Commands and Queries are its public API (Open Host Service). Another context runs them through the gate with the same actor, or uses the context's Domain contracts, DTOs, value objects and events — never its Infrastructure, models or handlers.
+- A context's Commands and Queries are its public API (Open Host Service). Another context runs them through the gate as the record's owner (`permissions.md`), or uses the context's Domain contracts, DTOs, value objects and events — never its Infrastructure, models or handlers.
 - Shared kernel (`Domain/Shared`) holds only what several contexts need: money, tax, status, time, events, pagination, files. A concept used by one context lives in that context.
 - Business (the user's own identity) and contact (anyone the user does business with) are the two entities of the Party context (`docs/adr/D-045-businesses-and-contacts.md`). Supplier and customer are roles on a document, never entity names. Behaviour both entities share (party profile, address, bank accounts, duplicates, archiving, capacity) is written once and used by both; a near-identical business/contact pair of classes is a defect to merge.
 
