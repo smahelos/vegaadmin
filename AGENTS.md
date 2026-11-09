@@ -19,7 +19,7 @@ The following catalog is shared by both agents. Claude Code loads a rule automat
 - [`.claude/rules/php.md`](.claude/rules/php.md) — PHP style: strict types, `final`, typing, naming, exceptions, comments (all PHP)
 - [`.claude/rules/architecture.md`](.claude/rules/architecture.md) — layers and allowed dependencies, bounded contexts, ports and interfaces, data classes (DTO / WriteData / Result), events, composition roots, architecture guards
 - [`.claude/rules/domain.md`](.claude/rules/domain.md) — `app/Domain`: pure PHP, value objects, money, time, invoice invariants
-- [`.claude/rules/application.md`](.claude/rules/application.md) — `app/Application`: use cases, ownership checks, transactions
+- [`.claude/rules/application.md`](.claude/rules/application.md) — `app/Application`: use cases as Commands and Queries, the gate, transactions
 - [`.claude/rules/persistence.md`](.claude/rules/persistence.md) — repositories, mappers, Eloquent models, migrations, SQL
 - [`.claude/rules/http.md`](.claude/rules/http.md) — controllers, form requests, routes, middleware, API responses
 - [`.claude/rules/admin.md`](.claude/rules/admin.md) — Backpack CRUD controllers, own field/column/filter types, admin assets
@@ -61,7 +61,7 @@ docker exec BILLEX-app vendor/bin/phpstan analyse --memory-limit=4G      # Laras
 
 ## Architecture at a glance
 
-Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = businesses/contacts, Payment, Product, User, Shared). Layers, allowed dependencies and composition roots are defined in `architecture.md`; route groups and guards in `http.md` and `permissions.md`.
+Layered DDD on Laravel, organised by bounded context (Analytics, Content, Invoice, Party = businesses/contacts, Payment, Product, System = admin system screens, User, Shared). Layers, allowed dependencies and composition roots are defined in `architecture.md`; route groups and guards in `http.md` and `permissions.md`.
 
 ## High-risk areas
 

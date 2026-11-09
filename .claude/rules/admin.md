@@ -16,10 +16,10 @@ Backpack 7 (free packages only — no PRO licence) runs the admin.
 ## CRUD controllers
 
 - Backpack CRUD works on Eloquent models: `CRUD::setModel()`, list columns, fields and filters may reference models and relations. That is the only place delivery touches models (`architecture.md`).
-- Anything beyond plain field persistence goes through Application: entities with domain rules (invoices, payments, subscriptions) override `store()` / `update()` and call the application service, so admin writes obey the same numbering, totals, events and entity limits as the frontend.
+- Only reference data is persisted through models. Anything with an owner or with domain rules (invoices, payments, subscriptions) overrides `store()` / `update()` and runs a Command through the gate, so admin writes obey the same numbering, totals, events and entity limits as the frontend.
 - Field definitions live in `app/Infrastructure/Forms/<Context>/<Entity>FormFields`; the controller only adds them. Validation through the admin form request `App\Http\Requests\Admin\<Entity>Request` (`http.md`, Form requests).
 - Operations and imports at the top with `use`; columns and fields defined explicitly, never `CRUD::setFromDb()`.
-- Every CRUD operation is gated by its own permission (`can_view_<entity>` for List/Show, `can_create_…`, `can_update_…`, `can_delete_…`; `permissions.md`).
+- Every CRUD operation is denied by default in `setup()` and allowed by its own `Permission` case, the same one the frontend uses (`<entity>.view` for List/Show, `<entity>.create`, `<entity>.update`, `<entity>.delete`; `permissions.md`, Where permissions are checked).
 
 ## Own field, column and filter types
 

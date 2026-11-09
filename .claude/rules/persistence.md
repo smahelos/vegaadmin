@@ -14,7 +14,7 @@ Only Infrastructure touches Eloquent (`architecture.md`). Shape of a repository 
 - Every entity the application reads has a Domain port `<Entity>ReadRepositoryInterface`; an entity the application writes through the Domain also has `<Entity>WriteRepositoryInterface`. Reference data managed only in the Backpack admin (statuses, taxes) has the read port only. Port names carry no `Dto` infix: a repository always returns DTOs.
 - One implementation per entity, `Eloquent<Entity>Repository` in `app/Infrastructure/Persistence/Eloquent/<Context>/Repositories`, implementing both ports.
 - Reads return `<Entity>DTO`, `list<<Entity>DTO>` or `PaginatedResult` built by the mapper; writes accept `<Entity>WriteData` and return the stored `<Entity>DTO` or its id.
-- Queries over user data are scoped in the query (`where('user_id', $userId->value)`), not filtered afterwards. Admin-wide reads have their own explicitly named methods (`findByIdAny`, `listAll`).
+- Ports over an owner's data and over a user's own account take the `ReadScope` or `WriteScope` the gate issued (`permissions.md`) and scope in the query (`where('user_id', $scope->owner->value)`), never filtering afterwards. An admin-wide read is the same method with `ReadScope::allOwners()`; there are no `…ForUser` / `…Any` pairs. Internal bookkeeping with no use case behind it (`lockForUpdate`, `assignRole`, `recordPlanRoleAssignment`, `planRoleAssignedAt`, limit counters) takes `UserId`. Registration has its own named entry (`newAccount`).
 - Relations a DTO needs are eager-loaded in the same method — no lazy loading inside a mapper.
 - A repository holds no business rules: no defaults, no status decisions, no totals.
 

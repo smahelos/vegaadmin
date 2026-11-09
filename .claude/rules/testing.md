@@ -12,13 +12,13 @@ paths:
 
 - A test pins observable behaviour: a returned value, a stored row, a response, a published event, a rendered PDF. A change that adds or alters behaviour comes with a test of that behaviour; a bug fix adds the regression case that failed before the fix.
 - Structural tests are not written and existing ones are deleted when touched: `class_exists`, `method_exists`, reflection over traits, parents or constructor parameters, assertions on `$fillable` / `$casts` / table names. The type system, Larastan and the architecture tests cover structure.
-- Every route gets an HTTP test of its authorization: guest, user without permission, and another user's record (expects 404 — `application.md`, ownership).
+- Every route gets an HTTP test of its authorization: guest, user without permission (403), and another user's record (expects 404 — `application.md`). A use case test runs the real gate; a test never issues a `ReadScope` or `WriteScope` itself.
 - No `markTestSkipped()` / `markTestIncomplete()` in committed tests; a test that cannot run yet is not committed.
 
 ## Test types
 
 - `tests/Unit/` — no framework: extends `PHPUnit\Framework\TestCase`, no container, DB, facades or `new Model()`. Domain value objects and services, mappers' pure conversions, presenters. CI runs them in their own job without MySQL; `tests/Feature/Architecture/UnitTestsWithoutFrameworkTest.php` fails on `Tests\TestCase`, models, facades or Laravel helpers in `tests/Unit`.
-- `tests/Feature/` — boots Laravel (`Tests\TestCase`): application use cases, repositories, HTTP, Livewire, commands, providers.
+- `tests/Feature/` — boots Laravel (`Tests\TestCase`): application use cases, repositories, HTTP, Livewire, Artisan commands, providers.
 - The directory below `Unit/` or `Feature/` mirrors the path of the class under test (`tests/Unit/Domain/Invoice/ValueObjects/InvoiceNumberTest.php`).
 - Ports are replaced by fakes from `tests/Support/Fakes/` (gateways, clock, exchange rates); application and domain services always run for real — they are `final` and not mocked (`architecture.md`, Ports and interfaces).
 
