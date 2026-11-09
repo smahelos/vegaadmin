@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 9. ~~Permission naming: "Permission naming".~~ Done 2026-11-08 (branch `ls-permission-naming`): one per-operation scheme with literal names, including the subscription, plan, plan feature and user screens; the PermissionManager role and permission screens gated by their own permissions; frontend products checked by permission; `<guard>.api.<entity>` removed.
 10. ~~Entity limit conversion: "Entity limits do not follow D-047".~~ Done 2026-11-07 (branch `ls-entity-limit-conversion`): `role_limits` with its admin CRUD screen, the plan role assignment time on `users`, the `EntityLimit` domain service in every use case that creates or restores a limited entity, usage on the dashboard, the create and list pages and the admin user detail, rate limits in `config/billex.php`; the old system with its tables, `limit_*` and `can_create_<entity>_unlimited` permissions, API, dashboard and CRUD screens is deleted.
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — not started: reliable tests, `Money` formatting, value object accessors, the developer documentation of the contexts and the permission gate with use cases as Commands and Queries, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -69,6 +69,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. An architecture test checks that every class and path quoted in `docs/` exists, so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
+
+### Permissions are not checked in the use case
+- **Where:** `authorize()` of 38 form requests in `app/Http/Requests`, `requirePermission()` in `app/Livewire`, the `authorize…()` methods of `ProductApplicationService`, `SubscriptionPolicy`, the permission checks in `Api\UserController` and in admin controllers, `authorizeOwner()` of `BankAccountCrudController`, `GatesCrudOperations`, `PermissionCatalogCoverageTest`, `UserPermissionServiceInterface` (4 callers: Product, Expense, InvoiceItems, InvoiceList), the `…ForUser` port methods
+- **Problem:** the checks are spread over delivery and differ by entry point (`docs/adr/D-048-permission-checks.md`). The overridden `store`/`update` of `BusinessCrudController` and `ContactCrudController` and the `store` of `BankAccountCrudController` are protected only by `authorize()`; its `update` also calls `authorizeOwner()`. The list and show of `DatabaseMaintenanceLogCrudController`, `MysqlOptimizationLogCrudController` and `PerformanceMetricCrudController` have no permission at all.
+- **Fix (decided 2026-11-09):** per `rules/permissions.md` and `rules/application.md`, one PR per phase through `/convert-to-standard`; `authorize()` goes only in the commit that adds its replacement, and broad catches around use cases are narrowed in the same step. The whole conversion belongs to this step, with Invoice before step 12, so moving invoices stays apart from changing their behaviour. Phases: (1) `Permission` enum and the rename to `<entity>.<action>` without the guard prefix, with a temporary guard parameter on `getUserPermissions` (it would merge the guards after the rename), `PermissionCatalogCoverageTest` no longer deriving the guard from the prefix, and a `name (guard)` label on the role form, the user form and the user list filter; (2) the gate, `Access`, `Actor`, the scopes, the Larastan rules, the `allowed` middleware and `@allowed`, with Product as the pilot; the old `…ForUser` port methods of Party and Product stay only for the unconverted Invoice; (3) Party, with the public company register lookup and its rate limit; (4) User; (5) Invoice, expenses and `Api\InvoiceController`, adding `expense.create` and `expense.update` on `web` and deleting the remaining `…ForUser` port methods; (6) Payment and Analytics; (7) Content and Shared; `UserPermissionServiceInterface` goes once its last caller is converted; (8) admin CRUD denied by default, `hasAccessOrFail` first in every overridden `store`/`update`, `system.configure` on the three log screens, the remaining admin requests, `PermissionCatalogCoverageTest` reduced to the enum and the catalog, and the new `System` context, where `CacheManagementController` and `CronTaskCrudController::run` (with "Cron tasks run inside the model") go through the gate. `DatabaseDashboardController` follows in step 20 with "Database dashboard shows invented metrics" and keeps `DatabaseDashboardRequest` (`system.configure`) until then; its five actions without a route are deleted.
 
 ## Step 12: Issued invoices
 
@@ -177,7 +182,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### GoPay is called inside the database transaction
 - **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
 - **Problem:** the transaction wraps `createPayment()` of the gateway. When a later step fails, the rollback deletes the local payment record, but the payment created at GoPay stays and its notification finds no record; the transaction also holds its locks for the whole HTTP call.
-- **Fix:** store the pending payment in one transaction, call the gateway outside it, then store the gateway id and status in a second transaction; a failed gateway call marks the payment failed. Move the use case to Application (`rules/application.md`).
+- **Fix:** store the pending payment in one transaction, call the gateway outside it, then store the gateway id and status in a second transaction, and only then redirect the customer to the gateway; a failed gateway call marks the payment failed. Move the use case to Application (`rules/application.md`).
 
 ### A refused subscription payment ends with a 500
 - **Where:** `app/Http/Controllers/Frontend/SubscriptionController.php::subscribe()`, `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
@@ -275,7 +280,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 21: Conversion to the standard
 
-The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23).
+The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23). The application layer is converted to use cases in step 11 ("Permissions are not checked in the use case"); do this step after it.
 
 ### PHP syntax and readability rollout
 - **Where:** project PHP, maintained PHP examples and authored PHP expressions in Blade; enforcement in `phpcs.xml`, `pint.json` and `phpcs/Billex/`.
@@ -364,7 +369,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** one rule set per entity in form requests, business validation in value objects (`rules/http.md`).
 
 ### Directory layout
-- **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `BankRepository`, `Str`, `Config`
+- **Where:** `app/Infrastructure/Interfaces/`, `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `AnalyticsDtoReadRepository`, `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `BankRepository`, `Str`, `Config`, `DomainEvent`
 - **Fix:** per `rules/architecture.md` (Directory layout, Ports and interfaces); framework wrappers in `Domain/Shared` that are not ports (`Str`, `Config`, `Console`) are removed.
 
 ### Error handling
@@ -407,9 +412,9 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ## Step 22: Frontend, API and routes
 
 ### Permissions that nothing checks
-- **Where:** `PermissionCatalog` (`frontend.can_delete_invoice`, `frontend.can_view_subscription`, `frontend.can_create_subscription`), `Api\InvoiceController::getInvoice`
-- **Problem:** roles are granted these three permissions but no code checks them; no frontend route deletes an invoice and the subscription screens check only the signed-in user. `getInvoice` checks only `<guard>.api.access`, while `rules/permissions.md` requires an API endpoint to check the same entity permission as its screen. Found 2026-11-08 in step 9.
-- **Fix:** check each permission where its action exists, or remove it with a migration if the action is not planned; `getInvoice` checks `can_view_invoice` for the admin API and `frontend.can_view_invoice` for the frontend API.
+- **Where:** `PermissionCatalog` (`frontend.can_delete_invoice`, `frontend.can_view_subscription`, `frontend.can_create_subscription`)
+- **Problem:** roles are granted these three permissions but no code checks them; no frontend route deletes an invoice and the subscription screens check only the signed-in user. Found 2026-11-08 in step 9.
+- **Fix:** check each permission where its action exists, or remove it with a migration if the action is not planned.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
@@ -453,6 +458,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `EloquentLimitedEntityCounter::countActiveForUpdate` and `countCreatedSinceForUpdate`, `EloquentTransactionBoundary`
 - **Problem:** under REPEATABLE READ the locking `COUNT` takes next-key and gap locks on the `user_id` index, and these reach past one owner. Two neighbouring owners without rows who create their first record at the same time can each hold the gap the other's `INSERT` needs. MySQL then ends one transaction with error 1213, which nothing retries, so that user gets a 500. Found by reading the locking behaviour, not reproduced.
 - **Fix:** reproduce it with two connections, then either retry the transaction on a deadlock or stop locking the entity rows and read the count so that it sees committed rows while the owner's `users` row is locked.
+
+### The permission sync grants back revoked role defaults
+- **Where:** `PermissionCatalogSync::sync()`, the migrations that add a permission or change a role's defaults (`.claude/skills/add-permission/SKILL.md`, step 3)
+- **Problem:** every run gives each system role all its catalog defaults, so a default revoked through PermissionManager comes back with the next migration that runs the sync. Renames and removals do not run it (`PRD_PERMISSIONS.md`, A01). No default has been revoked so far.
+- **Fix:** a new migration grants only the permission it adds; the full sync stays for a fresh database (A02).
 
 ### `backpack_pro()` override claims a PRO licence
 - **Where:** `app/Helpers/BackpackHelpers.php` (`backpack_pro()` always returns `true`), Backpack's `src/Stats.php`

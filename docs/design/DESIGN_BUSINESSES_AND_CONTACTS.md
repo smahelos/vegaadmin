@@ -121,7 +121,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 
 - Frontend: `frontend.can_{view,create,update,archive,restore}_{business,contact}` and `frontend.can_set_default_business`.
 - Admin: `can_{view,create,update,archive,restore}_{business,contact}` and `can_set_default_business`.
-- No delete permissions. Accounts, addresses and the default account fall under the owner's update. The API checks the same permissions plus `<guard>.api.access`. The client/supplier permissions are removed by a migration; every frontend role gets all the new ones.
+- No delete permissions. Accounts have their own `bank_account.view` and `bank_account.update` (add, edit, archive, restore, default account); addresses fall under the owner's update. The API checks the same permissions plus `api.access`. The client/supplier permissions are removed by a migration; every frontend role gets all the new ones.
 
 ### API (Q28)
 

@@ -10,6 +10,7 @@
 | [Businesses and contacts design](design/DESIGN_BUSINESSES_AND_CONTACTS.md) | Agreed step 7 technical design |
 | [Businesses and contacts verification map](prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md) | Implemented paths, test locations and source invariants; separate from requirements and individual test-run results |
 | [Entity limits PRD](prd/PRD_ENTITY_LIMITS.md) | Approved product specification, version 1.0; scope and A01–A17 |
+| [Permissions PRD](prd/PRD_PERMISSIONS.md) | Approved product specification, version 1.1; scope and A01–A24 |
 | [PHP syntax enforcement](design/DESIGN_PHP_STYLE.md) | Implementation design for the agreed PHP readability standard; rolled out, numbered names remain |
 
 ## Architectural decisions
@@ -22,6 +23,7 @@
 | [D-045: Businesses and contacts](adr/D-045-businesses-and-contacts.md) | Accepted |
 | [D-046: Money amounts](adr/D-046-money-amounts.md) | Accepted |
 | [D-047: Entity limits](adr/D-047-entity-limits.md) | Accepted |
+| [D-048: Permission checks](adr/D-048-permission-checks.md) | Accepted |
 
 An accepted specification or ADR is not a claim that every described path has been implemented. Use the verification map and code/tests for delivered behaviour, and [TECH_DEBT](TECH_DEBT.md) for known gaps and the order of work. The code standard lives in [.claude/rules/](../.claude/rules/).
 

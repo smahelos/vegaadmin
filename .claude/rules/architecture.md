@@ -8,29 +8,29 @@ paths:
 
 # Architecture
 
-Code examples of every layer in its target shape: `references/layers.md` — read it before adding a repository, mapper, application service, data class or controller action.
+Code examples of every layer in its target shape: `references/layers.md` — read it before adding a repository, mapper, use case, data class or controller action.
 
 ## Layers and allowed dependencies
 
 | Layer | May depend on | Never on |
 |---|---|---|
 | `app/Domain/<Context>` | Domain of its own context, `Domain/Shared`, Domain contracts/DTOs/value objects of another context | Laravel (`Illuminate\*`, helpers, facades), `App\Models`, Application, Infrastructure, delivery |
-| `app/Application/<Context>` | Domain (any context) | `Illuminate\Http`, `Request`, facades and helpers (`now()`, `auth()`, `config()`, `session()`), `App\Models`, Infrastructure, delivery |
+| `app/Application/<Context>` | Domain (any context), `Application/Shared`, the Commands and Queries of another context | `Illuminate\Http`, `Request`, facades and helpers (`now()`, `auth()`, `config()`, `session()`), `App\Models`, Infrastructure, delivery |
 | `app/Infrastructure` | Domain, Application, Laravel, vendors, `App\Models` | delivery |
 | Delivery: `app/Http`, `app/Livewire`, `app/Console`, `app/View` | Application, Domain DTOs / value objects / enums / exceptions, Laravel | `App\Models`, Eloquent queries, repositories, Infrastructure classes — the one exception is Backpack CRUD controllers, which work on models by design (`admin.md`) |
 
 - Time, logging, cache, translation and other framework services reach Domain and Application only through the ports in `app/Domain/Shared/*/Contracts` (`ClockInterface`, `LogInterface`, …), implemented in `app/Infrastructure/Shared`.
-- The current user reaches Application as an argument (`UserId`), passed in by delivery — Application never asks `auth()`.
-- Livewire components are delivery exactly like controllers: they call Application services and render DTOs; a component never builds a query.
+- The current user reaches Application as the `Actor` that delivery passes to the gate (`permissions.md`) — Application never asks `auth()`.
+- Livewire components are delivery exactly like controllers: they run use cases through the gate and render DTOs; a component never builds a query.
 
 ## Ports and interfaces
 
 An interface exists only for a **port**:
 
 1. a contract that Domain or Application defines and Infrastructure implements (repositories, gateways, PDF/QR renderers, clock, external APIs), or
-2. a contract with two or more implementations (QR payment providers per country).
+2. a contract with two or more implementations (QR payment providers per country, `CommandInterface`).
 
-Everything else — application services, pure domain services, presenters, assemblers — is a concrete `final` class without an interface, resolved by autowiring with no container binding. Tests replace ports with fakes and run the real services (`testing.md`).
+Everything else — handlers, pure domain services, presenters, assemblers — is a concrete `final` class without an interface, resolved by autowiring with no container binding. Tests replace ports with fakes and run the real services (`testing.md`).
 
 ## Data classes
 
@@ -40,6 +40,7 @@ Everything else — application services, pure domain services, presenters, asse
 | Input for creating or updating an entity | `<Entity>WriteData` | `InvoiceWriteData` |
 | Read-only projection for one purpose (print, statistics, form, external format) | `<Purpose><Entity>DTO` | `PrintableInvoiceDTO`, `MonthlyStatDTO`, `QrPaymentDTO` |
 | Outcome of an application operation (status, messages, created id) | `<Operation>Result` | `InvoiceActionResult`, `RefundResult` |
+| Declaration and input of a use case (`application.md`) | `<Verb><Entity>`, no suffix | `CreateContact`, `GetContact` |
 | Generic building block shared across contexts | concept name, no suffix | `PageRequest`, `PaginatedResult`, `Recipient` |
 
 - `Data` is reserved for write input: anything only read is a `DTO`. One suffix per class (`RefundResult`, not `RefundResultDTO`).
@@ -52,13 +53,13 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 
 ## Bounded contexts
 
-- A context uses another context only through that context's Domain contracts, DTOs, value objects and events — never through its Infrastructure or models.
+- A context's Commands and Queries are its public API (Open Host Service). Another context runs them through the gate as the record's owner (`permissions.md`), or uses the context's Domain contracts, DTOs, value objects and events — never its Infrastructure, models or handlers.
 - Shared kernel (`Domain/Shared`) holds only what several contexts need: money, tax, status, time, events, pagination, files. A concept used by one context lives in that context.
 - Business (the user's own identity) and contact (anyone the user does business with) are the two entities of the Party context (`docs/adr/D-045-businesses-and-contacts.md`). Supplier and customer are roles on a document, never entity names. Behaviour both entities share (party profile, address, bank accounts, duplicates, archiving, capacity) is written once and used by both; a near-identical business/contact pair of classes is a defect to merge.
 
 ## Events
 
-- A state change other contexts react to is a domain event (`app/Domain/<Context>/Events/<Entity><PastTense>`), published through `EventPublisherInterface` by the service that made the change. Handlers live in `Events/Handlers/` of the reacting context.
+- A state change other contexts react to is a domain event (`app/Domain/<Context>/Events/<Entity><PastTense>`), published through `EventPublisherInterface` by the handler or domain service that made the change. Handlers live in `Events/Handlers/` of the reacting context.
 - Where a reaction runs follows from its effect (`LaravelEventPublisher`), so nothing is lost or left behind between the commit and the reaction:
   - a write to the Billex database (an audit record) is a domain handler; it runs inside the use case's transaction and commits or rolls back with it;
   - an effect outside the database that can be rebuilt (cache invalidation) is a Laravel listener; it runs after the commit and not at all on a rollback, and its failure is logged without failing the committed use case. If the process dies between the commit and the listener, the cache stays stale until its TTL expires, so every cache entry has one;
@@ -68,12 +69,12 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 
 ## Composition roots
 
-Each context has one provider, `App\Providers\<Context>ServiceProvider` (ADR `docs/adr/D-042-context-service-providers.md`): ports bound in `registerDomainServices()` / `registerInfrastructure()` / `registerApplicationServices()`, observers and policies registered in `boot()`. A contract from `App\Domain\<Context>` or `App\Application\<Context>` is bound exactly once, in its own context's provider (`tests/Feature/Providers/ContextProviderBindingOriginTest.php`). After adding or removing a binding, refresh the snapshot: `docker exec BILLEX-app php artisan ddd:providers:snapshot --write`.
+Each context has one provider, `App\Providers\<Context>ServiceProvider` (ADR `docs/adr/D-042-context-service-providers.md`): ports bound in `registerDomainServices()` / `registerInfrastructure()` / `registerApplicationServices()`, observers registered in `boot()`. A contract from `App\Domain\<Context>` or `App\Application\<Context>` is bound exactly once, in its own context's provider (`tests/Feature/Providers/ContextProviderBindingOriginTest.php`). After adding or removing a binding, refresh the snapshot: `docker exec BILLEX-app php artisan ddd:providers:snapshot --write`.
 
 ## Directory layout
 
 - Domain: `Contracts/`, `DTO/`, `Enums/`, `Events/` (+ `Handlers/`), `Exceptions/`, `Services/`, `ValueObjects/`.
-- Application: `Services/`, `DTO/` (Results and projections owned by the use case), `Presenters/`, `Contracts/` only for ports Application defines.
+- Application: `Commands/`, `Queries/` (each declaration next to its handler), `Support/` (helpers of handlers), `DTO/` (Results and projections owned by the use case), `Presenters/`, `Contracts/` only for ports Application defines.
 - Infrastructure: by technical concern, then context — `Persistence/Eloquent/<Context>/{Repositories,Mappers}`, `Gateways/<Context>/`, `Authorization/`, `Forms/<Context>/`, `Notifications/`, `Renderers/`, `Shared/`.
 - Directory names are plural where they hold a kind of class (`Enums`, `Exceptions`), context names are singular and match the bounded context (`Forms/Product`, not `Forms/Products`). No grab-bag subdirectories such as `Specialized/`.
 
