@@ -10,6 +10,7 @@
 | [Businesses and contacts design](design/DESIGN_BUSINESSES_AND_CONTACTS.md) | Agreed step 7 technical design |
 | [Businesses and contacts verification map](prd/VERIFICATION_BUSINESSES_AND_CONTACTS.md) | Implemented paths, test locations and source invariants; separate from requirements and individual test-run results |
 | [Entity limits PRD](prd/PRD_ENTITY_LIMITS.md) | Approved product specification, version 1.0; scope and A01–A17 |
+| [Permissions PRD](prd/PRD_PERMISSIONS.md) | Approved product specification, version 1.0; scope and A01–A22 |
 | [PHP syntax enforcement](design/DESIGN_PHP_STYLE.md) | Implementation design for the agreed PHP readability standard; rolled out, numbered names remain |
 
 ## Architectural decisions
