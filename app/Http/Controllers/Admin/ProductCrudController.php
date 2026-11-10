@@ -8,6 +8,7 @@ use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Infrastructure\Forms\User\EntityUsageFormFields;
@@ -64,11 +65,11 @@ final class ProductCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_product',
-                'show' => 'can_view_product',
-                'create' => 'can_create_product',
-                'update' => 'can_update_product',
-                'delete' => 'can_delete_product',
+                'list' => Permission::PRODUCT_VIEW,
+                'show' => Permission::PRODUCT_VIEW,
+                'create' => Permission::PRODUCT_CREATE,
+                'update' => Permission::PRODUCT_UPDATE,
+                'delete' => Permission::PRODUCT_DELETE,
             ],
         );
     }

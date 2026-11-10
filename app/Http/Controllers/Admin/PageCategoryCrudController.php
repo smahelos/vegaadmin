@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\PageCategoryRequest;
 use App\Models\PageCategory;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -43,11 +44,11 @@ class PageCategoryCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_page',
-                'show' => 'can_view_page',
-                'create' => 'can_create_page',
-                'update' => 'can_update_page',
-                'delete' => 'can_delete_page',
+                'list' => Permission::PAGE_VIEW,
+                'show' => Permission::PAGE_VIEW,
+                'create' => Permission::PAGE_CREATE,
+                'update' => Permission::PAGE_UPDATE,
+                'delete' => Permission::PAGE_DELETE,
             ],
         );
     }

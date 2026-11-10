@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Product;
 
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
@@ -133,7 +134,7 @@ class ProductListSelect extends Component
      */
     public function selectProduct(int $id): bool
     {
-        $this->requirePermission('frontend.can_view_product');
+        $this->requirePermission(Permission::PRODUCT_VIEW);
 
         try {
             $query = Product::where('user_id', Auth::id());
@@ -203,7 +204,7 @@ class ProductListSelect extends Component
      */
     public function render(): View
     {
-        $this->requirePermission('frontend.can_view_product');
+        $this->requirePermission(Permission::PRODUCT_VIEW);
 
         try {
             $searchTerm = $this->search;

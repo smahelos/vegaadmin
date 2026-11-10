@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class ClearCacheRequest extends FormRequest
@@ -12,7 +13,7 @@ final class ClearCacheRequest extends FormRequest
     {
         $user = backpack_user();
 
-        return $user?->can('can_configure_system') === true;
+        return $user?->can(Permission::SYSTEM_CONFIGURE) === true;
     }
 
     /**

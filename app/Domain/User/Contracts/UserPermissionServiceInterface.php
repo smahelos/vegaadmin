@@ -12,9 +12,9 @@ namespace App\Domain\User\Contracts;
 interface UserPermissionServiceInterface
 {
     /**
-     * Get all permission names for a user.
+     * Names of the permissions the user holds in the guard; each guard holds its own row of a name.
      *
-     * @return array Array of permission names
+     * @return list<string>
      */
-    public function getUserPermissions(int $userId): array;
+    public function getUserPermissions(int $userId, string $guard): array;
 }

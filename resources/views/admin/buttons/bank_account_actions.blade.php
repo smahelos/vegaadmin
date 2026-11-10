@@ -1,5 +1,6 @@
+@use('App\Domain\User\Enums\Permission')
 @php($user = backpack_user())
-@if ($user->can($entry->business_id !== null ? 'can_update_business' : 'can_update_contact'))
+@if ($user->can($entry->business_id !== null ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE))
     @if ($entry->archived_at === null)
         <form method="POST" action="{{ route('admin.bank-accounts.set-default', ['id' => $entry->getKey()]) }}" class="d-inline">
             @csrf

@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ContactRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
@@ -115,7 +116,7 @@ final class ContactCrudController extends CrudController
     {
         $user = backpack_user();
         abort_unless(
-            $user?->can('can_archive_contact') === true,
+            $user?->can(Permission::CONTACT_ARCHIVE) === true,
             403,
         );
         $contactQuery = Contact::query();
@@ -134,7 +135,7 @@ final class ContactCrudController extends CrudController
     {
         $user = backpack_user();
         abort_unless(
-            $user?->can('can_restore_contact') === true,
+            $user?->can(Permission::CONTACT_RESTORE) === true,
             403,
         );
         $contactQuery = Contact::query();

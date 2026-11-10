@@ -10,6 +10,7 @@ use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\BankAccountRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
@@ -53,11 +54,11 @@ final class BankAccountCrudController extends CrudController
 
         $user = backpack_user();
         $denied = [];
-        if ($user?->can('can_view_business') !== true && $user?->can('can_view_contact') !== true) {
+        if ($user?->can(Permission::BUSINESS_VIEW) !== true && $user?->can(Permission::CONTACT_VIEW) !== true) {
             $denied[] = 'list';
         }
 
-        if ($user?->can('can_update_business') !== true && $user?->can('can_update_contact') !== true) {
+        if ($user?->can(Permission::BUSINESS_UPDATE) !== true && $user?->can(Permission::CONTACT_UPDATE) !== true) {
             $denied[] = 'create';
             $denied[] = 'update';
         }
@@ -178,10 +179,10 @@ final class BankAccountCrudController extends CrudController
     protected function setupListOperation(): void
     {
         $user = backpack_user();
-        if ($user?->can('can_view_business') !== true) {
+        if ($user?->can(Permission::BUSINESS_VIEW) !== true) {
             CRUD::addClause('whereNull', 'business_id');
         }
-        if ($user?->can('can_view_contact') !== true) {
+        if ($user?->can(Permission::CONTACT_VIEW) !== true) {
             CRUD::addClause('whereNull', 'contact_id');
         }
         $request = request();
@@ -323,7 +324,7 @@ final class BankAccountCrudController extends CrudController
 
     private function authorizeOwner(BankAccount $entry): void
     {
-        $permission = $entry->business_id !== null ? 'can_update_business' : 'can_update_contact';
+        $permission = $entry->business_id !== null ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE;
         $user = backpack_user();
         abort_unless(
             $user?->can($permission) === true,

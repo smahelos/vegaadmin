@@ -10,14 +10,15 @@ use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\User\Enums\Permission;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
+use App\Models\Permission as PermissionModel;
 use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\Support\AssertsInvoiceActionResult;
 use Tests\TestCase;
 
@@ -34,10 +35,10 @@ class InvoicePdfApplicationServiceTest extends TestCase
         parent::setUp();
         $userFactory = User::factory();
         $this->user = $userFactory->create();
-        Permission::firstOrCreate(
-            ['name' => 'frontend.can_create_invoice', 'guard_name' => 'web'],
+        PermissionModel::firstOrCreate(
+            ['name' => Permission::INVOICE_CREATE->value, 'guard_name' => 'web'],
         );
-        $this->user->givePermissionTo('frontend.can_create_invoice');
+        $this->user->givePermissionTo(Permission::INVOICE_CREATE);
         $this->pdfService = app(InvoicePdfApplicationServiceInterface::class);
     }
 

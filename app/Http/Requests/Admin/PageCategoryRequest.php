@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -16,10 +17,10 @@ class PageCategoryRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_page') === true;
+            return $user?->can(Permission::PAGE_CREATE) === true;
         }
 
-        return $user?->can('can_update_page') === true;
+        return $user?->can(Permission::PAGE_UPDATE) === true;
     }
 
     /**

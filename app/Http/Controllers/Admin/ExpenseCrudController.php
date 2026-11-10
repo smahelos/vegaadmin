@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Invoice\Services\ExpenseApplicationService;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ExpenseRequest;
 use App\Infrastructure\Forms\Invoice\ExpenseFormFields;
@@ -64,11 +65,11 @@ final class ExpenseCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_expense',
-                'show' => 'can_view_expense',
-                'create' => 'can_create_expense',
-                'update' => 'can_update_expense',
-                'delete' => 'can_delete_expense',
+                'list' => Permission::EXPENSE_VIEW,
+                'show' => Permission::EXPENSE_VIEW,
+                'create' => Permission::EXPENSE_CREATE,
+                'update' => Permission::EXPENSE_UPDATE,
+                'delete' => Permission::EXPENSE_DELETE,
             ],
         );
     }

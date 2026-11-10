@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Authorization;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -21,9 +22,9 @@ final class ObsoletePartyPermissionsTest extends TestCase
         $userFactory = User::factory();
         $owner = $userFactory->create();
         $owner->givePermissionTo(
-            Permission::findByName('can_view_client', 'backpack'),
+            PermissionModel::findByName('can_view_client', 'backpack'),
         );
-        $custom = Permission::create(
+        $custom = PermissionModel::create(
             ['name' => 'custom_party_report', 'guard_name' => 'backpack'],
         );
         $role = Role::findByName('backend_user', 'backpack');
@@ -42,11 +43,11 @@ final class ObsoletePartyPermissionsTest extends TestCase
         );
         $role = Role::findByName('admin', 'backpack');
         $this->assertTrue(
-            $role->hasPermissionTo('can_view_contact', 'backpack'),
+            $role->hasPermissionTo(Permission::CONTACT_VIEW, 'backpack'),
         );
         $role = Role::findByName('frontend_user', 'web');
         $this->assertTrue(
-            $role->hasPermissionTo('frontend.can_create_business', 'web'),
+            $role->hasPermissionTo(Permission::BUSINESS_CREATE, 'web'),
         );
     }
 

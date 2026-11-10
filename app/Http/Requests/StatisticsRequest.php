@@ -7,6 +7,7 @@ namespace App\Http\Requests;
 use App\Domain\Analytics\DTO\StatisticsFilter;
 use App\Domain\Analytics\Enums\StatisticsPeriod;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 use Illuminate\Foundation\Http\FormRequest;
@@ -18,7 +19,7 @@ final class StatisticsRequest extends FormRequest
     {
         $user = $this->user('web');
 
-        return $user?->can('frontend.can_view_statistics') === true;
+        return $user?->can(Permission::STATISTICS_VIEW) === true;
     }
 
     /**

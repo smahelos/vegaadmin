@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Http\Middleware;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Middleware\RequireBackpackAccess;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -23,9 +24,11 @@ class RequireBackpackAccessFeatureTest extends TestCase
     {
         parent::setUp();
         $this->middleware = new RequireBackpackAccess;
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
+        PermissionModel::firstOrCreate(
+            ['name' => Permission::BACKPACK_ACCESS->value, 'guard_name' => 'backpack'],
+        );
         $role = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
-        $role->givePermissionTo('backpack.access');
+        $role->givePermissionTo(Permission::BACKPACK_ACCESS);
     }
 
     #[Test]

@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Support;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 /**
@@ -13,16 +14,16 @@ use Spatie\Permission\Models\Role;
  */
 trait BuildsBackendUsers
 {
-    private function backendUser(string ...$permissions): User
+    private function backendUser(Permission ...$permissions): User
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );
-        foreach (['backpack.access', ...$permissions] as $permission) {
+        foreach ([Permission::BACKPACK_ACCESS, ...$permissions] as $permission) {
             $user->givePermissionTo(
-                Permission::findByName($permission, 'backpack'),
+                PermissionModel::findByName($permission->value, 'backpack'),
             );
         }
 

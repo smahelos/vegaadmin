@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Application\User\Contracts\UserApplicationServiceInterface;
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
+use App\Domain\User\Enums\Permission;
 // Use Application-layer facade instead of Domain in controllers
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -41,7 +42,7 @@ class UserController extends Controller
                 );
             }
             // Permission check via adapter (backpack guard)
-            if (!$this->auth->hasBackpackPermission((int) $current->id, 'can_view_user')) {
+            if (!$this->auth->hasBackpackPermission((int) $current->id, Permission::USER_VIEW)) {
                 $responseFactory = response();
 
                 return $responseFactory->json(
@@ -97,7 +98,7 @@ class UserController extends Controller
         }
 
         // Check if user has permission to view users
-        if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
+        if (!$this->auth->hasBackpackPermission((int) $user->id, Permission::USER_VIEW)) {
             $responseFactory = response();
 
             return $responseFactory->json(
@@ -132,7 +133,7 @@ class UserController extends Controller
             );
         }
 
-        if (!$this->auth->hasBackpackPermission((int) $user->id, 'can_view_user')) {
+        if (!$this->auth->hasBackpackPermission((int) $user->id, Permission::USER_VIEW)) {
             $responseFactory = response();
 
             return $responseFactory->json(

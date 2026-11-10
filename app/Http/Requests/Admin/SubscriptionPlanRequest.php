@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubscriptionPlanRequest extends FormRequest
@@ -27,10 +28,10 @@ class SubscriptionPlanRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_subscription_plan') === true;
+            return $user?->can(Permission::SUBSCRIPTION_PLAN_CREATE) === true;
         }
 
-        return $user?->can('can_update_subscription_plan') === true;
+        return $user?->can(Permission::SUBSCRIPTION_PLAN_UPDATE) === true;
     }
 
     /**

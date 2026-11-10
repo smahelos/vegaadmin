@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Testing\TestResponse;
@@ -39,10 +40,10 @@ final class ProductPermissionsTest extends TestCase
     public static function ownedActions(): array
     {
         return [
-            'show' => ['show', 'frontend.can_view_product'],
-            'edit' => ['edit', 'frontend.can_update_product'],
-            'update' => ['update', 'frontend.can_update_product'],
-            'destroy' => ['destroy', 'frontend.can_delete_product'],
+            'show' => ['show', Permission::PRODUCT_VIEW],
+            'edit' => ['edit', Permission::PRODUCT_UPDATE],
+            'update' => ['update', Permission::PRODUCT_UPDATE],
+            'destroy' => ['destroy', Permission::PRODUCT_DELETE],
         ];
     }
 
@@ -80,7 +81,7 @@ final class ProductPermissionsTest extends TestCase
 
     #[Test]
     #[DataProvider('ownedActions')]
-    public function a_permission_does_not_reach_the_product_of_another_user(string $action, string $permission): void
+    public function a_permission_does_not_reach_the_product_of_another_user(string $action, Permission $permission): void
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
@@ -99,14 +100,14 @@ final class ProductPermissionsTest extends TestCase
     {
         $userFactory = User::factory();
         $owner = $userFactory->create();
-        $owner->givePermissionTo('frontend.can_view_product');
+        $owner->givePermissionTo(Permission::PRODUCT_VIEW);
         $product = $this->productOf($owner);
         $this->actingAs($owner, 'web');
 
         $response = $this->callAction('show', $product);
         $response->assertOk();
 
-        $owner->revokePermissionTo('frontend.can_view_product');
+        $owner->revokePermissionTo(Permission::PRODUCT_VIEW);
 
         $response = $this->callAction('show', $product);
         $response->assertForbidden();
@@ -117,7 +118,7 @@ final class ProductPermissionsTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.can_view_product');
+        $user->givePermissionTo(Permission::PRODUCT_VIEW);
         $this->actingAs($user, 'web');
         $locale = ['locale' => 'cs'];
         $createUrl = route('frontend.product.create', $locale);
@@ -127,7 +128,7 @@ final class ProductPermissionsTest extends TestCase
         );
         $response->assertDontSee($createUrl);
 
-        $user->givePermissionTo('frontend.can_create_product');
+        $user->givePermissionTo(Permission::PRODUCT_CREATE);
 
         $response = $this->get(
             route('frontend.products', $locale),
@@ -140,7 +141,7 @@ final class ProductPermissionsTest extends TestCase
     {
         $userFactory = User::factory();
         $owner = $userFactory->create();
-        $owner->givePermissionTo('frontend.can_view_product');
+        $owner->givePermissionTo(Permission::PRODUCT_VIEW);
         $product = $this->productOf($owner);
         $this->actingAs($owner, 'web');
         $editUrl = route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]);
@@ -152,7 +153,7 @@ final class ProductPermissionsTest extends TestCase
         $response = $this->callAction('show', $product);
         $response->assertDontSee($editUrl);
 
-        $owner->givePermissionTo('frontend.can_update_product', 'frontend.can_delete_product');
+        $owner->givePermissionTo(Permission::PRODUCT_UPDATE, Permission::PRODUCT_DELETE);
 
         $response = $this->callAction('index', $product);
         $response->assertSee($editUrl);
@@ -172,7 +173,7 @@ final class ProductPermissionsTest extends TestCase
         $response = $this->get($url);
         $response->assertDontSee('select-product');
 
-        $user->givePermissionTo('frontend.can_view_product');
+        $user->givePermissionTo(Permission::PRODUCT_VIEW);
 
         $response = $this->get($url);
         $response->assertSee('select-product');

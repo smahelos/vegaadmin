@@ -17,6 +17,7 @@ use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 use RuntimeException;
@@ -45,7 +46,7 @@ final class ExpenseApplicationService
         ExpenseWriteData $data,
         UserId $actorId,
     ): ExpenseDTO {
-        $this->assertPermission($actorId, 'can_create_expense');
+        $this->assertPermission($actorId, Permission::EXPENSE_CREATE);
 
         return $this->save(
             $userId,
@@ -60,7 +61,7 @@ final class ExpenseApplicationService
         ExpenseWriteData $data,
         UserId $actorId,
     ): ExpenseDTO {
-        $this->assertPermission($actorId, 'can_update_expense');
+        $this->assertPermission($actorId, Permission::EXPENSE_UPDATE);
 
         return $this->save(
             $userId,
@@ -69,12 +70,15 @@ final class ExpenseApplicationService
         );
     }
 
-    private function assertPermission(UserId $actorId, string $permission): void
+    private function assertPermission(UserId $actorId, Permission $permission): void
     {
         if (
             !in_array(
-                $permission,
-                $this->permissions->getUserPermissions($actorId->toInt()),
+                $permission->value,
+                $this->permissions->getUserPermissions(
+                    $actorId->toInt(),
+                    'backpack',
+                ),
                 true,
             )
         ) {

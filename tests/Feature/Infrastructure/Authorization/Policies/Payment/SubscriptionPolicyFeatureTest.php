@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Infrastructure\Authorization\Policies\Payment;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class SubscriptionPolicyFeatureTest extends TestCase
@@ -15,7 +16,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.can_cancel_subscription');
+        $user->givePermissionTo(Permission::SUBSCRIPTION_CANCEL);
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($user);
         $subscription = $subscriptionFactory->create();
@@ -45,7 +46,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
         $owner = $userFactory->create();
-        $user->givePermissionTo('frontend.can_cancel_subscription');
+        $user->givePermissionTo(Permission::SUBSCRIPTION_CANCEL);
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($owner);
         $subscription = $subscriptionFactory->create();
@@ -62,7 +63,7 @@ class SubscriptionPolicyFeatureTest extends TestCase
         $admin = $userFactory->create();
         $owner = $userFactory->create();
         $admin->givePermissionTo(
-            Permission::findByName('can_update_subscription', 'backpack'),
+            PermissionModel::findByName(Permission::SUBSCRIPTION_UPDATE->value, 'backpack'),
         );
         $subscriptionFactory = Subscription::factory();
         $subscriptionFactory = $subscriptionFactory->for($owner);

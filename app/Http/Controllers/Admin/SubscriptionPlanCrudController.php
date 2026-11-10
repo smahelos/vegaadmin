@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\SubscriptionPlanRequest;
 use App\Models\SubscriptionPlan;
@@ -47,11 +48,11 @@ class SubscriptionPlanCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_subscription_plan',
-                'show' => 'can_view_subscription_plan',
-                'create' => 'can_create_subscription_plan',
-                'update' => 'can_update_subscription_plan',
-                'delete' => 'can_delete_subscription_plan',
+                'list' => Permission::SUBSCRIPTION_PLAN_VIEW,
+                'show' => Permission::SUBSCRIPTION_PLAN_VIEW,
+                'create' => Permission::SUBSCRIPTION_PLAN_CREATE,
+                'update' => Permission::SUBSCRIPTION_PLAN_UPDATE,
+                'delete' => Permission::SUBSCRIPTION_PLAN_DELETE,
             ],
         );
     }

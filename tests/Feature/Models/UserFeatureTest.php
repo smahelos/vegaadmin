@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Models;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -52,15 +53,17 @@ final class UserFeatureTest extends TestCase
     private function createPermissionsAndRoles(): void
     {
         // Create basic permissions for both guards
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'frontend.access', 'guard_name' => 'web']);
+        PermissionModel::firstOrCreate(
+            ['name' => Permission::BACKPACK_ACCESS->value, 'guard_name' => 'backpack'],
+        );
+        PermissionModel::firstOrCreate(['name' => 'frontend.access', 'guard_name' => 'web']);
 
         // Create roles for testing
         $this->adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'backpack']);
         $this->userRole = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
 
         // Assign permissions to roles
-        $this->adminRole->givePermissionTo('backpack.access');
+        $this->adminRole->givePermissionTo(Permission::BACKPACK_ACCESS);
         $this->userRole->givePermissionTo('frontend.access');
     }
 

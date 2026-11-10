@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\User\Enums\Permission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,7 @@ class RequireFrontendApiAccess
         $user = $guard->user();
 
         // Check if user has frontend API access permission
-        if (!$user->can('frontend.api.access')) {
+        if (!$user->checkPermissionTo(Permission::API_ACCESS, 'web')) {
             return $this->forbidden($request);
         }
 

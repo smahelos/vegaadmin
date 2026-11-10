@@ -2,10 +2,11 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\Invoice;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class InvoiceBatchActionsControllerFeatureTest extends TestCase
@@ -18,7 +19,7 @@ class InvoiceBatchActionsControllerFeatureTest extends TestCase
         $userFactory = User::factory();
         $this->user = $userFactory->create();
         $this->user->givePermissionTo(
-            Permission::findByName('frontend.can_update_invoice', 'web'),
+            PermissionModel::findByName(Permission::INVOICE_UPDATE->value, 'web'),
         );
     }
 

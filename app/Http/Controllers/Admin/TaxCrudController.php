@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\TaxRequest;
 use App\Infrastructure\Forms\Tax\TaxFormFields;
@@ -41,11 +42,11 @@ final class TaxCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_tax',
-                'show' => 'can_view_tax',
-                'create' => 'can_create_tax',
-                'update' => 'can_update_tax',
-                'delete' => 'can_delete_tax',
+                'list' => Permission::TAX_VIEW,
+                'show' => Permission::TAX_VIEW,
+                'create' => Permission::TAX_CREATE,
+                'update' => Permission::TAX_UPDATE,
+                'delete' => Permission::TAX_DELETE,
             ],
         );
     }

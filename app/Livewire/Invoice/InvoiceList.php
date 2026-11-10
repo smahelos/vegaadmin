@@ -13,6 +13,7 @@ use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
@@ -91,7 +92,7 @@ final class InvoiceList extends Component
 
     public function render(InvoiceListApplicationService $invoices, InvoiceListPresenter $presenter): View
     {
-        $this->requirePermission('frontend.can_view_invoice');
+        $this->requirePermission(Permission::INVOICE_VIEW);
         $userId = $this->userId();
         $status = InvoiceStatus::tryFrom($this->status);
         abort_if($this->status !== '' && $status === null, 404);

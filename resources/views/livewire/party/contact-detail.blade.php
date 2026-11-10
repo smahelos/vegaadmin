@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 <div>
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight pt-3">
@@ -11,16 +12,16 @@
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('contacts.actions.back_to_list')"
                 :href="route('frontend.contacts.index', ['locale' => App::getLocale()])" />
-            @can('frontend.can_update_contact')
+            @can(Permission::CONTACT_UPDATE)
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
                     :href="route('frontend.contacts.edit', ['locale' => App::getLocale(), 'contact' => $contact->id->value])" />
             @endcan
             @if ($contact->isArchived())
-                @can('frontend.can_restore_contact')
+                @can(Permission::CONTACT_RESTORE)
                     <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')" wire:click="restore" />
                 @endcan
             @else
-                @can('frontend.can_archive_contact')
+                @can(Permission::CONTACT_ARCHIVE)
                     <x-icon-button icon="fa-archive" tone="orange" :label="__('parties.actions.archive')"
                         wire:click="archive" wire:confirm="{{ __('contacts.messages.confirm_archive') }}" />
                 @endcan

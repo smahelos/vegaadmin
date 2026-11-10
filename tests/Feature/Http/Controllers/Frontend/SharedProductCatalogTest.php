@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Livewire\Product\ProductList;
 use App\Models\Product;
@@ -22,7 +23,7 @@ final class SharedProductCatalogTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.can_create_product', 'frontend.can_update_product');
+        $user->givePermissionTo(Permission::PRODUCT_CREATE, Permission::PRODUCT_UPDATE);
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id]);
         $this->actingAs($user, 'web');
@@ -75,7 +76,7 @@ final class SharedProductCatalogTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.can_view_product');
+        $user->givePermissionTo(Permission::PRODUCT_VIEW);
         $productFactory = Product::factory();
         $product = $productFactory->create(['user_id' => $user->id, 'name' => 'Visible shared product']);
         $productFactory->create(['name' => 'Other private product']);

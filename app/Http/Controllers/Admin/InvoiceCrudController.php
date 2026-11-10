@@ -9,6 +9,7 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Application\Invoice\DTO\InvoiceActionStatus;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
 use App\Models\Invoice;
@@ -62,11 +63,11 @@ final class InvoiceCrudController extends CrudController
         );
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_invoice',
-                'show' => 'can_view_invoice',
-                'create' => 'can_create_invoice',
-                'update' => 'can_update_invoice',
-                'delete' => 'can_delete_invoice',
+                'list' => Permission::INVOICE_VIEW,
+                'show' => Permission::INVOICE_VIEW,
+                'create' => Permission::INVOICE_CREATE,
+                'update' => Permission::INVOICE_UPDATE,
+                'delete' => Permission::INVOICE_DELETE,
             ],
         );
     }

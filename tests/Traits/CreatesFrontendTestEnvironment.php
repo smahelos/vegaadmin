@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Traits;
 
+use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 trait CreatesFrontendTestEnvironment
@@ -51,7 +52,7 @@ trait CreatesFrontendTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $permissionQuery = Permission::where('guard_name', PermissionCatalog::WEB);
+        $permissionQuery = PermissionModel::where('guard_name', PermissionCatalog::WEB);
         $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::WEB]);
         $frontendPermissions = $permissionQuery->get();
         $adminRole->syncPermissions($frontendPermissions);
@@ -69,7 +70,7 @@ trait CreatesFrontendTestEnvironment
         $this->adminUser->assignRole($adminRole);
 
         // Give admin role all permissions
-        $permissionQuery = Permission::where('guard_name', PermissionCatalog::BACKPACK);
+        $permissionQuery = PermissionModel::where('guard_name', PermissionCatalog::BACKPACK);
         $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK]);
         $backendPermissions = $permissionQuery->get();
         $backendAdminRole->syncPermissions($backendPermissions);
@@ -86,8 +87,8 @@ trait CreatesFrontendTestEnvironment
         $this->backendAdminUser->assignRole($backendAdminRole);
 
         // Give unauthorized admin role basic permissions
-        $permissionQuery = Permission::where('guard_name', 'backpack');
-        $permissionQuery->whereIn('name', ['backpack.access', 'backpack.api.access']);
+        $permissionQuery = PermissionModel::where('guard_name', 'backpack');
+        $permissionQuery->whereIn('name', [Permission::BACKPACK_ACCESS, Permission::API_ACCESS]);
         $basicBackpackPermissions = $permissionQuery->get();
         $unauthorizedRole->syncPermissions($basicBackpackPermissions);
 
@@ -108,13 +109,13 @@ trait CreatesFrontendTestEnvironment
         }
         $this->user->assignRole($frontendUserRole);
         // Give frontend_user role minimal API permissions
-        $permissionQuery = Permission::where('guard_name', 'web');
+        $permissionQuery = PermissionModel::where('guard_name', 'web');
         $permissionQuery->whereIn(
             'name',
             [
-                'frontend.api.access',
-                'frontend.can_create_invoice',
-                'frontend.can_update_invoice',
+                Permission::API_ACCESS,
+                Permission::INVOICE_CREATE,
+                Permission::INVOICE_UPDATE,
             ],
         );
         $frontendUserRole->syncPermissions(
@@ -122,7 +123,7 @@ trait CreatesFrontendTestEnvironment
         );
 
         // Get frontend.api.access permission if it exists
-        $permissionQuery = Permission::where('name', 'frontend.api.access');
+        $permissionQuery = PermissionModel::where('name', Permission::API_ACCESS->value);
         $permissionQuery->where('guard_name', 'web');
         $frontendApiAccessPermission = $permissionQuery->first();
         if ($frontendApiAccessPermission) {

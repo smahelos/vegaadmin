@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
@@ -14,10 +15,10 @@ class ExpenseCategoryRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_expense') === true;
+            return $user?->can(Permission::EXPENSE_CREATE) === true;
         }
 
-        return $user?->can('can_update_expense') === true;
+        return $user?->can(Permission::EXPENSE_UPDATE) === true;
     }
 
     /**

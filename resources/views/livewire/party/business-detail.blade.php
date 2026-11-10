@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 <div>
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight pt-3">
@@ -14,21 +15,21 @@
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('businesses.actions.back_to_list')"
                 :href="route('frontend.businesses.index', ['locale' => App::getLocale()])" />
-            @can('frontend.can_update_business')
+            @can(Permission::BUSINESS_UPDATE)
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
                     :href="route('frontend.businesses.edit', ['locale' => App::getLocale(), 'business' => $business->id->value])" />
             @endcan
             @if ($business->isArchived())
-                @can('frontend.can_restore_business')
+                @can(Permission::BUSINESS_RESTORE)
                     <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')" wire:click="restore" />
                 @endcan
             @else
                 @if (! $isDefault)
-                    @can('frontend.can_set_default_business')
+                    @can(Permission::BUSINESS_SET_DEFAULT)
                         <x-icon-button icon="fa-star" tone="yellow" :label="__('businesses.actions.make_default')" wire:click="makeDefault" />
                     @endcan
                 @endif
-                @can('frontend.can_archive_business')
+                @can(Permission::BUSINESS_ARCHIVE)
                     <x-icon-button icon="fa-archive" tone="orange" :label="__('parties.actions.archive')"
                         wire:click="archive" wire:confirm="{{ __('businesses.messages.confirm_archive') }}" />
                 @endcan

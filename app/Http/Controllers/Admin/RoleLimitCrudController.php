@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\LimitMode;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\RoleLimitRequest;
 use App\Infrastructure\Forms\User\RoleLimitFormFields;
 use App\Models\RoleLimit;
@@ -43,11 +44,11 @@ final class RoleLimitCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_role_limit',
-                'show' => 'can_view_role_limit',
-                'create' => 'can_create_role_limit',
-                'update' => 'can_update_role_limit',
-                'delete' => 'can_delete_role_limit',
+                'list' => Permission::ROLE_LIMIT_VIEW,
+                'show' => Permission::ROLE_LIMIT_VIEW,
+                'create' => Permission::ROLE_LIMIT_CREATE,
+                'update' => Permission::ROLE_LIMIT_UPDATE,
+                'delete' => Permission::ROLE_LIMIT_DELETE,
             ],
         );
     }

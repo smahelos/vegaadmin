@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ProductCategoryRequest;
 use App\Models\ProductCategory;
@@ -39,11 +40,11 @@ final class ProductCategoryCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_product',
-                'show' => 'can_view_product',
-                'create' => 'can_create_product',
-                'update' => 'can_update_product',
-                'delete' => 'can_delete_product',
+                'list' => Permission::PRODUCT_VIEW,
+                'show' => Permission::PRODUCT_VIEW,
+                'create' => Permission::PRODUCT_CREATE,
+                'update' => Permission::PRODUCT_UPDATE,
+                'delete' => Permission::PRODUCT_DELETE,
             ],
         );
     }

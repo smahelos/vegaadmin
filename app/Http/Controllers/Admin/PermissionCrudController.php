@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Backpack\PermissionManager\app\Http\Controllers\PermissionCrudController as PackagePermissionCrudController;
 
 /**
@@ -19,10 +20,10 @@ final class PermissionCrudController extends PackagePermissionCrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_permission',
-                'create' => 'can_create_permission',
-                'update' => 'can_update_permission',
-                'delete' => 'can_delete_permission',
+                'list' => Permission::PERMISSION_VIEW,
+                'create' => Permission::PERMISSION_CREATE,
+                'update' => Permission::PERMISSION_UPDATE,
+                'delete' => Permission::PERMISSION_DELETE,
             ],
         );
     }

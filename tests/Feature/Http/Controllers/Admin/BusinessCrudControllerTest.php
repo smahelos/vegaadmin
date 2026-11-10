@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Models\Address;
 use App\Models\Business;
 use App\Models\User;
@@ -202,7 +203,7 @@ final class BusinessCrudControllerTest extends TestCase
         $owner->forceFill(['default_business_id' => $business->id]);
         $owner->save();
         $this->actingAs(
-            $this->backendUser('can_archive_business', 'can_view_business'),
+            $this->backendUser(Permission::BUSINESS_ARCHIVE, Permission::BUSINESS_VIEW),
             'backpack',
         );
         $httpResponse = $this->postJson('/admin/business/search', ['start' => 0, 'length' => 100]);
@@ -258,7 +259,7 @@ final class BusinessCrudControllerTest extends TestCase
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
-        $backendUser = $this->backendUser('can_view_business');
+        $backendUser = $this->backendUser(Permission::BUSINESS_VIEW);
 
         $httpClient = $this->actingAs($backendUser, 'backpack');
         $httpResponse = $httpClient->post(

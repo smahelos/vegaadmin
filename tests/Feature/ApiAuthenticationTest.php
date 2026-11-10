@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -25,10 +26,10 @@ final class ApiAuthenticationTest extends TestCase
         $this->actingAs($user, 'web');
 
         $this->assertTrue(
-            $user->hasPermissionTo('frontend.api.access', 'web'),
+            $user->hasPermissionTo(Permission::API_ACCESS, 'web'),
         );
         $this->assertTrue(
-            $user->hasPermissionTo('frontend.can_view_contact', 'web'),
+            $user->hasPermissionTo(Permission::CONTACT_VIEW, 'web'),
         );
     }
 
@@ -46,13 +47,13 @@ final class ApiAuthenticationTest extends TestCase
         $this->actingAs($user, 'backpack');
 
         $this->assertTrue(
-            $user->hasPermissionTo('backpack.api.access', 'backpack'),
+            $user->hasPermissionTo(Permission::API_ACCESS, 'backpack'),
         );
         $this->assertTrue(
-            $user->hasPermissionTo('backpack.access', 'backpack'),
+            $user->hasPermissionTo(Permission::BACKPACK_ACCESS, 'backpack'),
         );
         $this->assertTrue(
-            $user->hasPermissionTo('can_view_contact', 'backpack'),
+            $user->hasPermissionTo(Permission::CONTACT_VIEW, 'backpack'),
         );
     }
 
@@ -75,18 +76,18 @@ final class ApiAuthenticationTest extends TestCase
 
         // Test cross-guard permissions are denied
         $this->assertFalse(
-            $backpackUser->hasPermissionTo('frontend.api.access', 'web'),
+            $backpackUser->hasPermissionTo(Permission::API_ACCESS, 'web'),
         );
         $this->assertFalse(
-            $webUser->hasPermissionTo('backpack.api.access', 'backpack'),
+            $webUser->hasPermissionTo(Permission::API_ACCESS, 'backpack'),
         );
 
         // Test same-guard permissions are allowed
         $this->assertTrue(
-            $backpackUser->hasPermissionTo('backpack.api.access', 'backpack'),
+            $backpackUser->hasPermissionTo(Permission::API_ACCESS, 'backpack'),
         );
         $this->assertTrue(
-            $webUser->hasPermissionTo('frontend.api.access', 'web'),
+            $webUser->hasPermissionTo(Permission::API_ACCESS, 'web'),
         );
     }
 
@@ -105,20 +106,20 @@ final class ApiAuthenticationTest extends TestCase
 
         // Admin should have backpack permissions
         $this->assertTrue(
-            $adminRole->hasPermissionTo('backpack.api.access', 'backpack'),
+            $adminRole->hasPermissionTo(Permission::API_ACCESS, 'backpack'),
         );
         $this->assertTrue(
-            $adminRole->hasPermissionTo('backpack.access', 'backpack'),
+            $adminRole->hasPermissionTo(Permission::BACKPACK_ACCESS, 'backpack'),
         );
 
         // Backend user should have basic backpack access
         $this->assertFalse(
-            $backendUserRole->hasPermissionTo('backpack.access', 'backpack'),
+            $backendUserRole->hasPermissionTo(Permission::BACKPACK_ACCESS, 'backpack'),
         );
 
         // Frontend user should have basic frontend permissions
         $this->assertTrue(
-            $frontendRole->hasPermissionTo('frontend.api.access', 'web'),
+            $frontendRole->hasPermissionTo(Permission::API_ACCESS, 'web'),
         );
     }
 }

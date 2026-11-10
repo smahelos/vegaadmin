@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
+use App\Domain\User\Enums\Permission;
 use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\Auth;
@@ -66,7 +67,7 @@ final class StatisticsControllerFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $user->givePermissionTo('frontend.api.access');
+        $user->givePermissionTo(Permission::API_ACCESS);
 
         $httpClient = $this->actingAs($user, 'web');
         $httpResponse = $httpClient->getJson(

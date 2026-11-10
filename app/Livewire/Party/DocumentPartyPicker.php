@@ -25,6 +25,7 @@ use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Party\BankAccountInput;
 use App\Http\Requests\Party\DocumentPartyInput;
 use App\Livewire\Party\Forms\BankAccountForm;
@@ -279,7 +280,7 @@ final class DocumentPartyPicker extends Component
                 'contactSearched' => $this->searchTerm() !== null,
                 'contactResults' => $this->contactResults($contacts),
                 'existingContact' => $this->existingContact($contacts),
-                'canSaveToContacts' => $this->userCan('frontend.can_create_contact'),
+                'canSaveToContacts' => $this->userCan(Permission::CONTACT_CREATE),
             ],
         );
     }

@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -20,9 +21,9 @@ class ProductCrudControllerTest extends TestCase
 
         $this->setUpAdminTestEnvironment();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_view_product', 'backpack'),
-            Permission::findByName('can_create_product', 'backpack'),
-            Permission::findByName('can_update_product', 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_VIEW->value, 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_CREATE->value, 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_UPDATE->value, 'backpack'),
         );
     }
 

@@ -10,6 +10,7 @@ use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Services\EntityLimit;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
@@ -121,7 +122,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
 
     public function authorizeCreateProduct(int $userId): void
     {
-        $this->requirePermission($userId, 'frontend.can_create_product');
+        $this->requirePermission($userId, Permission::PRODUCT_CREATE);
     }
 
     public function authorizeViewProduct(int $userId, int $productId): ProductDTO
@@ -129,7 +130,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         return $this->authorizeProduct(
             $userId,
             $productId,
-            'frontend.can_view_product',
+            Permission::PRODUCT_VIEW,
         );
     }
 
@@ -138,7 +139,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         return $this->authorizeProduct(
             $userId,
             $productId,
-            'frontend.can_update_product',
+            Permission::PRODUCT_UPDATE,
         );
     }
 
@@ -147,7 +148,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
         $this->authorizeProduct(
             $userId,
             $productId,
-            'frontend.can_delete_product',
+            Permission::PRODUCT_DELETE,
         );
     }
 
@@ -160,7 +161,7 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     private function authorizeProduct(
         int $userId,
         int $productId,
-        string $permission,
+        Permission $permission,
     ): ProductDTO {
         $product = $this->findProduct($userId, $productId);
         $this->requirePermission($userId, $permission);
@@ -171,12 +172,12 @@ class ProductApplicationService implements ProductApplicationServiceInterface
     /**
      * @throws AuthorizationException
      */
-    private function requirePermission(int $userId, string $permission): void
+    private function requirePermission(int $userId, Permission $permission): void
     {
         if (
             !in_array(
-                $permission,
-                $this->permissions->getUserPermissions($userId),
+                $permission->value,
+                $this->permissions->getUserPermissions($userId, 'web'),
                 true,
             )
         ) {

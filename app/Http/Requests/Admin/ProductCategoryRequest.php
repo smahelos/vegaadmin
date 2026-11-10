@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
@@ -14,10 +15,10 @@ class ProductCategoryRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_product') === true;
+            return $user?->can(Permission::PRODUCT_CREATE) === true;
         }
 
-        return $user?->can('can_update_product') === true;
+        return $user?->can(Permission::PRODUCT_UPDATE) === true;
     }
 
     /**

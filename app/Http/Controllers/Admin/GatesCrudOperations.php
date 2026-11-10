@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
 /**
- * Gates each Backpack operation by its own permission. Controllers name the permissions literally, so
- * PermissionCatalogCoverageTest finds them.
+ * Gates each Backpack operation by its own permission.
  */
 trait GatesCrudOperations
 {
     /**
      * Denies every operation whose permission the signed-in admin lacks.
      *
-     * @param  array<string, string>  $permissions  permission by Backpack operation
+     * @param  array<string, Permission>  $permissions  permission by Backpack operation
      */
     protected function denyOperationsWithout(array $permissions): void
     {

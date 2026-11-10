@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Party;
 
 use App\Application\Party\Services\BusinessApplicationService;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -16,7 +17,7 @@ final class BusinessList extends Component
 
     public function render(BusinessApplicationService $businesses): View
     {
-        $this->requirePermission('frontend.can_view_business');
+        $this->requirePermission(Permission::BUSINESS_VIEW);
         $userId = $this->userId();
 
         return view(

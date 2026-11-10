@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Application\Product\Services;
 
 use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Domain\User\Enums\Permission;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -18,7 +19,7 @@ final class ProductApplicationServiceTest extends TestCase
     {
         $userFactory = User::factory();
         $owner = $userFactory->create();
-        $owner->givePermissionTo('frontend.can_view_product');
+        $owner->givePermissionTo(Permission::PRODUCT_VIEW);
         $product = $this->productOf($owner);
 
         $products = app(ProductApplicationServiceInterface::class);
@@ -33,7 +34,7 @@ final class ProductApplicationServiceTest extends TestCase
         $userFactory = User::factory();
         $owner = $userFactory->create();
         $other = $userFactory->create();
-        $other->givePermissionTo('frontend.can_view_product');
+        $other->givePermissionTo(Permission::PRODUCT_VIEW);
         $product = $this->productOf($owner);
 
         $products = app(ProductApplicationServiceInterface::class);

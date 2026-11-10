@@ -4,15 +4,28 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Authorization;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
 final class PermissionSplitMigrationTest extends TestCase
 {
+    /**
+     * The migration speaks the names before the rename, so the rename is rolled back first.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $rename = require database_path(
+            'migrations/2026_11_10_000001_rename_permissions_by_entity_and_action.php',
+        );
+        $rename->down();
+    }
+
     #[Test]
     public function holders_of_an_old_permission_receive_its_successors(): void
     {
@@ -21,7 +34,7 @@ final class PermissionSplitMigrationTest extends TestCase
         $userFactory = User::factory();
         $holder = $userFactory->create();
         $holder->givePermissionTo(
-            Permission::findByName('can_create_edit_subscription', 'backpack'),
+            PermissionModel::findByName('can_create_edit_subscription', 'backpack'),
         );
         $role = Role::create(['name' => 'custom_editor', 'guard_name' => 'web']);
         $role->givePermissionTo('frontend.can_create_edit_product');
@@ -30,7 +43,7 @@ final class PermissionSplitMigrationTest extends TestCase
 
         $this->assertTrue(
             $holder->hasDirectPermission(
-                Permission::findByName('can_delete_subscription', 'backpack'),
+                PermissionModel::findByName('can_delete_subscription', 'backpack'),
             ),
         );
         $this->assertDatabaseMissing(
@@ -57,8 +70,9 @@ final class PermissionSplitMigrationTest extends TestCase
             ['name' => 'frontend.can_create_edit_expense', 'guard_name' => 'web'],
         );
         $role = Role::findByName('frontend_user', 'web');
+        // The catalog sync grants it, and the sync writes the current names
         $this->assertTrue(
-            $role->hasPermissionTo('frontend.can_delete_product', 'web'),
+            $role->hasPermissionTo(Permission::PRODUCT_DELETE, 'web'),
         );
         $this->assertTrue(
             $role->hasPermissionTo('frontend.can_view_statistics', 'web'),

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
@@ -65,7 +66,9 @@ final class BankAccountCrudControllerTest extends TestCase
             ] as [$type, $visible, $hidden]
         ) {
             $this->actingAs(
-                $this->backendUser('can_view_' . $type),
+                $this->backendUser(
+                    Permission::from($type . '.view'),
+                ),
                 'backpack',
             );
             foreach (
@@ -83,7 +86,9 @@ final class BankAccountCrudControllerTest extends TestCase
                 }
             }
             $this->actingAs(
-                $this->backendUser('can_update_' . $type),
+                $this->backendUser(
+                    Permission::from($type . '.update'),
+                ),
                 'backpack',
             );
             $hiddenResponse = $this->get('/admin/bank-account/' . $hidden->id . '/edit');
@@ -165,7 +170,7 @@ final class BankAccountCrudControllerTest extends TestCase
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $account = $bankAccountFactory->create();
-        $backendUser = $this->backendUser('can_update_business');
+        $backendUser = $this->backendUser(Permission::BUSINESS_UPDATE);
 
         $httpClient = $this->actingAs($backendUser, 'backpack');
         $httpResponse = $httpClient->post(

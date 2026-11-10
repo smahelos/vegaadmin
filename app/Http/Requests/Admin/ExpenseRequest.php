@@ -13,6 +13,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\File\DTO\IncomingFile;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Http\Requests\Party\BankAccountInput;
@@ -29,7 +30,7 @@ final class ExpenseRequest extends FormRequest
         $user = backpack_user();
 
         return $user?->can(
-            $this->isMethod('POST') ? 'can_create_expense' : 'can_update_expense',
+            $this->isMethod('POST') ? Permission::EXPENSE_CREATE : Permission::EXPENSE_UPDATE,
         ) === true;
     }
 

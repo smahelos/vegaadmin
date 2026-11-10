@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Helpers;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Contracts\Auth\Guard;
 use Illuminate\Support\Facades\Config;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class BackpackHelpersFeatureTest extends TestCase
@@ -16,7 +17,9 @@ class BackpackHelpersFeatureTest extends TestCase
         parent::setUp();
 
         // Create required permissions for 'backpack' guard
-        Permission::firstOrCreate(['name' => 'backpack.access', 'guard_name' => 'backpack']);
+        PermissionModel::firstOrCreate(
+            ['name' => Permission::BACKPACK_ACCESS->value, 'guard_name' => 'backpack'],
+        );
     }
 
     #[Test]

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\User\Services\EntityUsageApplicationService;
 use App\Application\User\Services\PlanRoleApplicationService;
 use App\Domain\User\DTO\EntityUsageDTO;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\User\UserFormFields;
@@ -64,11 +65,11 @@ class UserCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_user',
-                'show' => 'can_view_user',
-                'create' => 'can_create_user',
-                'update' => 'can_update_user',
-                'delete' => 'can_delete_user',
+                'list' => Permission::USER_VIEW,
+                'show' => Permission::USER_VIEW,
+                'create' => Permission::USER_CREATE,
+                'update' => Permission::USER_UPDATE,
+                'delete' => Permission::USER_DELETE,
             ],
         );
     }
@@ -131,7 +132,7 @@ class UserCrudController extends CrudController
             // Extra Permission Filter
             $permissionClass = config('permission.models.permission');
             $permissions = $permissionClass::all();
-            $permissionNames = $permissions->pluck('name', 'id');
+            $permissionNames = $permissions->pluck('name_with_guard', 'id');
             $this->crud->addFilter(
                 [
                     'name' => 'permissions',
@@ -212,7 +213,7 @@ class UserCrudController extends CrudController
                         'name' => 'permissions',
                         'entity' => 'permissions',
                         'entity_primary' => 'roles',
-                        'attribute' => 'name',
+                        'attribute' => 'name_with_guard',
                         'model' => config('permission.models.permission'),
                     ],
                 ],
@@ -362,7 +363,7 @@ class UserCrudController extends CrudController
                             'name' => 'permissions',
                             'entity' => 'permissions',
                             'entity_primary' => 'roles',
-                            'attribute' => 'name',
+                            'attribute' => 'name_with_guard',
                             'model' => config('permission.models.permission'),
                             'pivot' => true,
                             'number_columns' => 3,

@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Domain\Shared\Console\Enums\ScheduledCommand;
 use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
 use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\User\Enums\Permission;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,10 +16,10 @@ class CronTaskRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_cron_task') === true;
+            return $user?->can(Permission::CRON_TASK_CREATE) === true;
         }
 
-        return $user?->can('can_update_cron_task') === true;
+        return $user?->can(Permission::CRON_TASK_UPDATE) === true;
     }
 
     public function rules(): array

@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -23,9 +24,9 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_view_expense', 'backpack'),
-            Permission::findByName('can_create_expense', 'backpack'),
-            Permission::findByName('can_update_expense', 'backpack'),
+            PermissionModel::findByName(Permission::EXPENSE_VIEW->value, 'backpack'),
+            PermissionModel::findByName(Permission::EXPENSE_CREATE->value, 'backpack'),
+            PermissionModel::findByName(Permission::EXPENSE_UPDATE->value, 'backpack'),
         );
     }
 

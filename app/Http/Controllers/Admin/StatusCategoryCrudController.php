@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\StatusCategoryRequest;
 use App\Models\StatusCategory;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -45,11 +46,11 @@ final class StatusCategoryCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_status',
-                'show' => 'can_view_status',
-                'create' => 'can_create_status',
-                'update' => 'can_update_status',
-                'delete' => 'can_delete_status',
+                'list' => Permission::STATUS_VIEW,
+                'show' => Permission::STATUS_VIEW,
+                'create' => Permission::STATUS_CREATE,
+                'update' => Permission::STATUS_UPDATE,
+                'delete' => Permission::STATUS_DELETE,
             ],
         );
     }

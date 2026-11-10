@@ -1,10 +1,10 @@
 {
     "summary": {
         "total_controllers": 57,
-        "avg_loc": 167.3,
+        "avg_loc": 168.42,
         "avg_eloquent_static_calls": 0.65,
         "controllers_with_direct_db_calls": 1,
-        "timestamp": "2026-11-08T17:53:13+00:00"
+        "timestamp": "2026-11-10T09:26:55+00:00"
     },
     "controllers": {
         "Http/Controllers/Frontend/PageController.php": {
@@ -144,7 +144,7 @@
             "public_method_count": 0
         },
         "Http/Controllers/Api/UserController.php": {
-            "loc": 130,
+            "loc": 131,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -184,7 +184,7 @@
             "public_method_count": 0
         },
         "Http/Controllers/Admin/ProductCrudController.php": {
-            "loc": 307,
+            "loc": 308,
             "eloquent_static_calls": 1,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -192,7 +192,7 @@
             "public_method_count": 2
         },
         "Http/Controllers/Admin/InvoiceCrudController.php": {
-            "loc": 338,
+            "loc": 339,
             "eloquent_static_calls": 2,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -200,7 +200,7 @@
             "public_method_count": 3
         },
         "Http/Controllers/Admin/ProductCategoryCrudController.php": {
-            "loc": 100,
+            "loc": 101,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -208,7 +208,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/ConfiguresPartyCrud.php": {
-            "loc": 197,
+            "loc": 198,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -216,7 +216,7 @@
             "public_method_count": 0
         },
         "Http/Controllers/Admin/PageCategoryCrudController.php": {
-            "loc": 171,
+            "loc": 172,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -224,7 +224,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/TaxCrudController.php": {
-            "loc": 86,
+            "loc": 87,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -232,7 +232,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/ContactCrudController.php": {
-            "loc": 210,
+            "loc": 211,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -240,7 +240,7 @@
             "public_method_count": 5
         },
         "Http/Controllers/Admin/StatusCrudController.php": {
-            "loc": 196,
+            "loc": 197,
             "eloquent_static_calls": 2,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -248,7 +248,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/RoleLimitCrudController.php": {
-            "loc": 104,
+            "loc": 105,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -256,7 +256,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/CronTaskCrudController.php": {
-            "loc": 337,
+            "loc": 338,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -264,7 +264,7 @@
             "public_method_count": 2
         },
         "Http/Controllers/Admin/SubscriptionCrudController.php": {
-            "loc": 300,
+            "loc": 301,
             "eloquent_static_calls": 1,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -272,7 +272,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/ArchivePolicyCrudController.php": {
-            "loc": 166,
+            "loc": 167,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -280,7 +280,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/ExpenseCrudController.php": {
-            "loc": 305,
+            "loc": 306,
             "eloquent_static_calls": 4,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -304,7 +304,7 @@
             "public_method_count": 5
         },
         "Http/Controllers/Admin/StatusCategoryCrudController.php": {
-            "loc": 150,
+            "loc": 151,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -312,7 +312,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/SubscriptionPlanCrudController.php": {
-            "loc": 338,
+            "loc": 339,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -320,7 +320,7 @@
             "public_method_count": 3
         },
         "Http/Controllers/Admin/BusinessCrudController.php": {
-            "loc": 222,
+            "loc": 223,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -336,7 +336,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/SubscriptionPlanFeatureCrudController.php": {
-            "loc": 188,
+            "loc": 189,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -368,7 +368,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/PaymentMethodCrudController.php": {
-            "loc": 93,
+            "loc": 94,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -376,7 +376,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/BankAccountCrudController.php": {
-            "loc": 329,
+            "loc": 330,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -384,12 +384,12 @@
             "public_method_count": 7
         },
         "Http/Controllers/Admin/RoleCrudController.php": {
-            "loc": 23,
+            "loc": 50,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
             "constructor_domain_injections": 0,
-            "public_method_count": 1
+            "public_method_count": 4
         },
         "Http/Controllers/Admin/EntityUsageController.php": {
             "loc": 40,
@@ -408,7 +408,7 @@
             "public_method_count": 2
         },
         "Http/Controllers/Admin/ExpenseCategoryCrudController.php": {
-            "loc": 135,
+            "loc": 136,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -424,7 +424,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/PageCrudController.php": {
-            "loc": 422,
+            "loc": 423,
             "eloquent_static_calls": 3,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -432,7 +432,7 @@
             "public_method_count": 3
         },
         "Http/Controllers/Admin/BankCrudController.php": {
-            "loc": 80,
+            "loc": 81,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
@@ -440,12 +440,12 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/PermissionCrudController.php": {
-            "loc": 23,
+            "loc": 36,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,
             "constructor_domain_injections": 0,
-            "public_method_count": 1
+            "public_method_count": 3
         },
         "Http/Controllers/Admin/Operations/RestrictedDeleteOperation.php": {
             "loc": 31,
@@ -456,7 +456,7 @@
             "public_method_count": 1
         },
         "Http/Controllers/Admin/UserCrudController.php": {
-            "loc": 354,
+            "loc": 355,
             "eloquent_static_calls": 0,
             "new_model_insts": 0,
             "db_facade_calls": 0,

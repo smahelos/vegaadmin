@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\DTO\BankAccountWriteData;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Party\BankAccountInput;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,14 +27,14 @@ final class BankAccountRequest extends FormRequest
         }
 
         if ($this->isMethod('POST') && $this->filled('business_id')) {
-            return $user->can('can_update_business');
+            return $user->can(Permission::BUSINESS_UPDATE);
         }
 
         if ($this->isMethod('POST') && $this->filled('contact_id')) {
-            return $user->can('can_update_contact');
+            return $user->can(Permission::CONTACT_UPDATE);
         }
 
-        return $user->can('can_update_business') || $user->can('can_update_contact');
+        return $user->can(Permission::BUSINESS_UPDATE) || $user->can(Permission::CONTACT_UPDATE);
     }
 
     /**

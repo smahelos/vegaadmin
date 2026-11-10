@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Invoice;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -15,7 +16,7 @@ final class SaveCustomerToContactsRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user !== null && $user->can('frontend.can_create_contact') && $user->can('frontend.can_update_invoice');
+        return $user !== null && $user->can(Permission::CONTACT_CREATE) && $user->can(Permission::INVOICE_UPDATE);
     }
 
     /**

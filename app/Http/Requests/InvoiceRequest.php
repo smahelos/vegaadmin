@@ -16,6 +16,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
@@ -37,15 +38,15 @@ final class InvoiceRequest extends FormRequest
         }
 
         $user = $this->user();
-        if ($this->boolean('save_customer_to_contacts') && $user?->can('frontend.can_create_contact') !== true) {
+        if ($this->boolean('save_customer_to_contacts') && $user?->can(Permission::CONTACT_CREATE) !== true) {
             return false;
         }
 
         if ($this->isMethod('POST')) {
-            return $user?->can('frontend.can_create_invoice') === true;
+            return $user?->can(Permission::INVOICE_CREATE) === true;
         }
 
-        return $user?->can('frontend.can_update_invoice') === true;
+        return $user?->can(Permission::INVOICE_UPDATE) === true;
     }
 
     /**

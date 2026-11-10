@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -15,7 +16,7 @@ final class InvoiceItemsRequest extends FormRequest
     {
         $user = backpack_user();
 
-        return $user?->canAny(['can_create_invoice', 'can_update_invoice']) === true;
+        return $user?->canAny([Permission::INVOICE_CREATE, Permission::INVOICE_UPDATE]) === true;
     }
 
     /** @return array<string, mixed> */

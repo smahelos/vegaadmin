@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\Enums\Permission;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\Invoice;
@@ -50,7 +51,7 @@ final class InvoiceCrudControllerTest extends TestCase
             ['user_id' => $owner->id],
         );
         $this->actingAs(
-            $this->backendUser('can_create_invoice'),
+            $this->backendUser(Permission::INVOICE_CREATE),
             'backpack',
         );
         $httpResponse = $this->post('/admin/invoice', $data);

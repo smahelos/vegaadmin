@@ -2,12 +2,13 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\CronTaskRequest;
+use App\Models\Permission as PermissionModel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -457,7 +458,7 @@ class CronTaskRequestFeatureTest extends TestCase
     {
         $this->withoutMiddleware();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_update_cron_task', 'backpack'),
+            PermissionModel::findByName(Permission::CRON_TASK_UPDATE->value, 'backpack'),
         );
 
         $httpClient = $this->actingAs($this->regularUser, 'backpack');
@@ -472,7 +473,7 @@ class CronTaskRequestFeatureTest extends TestCase
         $response->assertForbidden();
 
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_create_cron_task', 'backpack'),
+            PermissionModel::findByName(Permission::CRON_TASK_CREATE->value, 'backpack'),
         );
         $httpClient = $this->actingAs($this->regularUser, 'backpack');
         $response = $httpClient->postJson(

@@ -1,5 +1,6 @@
+@use('App\Domain\User\Enums\Permission')
 @php($user = backpack_user())
-@if ($user->can('can_run_cron_task'))
+@if ($user->can(Permission::CRON_TASK_RUN))
     <form method="POST" action="{{ route('admin.cron-tasks.run', ['id' => $entry->getKey()]) }}" class="d-inline">
         @csrf
         <button type="submit"
