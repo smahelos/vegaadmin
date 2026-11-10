@@ -7,13 +7,16 @@ use App\Models\Payment;
 
 class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
 {
-    public function findByGatewayPaymentId(?string $gatewayPaymentId): ?Payment
+    public function findByGatewayPaymentIdForUpdate(string $gateway, ?string $gatewayPaymentId): ?Payment
     {
         if (!$gatewayPaymentId) {
             return null;
         }
 
-        $query = Payment::where('gateway_payment_id', $gatewayPaymentId);
+        // Both columns, so the lock uses the (gateway, gateway_payment_id) index instead of locking the whole table
+        $query = Payment::where('gateway', $gateway);
+        $query->where('gateway_payment_id', $gatewayPaymentId);
+        $query->lockForUpdate();
 
         return $query->first();
     }

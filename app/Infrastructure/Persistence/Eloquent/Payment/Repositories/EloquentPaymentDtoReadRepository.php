@@ -13,12 +13,12 @@ class EloquentPaymentDtoReadRepository implements PaymentDtoReadRepositoryInterf
         private readonly EloquentPaymentMapper $mapper,
     ) {}
 
-    public function findByGatewayPaymentId(?string $gatewayPaymentId): ?PaymentDTO
+    public function findByGatewayPaymentIdForUpdate(string $gateway, ?string $gatewayPaymentId): ?PaymentDTO
     {
         if (!$gatewayPaymentId) {
             return null;
         }
-        $payment = $this->paymentReadRepository->findByGatewayPaymentId($gatewayPaymentId);
+        $payment = $this->paymentReadRepository->findByGatewayPaymentIdForUpdate($gateway, $gatewayPaymentId);
 
         return $payment ? $this->mapper->toDto($payment) : null;
     }

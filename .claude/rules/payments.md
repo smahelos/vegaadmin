@@ -23,7 +23,7 @@ Card payments of subscriptions go through GoPay; invoices carry QR payment codes
 
 - A gateway notification or return request is only a hint that something changed. The handler reads the payment id from it, asks the gateway for the authoritative state (`getPaymentStatus()` / `verifyPayment()`) and acts on that answer — never on amounts or statuses from the request.
 - Processing is idempotent: the same notification arriving twice changes nothing the second time (state transitions check the current state first, in one transaction).
-- Callback routes are excluded from CSRF and answer the gateway with the status code it expects, independently of the outcome of our processing (`http.md`).
+- Callback routes are excluded from CSRF (`http.md`). A notification is answered with HTTP 200 only after it was processed; any failure gets 503, so the gateway repeats it.
 - Raw request payloads are logged without personal or card data.
 
 ## Subscriptions

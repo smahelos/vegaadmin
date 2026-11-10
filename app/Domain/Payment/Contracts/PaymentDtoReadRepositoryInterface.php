@@ -9,7 +9,7 @@ use App\Domain\Payment\DTO\PaymentDTO;
  */
 interface PaymentDtoReadRepositoryInterface
 {
-    public function findByGatewayPaymentId(?string $gatewayPaymentId): ?PaymentDTO;
+    public function findByGatewayPaymentIdForUpdate(string $gateway, ?string $gatewayPaymentId): ?PaymentDTO;
 
     /** @return array<int,PaymentDTO> */
     public function findPendingBySubscription(int $subscriptionId): array;

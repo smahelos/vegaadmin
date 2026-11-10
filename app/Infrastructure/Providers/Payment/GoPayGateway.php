@@ -60,8 +60,10 @@ class GoPayGateway implements PaymentGatewayInterface
                         'count' => 1,
                     ],
                 ],
-                'return_url' => $paymentData['return_url'] ?? route('payment.return'),
-                'notify_url' => $paymentData['notify_url'] ?? route('payment.notify'),
+                'callback' => [
+                    'return_url' => $paymentData['return_url'] ?? route('payment.return'),
+                    'notification_url' => $paymentData['notify_url'] ?? route('payment.notify'),
+                ],
                 'lang' => $paymentData['lang'] ?? 'CS',
                 'payment_instruments' => $paymentData['payment_instruments'] ?? [
                     PaymentInstrument::PAYMENT_CARD,

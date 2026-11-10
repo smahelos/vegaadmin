@@ -88,7 +88,7 @@ class PaymentControllerFeatureTest extends TestCase
         // NOTE: Since we don't have valid GoPay credentials,
         // this will likely return an error response
         // In a real environment with credentials, this would process the notification
-        $response->assertStatus(200);
+        $response->assertStatus(503);
         $response->assertJson(['status' => 'error']);
     }
 
@@ -154,7 +154,7 @@ class PaymentControllerFeatureTest extends TestCase
             ),
         );
 
-        $response->assertStatus(200);
+        $response->assertStatus(503);
         $response->assertJson(['status' => 'error']);
     }
 
@@ -171,7 +171,7 @@ class PaymentControllerFeatureTest extends TestCase
             ),
         );
 
-        $response->assertStatus(200);
+        $response->assertStatus(503);
         $response->assertJsonStructure(['status']);
     }
 
