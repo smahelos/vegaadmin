@@ -11,6 +11,7 @@ use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Domain\Payment\DTO\SubscriptionDTO;
+use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
 use App\Models\Payment;
@@ -20,6 +21,7 @@ use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
+use Tests\Support\Fakes\Shared\RecordingLog;
 use Tests\TestCase;
 
 /**
@@ -393,6 +395,53 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
 
         $this->assertFalse($result['success']);
         $payment = Payment::find($process['payment_id']);
+        $this->assertSame('pending', $payment->status);
+    }
+
+    #[Test]
+    public function repeated_failed_callback_handles_the_failure_once(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $log = new RecordingLog;
+        $application = app();
+        $application->instance(LogInterface::class, $log);
+        $loggingService = app(SubscriptionPaymentServiceInterface::class);
+        $callback = ['payment_id' => $process['gateway_payment_id'], 'status' => 'failed'];
+
+        $loggingService->handlePaymentCallback('fake', $callback);
+        $loggingService->handlePaymentCallback('fake', $callback);
+
+        $failures = array_filter(
+            $log->entries,
+            fn (array $entry): bool => $entry['message'] === 'Subscription payment failed',
+        );
+        $this->assertCount(1, $failures);
+    }
+
+    #[Test]
+    public function callback_ignores_a_payment_of_another_gateway_with_the_same_id(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $payment = Payment::find($process['payment_id']);
+        $payment->update(['gateway' => 'other']);
+
+        $result = $this->service->handlePaymentCallback(
+            'fake',
+            ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'],
+        );
+
+        $this->assertFalse($result['success']);
+        $payment->refresh();
         $this->assertSame('pending', $payment->status);
     }
 

@@ -217,8 +217,11 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             // One transaction over the locked payment: a repeated notification must not skip a failed activation, and
             // two identical notifications at once must not both find the payment unfinished
             $payment = $this->tx->transaction(
-                function () use ($gatewayPaymentId, $newStatus): ?PaymentDTO {
-                    $payment = $this->paymentsRead->findByGatewayPaymentIdForUpdate((string) $gatewayPaymentId);
+                function () use ($gateway, $gatewayPaymentId, $newStatus): ?PaymentDTO {
+                    $payment = $this->paymentsRead->findByGatewayPaymentIdForUpdate(
+                        $gateway,
+                        (string) $gatewayPaymentId,
+                    );
                     if (!$payment) {
                         return null;
                     }
@@ -233,7 +236,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
 
                     if ($payment->subscription_id && $newStatus === 'completed' && $payment->status !== 'completed') {
                         $this->activateSubscriptionById((int) $payment->subscription_id);
-                    } elseif ($payment->subscription_id && $newStatus === 'failed') {
+                    } elseif ($payment->subscription_id && $newStatus === 'failed' && $payment->status !== 'failed') {
                         $this->handleFailedPaymentById((int) $payment->subscription_id);
                     }
 
