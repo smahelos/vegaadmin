@@ -7,13 +7,14 @@ use App\Models\Payment;
 
 class EloquentPaymentReadRepository implements PaymentReadRepositoryInterface
 {
-    public function findByGatewayPaymentId(?string $gatewayPaymentId): ?Payment
+    public function findByGatewayPaymentIdForUpdate(?string $gatewayPaymentId): ?Payment
     {
         if (!$gatewayPaymentId) {
             return null;
         }
 
         $query = Payment::where('gateway_payment_id', $gatewayPaymentId);
+        $query->lockForUpdate();
 
         return $query->first();
     }

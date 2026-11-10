@@ -9,7 +9,9 @@ use App\Domain\Payment\Contracts\PaymentGatewayInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
+use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
@@ -210,12 +212,34 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
             // Only the payment the gateway confirmed: an id from the callback request would let a caller apply the
             // state of one payment to another
             $gatewayPaymentId = $result['payment_id'] ?? null;
+            $newStatus = $result['status'] ?? 'unknown';
 
-            $payment = null;
+            // One transaction over the locked payment: a repeated notification must not skip a failed activation, and
+            // two identical notifications at once must not both find the payment unfinished
+            $payment = $this->tx->transaction(
+                function () use ($gatewayPaymentId, $newStatus): ?PaymentDTO {
+                    $payment = $this->paymentsRead->findByGatewayPaymentIdForUpdate((string) $gatewayPaymentId);
+                    if (!$payment) {
+                        return null;
+                    }
 
-            if ($gatewayPaymentId) {
-                $payment = $this->paymentsRead->findByGatewayPaymentId((string) $gatewayPaymentId);
-            }
+                    $this->paymentsWrite->updateById(
+                        $payment->id,
+                        new PaymentWriteData(
+                            status: $newStatus,
+                            gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
+                        ),
+                    );
+
+                    if ($payment->subscription_id && $newStatus === 'completed' && $payment->status !== 'completed') {
+                        $this->activateSubscriptionById((int) $payment->subscription_id);
+                    } elseif ($payment->subscription_id && $newStatus === 'failed') {
+                        $this->handleFailedPaymentById((int) $payment->subscription_id);
+                    }
+
+                    return $payment;
+                },
+            );
 
             if (!$payment) {
                 $this->logger->log(
@@ -234,35 +258,13 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
                 ];
             }
 
-            $oldStatus = $payment->status;
-            $newStatus = $result['status'] ?? 'unknown';
-
-            // One transaction: a repeated notification must not find the payment completed and skip a failed activation
-            $this->tx->transaction(
-                function () use ($payment, $newStatus, $oldStatus, $gatewayPaymentId): void {
-                    $this->paymentsWrite->updateById(
-                        $payment->id,
-                        new PaymentWriteData(
-                            status: $newStatus,
-                            gateway_payment_id: $gatewayPaymentId ?: $payment->gateway_payment_id,
-                        ),
-                    );
-
-                    if ($payment->subscription_id && $newStatus === 'completed' && $oldStatus !== 'completed') {
-                        $this->activateSubscriptionById((int) $payment->subscription_id);
-                    } elseif ($payment->subscription_id && $newStatus === 'failed') {
-                        $this->handleFailedPaymentById((int) $payment->subscription_id);
-                    }
-                },
-            );
-
             $this->logger->log(
                 'info',
                 'Payment callback processed successfully',
                 [
                     'payment_id' => $payment->id,
                     'gateway' => $gateway,
-                    'old_status' => $oldStatus,
+                    'old_status' => $payment->status,
                     'new_status' => $newStatus,
                 ],
             );
@@ -307,15 +309,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
         // Read subscription to determine plan duration using read repository
         $subscription = $this->subscriptionsRead->findById($subscriptionId);
         if (!$subscription) {
-            $this->logger->log(
-                'error',
-                'Subscription not found for activation',
-                [
-                    'subscription_id' => $subscriptionId,
-                ],
-            );
-
-            return;
+            throw new SubscriptionNotFoundException($subscriptionId);
         }
         $durationDays = (int) ($subscription->subscriptionPlan->duration_days ?? 0);
         $this->subscriptionsWrite->activateById($subscriptionId, $durationDays);

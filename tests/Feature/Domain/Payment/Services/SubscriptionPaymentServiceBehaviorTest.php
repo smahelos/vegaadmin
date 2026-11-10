@@ -365,6 +365,38 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
+    public function callback_for_a_missing_subscription_fails_and_leaves_the_payment_pending(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $application = app();
+        $application->instance(
+            SubscriptionDtoReadRepositoryInterface::class,
+            new class implements SubscriptionDtoReadRepositoryInterface
+            {
+                public function findById(int $id): ?SubscriptionDTO
+                {
+                    return null;
+                }
+            },
+        );
+        $failingService = app(SubscriptionPaymentServiceInterface::class);
+
+        $result = $failingService->handlePaymentCallback(
+            'fake',
+            ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'],
+        );
+
+        $this->assertFalse($result['success']);
+        $payment = Payment::find($process['payment_id']);
+        $this->assertSame('pending', $payment->status);
+    }
+
+    #[Test]
     public function callback_changes_only_the_payment_the_gateway_confirmed(): void
     {
         $paidSubscription = $this->makeSubscription();
