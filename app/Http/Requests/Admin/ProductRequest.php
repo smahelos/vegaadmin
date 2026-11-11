@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Rules\UniquePerUser;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
@@ -11,16 +13,6 @@ use Illuminate\Validation\Rule;
 
 class ProductRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PRODUCT_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PRODUCT_UPDATE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */
@@ -69,6 +61,11 @@ class ProductRequest extends FormRequest
         return $rules;
     }
 
+    public function toWriteData(): ProductWriteData
+    {
+        return ProductWriteData::fromArray($this->validated());
+    }
+
     /**
      * Get custom attributes for validator errors.
      */
@@ -98,7 +95,9 @@ class ProductRequest extends FormRequest
         if (empty($this->slug)) {
             $this->merge(
                 [
-                    'slug' => Str::slug($this->name),
+                    'slug' => Str::slug(
+                        (string) $this->input('name'),
+                    ),
                 ],
             );
         }

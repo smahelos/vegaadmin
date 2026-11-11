@@ -1,31 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
-use App\Domain\User\Enums\Permission;
+use App\Domain\Product\DTO\ProductWriteData;
 use App\Http\Requests\Rules\UniquePerUser;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class ProductRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = Auth::user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PRODUCT_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PRODUCT_UPDATE) === true;
-    }
-
     /**
      * Prepare the data for validation.
      */
@@ -91,6 +79,11 @@ class ProductRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    public function toWriteData(): ProductWriteData
+    {
+        return ProductWriteData::fromArray($this->validated());
     }
 
     /**

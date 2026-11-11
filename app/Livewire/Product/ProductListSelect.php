@@ -1,36 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Product;
 
-use App\Domain\User\Enums\Permission;
+use App\Application\Product\Queries\GetProduct;
+use App\Application\Product\Queries\ListProducts;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Product\DTO\ProductSearch;
+use App\Domain\Product\Enums\ProductSort;
+use App\Domain\Product\Exceptions\ProductNotFoundException;
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
-use App\Models\Product;
-use App\Models\Tax;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Attributes\Url;
 use Livewire\Component;
-use Throwable;
 
 /**
- * ProductListSelect Livewire Component
- *
- * Displays a selectable list of products for adding to invoices.
- * Supports search, sorting, and product selection with automatic modal handling.
+ * Picks one of the user's products for an invoice line; the products already on the invoice are left out.
  */
-class ProductListSelect extends Component
+final class ProductListSelect extends Component
 {
     use ActsForUser;
     use Paginates;
     use Sorts;
 
-    /**
-     * Search term for filtering products
-     */
+    private const SORTS = [
+        ProductSort::NAME,
+        ProductSort::CATEGORY,
+        ProductSort::PRICE,
+        ProductSort::CURRENCY,
+        ProductSort::TAX,
+    ];
+
     #[Url(except: '')]
     public string $search = '';
 
@@ -40,73 +46,53 @@ class ProductListSelect extends Component
     #[Url(as: 'direction', except: true)]
     public bool $orderAsc = true;
 
-    /**
-     * Number of items per page
-     */
     #[Url(except: 10)]
     public int $perPage = 10;
 
     /**
-     * Array of selected product IDs to exclude from results
+     * Ids of the products already on the invoice, sent by the invoice form's script.
+     *
+     * @var list<mixed>
      */
     public array $selectedProductIds = [];
 
-    /**
-     * Error message to display to user
-     */
     public ?string $errorMessage = null;
 
     /**
-     * Livewire listeners
-     *
-     * @var array
+     * @var array<string, string>
      */
     protected $listeners = [
         'setSelectedProductIds' => 'handleSetSelectedProductIds',
     ];
 
     /**
-     * Set up component with pagination theme and initialize selected products
-     */
-    public function mount(): void
-    {
-        $this->selectedProductIds = [];
-    }
-
-    /**
-     * Handle incoming selected product IDs from external sources
+     * Accepts the ids as they are dispatched: an array, or an array under 'ids'.
      */
     public function handleSetSelectedProductIds(mixed $params): void
     {
-        // If it's an array with 'ids' key, use that (for newer Livewire versions)
         if (is_array($params) && isset($params['ids']) && is_array($params['ids'])) {
-            $this->setSelectedProductIds($params['ids']);
+            $params = $params['ids'];
         }
-        // Otherwise assume the parameter is directly an array of IDs (for older Livewire versions)
-        elseif (is_array($params)) {
+        if (is_array($params)) {
             $this->setSelectedProductIds($params);
         }
     }
 
     /**
-     * Set the selected product IDs to exclude from results
+     * Called by resources/js/product-selector.js.
+     *
+     * @param  array<mixed>  $ids
      */
     public function setSelectedProductIds(array $ids): void
     {
-        $this->selectedProductIds = $ids;
+        $this->selectedProductIds = array_values($ids);
     }
 
-    /**
-     * Reset pagination when search term is updated
-     */
     public function updatingSearch(): void
     {
         $this->resetPage();
     }
 
-    /**
-     * Reset all filters and pagination
-     */
     public function resetFilters(): void
     {
         $this->search = '';
@@ -115,153 +101,102 @@ class ProductListSelect extends Component
 
     protected function sortableColumns(): array
     {
-        return [
-            'name' => 'name',
-            'category_id' => 'category_id',
-            'price' => 'price',
-            'currency' => 'currency',
-            'tax_id' => 'tax_id',
-        ];
+        $columns = [];
+        foreach (self::SORTS as $sort) {
+            $columns[$sort->value] = $sort->value;
+        }
+
+        return $columns;
     }
 
     protected function defaultSort(): string
     {
-        return 'name';
+        return ProductSort::NAME->value;
     }
 
     /**
-     * Select a product and dispatch events
+     * Sends the product's line data to the invoice form and closes the picker.
      */
-    public function selectProduct(int $id): bool
+    public function selectProduct(AuthorizingUseCaseRunnerInterface $useCases, int $id): bool
     {
-        $this->requirePermission(Permission::PRODUCT_VIEW);
-
+        $owner = $this->userId();
+        abort_unless(
+            $useCases->allowed(
+                Actor::user($owner),
+                GetProduct::class,
+            ),
+            403,
+        );
         try {
-            $query = Product::where('user_id', Auth::id());
-            $product = $query->findOrFail($id);
-
-            // Manually load tax to ensure its availability
-            if ($product->tax_id) {
-                $product->load('tax');
-            }
-
-            // Ensure all fields are properly formatted
-            $price = $product->price ?? 0;
-
-            // Get tax_rate directly from Tax model
-            $tax_rate = null;
-            if ($product->tax_id) {
-                if ($product->tax) {
-                    $tax_rate = $product->tax->rate;
-                } else {
-                    // Try to load tax directly if relation failed
-                    try {
-                        $tax = Tax::find($product->tax_id);
-                        if ($tax) {
-                            $tax_rate = $tax->rate;
-                        }
-                    } catch (\Exception $e) {
-                        // Failed to load tax - continue without tax rate
-                    }
-                }
-            }
-
-            $unit = $product->unit ?? '';
-            $currency = $product->currency ?? 'CZK';
-
-            // Prepare data to send
-            $productData = [
-                'id' => $product->id,
-                'name' => $product->name,
-                'price' => $price,
-                'tax_rate' => $tax_rate,
-                'unit' => $unit,
-                'currency' => $currency,
-            ];
-
-            // Dispatch browser event with complete product data
-            $this->dispatch('product-selected', productData: $productData);
-
-            // Close the modal automatically
-            $this->dispatch('closeModal');
-
-            return true;
-        } catch (ModelNotFoundException) {
-            // Another user's product is answered like a missing one; neither is worth an error log
+            $product = $useCases->run(
+                Actor::user($owner),
+                new GetProduct(
+                    $owner,
+                    ProductId::fromInt($id),
+                ),
+            );
+        } catch (ProductNotFoundException) {
+            // Another user's product is answered like a missing one
             $this->errorMessage = __('products.messages.not_found');
 
             return false;
-        } catch (Throwable $e) {
-            Log::error('Selecting product failed', ['exception' => $e]);
-            $this->errorMessage = __('products.messages.error_selecting');
-
-            return false;
         }
+
+        $this->dispatch(
+            'product-selected',
+            productData: [
+                'id' => $product->id,
+                'name' => $product->name,
+                'price' => $product->price?->getAmount() ?? '0',
+                'tax_rate' => $product->tax['rate'] ?? null,
+                'unit' => $product->unit->value,
+                'currency' => $product->currency ?? 'CZK',
+            ],
+        );
+        $this->dispatch('closeModal');
+
+        return true;
     }
 
-    /**
-     * Render the component with products data
-     */
-    public function render(): View
+    public function render(AuthorizingUseCaseRunnerInterface $useCases): View
     {
-        $this->requirePermission(Permission::PRODUCT_VIEW);
-
-        try {
-            $searchTerm = $this->search;
-
-            // Explicit preloading of tax rates
-            $query = Product::with(['tax']);
-            $query->where('user_id', Auth::id());
-            $query->when(
-                $searchTerm,
-                function ($query) use ($searchTerm): void {
-                    $query->where(
-                        function ($q) use ($searchTerm): void {
-                            $q->where(
-                                'name',
-                                'like',
-                                "%{$searchTerm}%",
-                            );
-                            $q->orWhere(
-                                'description',
-                                'like',
-                                "%{$searchTerm}%",
-                            );
-                        },
-                    );
-                },
-            );
-            $query->orderBy($this->sortColumn(), $this->sortDirection());
-
-            // If we have selected products, exclude them from results
-            if (!empty($this->selectedProductIds)) {
-                $query->whereNotIn('id', $this->selectedProductIds);
+        $owner = $this->userId();
+        // A refusal thrown while the page renders the component would reach the browser as a view error
+        abort_unless(
+            $useCases->allowed(
+                Actor::user($owner),
+                ListProducts::class,
+            ),
+            403,
+        );
+        // The ids come from the browser: only positive integers reach the query
+        $excluded = [];
+        foreach ($this->selectedProductIds as $id) {
+            if (is_numeric($id) && (int) $id > 0) {
+                $excluded[] = ProductId::fromInt((int) $id);
             }
-
-            $products = $query->paginate($this->perPage);
-
-            return view(
-                'livewire.product.product-list-select',
-                [
-                    'products' => $products,
-                    'hasData' => $products->total() > 0,
-                ],
-            );
-        } catch (Throwable $e) {
-            Log::error('Loading products for selection failed', ['exception' => $e]);
-            $this->errorMessage = __('products.messages.error_loading');
-
-            // Return empty products collection in case of error
-            $query = Product::where('id', 0);
-
-            return view(
-                'livewire.product.product-list-select',
-                [
-                    'products' => $query->paginate(10), // Empty paginator
-                    'hasData' => false,
-                    'errorMessage' => $this->errorMessage,
-                ],
-            );
         }
+        $products = $useCases->run(
+            Actor::user($owner),
+            new ListProducts(
+                $owner,
+                new ProductSearch(
+                    $this->search,
+                    null,
+                    ProductSort::from($this->sortColumn()),
+                    $this->orderAsc,
+                    $excluded,
+                ),
+                new PageRequest(
+                    $this->getPage(),
+                    max(1, $this->perPage),
+                ),
+            ),
+        );
+
+        return view(
+            'livewire.product.product-list-select',
+            ['products' => $this->paginator($products)],
+        );
     }
 }

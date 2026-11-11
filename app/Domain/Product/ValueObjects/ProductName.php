@@ -29,14 +29,6 @@ class ProductName
     }
 
     /**
-     * Get the value
-     */
-    public function getValue(): string
-    {
-        return $this->value;
-    }
-
-    /**
      * Convert to string
      */
     public function __toString(): string

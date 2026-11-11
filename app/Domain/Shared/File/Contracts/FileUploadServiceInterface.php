@@ -49,11 +49,4 @@ interface FileUploadServiceInterface
 
     /** Line Awesome icon class for the file's extension, `la-file` when the extension is unknown. */
     public function getFileTypeIcon(string $filePath): string;
-
-    /** Sanitize a raw filename (remove diacritics & unsafe chars).
-     *
-     * @param  string  $filename  Raw filename to sanitize
-     * @return string Sanitized filename
-     */
-    public function sanitizeFilename(string $filename): string;
 }

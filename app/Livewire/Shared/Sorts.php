@@ -53,9 +53,4 @@ trait Sorts
     {
         return $this->sortableColumns()[$this->sortKey()];
     }
-
-    protected function sortDirection(): string
-    {
-        return $this->orderAsc ? 'asc' : 'desc';
-    }
 }

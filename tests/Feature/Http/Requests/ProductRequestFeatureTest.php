@@ -459,35 +459,6 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_with_authenticated_user_via_http(): void
-    {
-        $this->actingAs($this->user);
-
-        $request = Request::create(
-            '/products',
-            'POST',
-            $this->validProductData,
-        );
-        $productRequest = ProductRequest::createFrom($request);
-
-        $this->assertTrue($productRequest->authorize());
-    }
-
-    #[Test]
-    public function authorization_fails_with_unauthenticated_user_via_http(): void
-    {
-        // Don't authenticate user
-        $request = Request::create(
-            '/products',
-            'POST',
-            $this->validProductData,
-        );
-        $productRequest = ProductRequest::createFrom($request);
-
-        $this->assertFalse($productRequest->authorize());
-    }
-
-    #[Test]
     public function slug_uniqueness_validation(): void
     {
         // Create a product of the user with a specific slug

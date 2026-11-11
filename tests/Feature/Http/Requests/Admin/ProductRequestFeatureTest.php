@@ -10,7 +10,6 @@ use App\Models\ProductCategory;
 use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -52,28 +51,6 @@ class ProductRequestFeatureTest extends TestCase
         $this->tax = $taxFactory->create();
         $productCategoryFactory = ProductCategory::factory();
         $this->category = $productCategoryFactory->create();
-
-        // Initialize limit service
-        // Define test routes
-        $route = Route::post(
-            '/test-product',
-            function (ProductRequest $request) {
-                $responseFactory = response();
-
-                return $responseFactory->json(['success' => true]);
-            },
-        );
-        $route->middleware('web');
-
-        $route = Route::put(
-            '/test-product/{id}',
-            function (ProductRequest $request, $id) {
-                $responseFactory = response();
-
-                return $responseFactory->json(['success' => true]);
-            },
-        );
-        $route->middleware('web');
     }
 
     #[Test]
@@ -482,56 +459,6 @@ class ProductRequestFeatureTest extends TestCase
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->fails());
-    }
-
-    #[Test]
-    public function authorization_passes_for_authenticated_user(): void
-    {
-        $httpClient = $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $httpClient->postJson(
-            '/test-product',
-            [
-                'name' => 'Test Product',
-                'user_id' => $this->productUser->id,
-                'price' => 25.99,
-                'currency' => 'CZK',
-            ],
-        );
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpResponse = $this->postJson(
-            '/test-product',
-            [
-                'name' => 'Test Product',
-                'user_id' => $this->productUser->id,
-                'price' => 25.99,
-                'currency' => 'CZK',
-            ],
-        );
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_authenticated_user_without_permission(): void
-    {
-        $userFactory = User::factory();
-        $userNoPerm = $userFactory->create();
-        $this->actingAs($userNoPerm, 'backpack');
-
-        $httpResponse = $this->postJson(
-            '/test-product',
-            [
-                'name' => 'No Perm Product',
-                'user_id' => $this->productUser->id,
-                'price' => 9.99,
-                'currency' => 'CZK',
-            ],
-        );
-        $httpResponse->assertStatus(403);
     }
 
     #[Test]

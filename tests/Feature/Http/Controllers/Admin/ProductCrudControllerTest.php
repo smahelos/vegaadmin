@@ -3,11 +3,13 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\User\Enums\Permission;
+use App\Models\InvoiceProduct;
 use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -169,7 +171,72 @@ class ProductCrudControllerTest extends TestCase
             ],
         );
 
-        $httpResponse->assertRedirect();
+        // The gate checks the owner's own product.create, which needs a plan role
+        $httpResponse->assertForbidden();
         $this->assertDatabaseMissing('products', ['name' => $name]);
+    }
+
+    #[Test]
+    public function an_admin_updates_a_product_and_its_owner_stays(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $owner->assignRole(
+            Role::findByName('frontend_user', 'web'),
+        );
+        $other = $userFactory->create();
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $owner->id]);
+
+        $httpResponse = $this->put(
+            '/admin/product/' . $product->id,
+            [
+                'id' => $product->id,
+                'name' => 'Renamed by the admin',
+                'user_id' => $other->id,
+                'price' => 100,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $httpResponse->assertRedirect();
+        $this->assertDatabaseHas(
+            'products',
+            [
+                'id' => $product->id,
+                'name' => 'Renamed by the admin',
+                'user_id' => $owner->id,
+            ],
+        );
+    }
+
+    #[Test]
+    public function an_admin_deletes_a_product(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $productFactory = Product::factory();
+        $product = $productFactory->create();
+
+        $response = $this->deleteJson('/admin/product/' . $product->id);
+
+        $response->assertOk();
+        $this->assertModelMissing($product);
+    }
+
+    #[Test]
+    public function a_product_on_an_invoice_line_answers_the_delete_with_a_notification(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProduct = $invoiceProductFactory->create();
+
+        $response = $this->deleteJson('/admin/product/' . $invoiceProduct->product_id);
+
+        $response->assertOk();
+        $response->assertExactJson(
+            ['error' => [__('products.messages.error_delete_invoices')]],
+        );
+        $this->assertDatabaseHas('products', ['id' => $invoiceProduct->product_id]);
     }
 }

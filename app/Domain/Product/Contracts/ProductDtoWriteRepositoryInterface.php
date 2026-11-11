@@ -1,37 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Product\Contracts;
 
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
-/**
- * Contract for Product DTO write operations.
- * Isolates Domain layer from Eloquent dependencies.
- */
 interface ProductDtoWriteRepositoryInterface
 {
-    /**
-     * Create new product from write data.
-     */
-    public function create(ProductWriteData $writeData): ProductDTO;
+    /** The owner comes from the scope, never from the data. */
+    public function create(WriteScope $scope, ProductWriteData $writeData): ProductDTO;
 
-    /**
-     * Update existing product from write data.
-     */
-    public function update(ProductId $id, ProductWriteData $writeData): ProductDTO;
+    /** The owner stays: a product never moves to another owner. */
+    public function update(
+        ProductId $id,
+        WriteScope $scope,
+        ProductWriteData $writeData,
+    ): ProductDTO;
 
-    /**
-     * Whether an invoice line refers to the product, which keeps it from being deleted.
-     */
     public function isUsedOnInvoices(ProductId $id): bool;
 
     /**
-     * Delete product by ID.
-     *
      * @throws ProductInUseException when an invoice line refers to the product
      */
-    public function delete(ProductId $id): void;
+    public function delete(ProductId $id, WriteScope $scope): void;
 }

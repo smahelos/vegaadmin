@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Domain\Product\Services;
 
-use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Application\Product\Contracts\ProductFormDataServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Models\ProductCategory;
 use App\Models\Tax;
@@ -113,8 +113,7 @@ class ProductServiceFeatureTest extends TestCase
 
         $cache = $this->makeCountingCache();
         $this->app->instance(CacheServiceInterface::class, $cache);
-        // Resolve Application service which delegates to ProductFormDataService
-        $service = app(ProductApplicationServiceInterface::class);
+        $service = app(ProductFormDataServiceInterface::class);
 
         // First call - executes closure
         DB::enableQueryLog();
@@ -123,7 +122,6 @@ class ProductServiceFeatureTest extends TestCase
         DB::flushQueryLog();
         $this->assertArrayHasKey('product_categories', $data1);
         $this->assertArrayHasKey('tax_rates', $data1);
-        $this->assertArrayHasKey('categories', $data1);
         // tax rates only for 'dph' and formatted with %
         $this->assertNotEmpty($data1['tax_rates']);
         foreach ($data1['tax_rates'] as $rate) {
@@ -148,8 +146,7 @@ class ProductServiceFeatureTest extends TestCase
         $productCategoryFactory->create(['name' => 'Zeta']);
         $productCategoryFactory->create(['name' => 'Alpha']);
 
-        // Resolve Application service
-        $service = app(ProductApplicationServiceInterface::class);
+        $service = app(ProductFormDataServiceInterface::class);
 
         DB::enableQueryLog();
         DB::flushQueryLog();

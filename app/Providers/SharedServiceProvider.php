@@ -6,6 +6,7 @@ use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterfac
 use App\Application\Shared\Geography\Services\CountryApplicationService;
 use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
 use App\Application\Shared\Money\Services\CurrencyApplicationService;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Config\Contracts\Config;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
@@ -36,6 +37,7 @@ use App\Domain\Shared\Tax\Services\TaxService;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
+use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
 use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories\EloquentTaxDtoRepository;
@@ -187,6 +189,12 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             ClockInterface::class,
             CarbonClock::class,
+        );
+
+        // The gate every use case runs through
+        $this->app->bind(
+            AuthorizingUseCaseRunnerInterface::class,
+            AuthorizingUseCaseRunner::class,
         );
 
         $this->app->bind(

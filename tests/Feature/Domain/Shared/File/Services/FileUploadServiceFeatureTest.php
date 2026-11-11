@@ -64,35 +64,6 @@ class FileUploadServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function sanitize_filename_removes_special_characters(): void
-    {
-        $input = 'file name with spaces & special chars!@#.txt';
-        $result = $this->service->sanitizeFilename($input);
-
-        $this->assertIsString($result);
-        $this->assertDoesNotMatchRegularExpression('/[^a-zA-Z0-9._-]/', $result);
-    }
-
-    #[Test]
-    public function sanitize_filename_preserves_extension(): void
-    {
-        $input = 'document.pdf';
-        $result = $this->service->sanitizeFilename($input);
-
-        $this->assertStringEndsWith('.pdf', $result);
-    }
-
-    #[Test]
-    public function sanitize_filename_handles_czech_characters(): void
-    {
-        $input = 'soubor_s_česky_názvem.txt';
-        $result = $this->service->sanitizeFilename($input);
-
-        $this->assertIsString($result);
-        $this->assertStringEndsWith('.txt', $result);
-    }
-
-    #[Test]
     public function handle_file_upload_returns_old_value_when_no_changes(): void
     {
         $oldValue = 'existing/file.txt';

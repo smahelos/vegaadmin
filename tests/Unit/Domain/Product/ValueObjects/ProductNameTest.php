@@ -15,7 +15,7 @@ final class ProductNameTest extends TestCase
     public function trims_and_string_cast(): void
     {
         $name = new ProductName('  Test Product  ');
-        $this->assertSame('Test Product', $name->getValue());
+        $this->assertSame('Test Product', (string) $name);
         $this->assertSame('Test Product', (string) $name);
     }
 
@@ -23,7 +23,7 @@ final class ProductNameTest extends TestCase
     public function from_string_factory(): void
     {
         $name = ProductName::fromString('Another Product');
-        $this->assertEquals('Another Product', $name->getValue());
+        $this->assertEquals('Another Product', (string) $name);
     }
 
     #[Test]
@@ -47,6 +47,6 @@ final class ProductNameTest extends TestCase
     {
         $max = str_repeat('a', 255);
         $name = new ProductName($max);
-        $this->assertEquals($max, $name->getValue());
+        $this->assertEquals($max, (string) $name);
     }
 }
