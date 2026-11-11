@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
+use DateTimeImmutable;
 
 class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepositoryInterface
 {
@@ -10,8 +11,15 @@ class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepo
         private readonly EloquentSubscriptionWriteRepository $subscriptionWriteRepository,
     ) {}
 
-    public function activateById(int $subscriptionId, int $durationDays): bool
-    {
-        return $this->subscriptionWriteRepository->activateById($subscriptionId, $durationDays);
+    public function activateById(
+        int $subscriptionId,
+        DateTimeImmutable $starts,
+        DateTimeImmutable $ends,
+    ): bool {
+        return $this->subscriptionWriteRepository->activateById(
+            $subscriptionId,
+            $starts,
+            $ends,
+        );
     }
 }

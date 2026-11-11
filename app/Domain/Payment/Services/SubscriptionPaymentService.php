@@ -12,8 +12,10 @@ use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
+use App\Domain\Payment\Exceptions\SubscriptionPlanMissingException;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
 
 /**
@@ -55,6 +57,7 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
         SubscriptionDtoWriteRepositoryInterface $subscriptionsWrite,
         SubscriptionDtoReadRepositoryInterface $subscriptionsRead,
         LogInterface $logger,
+        private readonly ClockInterface $clock,
     ) {
         // Inject registry (allows test stubs) and register built-in gateways here.
         $this->registry = $registry;
@@ -309,22 +312,30 @@ class SubscriptionPaymentService implements SubscriptionPaymentServiceInterface
      */
     private function activateSubscriptionById(int $subscriptionId): void
     {
-        // Read subscription to determine plan duration using read repository
         $subscription = $this->subscriptionsRead->findById($subscriptionId);
         if (!$subscription) {
             throw new SubscriptionNotFoundException($subscriptionId);
         }
-        $durationDays = (int) ($subscription->subscriptionPlan->duration_days ?? 0);
-        $this->subscriptionsWrite->activateById($subscriptionId, $durationDays);
+        $plan = $subscription->subscriptionPlan;
+        if ($plan === null) {
+            throw new SubscriptionPlanMissingException($subscriptionId);
+        }
+        $starts = $this->clock->now();
+        $ends = $plan->billingPeriod->end($starts, $plan->billingInterval);
+        $this->subscriptionsWrite->activateById(
+            $subscriptionId,
+            $starts,
+            $ends,
+        );
 
         $this->logger->log(
             'info',
             'Subscription activated',
             [
                 'subscription_id' => $subscriptionId,
-                'plan' => optional($subscription->subscriptionPlan)->name,
-                'starts_at' => $subscription->starts_at,
-                'ends_at' => $subscription->ends_at,
+                'plan' => $plan->name,
+                'starts_at' => $starts->format(DATE_ATOM),
+                'ends_at' => $ends->format(DATE_ATOM),
             ],
         );
     }

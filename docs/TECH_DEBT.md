@@ -190,15 +190,10 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** when the gateway refuses a payment, the service has already stored the `payments` row, and the controller then calls `$subscription->delete()`. The foreign key is `ON DELETE RESTRICT`, so the delete throws, the user gets a 500 instead of the `payment_failed` message and the pending subscription stays.
 - **Fix:** decide what a refused attempt leaves behind (the payment row records it) and do it in the use case, so the controller deletes nothing; a test of the refused path, which has none today.
 
-### Subscription activation ignores the plan's duration
-- **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php` (activation after a paid notification), `app/Domain/Payment/DTO/SubscriptionPlanDTO.php`, `EloquentSubscriptionWriteRepository::activateById()`
-- **Problem:** the activation reads `$subscription->subscriptionPlan->duration_days ?? 0`, but the plan DTO has no `duration_days` (it has `billingPeriod` and `billingInterval`), so a paid subscription is activated with `ends_at = now()`. Larastan reports the undefined property from level 2. Found 2026-10-26 while checking the branch `ls-dead-code` at level 2.
-- **Fix:** compute the end from the plan's billing period and interval through the clock, with a test of the notification that activates a subscription.
-
 ### Payment DTOs do not match the model casts
-- **Where:** `app/Domain/Payment/DTO/PaymentDTO.php`, `app/Domain/Payment/DTO/PaymentWriteData.php`, `app/Models/Payment.php`
-- **Problem:** the model casts `gateway_data` to an array, but both DTOs type it `?string`: mapping a payment that holds gateway data throws a `TypeError`. Found while adding Larastan (2026-10-23).
-- **Fix:** type the gateway data in the DTOs (a typed value or `array<string, mixed>`), with a repository test that stores and reads it back.
+- **Where:** `app/Domain/Payment/DTO/PaymentDTO.php`, `app/Domain/Payment/DTO/PaymentWriteData.php`, `app/Models/Payment.php`, `app/Domain/Payment/DTO/SubscriptionDTO.php`, `app/Models/Subscription.php`
+- **Problem:** the model casts `gateway_data` to an array, but both DTOs type it `?string`: mapping a payment that holds gateway data throws a `TypeError`. Found while adding Larastan (2026-10-23). The same holds for a subscription's `metadata`, which the admin form saves: paying or activating a subscription that has metadata throws a `TypeError` (found 2026-11-11).
+- **Fix:** type the gateway data and the metadata in the DTOs (a typed value or `array<string, mixed>`), with a repository test that stores and reads them back.
 
 ### Payment adapter guard checks nothing
 - **Where:** `app/Console/Commands/PaymentAdapterGuardCommand.php`, `app/Domain/Payment/Services/GatewayRegistry.php`

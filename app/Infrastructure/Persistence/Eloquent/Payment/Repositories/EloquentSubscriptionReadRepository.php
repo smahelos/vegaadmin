@@ -9,6 +9,9 @@ class EloquentSubscriptionReadRepository implements SubscriptionReadRepositoryIn
 {
     public function findById(int $id): ?Subscription
     {
-        return Subscription::find($id);
+        // The activation after a paid notification reads the plan's billing period.
+        $subscriptionQuery = Subscription::with('subscriptionPlan');
+
+        return $subscriptionQuery->find($id);
     }
 }

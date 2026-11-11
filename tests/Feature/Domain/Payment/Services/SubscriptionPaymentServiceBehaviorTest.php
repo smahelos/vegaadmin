@@ -12,15 +12,18 @@ use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Shared\Log\Contracts\LogInterface;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
+use Tests\Support\Fakes\Shared\FixedClock;
 use Tests\Support\Fakes\Shared\RecordingLog;
 use Tests\TestCase;
 
@@ -149,51 +152,6 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                         $m = $paymentQuery->findOrFail($paymentId);
 
                         return $this->mapper->toDto($m);
-                    }
-                };
-            },
-        );
-        // Bind a safe SubscriptionDtoReadRepositoryInterface stub to bypass faulty mapper subscriptionPlan handling
-        $application->bind(
-            SubscriptionDtoReadRepositoryInterface::class,
-            function () {
-                return new class implements SubscriptionDtoReadRepositoryInterface
-                {
-                    public function findById(int $id): ?SubscriptionDTO
-                    {
-                        $m = Subscription::find($id);
-                        if (!$m) {
-                            return null;
-                        }
-
-                        if ($m->amount !== null) {
-                            $amount = number_format(
-                                (float) $m->amount,
-                                2,
-                                '.',
-                                '',
-                            );
-                        } else {
-                            $amount = null;
-                        }
-
-                        return SubscriptionDTO::fromArray(
-                            [
-                                'id' => (int) $m->id,
-                                'user_id' => (int) $m->user_id,
-                                'subscription_plan_id' => $m->subscription_plan_id ? (int) $m->subscription_plan_id : null,
-                                'subscriptionPlan' => null,
-                                'status' => $m->status,
-                                'starts_at' => $m->starts_at?->toDateTimeString(),
-                                'ends_at' => $m->ends_at?->toDateTimeString(),
-                                'trial_ends_at' => $m->trial_ends_at?->toDateTimeString(),
-                                'next_billing_at' => $m->next_billing_at?->toDateTimeString(),
-                                'amount' => $amount,
-                                'currency' => $m->currency,
-                                'metadata' => null,
-                                'created_at' => $m->created_at?->toDateTimeString(),
-                            ],
-                        );
                     }
                 };
             },
@@ -331,6 +289,35 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
+    public function callback_completed_activates_the_subscription_for_the_plan_period(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $application = app();
+        $application->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-01-31 10:30:00'),
+            ),
+        );
+        $service = app(SubscriptionPaymentServiceInterface::class);
+
+        $result = $service->handlePaymentCallback(
+            'fake',
+            ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'],
+        );
+
+        $this->assertTrue($result['success']);
+        $subscription->refresh();
+        $this->assertSame('2026-01-31 10:30:00', $subscription->starts_at->toDateTimeString());
+        $this->assertSame('2026-02-28 10:30:00', $subscription->ends_at->toDateTimeString());
+    }
+
+    #[Test]
     public function callback_repeated_after_a_failed_activation_activates_the_subscription(): void
     {
         $subscription = $this->makeSubscription();
@@ -344,8 +331,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
             SubscriptionDtoWriteRepositoryInterface::class,
             new class implements SubscriptionDtoWriteRepositoryInterface
             {
-                public function activateById(int $subscriptionId, int $durationDays): bool
-                {
+                public function activateById(
+                    int $subscriptionId,
+                    DateTimeImmutable $starts,
+                    DateTimeImmutable $ends,
+                ): bool {
                     throw new RuntimeException('Activation failed');
                 }
             },

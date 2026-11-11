@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Payment\DTO;
 
+use App\Domain\Payment\Enums\BillingPeriod;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 final readonly class SubscriptionPlanDTO
@@ -14,7 +15,7 @@ final readonly class SubscriptionPlanDTO
         public ?string $description,
         public Money $amount,
         public string $currency,
-        public string $billingPeriod,
+        public BillingPeriod $billingPeriod,
         public int $billingInterval,
         public bool $active,
         public ?string $created,
@@ -31,7 +32,7 @@ final readonly class SubscriptionPlanDTO
             description: $data['description'],
             amount: $data['amount'],
             currency: $data['currency'],
-            billingPeriod: $data['billing_period'],
+            billingPeriod: BillingPeriod::from($data['billing_period']),
             billingInterval: (int) $data['billing_interval'],
             active: $data['is_active'],
             created: $data['created_at'],
@@ -49,7 +50,7 @@ final readonly class SubscriptionPlanDTO
             'description' => $this->description,
             'amount' => $this->amount,
             'currency' => $this->currency,
-            'billing_period' => $this->billingPeriod,
+            'billing_period' => $this->billingPeriod->value,
             'billing_interval' => $this->billingInterval,
             'is_active' => $this->active,
             'created_at' => $this->created,
