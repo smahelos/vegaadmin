@@ -28,12 +28,5 @@ interface Locale
      */
     public function getCountryLocaleMap(): array;
 
-    /**
-     * Summary of determineLocale
-     *
-     * @param  mixed  $requestLocale
-     * @param  mixed  $dataLocale
-     * @return void
-     */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string;
 }

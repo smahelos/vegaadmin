@@ -375,7 +375,7 @@ final class DocumentPartyPicker extends Component
         }
 
         $bag = $errors->getBag('default');
-        foreach ($bag->messages() as $key => $messages) {
+        foreach ($bag->getMessages() as $key => $messages) {
             $property = $this->propertyOf($key);
             if ($property !== null) {
                 $this->addError($property, $messages[0]);

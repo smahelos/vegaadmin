@@ -17,7 +17,6 @@ interface PaymentApplicationServiceInterface
      *
      * @param  string  $gateway  Gateway key (e.g. gopay, stub)
      * @param  array  $data  Additional gateway metadata (customer / return URLs)
-     * @return array{success:bool, payment_id?:int, redirect_url?:string|null, status?:string, error?:string}
      */
     public function initiateSubscription(
         Subscription $subscription,
@@ -29,7 +28,6 @@ interface PaymentApplicationServiceInterface
      * Handle asynchronous gateway callback.
      *
      * @param  array  $payload  Raw callback data
-     * @return array{success:bool, payment_id?:int, status?:string, error?:string}
      */
     public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO;
 

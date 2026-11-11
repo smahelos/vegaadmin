@@ -203,10 +203,11 @@ class PageControllerFeatureTest extends TestCase
         $category->description = ['cs' => 'Popis', 'en' => 'Desc'];
         $page = $this->mockPage(['category_id' => 5]);
         // navigation page also needs a category for blade reference
-        $page->category = new PageCategory;
-        $page->category->id = 6;
-        $page->category->name = ['cs' => 'Jina', 'en' => 'Other'];
-        $page->category->slug = ['cs' => 'jina', 'en' => 'other'];
+        $pageCategory = new PageCategory;
+        $pageCategory->id = 6;
+        $pageCategory->name = ['cs' => 'Jina', 'en' => 'Other'];
+        $pageCategory->slug = ['cs' => 'jina', 'en' => 'other'];
+        $page->setRelation('category', $pageCategory);
         $mock = $this->mock(PageServiceInterface::class);
         $expectation = $mock->shouldReceive('getCategoryBySlug');
         $expectation->once();
@@ -248,7 +249,7 @@ class PageControllerFeatureTest extends TestCase
         $cat = new PageCategory;
         $cat->name = ['cs' => 'Kategorie', 'en' => 'Category'];
         $cat->slug = ['cs' => 'kategorie-7', 'en' => 'category-7'];
-        $page->category = $cat;
+        $page->setRelation('category', $cat);
         $mock = $this->mock(PageServiceInterface::class);
         $expectation = $mock->shouldReceive('getPagesByCategory');
         $expectation->once();

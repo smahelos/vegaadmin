@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -313,7 +314,9 @@ class LoginControllerTest extends TestCase
 
         $response->assertRedirect();
         // Check that it redirects to home page with locale in URL path
-        $targetUrl = $response->getTargetUrl();
+        $redirect = $response->baseResponse;
+        $this->assertInstanceOf(RedirectResponse::class, $redirect);
+        $targetUrl = $redirect->getTargetUrl();
         $this->assertTrue(
             str_contains($targetUrl, '/en/') || str_ends_with($targetUrl, '/en'),
             'Logout redirect URL should contain locale in path format, got: ' . $targetUrl,

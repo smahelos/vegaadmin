@@ -127,10 +127,10 @@ class DatabaseDashboardController extends CrudController
                 function ($metric) {
                     return [
                         'type' => $metric->metric_type,
-                        'count' => $metric->count,
+                        'count' => $metric->getAttribute('count'),
                         'label' => $this->getMetricTypeLabel($metric->metric_type),
-                        'last_measured' => $metric->last_measured,
-                        'first_measured' => $metric->first_measured,
+                        'last_measured' => $metric->getAttribute('last_measured'),
+                        'first_measured' => $metric->getAttribute('first_measured'),
                     ];
                 },
             );

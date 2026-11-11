@@ -6,6 +6,7 @@ use App\Domain\User\Enums\Permission;
 use App\Http\Middleware\RequireBackpackAccess;
 use App\Models\Permission as PermissionModel;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Log\Events\MessageLogged;
 use Illuminate\Support\Facades\Event;
@@ -49,6 +50,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
             fn () => response('OK'),
         );
         $this->assertEquals(401, $response->getStatusCode());
+        $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(
             'Nejste přihlášeni.',
             $response->getData(true)['error'],
@@ -76,6 +78,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
             fn () => response('OK'),
         );
         $this->assertEquals(403, $response->getStatusCode());
+        $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertSame(
             'Přístup odepřen. Nemáte oprávnění pro přístup do administrace.',
             $response->getData(true)['error'],

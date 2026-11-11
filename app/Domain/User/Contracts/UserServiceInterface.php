@@ -22,8 +22,6 @@ interface UserServiceInterface
 
     /**
      * Search users by name (admin scope).
-     *
-     * @param  int  $perPage
      */
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult;
 

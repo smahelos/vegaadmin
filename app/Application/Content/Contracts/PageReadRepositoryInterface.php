@@ -30,7 +30,11 @@ interface PageReadRepositoryInterface
     /** Get root navigation pages with published children ordered by sort order. */
     public function getRootNavigationPages(): Collection;
 
-    /** Get published pages for a specific category ordered by sort order. */
+    /**
+     * Get published pages for a specific category ordered by sort order.
+     *
+     * @return Collection<int, Page>
+     */
     public function getPublishedByCategory(int $categoryId): Collection;
 
     /** Find page by id (published or not). */

@@ -7,10 +7,13 @@ namespace Tests\Feature\Http\Controllers\Frontend\Auth;
 use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsLivewireComponent;
 use Tests\TestCase;
 
 final class RegisterControllerTest extends TestCase
 {
+    use AssertsLivewireComponent;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -24,7 +27,7 @@ final class RegisterControllerTest extends TestCase
             route('frontend.register'),
         );
         $response->assertOk();
-        $response->assertSeeLivewire('user.registration-form');
+        $this->assertSeesLivewire($response, 'user.registration-form');
     }
 
     #[Test]

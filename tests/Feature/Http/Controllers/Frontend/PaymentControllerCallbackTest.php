@@ -125,39 +125,37 @@ class PaymentControllerCallbackTest extends TestCase
     #[Test]
     public function notify_endpoint_returns_ok_on_success(): void
     {
-        $this->swap(
-            PaymentApplicationServiceInterface::class,
-            new class implements PaymentApplicationServiceInterface
+        $paymentApp = new class implements PaymentApplicationServiceInterface
+        {
+            public function initiateSubscription(
+                Subscription $subscription,
+                string $gateway,
+                array $data = [],
+            ): SubscriptionPaymentResultDTO {
+                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
+            }
+
+            /** @var list<array<string, mixed>> */
+            public array $payloads = [];
+
+            public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
             {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-                }
+                $this->payloads[] = $payload;
 
-                /** @var list<array<string, mixed>> */
-                public array $payloads = [];
+                return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
+            }
 
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    $this->payloads[] = $payload;
+            public function getAvailableGateways(): array
+            {
+                return [];
+            }
 
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return true;
-                }
-            },
-        );
+            public function cancelSubscription(Subscription $subscription): bool
+            {
+                return true;
+            }
+        };
+        $this->swap(PaymentApplicationServiceInterface::class, $paymentApp);
 
         $response = $this->getJson(
             '/payment/notify?gateway=gopay&id=3000006529&order_id=12&state=PAID',
@@ -166,7 +164,6 @@ class PaymentControllerCallbackTest extends TestCase
         $assertionResponse->assertJson(['status' => 'ok']);
 
         // Only the payment id reaches the application; its state comes from the gateway
-        $paymentApp = $this->app->make(PaymentApplicationServiceInterface::class);
         $this->assertSame(
             [['id' => '3000006529']],
             $paymentApp->payloads,

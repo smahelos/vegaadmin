@@ -7,13 +7,17 @@ namespace Tests\Feature\Infrastructure\Authorization;
 use App\Domain\User\Enums\Permission;
 use App\Models\Permission as PermissionModel;
 use App\Models\User;
-use Illuminate\Database\Migrations\Migration;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
+use Tests\Support\RunsMigrationFile;
 use Tests\TestCase;
 
 final class PermissionRenameMigrationTest extends TestCase
 {
+    use RunsMigrationFile;
+
+    private const MIGRATION = '2026_11_10_000001_rename_permissions_by_entity_and_action.php';
+
     #[Test]
     public function renaming_keeps_every_grant_and_every_revoked_default(): void
     {
@@ -25,9 +29,7 @@ final class PermissionRenameMigrationTest extends TestCase
             PermissionModel::findByName(Permission::USER_VIEW->value, 'backpack'),
         );
         $permissionCount = PermissionModel::count();
-        $migration = $this->migration();
-
-        $migration->down();
+        $this->migrateDown(self::MIGRATION);
 
         $this->assertDatabaseHas('permissions', ['name' => 'can_view_user', 'guard_name' => 'backpack']);
         $this->assertDatabaseHas(
@@ -36,7 +38,7 @@ final class PermissionRenameMigrationTest extends TestCase
         );
         $this->assertDatabaseMissing('permissions', ['name' => Permission::PRODUCT_VIEW->value]);
 
-        $migration->up();
+        $this->migrateUp(self::MIGRATION);
 
         $this->assertSame($permissionCount, PermissionModel::count());
         $role = Role::findByName('frontend_user', 'web');
@@ -51,13 +53,6 @@ final class PermissionRenameMigrationTest extends TestCase
             $freshHolder->hasDirectPermission(
                 PermissionModel::findByName(Permission::USER_VIEW->value, 'backpack'),
             ),
-        );
-    }
-
-    private function migration(): Migration
-    {
-        return require database_path(
-            'migrations/2026_11_10_000001_rename_permissions_by_entity_and_action.php',
         );
     }
 }
