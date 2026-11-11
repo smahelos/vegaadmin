@@ -441,7 +441,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Larastan level
 - **Where:** `phpstan.neon`
-- **Problem:** Larastan runs at level 1 (2026-10-23); level 2 reports about 770 more errors (2026-10-26; among them a call to a method that does not exist, which broke saving a default supplier until the branch `ls-dead-code`, and "Subscription activation ignores the plan's duration"), level 6 over 4000. One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
+- **Problem:** Larastan runs at level 2 (2026-11-11, branch `ls-larastan-level`: generic relation types on the models, stubs for Backpack's fluent column and field API and the Spatie permission relations in `phpstan/stubs/`, columns written out in the migrations). Level 3 reports 43 more errors, level 6 978 (2026-11-11). One level applies to the whole codebase. Array value types are not checked yet: `phpcs.xml` leaves out Slevomat's `MissingTraversableTypeHintSpecification` (about 1150 signatures without `list<…>` / `array<string, …>`), which Larastan reports from level 6.
 - **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (step 21), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### Architecture guards are migration scaffolding
