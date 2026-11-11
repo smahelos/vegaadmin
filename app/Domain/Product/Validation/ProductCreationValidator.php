@@ -5,6 +5,7 @@ namespace App\Domain\Product\Validation;
 use App\Domain\Product\Exceptions\ProductValidationException;
 use App\Domain\Product\ValueObjects\ProductName;
 use App\Domain\Product\ValueObjects\ProductPrice;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Unit\Enums\Unit;
 
@@ -95,24 +96,10 @@ class ProductCreationValidator
         ];
     }
 
-    /**
-     * Validate currency code.
-     */
     private function isValidCurrency(string $currency): bool
     {
-        $validCurrencies = [
-            'CZK',
-            'EUR',
-            'USD',
-            'GBP',
-            'PLN',
-            'HUF',
-        ];
-
-        return in_array(
+        return Currency::tryFrom(
             strtoupper($currency),
-            $validCurrencies,
-            true,
-        );
+        ) !== null;
     }
 }

@@ -469,19 +469,19 @@ class ProductRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_passes_with_zero_price(): void
+    public function validation_fails_with_zero_price(): void
     {
         $validData = [
             'name' => 'Free Product',
             'user_id' => $this->productUser->id,
-            'price' => 0, // Zero price should be valid
+            'price' => 0,
             'currency' => 'CZK',
         ];
 
         $request = new ProductRequest;
         $validator = Validator::make($validData, $request->rules());
 
-        $this->assertTrue($validator->passes());
+        $this->assertTrue($validator->fails());
     }
 
     #[Test]

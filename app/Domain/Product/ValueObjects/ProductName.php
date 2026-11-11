@@ -21,7 +21,7 @@ class ProductName
             throw new InvalidArgumentException('Product name cannot be empty');
         }
 
-        if (strlen($value) > 255) {
+        if (mb_strlen($value) > 255) {
             throw new InvalidArgumentException('Product name cannot exceed 255 characters');
         }
 
