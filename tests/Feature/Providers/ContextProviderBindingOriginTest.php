@@ -25,6 +25,9 @@ class ContextProviderBindingOriginTest extends TestCase
     private const UNBOUND_CONTRACTS = [
         'App\\Domain\\Payment\\Contracts\\PaymentGatewayInterface' => 'several gateways, selected at runtime by GatewayRegistry',
         'App\\Domain\\Payment\\Contracts\\QrPaymentProviderInterface' => 'one provider per country, created by QrPaymentProviderFactory',
+        'App\\Application\\Shared\\UseCase\\Contracts\\CommandInterface' => 'implemented by use case declarations, which the gate runs',
+        'App\\Application\\Shared\\UseCase\\Contracts\\QueryInterface' => 'implemented by use case declarations, which the gate runs',
+        'App\\Application\\Shared\\UseCase\\Contracts\\CallsOutsideDatabaseInterface' => 'marks a Command the gate runs without a transaction',
     ];
 
     #[Test]

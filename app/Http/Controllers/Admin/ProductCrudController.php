@@ -4,50 +4,52 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Product\Contracts\ProductApplicationServiceInterface;
+use App\Application\Product\Commands\CreateProduct;
+use App\Application\Product\Commands\DeleteProduct;
+use App\Application\Product\Commands\UpdateProduct;
+use App\Application\Product\Contracts\ProductFormDataServiceInterface;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Product\Exceptions\ProductInUseException;
+use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\Permission;
-use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Infrastructure\Forms\User\EntityUsageFormFields;
 use App\Models\Product;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
 {
     use CreateOperation;
+    use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
     use NarrowsCrudTypes;
-    use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
 
-    private ProductApplicationServiceInterface $productService;
-
-    private TaxServiceInterface $taxesService;
-
     public function __construct(
-        ProductApplicationServiceInterface $productService,
-        TaxServiceInterface $taxesService,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly ProductFormDataServiceInterface $formData,
+        private readonly TaxServiceInterface $taxesService,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
         $throttle->only('store');
-        $this->productService = $productService;
-        $this->taxesService = $taxesService;
     }
 
     /**
@@ -230,8 +232,7 @@ final class ProductCrudController extends CrudController
         $field->attribute('name');
         $field->options($taxes);
 
-        // Get product categories from the service
-        $productCategories = $this->productService->getAllCategories();
+        $productCategories = $this->formData->getAllCategories();
 
         $field = CRUD::field('category_id');
         $field->type('select_from_array');
@@ -301,37 +302,92 @@ final class ProductCrudController extends CrudController
 
     /**
      * Moving a product to another owner would bypass that owner's limit, so the owner is fixed after creation:
-     * the hidden field only feeds the validation and the usage shown on the form, it is never saved.
+     * the hidden field only feeds the validation and the usage shown on the form, UpdateProduct keeps the owner.
      */
     protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
         $field = CRUD::field('user_id');
         $field->type('hidden');
-        $saved = array_diff(
-            $this->crud->getAllFieldNames(),
-            ['user_id'],
-        );
-        CRUD::setOperationSetting(
-            'strippedRequest',
-            fn (Request $request): array => $request->only($saved),
-        );
     }
 
     public function store(): JsonResponse|RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(ProductRequest::class);
-        $product = $this->productService->createProduct(
-            $request->validated(),
-            (int) $request->validated('user_id'),
+        $product = $this->useCases->run(
+            $this->admin(),
+            new CreateProduct(
+                UserId::fromInt(
+                    (int) $request->validated('user_id'),
+                ),
+                $request->toWriteData(),
+            ),
         );
-        $alerts = Alert::success(
+
+        return $this->saved(
             __('products.messages.created'),
+            $product->id,
         );
+    }
+
+    public function update(): JsonResponse|RedirectResponse
+    {
+        $this->crud->hasAccessOrFail('update');
+        $request = $this->validatedRequest(ProductRequest::class);
+        $entry = $this->currentEntry(Product::class);
+        $product = $this->useCases->run(
+            $this->admin(),
+            new UpdateProduct(
+                UserId::fromInt($entry->user_id),
+                ProductId::fromInt($entry->id),
+                $request->toWriteData(),
+            ),
+        );
+
+        return $this->saved(
+            __('products.messages.updated'),
+            $product->id,
+        );
+    }
+
+    /**
+     * @return string|array{error: list<string>} "1" when deleted; Backpack's delete button shows the notification
+     */
+    public function destroy(int|string $id): string|array
+    {
+        $this->crud->hasAccessOrFail('delete');
+        $entry = $this->currentEntry(Product::class);
+        try {
+            $this->useCases->run(
+                $this->admin(),
+                new DeleteProduct(
+                    UserId::fromInt($entry->user_id),
+                    ProductId::fromInt($entry->id),
+                ),
+            );
+        } catch (ProductInUseException) {
+            return ['error' => [__('products.messages.error_delete_invoices')]];
+        }
+
+        return '1';
+    }
+
+    private function admin(): Actor
+    {
+        $guard = backpack_auth();
+
+        return Actor::admin(
+            UserId::fromInt((int) $guard->id()),
+        );
+    }
+
+    private function saved(string $message, int $id): JsonResponse|RedirectResponse
+    {
+        $alerts = Alert::success($message);
         $alerts->flash();
         $this->crud->setSaveAction();
 
-        return $this->crud->performSaveAction($product->id);
+        return $this->crud->performSaveAction($id);
     }
 }

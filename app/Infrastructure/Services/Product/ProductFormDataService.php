@@ -2,8 +2,8 @@
 
 namespace App\Infrastructure\Services\Product;
 
+use App\Application\Product\Contracts\ProductFormDataServiceInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
-use App\Infrastructure\Interfaces\Product\ProductFormDataServiceInterface;
 use App\Models\ProductCategory;
 use App\Models\Tax;
 
@@ -46,7 +46,6 @@ class ProductFormDataService implements ProductFormDataServiceInterface
                 return [
                     'product_categories' => $productCategories,
                     'tax_rates' => $taxRates,
-                    'categories' => ProductCategory::all(),
                 ];
             },
             self::FORM_DATA_CACHE_TTL,

@@ -6,7 +6,6 @@ namespace Tests\Feature\Http\Controllers\Admin\Operations;
 
 use App\Models\Expense;
 use App\Models\Invoice;
-use App\Models\InvoiceProduct;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Status;
@@ -65,16 +64,6 @@ final class RestrictedDeleteOperationTest extends TestCase
                     $product = $productFactory->create();
 
                     return $product->category_id;
-                },
-            ],
-            'product' => [
-                'product',
-                'products',
-                static function (): int {
-                    $invoiceProductFactory = InvoiceProduct::factory();
-                    $invoiceProduct = $invoiceProductFactory->create();
-
-                    return $invoiceProduct->product_id;
                 },
             ],
             'status' => [

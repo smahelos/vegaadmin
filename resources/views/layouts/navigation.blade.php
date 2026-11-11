@@ -1,3 +1,4 @@
+@use('App\Application\Product\Queries\ListProducts')
 @use('App\Domain\User\Enums\Permission')
 @php($user = Auth::user())
 <nav x-data="{ open: false }"
@@ -40,12 +41,12 @@
                     </x-nav-link>
                     @endcan
 
-                    @if($user->checkPermissionTo(Permission::PRODUCT_VIEW, 'web'))
+                    @allowed(ListProducts::class)
                     <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.product*')">
                         {{ __('general.navigation.products') }}
                     </x-nav-link>
-                    @endif
+                    @endallowed
                     @endauth
 
                     {{-- <!-- Pages navigation (for all users) -->
@@ -200,12 +201,12 @@
                     </x-responsive-nav-link>
                     @endcan
 
-            @if($user->checkPermissionTo(Permission::PRODUCT_VIEW, 'web'))
+            @allowed(ListProducts::class)
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                 :active="Request::routeIs('frontend.product*')">
                 {{ __('general.navigation.products') }}
             </x-responsive-nav-link>
-            @endif
+            @endallowed
 
             <!-- Subscriptions navigation (mobile) -->
             <x-responsive-nav-link :href="route('subscriptions.index', ['locale' => App::getLocale()])"

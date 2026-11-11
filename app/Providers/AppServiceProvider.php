@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Http\Controllers\Admin\PermissionCrudController;
 use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
+use App\Http\Support\CurrentActor;
 use App\View\Components\ApplicationLogo;
 use App\View\Components\CurrencySelect;
 use App\View\Components\Dropdown;
@@ -56,6 +58,18 @@ class AppServiceProvider extends ServiceProvider
             'backpackUser',
             function () {
                 return Auth::check() && function_exists('backpack_user') && backpack_user() !== null;
+            },
+        );
+
+        // Hides what the signed-in user may not do; the gate is still the check (rules/permissions.md)
+        Blade::if(
+            'allowed',
+            function (string $useCase): bool {
+                $currentActor = app(CurrentActor::class);
+                $actor = $currentActor->find();
+                $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+                return $actor !== null && $useCases->allowed($actor, $useCase);
             },
         );
 

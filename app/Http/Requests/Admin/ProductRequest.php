@@ -1,72 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\User\Enums\Permission;
-use App\Http\Requests\Rules\UniquePerUser;
+use App\Domain\Product\DTO\ProductWriteData;
+use App\Http\Requests\Product\ProductInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
-use Illuminate\Validation\Rule;
 
 class ProductRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PRODUCT_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PRODUCT_UPDATE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
     {
-        $rules = [
-            'name' => 'required|string|min:2|max:255',
-            'slug' => [
-                'nullable',
-                'string',
-                'max:255',
-                UniquePerUser::rule(
-                    'products',
-                    'slug',
-                    $this->input('user_id'),
-                    $this->id,
-                ),
-            ],
+        $updating = $this->isMethod('PUT') || $this->isMethod('PATCH');
+
+        return [
+            ...ProductInput::rules(
+                $this->input('user_id'),
+                $this->route('id') ?: $this->id,
+                $updating,
+            ),
             'user_id' => 'required|exists:users,id',
-            'price' => 'required|numeric|min:0',
-            'currency' => ['required', Rule::enum(Currency::class)],
-            'tax_id' => 'nullable|exists:taxes,id',
-            'category_id' => 'nullable|exists:product_categories,id',
-            'description' => 'nullable',
-            'is_default' => 'boolean',
-            'is_active' => 'boolean',
-            'image' => 'nullable|image|max:2048',
         ];
+    }
 
-        // For updates, slug becomes sometimes (optional) but must remain unique in products table ignoring current id
-        if ($this->isMethod('PUT') || $this->isMethod('PATCH')) {
-            $id = $this->route('id') ?: $this->id;
-            $rules['slug'] = [
-                'sometimes',
-                'string',
-                'max:255',
-                UniquePerUser::rule(
-                    'products',
-                    'slug',
-                    $this->input('user_id'),
-                    $id,
-                ),
-            ];
-        }
-
-        return $rules;
+    public function toWriteData(): ProductWriteData
+    {
+        return ProductWriteData::fromArray($this->validated());
     }
 
     /**
@@ -75,17 +39,8 @@ class ProductRequest extends FormRequest
     public function attributes(): array
     {
         return [
-            'name' => __('products.fields.name'),
-            'slug' => __('products.fields.slug'),
+            ...ProductInput::attributes(),
             'user_id' => __('products.fields.user_id'),
-            'price' => __('products.fields.price'),
-            'currency' => __('products.fields.currency'),
-            'tax_id' => __('products.fields.tax_id'),
-            'category_id' => __('products.fields.category_id'),
-            'description' => __('products.fields.description'),
-            'is_default' => __('products.fields.is_default'),
-            'is_active' => __('products.fields.is_active'),
-            'image' => __('products.fields.image'),
         ];
     }
 
@@ -98,7 +53,9 @@ class ProductRequest extends FormRequest
         if (empty($this->slug)) {
             $this->merge(
                 [
-                    'slug' => Str::slug($this->name),
+                    'slug' => Str::slug(
+                        (string) $this->input('name'),
+                    ),
                 ],
             );
         }

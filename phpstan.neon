@@ -13,6 +13,9 @@ parameters:
         - phpstan/
         - routes/
         - tests/
+    excludePaths:
+        # Fixtures of the rule tests, which hold the violations on purpose
+        - tests/Unit/Phpstan/Rules/data/
     stubFiles:
         - phpstan/stubs/backpack.stub
         - phpstan/stubs/permission.stub
@@ -35,6 +38,10 @@ parameters:
                     - %currentWorkingDirectory%/database/factories
                     - %currentWorkingDirectory%/tests
 
+rules:
+    - Billex\PHPStan\Rules\ScopeIssuedByGateRule
+    - Billex\PHPStan\Rules\UseCaseResultRule
+
 services:
     -
         class: Billex\PHPStan\DeadCode\BackpackUsageProvider
@@ -54,5 +61,9 @@ services:
             - shipmonk.deadCode.memberUsageProvider
     -
         class: Billex\PHPStan\DeadCode\RedirectsUsersUsageProvider
+        tags:
+            - shipmonk.deadCode.memberUsageProvider
+    -
+        class: Billex\PHPStan\DeadCode\UseCaseHandlerUsageProvider
         tags:
             - shipmonk.deadCode.memberUsageProvider

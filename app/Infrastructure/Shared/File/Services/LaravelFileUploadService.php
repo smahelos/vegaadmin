@@ -631,7 +631,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
         return $iconMap[$extension] ?? 'la-file';
     }
 
-    public function sanitizeFilename(string $filename): string
+    private function sanitizeFilename(string $filename): string
     {
         $filename = transliterator_transliterate('Any-Latin; Latin-ASCII', $filename);
         $filename = str_replace(

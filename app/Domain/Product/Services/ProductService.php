@@ -1,96 +1,67 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Product\Services;
 
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
-use App\Domain\Product\Contracts\ProductServiceInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
-class ProductService implements ProductServiceInterface
+final class ProductService
 {
-    /**
-     * Product read repository instance
-     */
-    private readonly ProductDtoReadRepositoryInterface $productReadRepository;
-
-    /**
-     * Product write repository instance
-     */
-    private readonly ProductDtoWriteRepositoryInterface $productWriteRepository;
-
-    /**
-     * Product validation service
-     */
-    private readonly ProductCreationValidator $validator;
-
-    /**
-     * Constructor
-     */
     public function __construct(
-        ProductDtoReadRepositoryInterface $productReadRepository,
-        ProductDtoWriteRepositoryInterface $productWriteRepository,
-        ProductCreationValidator $validator,
-    ) {
-        $this->productReadRepository = $productReadRepository;
-        $this->productWriteRepository = $productWriteRepository;
-        $this->validator = $validator;
-    }
+        private readonly ProductDtoReadRepositoryInterface $productReadRepository,
+        private readonly ProductDtoWriteRepositoryInterface $productWriteRepository,
+        private readonly ProductCreationValidator $validator,
+    ) {}
 
-    /**
-     * Create new product with business logic using DTOs
-     */
-    public function createProduct(ProductWriteData $writeData, UserId $userId): ProductDTO
+    public function createProduct(WriteScope $scope, ProductWriteData $writeData): ProductDTO
     {
-        // Validate product data using domain validator
-        $validatedData = $this->validator->validateForCreation($writeData->toArray(), $userId->toInt());
+        $validatedData = $this->validator->validateForCreation(
+            $writeData->toArray(),
+            $scope->owner->toInt(),
+        );
 
-        // Get user product count
-        if ($this->productReadRepository->getUserProductCount($userId) === 0) {
-            // First product is automatically default
+        // The owner's first product is their default one
+        if ($this->productReadRepository->getUserProductCount($scope->owner) === 0) {
             $validatedData['is_default'] = true;
         }
 
-        $validatedWriteData = ProductWriteData::fromArray($validatedData);
-
-        return $this->productWriteRepository->create($validatedWriteData);
+        return $this->productWriteRepository->create(
+            $scope,
+            ProductWriteData::fromArray($validatedData),
+        );
     }
 
-    /**
-     * Update product with business logic using DTOs
-     */
-    public function updateProduct(ProductId $productId, ProductWriteData $writeData): ProductDTO
-    {
-        // Validate product data using domain validator
+    public function updateProduct(
+        ProductId $productId,
+        WriteScope $scope,
+        ProductWriteData $writeData,
+    ): ProductDTO {
         $validatedData = $this->validator->validateForUpdate($writeData->toArray());
 
-        $validatedWriteData = ProductWriteData::fromArray($validatedData);
-
-        return $this->productWriteRepository->update($productId, $validatedWriteData);
+        return $this->productWriteRepository->update(
+            $productId,
+            $scope,
+            ProductWriteData::fromArray($validatedData),
+        );
     }
 
     /**
      * @throws ProductInUseException when an invoice line refers to the product
      */
-    public function deleteProduct(ProductId $productId): void
+    public function deleteProduct(ProductId $productId, WriteScope $scope): void
     {
         if ($this->productWriteRepository->isUsedOnInvoices($productId)) {
             throw ProductInUseException::onInvoices($productId);
         }
 
-        $this->productWriteRepository->delete($productId);
-    }
-
-    /**
-     * Find product by ID for specific user
-     */
-    public function findProductForUser(ProductId $productId, UserId $userId): ?ProductDTO
-    {
-        return $this->productReadRepository->findByIdForUser($productId, $userId);
+        $this->productWriteRepository->delete($productId, $scope);
     }
 }

@@ -1,143 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Product\Contracts\ProductApplicationServiceInterface;
-use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Application\Product\Commands\CreateProduct;
+use App\Application\Product\Commands\DeleteProduct;
+use App\Application\Product\Commands\UpdateProduct;
+use App\Application\Product\Contracts\ProductFormDataServiceInterface;
+use App\Application\Product\Queries\GetProduct;
+use App\Application\Product\Queries\GetProductForEdit;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ProductRequest;
 use App\Infrastructure\Forms\Products\ProductFormFields;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
-class ProductController extends Controller
+final class ProductController extends Controller
 {
-    use AuthorizesRequests;
-    use ProductFormFields; // Frontend limits handled via observers now
+    use ProductFormFields;
 
     public function __construct(
-        private readonly ProductApplicationServiceInterface $productService,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly ProductFormDataServiceInterface $formData,
     ) {}
 
     /**
-     * Display a listing of the user's products.
+     * The list is the ProductList component, which runs its own Query.
      */
     public function index(): View
     {
-        // we load grid by livewire ProductList component
         return view('frontend.products.index');
     }
 
     /**
-     * Show the form for creating a new product.
+     * The route answers a user who may not create products with a 403 (allowed:CreateProduct).
      */
     public function create(): View
     {
-        $user = Auth::user();
-        $this->productService->authorizeCreateProduct($user->id);
-
-        // Get form data from service
-        $formData = $this->productService->getFormData();
-
-        $fields = $this->getProductFields($formData['product_categories'], $formData['tax_rates']);
+        $formData = $this->formData->getFormData();
 
         return view(
             'frontend.products.create',
             [
                 'productCategories' => $formData['product_categories'],
                 'taxRates' => $formData['tax_rates'],
-                'fields' => $fields,
+                'fields' => $this->getProductFields($formData['product_categories'], $formData['tax_rates']),
             ],
         );
     }
 
-    /**
-     * Store a newly created product in storage.
-     */
     public function store(ProductRequest $request): RedirectResponse
     {
-        $validatedData = $request->validated();
-        $user = Auth::user();
+        $owner = $this->owner();
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new CreateProduct($owner, $request->toWriteData()),
+        );
 
-        // Handle image upload if present
-        if ($request->hasFile('image')) {
-            $validatedData['image'] = $request->file('image');
-        }
-
-        try {
-            $product = $this->productService->createProduct($validatedData, $user->id);
-            $application = app();
-            $locale = $request->route('locale') ?? $application->getLocale();
-
-            $redirector = redirect();
-            $redirect = $redirector->route('frontend.products', ['locale' => $locale]);
-
-            return $redirect->with(
-                'success',
-                trans('products.messages.created'),
-            );
-        } catch (EntityLimitExceededException $e) {
-            // The exception handler answers it with the limit message
-            throw $e;
-        } catch (ValidationException $e) {
-            // Handle file upload validation errors with detailed messages
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withErrors($e->errors());
-            $redirect->withInput();
-
-            return $redirect->with(
-                'error',
-                trans('products.messages.validation_failed'),
-            );
-        } catch (\Throwable $e) {
-            Log::error('Product creation failed', [
-                'userId' => Auth::id(),
-                'exception' => $e,
-            ]);
-
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withInput();
-
-            return $redirect->with(
-                'error',
-                __('products.messages.error_create'),
-            );
-        }
-    }
-
-    /**
-     * Display the specified product.
-     */
-    public function show(string $locale, int $id): View
-    {
-        $user = Auth::user();
-
-        $product = $this->productService->authorizeViewProduct($user->id, $id);
-
-        return view(
-            'frontend.products.show',
-            compact('product'),
+        return $this->toList(
+            __('products.messages.created'),
         );
     }
 
-    /**
-     * Show the form for editing the specified product.
-     */
+    public function show(string $locale, int $id): View
+    {
+        $owner = $this->owner();
+        $product = $this->useCases->run(
+            Actor::user($owner),
+            new GetProduct(
+                $owner,
+                ProductId::fromInt($id),
+            ),
+        );
+
+        return view(
+            'frontend.products.show',
+            ['product' => $product],
+        );
+    }
+
     public function edit(string $locale, int $id): View
     {
-        $user = Auth::user();
-
-        $product = $this->productService->authorizeUpdateProduct($user->id, $id);
-
-        // Get form data from service
-        $formData = $this->productService->getFormData();
-        $fields = $this->getProductFields($formData['product_categories'], $formData['tax_rates']);
+        $owner = $this->owner();
+        $product = $this->useCases->run(
+            Actor::user($owner),
+            new GetProductForEdit(
+                $owner,
+                ProductId::fromInt($id),
+            ),
+        );
+        $formData = $this->formData->getFormData();
 
         return view(
             'frontend.products.edit',
@@ -145,110 +105,58 @@ class ProductController extends Controller
                 'product' => $product,
                 'productCategories' => $formData['product_categories'],
                 'taxRates' => $formData['tax_rates'],
-                'fields' => $fields,
+                'fields' => $this->getProductFields($formData['product_categories'], $formData['tax_rates']),
             ],
         );
     }
 
-    /**
-     * Update the specified product in storage.
-     */
     public function update(
         ProductRequest $request,
         string $locale,
         int $id,
     ): RedirectResponse {
-        $user = Auth::user();
+        $owner = $this->owner();
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new UpdateProduct(
+                $owner,
+                ProductId::fromInt($id),
+                $request->toWriteData(),
+            ),
+        );
 
-        // Outside the try: its 404 and 403 must not become the generic error redirect
-        $this->productService->authorizeUpdateProduct($user->id, $id);
-
-        try {
-            $data = $request->validated();
-
-            // Handle image upload if present
-            if ($request->hasFile('image')) {
-                $data['product_image'] = $request->file('image');
-            }
-
-            // Update product using service
-            $this->productService->updateProduct(
-                $id,
-                $data,
-                $user->id,
-            );
-
-            $redirector = redirect();
-            $application = app();
-            $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
-
-            return $redirect->with(
-                'success',
-                trans('products.messages.updated'),
-            );
-
-        } catch (ValidationException $e) {
-            // Handle file upload validation errors with detailed messages
-            Log::error(
-                'Product update failed',
-                [
-                    'product_id' => $id,
-                    'user_id' => Auth::id(),
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ],
-            );
-
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withErrors($e->errors());
-            $redirect->withInput();
-
-            return $redirect->with(
-                'error',
-                trans('products.messages.validation_failed'),
-            );
-        } catch (\Throwable $e) {
-            Log::error(
-                'Product update failed',
-                [
-                    'productId' => $id,
-                    'userId' => Auth::id(),
-                    'exception' => $e,
-                ],
-            );
-
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withInput();
-
-            return $redirect->with(
-                'error',
-                __('products.messages.error_update'),
-            );
-        }
+        return $this->toList(
+            __('products.messages.updated'),
+        );
     }
 
-    /**
-     * Remove the specified product from storage.
-     */
     public function destroy(string $locale, int $id): RedirectResponse
     {
-        $user = Auth::user();
-
-        // Efficient authorization without loading Eloquent model
-        $this->productService->authorizeDeleteProduct($user->id, $id);
-
-        // Delete product using service
-        $this->productService->deleteProduct($id, Auth::id());
-
-        $redirector = redirect();
-        $application = app();
-        $redirect = $redirector->route('frontend.products', ['locale' => $application->getLocale()]);
-
-        return $redirect->with(
-            'success',
-            trans('products.messages.deleted'),
+        $owner = $this->owner();
+        $this->useCases->run(
+            Actor::user($owner),
+            new DeleteProduct(
+                $owner,
+                ProductId::fromInt($id),
+            ),
         );
+
+        return $this->toList(
+            __('products.messages.deleted'),
+        );
+    }
+
+    private function owner(): UserId
+    {
+        return UserId::fromInt((int) Auth::id());
+    }
+
+    private function toList(string $message): RedirectResponse
+    {
+        $redirector = redirect();
+        $redirect = $redirector->route('frontend.products', ['locale' => App::currentLocale()]);
+
+        return $redirect->with('success', $message);
     }
 }

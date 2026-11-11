@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Exceptions\ExceptionHandling;
+use App\Http\Middleware\EnsureUseCaseAllowed;
 use App\Http\Middleware\RedirectIfAuthenticated;
 use App\Http\Middleware\RefreshBackpackSession;
 use App\Http\Middleware\RefreshFrontendSession;
@@ -38,6 +39,7 @@ $builder->withMiddleware(
                 'set.locale' => SetLocale::class,
                 'guest' => RedirectIfAuthenticated::class,
                 'admin' => RequireBackpackAccess::class,
+                'allowed' => EnsureUseCaseAllowed::class,
             ],
         );
     },

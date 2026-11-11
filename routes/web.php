@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use App\Application\Product\Commands\CreateProduct;
+use App\Application\Product\Commands\UpdateProduct;
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\BusinessController;
@@ -115,10 +117,13 @@ $registrar->group(
                         // Products
                         $route = Route::get('/product', [ProductController::class, 'index']);
                         $route->name('frontend.products');
+                        // `allowed` names the use case the action runs through the gate: change them together
                         $route = Route::get('/product/create', [ProductController::class, 'create']);
                         $route->name('frontend.product.create');
+                        $route->middleware('allowed:' . CreateProduct::class);
                         $route = Route::post('/product', [ProductController::class, 'store']);
                         $route->name('frontend.product.store');
+                        $route->middleware('allowed:' . CreateProduct::class);
                         $route->middleware('throttle:create');
                         $route = Route::delete('/product/{id}', [ProductController::class, 'destroy']);
                         $route->name('frontend.product.destroy');
@@ -128,6 +133,7 @@ $registrar->group(
                         $route->name('frontend.product.edit');
                         $route = Route::put('/product/{id}', [ProductController::class, 'update']);
                         $route->name('frontend.product.update');
+                        $route->middleware('allowed:' . UpdateProduct::class);
 
                         // Subscriptions
                         $route = Route::get('/subscriptions', [SubscriptionController::class, 'index']);

@@ -102,7 +102,7 @@
                         {{ $product->name }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {{ $product->category->name ?? __('general.empty.not_specified') }}
+                        {{ $product->category['name'] ?? __('general.empty.not_specified') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ $product->price }}
@@ -112,7 +112,7 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         @if($product->tax)
-                        {{ $product->tax->rate }}%
+                        {{ $product->tax['rate'] }}%
                         @elseif($product->tax_id)
                         {{ __('products.messages.tax_not_loaded') }} (ID: {{ $product->tax_id }})
                         @else

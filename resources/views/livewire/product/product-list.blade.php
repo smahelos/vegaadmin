@@ -1,4 +1,6 @@
-@use('App\Domain\User\Enums\Permission')
+@use('App\Application\Product\Commands\CreateProduct')
+@use('App\Application\Product\Commands\DeleteProduct')
+@use('App\Application\Product\Commands\UpdateProduct')
 <div>
     @if(isset($products) && $products->count() > 0)
     <div class="overflow-x-auto">
@@ -120,10 +122,10 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $product->name }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->price ?? '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->tax->name ?? '—' }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $product->category->name ?? '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->tax['name'] ?? '—' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $product->category['name'] ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm @if($product->is_default == 1)text-green-600 font-semibold @else text-gray-500 @endif hidden lg:table-cell">{{ $product->is_default ? __('general.yes') : __('general.no') }}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">{{ $product->invoices_count ?? $product->invoices->count() }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">{{ count($product->invoices) }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <!-- View button -->
                         <a href="{{ route('frontend.product.show', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
@@ -131,14 +133,14 @@
                             <i class="fas fa-eye"></i>
                         </a>
                         <!-- Edit button -->
-                        @can(Permission::PRODUCT_UPDATE)
+                        @allowed(UpdateProduct::class)
                         <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
                             title="{{ __('products.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
-                        @endcan
+                        @endallowed
                         <!-- Delete button -->
-                        @can(Permission::PRODUCT_DELETE)
+                        @allowed(DeleteProduct::class)
                         <a href="#" title="{{ __('products.actions.delete') }}" class="text-red-600 hover:text-red-900"
                             onclick="event.preventDefault(); if(confirm('@php echo $confirmDeleteTxt; @endphp')) document.getElementById('delete-form-{{ $product->id }}').submit();">
                             <i class="fas fa-trash-alt"></i>
@@ -148,7 +150,7 @@
                             @csrf
                             @method('DELETE')
                         </form>
-                        @endcan
+                        @endallowed
                     </td>
                 </tr>
                 @endforeach
@@ -170,12 +172,12 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">{{ __('products.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('products.titles.empty_message') }}</p>
-        @can(Permission::PRODUCT_CREATE)
+        @allowed(CreateProduct::class)
         <a href="{{ route('frontend.product.create', ['locale' => App::getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('products.actions.new') }}
         </a>
-        @endcan
+        @endallowed
     </div>
     @endif
 </div>

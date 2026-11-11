@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Product;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Livewire\Product\ProductListSelect;
 use App\Models\Product;
@@ -78,7 +79,6 @@ class ProductListSelectFeatureTest extends TestCase
         $component = Livewire::test(ProductListSelect::class);
         $products = $component->viewData('products');
 
-        // $component->assertSet('hasData', true);
         $this->assertEquals(1, $products->count());
         $this->assertEquals($userProduct->id, $products->first()->id);
         $this->assertFalse(
@@ -92,9 +92,7 @@ class ProductListSelectFeatureTest extends TestCase
         $component = Livewire::test(ProductListSelect::class);
 
         $products = $component->viewData('products');
-        $hasData = $component->viewData('hasData');
 
-        $this->assertFalse($hasData);
         $this->assertEquals(0, $products->total());
     }
 
@@ -185,7 +183,9 @@ class ProductListSelectFeatureTest extends TestCase
 
         // Test that pagination was reset by checking the rendered view
         $productList = $component->instance();
-        $view = $productList->render();
+        $view = $productList->render(
+            app(AuthorizingUseCaseRunnerInterface::class),
+        );
         $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
@@ -221,7 +221,9 @@ class ProductListSelectFeatureTest extends TestCase
 
         // Verify products are displayed
         $productList = $component->instance();
-        $view = $productList->render();
+        $view = $productList->render(
+            app(AuthorizingUseCaseRunnerInterface::class),
+        );
         $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
     }
@@ -245,7 +247,9 @@ class ProductListSelectFeatureTest extends TestCase
 
         // Verify products are displayed with correct pagination
         $productList = $component->instance();
-        $view = $productList->render();
+        $view = $productList->render(
+            app(AuthorizingUseCaseRunnerInterface::class),
+        );
         $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
@@ -582,7 +586,9 @@ class ProductListSelectFeatureTest extends TestCase
 
         // Verify products are displayed with pagination
         $productList = $component->instance();
-        $view = $productList->render();
+        $view = $productList->render(
+            app(AuthorizingUseCaseRunnerInterface::class),
+        );
         $products = $view->getData()['products'];
         $this->assertInstanceOf(LengthAwarePaginator::class, $products);
 
@@ -595,7 +601,9 @@ class ProductListSelectFeatureTest extends TestCase
 
         // Re-render to get updated products
         $productList = $component->instance();
-        $view = $productList->render();
+        $view = $productList->render(
+            app(AuthorizingUseCaseRunnerInterface::class),
+        );
         $products = $view->getData()['products'];
         $this->assertCount(6, $products->items()); // Remaining 6 products on page 2
     }

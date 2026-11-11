@@ -243,9 +243,8 @@ class ProductListFeatureTest extends TestCase
         $component->assertSet('orderBy', 'invoices');
         $component->assertSet('orderAsc', true);
 
-        // Verify that products are loaded with invoices_count
         $products = $component->viewData('products');
-        $this->assertNotNull($products->first()->invoices_count);
+        $this->assertIsArray($products->first()->invoices);
     }
 
     #[Test]
@@ -303,8 +302,8 @@ class ProductListFeatureTest extends TestCase
 
         $component = Livewire::test(ProductList::class);
 
-        $hasData = $component->viewData('hasData');
-        $this->assertFalse($hasData);
+        $products = $component->viewData('products');
+        $this->assertSame(0, $products->total());
     }
 
     #[Test]
@@ -342,8 +341,8 @@ class ProductListFeatureTest extends TestCase
 
         $component = Livewire::test(ProductList::class);
 
-        $component->assertViewHas('products');
-        $component->assertViewHas('hasData', true);
+        $products = $component->viewData('products');
+        $this->assertSame(1, $products->total());
     }
 
     #[Test]
@@ -357,9 +356,7 @@ class ProductListFeatureTest extends TestCase
         $component = Livewire::test(ProductList::class);
         $products = $component->viewData('products');
 
-        // Check that invoices_count is loaded
-        $this->assertNotNull($products->first()->invoices_count);
-        $this->assertEquals(0, $products->first()->invoices_count);
+        $this->assertSame([], $products->first()->invoices);
     }
 
     #[Test]

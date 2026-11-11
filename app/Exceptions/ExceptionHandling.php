@@ -21,8 +21,10 @@ use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Product\Exceptions\ProductInUseException;
+use App\Domain\Product\Exceptions\ProductNotFoundException;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\Exceptions\PermissionDeniedException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\JsonResponse;
@@ -42,6 +44,11 @@ class ExceptionHandling
      */
     public static function registerCallbacks(Exceptions $exceptions): void
     {
+        $exceptions->map(
+            PermissionDeniedException::class,
+            fn (PermissionDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
+        );
+
         $exceptions->map(
             InvoiceAccessDeniedException::class,
             fn (InvoiceAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
@@ -85,7 +92,7 @@ class ExceptionHandling
             },
         );
 
-        // Another user's invoice, business, contact or account is answered like a missing one
+        // Another user's invoice, business, contact, account or product is answered like a missing one
         foreach (
             [
                 InvoiceNotFoundException::class,
@@ -93,6 +100,7 @@ class ExceptionHandling
                 BusinessNotFoundException::class,
                 ContactNotFoundException::class,
                 BankAccountNotFoundException::class,
+                ProductNotFoundException::class,
             ] as $notFound
         ) {
             $exceptions->map(
