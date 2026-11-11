@@ -94,6 +94,8 @@ class Page extends Model
 
     /**
      * Get page category relationship
+     *
+     * @return BelongsTo<PageCategory, $this>
      */
     public function category(): BelongsTo
     {
@@ -328,6 +330,8 @@ class Page extends Model
 
     /**
      * Parent page relationship
+     *
+     * @return BelongsTo<Page, $this>
      */
     public function parent(): BelongsTo
     {
@@ -336,6 +340,8 @@ class Page extends Model
 
     /**
      * Child pages relationship
+     *
+     * @return HasMany<Page, $this>
      */
     public function children(): HasMany
     {
@@ -347,6 +353,8 @@ class Page extends Model
 
     /**
      * Published by user relationship
+     *
+     * @return BelongsTo<User, $this>
      */
     public function publishedBy(): BelongsTo
     {

@@ -80,6 +80,8 @@ class Product extends Model
     */
     /**
      * Get invoices associated with this product through the pivot table
+     *
+     * @return BelongsToMany<Invoice, $this>
      */
     public function invoices(): BelongsToMany
     {
@@ -106,6 +108,8 @@ class Product extends Model
 
     /**
      * Get the user who owns the product.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -114,6 +118,8 @@ class Product extends Model
 
     /**
      * Get the tax applied to the product.
+     *
+     * @return BelongsTo<Tax, $this>
      */
     public function tax(): BelongsTo
     {
@@ -122,6 +128,8 @@ class Product extends Model
 
     /**
      * Get the category of the product.
+     *
+     * @return BelongsTo<ProductCategory, $this>
      */
     public function category(): BelongsTo
     {

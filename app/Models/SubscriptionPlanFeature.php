@@ -46,6 +46,8 @@ class SubscriptionPlanFeature extends Model
 
     /**
      * Get subscription plans that have this feature
+     *
+     * @return BelongsToMany<SubscriptionPlan, $this>
      */
     public function subscriptionPlans(): BelongsToMany
     {

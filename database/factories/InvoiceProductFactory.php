@@ -13,6 +13,9 @@ use App\Models\InvoiceProduct;
 use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<InvoiceProduct>
+ */
 class InvoiceProductFactory extends Factory
 {
     protected $model = InvoiceProduct::class;

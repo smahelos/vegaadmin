@@ -11,6 +11,9 @@ use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<Invoice>
+ */
 class InvoiceFactory extends Factory
 {
     use DocumentParties;

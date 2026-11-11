@@ -36,6 +36,8 @@ class ExpenseCategory extends Model
 
     /**
      * Get the expenses in this category.
+     *
+     * @return HasMany<Expense, $this>
      */
     public function expenses(): HasMany
     {

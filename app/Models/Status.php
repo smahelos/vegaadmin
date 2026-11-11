@@ -36,6 +36,8 @@ class Status extends Model
     */
     /**
      * Get all invoices with this status
+     *
+     * @return HasMany<Invoice, $this>
      */
     public function invoices(): HasMany
     {
@@ -44,6 +46,8 @@ class Status extends Model
 
     /**
      * Get the category of this status
+     *
+     * @return BelongsTo<StatusCategory, $this>
      */
     public function category(): BelongsTo
     {

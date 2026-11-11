@@ -40,6 +40,8 @@ class StatusCategory extends Model
     */
     /**
      * Get all statuses in this category
+     *
+     * @return HasMany<Status, $this>
      */
     public function statuses(): HasMany
     {

@@ -47,6 +47,8 @@ class Invoice extends Model
     */
     /**
      * Get the payment method associated with the invoice
+     *
+     * @return BelongsTo<PaymentMethod, $this>
      */
     public function paymentMethod(): BelongsTo
     {
@@ -55,6 +57,8 @@ class Invoice extends Model
 
     /**
      * Get the products related to this invoice
+     *
+     * @return BelongsToMany<Product, $this>
      */
     public function products(): BelongsToMany
     {
@@ -81,6 +85,8 @@ class Invoice extends Model
 
     /**
      * Get all invoice products including custom products
+     *
+     * @return HasMany<InvoiceProduct, $this>
      */
     public function invoiceProducts(): HasMany
     {
@@ -89,6 +95,8 @@ class Invoice extends Model
 
     /**
      * Get the user that owns the invoice
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -97,6 +105,8 @@ class Invoice extends Model
 
     /**
      * Get the payment status of the invoice
+     *
+     * @return BelongsTo<Status, $this>
      */
     public function paymentStatus(): BelongsTo
     {
@@ -124,6 +134,9 @@ class Invoice extends Model
         return $this->paymentStatus?->color ?: 'gray';
     }
 
+    /**
+     * @return Attribute<?CarbonImmutable, never>
+     */
     protected function dueDate(): Attribute
     {
         return Attribute::get(
@@ -138,6 +151,9 @@ class Invoice extends Model
         );
     }
 
+    /**
+     * @return Attribute<bool, never>
+     */
     protected function paid(): Attribute
     {
         return Attribute::get(
@@ -147,6 +163,8 @@ class Invoice extends Model
 
     /**
      * Overdue is not stored: an unpaid invoice turns overdue the day after its due date.
+     *
+     * @return Attribute<bool, never>
      */
     protected function overdue(): Attribute
     {
