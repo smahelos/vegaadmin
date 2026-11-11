@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\User\Enums\Permission;
 use App\Models\Invoice;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 /**
@@ -60,7 +61,7 @@ final class InvoicePermissionsTest extends TestCase
     #[Test]
     public function creating_an_invoice_needs_the_create_permission(): void
     {
-        $user = $this->userWith(['frontend.can_update_invoice']);
+        $user = $this->userWith([Permission::INVOICE_UPDATE]);
 
         $httpClient = $this->actingAs($user, 'web');
         $response = $httpClient->post(
@@ -84,7 +85,7 @@ final class InvoicePermissionsTest extends TestCase
         string $route,
         array $parameters,
     ): void {
-        $user = $this->userWith(['frontend.can_create_invoice']);
+        $user = $this->userWith([Permission::INVOICE_CREATE]);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(
             [
@@ -115,7 +116,7 @@ final class InvoicePermissionsTest extends TestCase
     #[Test]
     public function setting_a_template_outside_the_known_templates_is_rejected(): void
     {
-        $user = $this->userWith(['frontend.can_update_invoice']);
+        $user = $this->userWith([Permission::INVOICE_UPDATE]);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(
             [
@@ -144,7 +145,7 @@ final class InvoicePermissionsTest extends TestCase
     #[Test]
     public function setting_a_template_with_the_update_permission_stores_it(): void
     {
-        $user = $this->userWith(['frontend.can_update_invoice']);
+        $user = $this->userWith([Permission::INVOICE_UPDATE]);
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(
             [
@@ -179,7 +180,7 @@ final class InvoicePermissionsTest extends TestCase
     }
 
     /**
-     * @param  list<string>  $permissions
+     * @param  list<Permission>  $permissions
      */
     private function userWith(array $permissions): User
     {
@@ -187,7 +188,7 @@ final class InvoicePermissionsTest extends TestCase
         $user = $userFactory->create();
         foreach ($permissions as $permission) {
             $user->givePermissionTo(
-                Permission::findByName($permission, 'web'),
+                PermissionModel::findByName($permission->value, 'web'),
             );
         }
 

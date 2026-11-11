@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ArchivePolicyRequest extends FormRequest
@@ -14,7 +15,7 @@ class ArchivePolicyRequest extends FormRequest
         // Only authenticated backpack users with system configuration permission
         $user = backpack_user();
 
-        return $user?->can('can_configure_system') === true;
+        return $user?->can(Permission::SYSTEM_CONFIGURE) === true;
     }
 
     /**

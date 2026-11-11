@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Party;
 
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Party\BusinessDetail;
 use App\Models\Business;
 use App\Models\User;
@@ -115,7 +116,7 @@ final class BusinessDetailTest extends TestCase
     {
         $business = $this->business();
         $this->user->removeRole('frontend_user');
-        $this->user->givePermissionTo('frontend.can_view_business');
+        $this->user->givePermissionTo(Permission::BUSINESS_VIEW);
 
         $component = Livewire::test(BusinessDetail::class, ['businessId' => $business->id]);
         $component->call('archive');

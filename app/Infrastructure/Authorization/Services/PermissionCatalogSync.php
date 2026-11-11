@@ -2,6 +2,7 @@
 
 namespace App\Infrastructure\Authorization\Services;
 
+use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\Permission\PermissionRegistrar;
@@ -24,9 +25,11 @@ final class PermissionCatalogSync
         Model::withoutEvents(
             function () use ($permissionClass, $roleClass): void {
                 $permissions = [];
-                foreach (PermissionCatalog::PERMISSIONS as $guard => $names) {
-                    foreach ($names as $name) {
-                        $permissions[$guard][$name] = $permissionClass::firstOrCreate(['name' => $name, 'guard_name' => $guard]);
+                foreach (PermissionCatalog::PERMISSIONS as $guard => $cases) {
+                    foreach ($cases as $case) {
+                        $permissions[$guard][$case->value] = $permissionClass::firstOrCreate(
+                            ['name' => $case->value, 'guard_name' => $guard],
+                        );
                     }
                 }
 
@@ -38,10 +41,10 @@ final class PermissionCatalogSync
                 );
 
                 foreach (PermissionCatalog::ROLES as $guard => $roles) {
-                    foreach ($roles as $role => $names) {
+                    foreach ($roles as $role => $cases) {
                         $roleModel = $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard]);
                         $roleModel->givePermissionTo(
-                            array_map(fn (string $name) => $permissions[$guard][$name], $names),
+                            array_map(fn (Permission $case) => $permissions[$guard][$case->value], $cases),
                         );
                     }
                 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -15,10 +16,10 @@ class StatusRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_status') === true;
+            return $user?->can(Permission::STATUS_CREATE) === true;
         }
 
-        return $user?->can('can_update_status') === true;
+        return $user?->can(Permission::STATUS_UPDATE) === true;
     }
 
     /**

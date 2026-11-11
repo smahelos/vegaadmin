@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ArchiveBusinessRequest;
 use App\Http\Requests\Admin\BusinessRequest;
@@ -112,7 +113,7 @@ final class BusinessCrudController extends CrudController
     ): RedirectResponse {
         $user = backpack_user();
         abort_unless(
-            $user?->can('can_archive_business') === true,
+            $user?->can(Permission::BUSINESS_ARCHIVE) === true,
             403,
         );
         $businessQuery = Business::query();
@@ -132,7 +133,7 @@ final class BusinessCrudController extends CrudController
     {
         $user = backpack_user();
         abort_unless(
-            $user?->can('can_restore_business') === true,
+            $user?->can(Permission::BUSINESS_RESTORE) === true,
             403,
         );
         $businessQuery = Business::query();
@@ -151,7 +152,7 @@ final class BusinessCrudController extends CrudController
     {
         $user = backpack_user();
         abort_unless(
-            $user?->can('can_set_default_business') === true,
+            $user?->can(Permission::BUSINESS_SET_DEFAULT) === true,
             403,
         );
         $businessQuery = Business::query();

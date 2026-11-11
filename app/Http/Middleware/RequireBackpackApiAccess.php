@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\User\Enums\Permission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -37,14 +38,14 @@ class RequireBackpackApiAccess
         $user = $auth->user();
 
         // Check if user has backpack API access permission
-        if (!$user->hasPermissionTo('backpack.api.access', 'backpack')) {
+        if (!$user->checkPermissionTo(Permission::API_ACCESS, 'backpack')) {
             Log::warning(
                 'Backpack user lacks API access permission',
                 [
                     'user_id' => $user->id,
                     'email' => $user->email,
                     'path' => $request->path(),
-                    'checked_permission' => 'backpack.api.access',
+                    'checked_permission' => Permission::API_ACCESS->value,
                     'checked_guard' => 'backpack',
                 ],
             );

@@ -16,6 +16,7 @@ use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 
 final class InvoiceListApplicationService
@@ -68,8 +69,8 @@ final class InvoiceListApplicationService
     {
         if (
             !in_array(
-                'frontend.can_view_invoice',
-                $this->permissions->getUserPermissions($userId->toInt()),
+                Permission::INVOICE_VIEW->value,
+                $this->permissions->getUserPermissions($userId->toInt(), 'web'),
                 true,
             )
         ) {

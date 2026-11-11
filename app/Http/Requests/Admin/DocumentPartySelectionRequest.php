@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class DocumentPartySelectionRequest extends FormRequest
@@ -14,10 +15,10 @@ final class DocumentPartySelectionRequest extends FormRequest
 
         return $user?->canAny(
             [
-                'can_create_invoice',
-                'can_update_invoice',
-                'can_create_expense',
-                'can_update_expense',
+                Permission::INVOICE_CREATE,
+                Permission::INVOICE_UPDATE,
+                Permission::EXPENSE_CREATE,
+                Permission::EXPENSE_UPDATE,
             ],
         ) === true;
     }

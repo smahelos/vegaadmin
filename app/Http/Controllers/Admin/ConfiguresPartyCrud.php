@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\Party\PartyFormFields;
 use App\Models\Address;
@@ -47,14 +48,14 @@ trait ConfiguresPartyCrud
 
         [$view, $create, $update] = match ($entity) {
             'business' => [
-                'can_view_business',
-                'can_create_business',
-                'can_update_business',
+                Permission::BUSINESS_VIEW,
+                Permission::BUSINESS_CREATE,
+                Permission::BUSINESS_UPDATE,
             ],
             'contact' => [
-                'can_view_contact',
-                'can_create_contact',
-                'can_update_contact',
+                Permission::CONTACT_VIEW,
+                Permission::CONTACT_CREATE,
+                Permission::CONTACT_UPDATE,
             ],
         };
         $user = backpack_user();

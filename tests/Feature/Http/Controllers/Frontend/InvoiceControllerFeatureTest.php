@@ -7,12 +7,13 @@ use App\Application\Invoice\DTO\InvoiceActionResult;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\User\Enums\Permission;
 use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\Permission as PermissionModel;
 use App\Models\Status;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
@@ -30,8 +31,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         $this->user->givePermissionTo(
-            Permission::findByName('frontend.can_create_invoice', 'web'),
-            Permission::findByName('frontend.can_update_invoice', 'web'),
+            PermissionModel::findByName(Permission::INVOICE_CREATE->value, 'web'),
+            PermissionModel::findByName(Permission::INVOICE_UPDATE->value, 'web'),
         );
 
         // Create test invoice
@@ -489,7 +490,7 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function store_refuses_to_save_a_customer_whose_company_number_is_in_the_contacts(): void
     {
-        $this->user->givePermissionTo('frontend.can_create_contact');
+        $this->user->givePermissionTo(Permission::CONTACT_CREATE);
         $contactFactory = Contact::factory();
         $existing = $contactFactory->create(
             ['user_id' => $this->user->id, 'company_number' => '27082440'],

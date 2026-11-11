@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 @php($user = Auth::user())
 <nav x-data="{ open: false }"
     class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
@@ -25,21 +26,21 @@
                         {{ __('general.navigation.invoices') }}
                     </x-nav-link>
 
-                    @can('frontend.can_view_business')
+                    @can(Permission::BUSINESS_VIEW)
                     <x-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-nav-link>
                     @endcan
 
-                    @can('frontend.can_view_contact')
+                    @can(Permission::CONTACT_VIEW)
                     <x-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-nav-link>
                     @endcan
 
-                    @if($user->hasPermissionTo('frontend.can_view_product'))
+                    @if($user->checkPermissionTo(Permission::PRODUCT_VIEW, 'web'))
                     <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.product*')">
                         {{ __('general.navigation.products') }}
@@ -185,21 +186,21 @@
                 {{ __('general.navigation.invoices') }}
             </x-responsive-nav-link>
 
-            @can('frontend.can_view_business')
+            @can(Permission::BUSINESS_VIEW)
                     <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
-            @can('frontend.can_view_contact')
+            @can(Permission::CONTACT_VIEW)
                     <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-responsive-nav-link>
                     @endcan
 
-            @if($user->hasPermissionTo('frontend.can_view_product'))
+            @if($user->checkPermissionTo(Permission::PRODUCT_VIEW, 'web'))
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
                 :active="Request::routeIs('frontend.product*')">
                 {{ __('general.navigation.products') }}

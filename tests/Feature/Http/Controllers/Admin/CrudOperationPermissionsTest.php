@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\Enums\Permission;
 use App\Models\Bank;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
@@ -12,6 +13,7 @@ use App\Models\Invoice;
 use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\PaymentMethod;
+use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Status;
@@ -24,7 +26,6 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -40,26 +41,26 @@ final class CrudOperationPermissionsTest extends TestCase
     public static function screens(): array
     {
         return [
-            'archive policy' => ['archive-policy', 'can_configure_system'],
-            'bank' => ['bank', 'can_view_bank'],
-            'expense' => ['expense', 'can_view_expense'],
-            'expense category' => ['expense-category', 'can_view_expense'],
-            'invoice' => ['invoice', 'can_view_invoice'],
-            'page' => ['page', 'can_view_page'],
-            'page category' => ['page-category', 'can_view_page'],
-            'payment method' => ['payment-method', 'can_view_payment_method'],
-            'permission' => ['permission', 'can_view_permission'],
-            'product' => ['product', 'can_view_product'],
-            'product category' => ['product-category', 'can_view_product'],
-            'role' => ['role', 'can_view_role'],
-            'role limit' => ['role-limit', 'can_view_role_limit'],
-            'status' => ['status', 'can_view_status'],
-            'status category' => ['status-category', 'can_view_status'],
-            'subscription' => ['subscription', 'can_view_subscription'],
-            'subscription plan' => ['subscription-plan', 'can_view_subscription_plan'],
-            'subscription plan feature' => ['subscription-plan-feature', 'can_view_subscription_plan_feature'],
-            'tax' => ['tax', 'can_view_tax'],
-            'user' => ['user', 'can_view_user'],
+            'archive policy' => ['archive-policy', Permission::SYSTEM_CONFIGURE],
+            'bank' => ['bank', Permission::BANK_VIEW],
+            'expense' => ['expense', Permission::EXPENSE_VIEW],
+            'expense category' => ['expense-category', Permission::EXPENSE_VIEW],
+            'invoice' => ['invoice', Permission::INVOICE_VIEW],
+            'page' => ['page', Permission::PAGE_VIEW],
+            'page category' => ['page-category', Permission::PAGE_VIEW],
+            'payment method' => ['payment-method', Permission::PAYMENT_METHOD_VIEW],
+            'permission' => ['permission', Permission::PERMISSION_VIEW],
+            'product' => ['product', Permission::PRODUCT_VIEW],
+            'product category' => ['product-category', Permission::PRODUCT_VIEW],
+            'role' => ['role', Permission::ROLE_VIEW],
+            'role limit' => ['role-limit', Permission::ROLE_LIMIT_VIEW],
+            'status' => ['status', Permission::STATUS_VIEW],
+            'status category' => ['status-category', Permission::STATUS_VIEW],
+            'subscription' => ['subscription', Permission::SUBSCRIPTION_VIEW],
+            'subscription plan' => ['subscription-plan', Permission::SUBSCRIPTION_PLAN_VIEW],
+            'subscription plan feature' => ['subscription-plan-feature', Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW],
+            'tax' => ['tax', Permission::TAX_VIEW],
+            'user' => ['user', Permission::USER_VIEW],
         ];
     }
 
@@ -73,92 +74,92 @@ final class CrudOperationPermissionsTest extends TestCase
         return [
             'bank' => [
                 'bank',
-                'can_view_bank',
+                Permission::BANK_VIEW,
                 Bank::class,
             ],
             'expense' => [
                 'expense',
-                'can_view_expense',
+                Permission::EXPENSE_VIEW,
                 Expense::class,
             ],
             'expense category' => [
                 'expense-category',
-                'can_view_expense',
+                Permission::EXPENSE_VIEW,
                 ExpenseCategory::class,
             ],
             'invoice' => [
                 'invoice',
-                'can_view_invoice',
+                Permission::INVOICE_VIEW,
                 Invoice::class,
             ],
             'page' => [
                 'page',
-                'can_view_page',
+                Permission::PAGE_VIEW,
                 Page::class,
             ],
             'page category' => [
                 'page-category',
-                'can_view_page',
+                Permission::PAGE_VIEW,
                 PageCategory::class,
             ],
             'payment method' => [
                 'payment-method',
-                'can_view_payment_method',
+                Permission::PAYMENT_METHOD_VIEW,
                 PaymentMethod::class,
             ],
             'permission' => [
                 'permission',
-                'can_view_permission',
-                Permission::class,
+                Permission::PERMISSION_VIEW,
+                PermissionModel::class,
             ],
             'product' => [
                 'product',
-                'can_view_product',
+                Permission::PRODUCT_VIEW,
                 Product::class,
             ],
             'product category' => [
                 'product-category',
-                'can_view_product',
+                Permission::PRODUCT_VIEW,
                 ProductCategory::class,
             ],
             'role' => [
                 'role',
-                'can_view_role',
+                Permission::ROLE_VIEW,
                 Role::class,
             ],
             'status' => [
                 'status',
-                'can_view_status',
+                Permission::STATUS_VIEW,
                 Status::class,
             ],
             'status category' => [
                 'status-category',
-                'can_view_status',
+                Permission::STATUS_VIEW,
                 StatusCategory::class,
             ],
             'subscription' => [
                 'subscription',
-                'can_view_subscription',
+                Permission::SUBSCRIPTION_VIEW,
                 Subscription::class,
             ],
             'subscription plan' => [
                 'subscription-plan',
-                'can_view_subscription_plan',
+                Permission::SUBSCRIPTION_PLAN_VIEW,
                 SubscriptionPlan::class,
             ],
             'subscription plan feature' => [
                 'subscription-plan-feature',
-                'can_view_subscription_plan_feature',
+                Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW,
                 SubscriptionPlanFeature::class,
             ],
             'tax' => [
                 'tax',
-                'can_view_tax',
+                Permission::TAX_VIEW,
                 Tax::class,
             ],
             'user' => [
                 'user',
-                'can_view_user',
+                Permission::USER_VIEW,
                 User::class,
             ],
         ];
@@ -178,7 +179,7 @@ final class CrudOperationPermissionsTest extends TestCase
 
     #[Test]
     #[DataProvider('screens')]
-    public function the_list_opens_with_the_view_permission(string $route, string $permission): void
+    public function the_list_opens_with_the_view_permission(string $route, Permission $permission): void
     {
         $user = $this->backendUser([$permission]);
 
@@ -190,7 +191,7 @@ final class CrudOperationPermissionsTest extends TestCase
 
     #[Test]
     #[DataProvider('viewOnlyScreens')]
-    public function the_create_form_is_denied_with_the_view_permission_only(string $route, string $permission): void
+    public function the_create_form_is_denied_with_the_view_permission_only(string $route, Permission $permission): void
     {
         $user = $this->backendUser([$permission]);
 
@@ -207,7 +208,7 @@ final class CrudOperationPermissionsTest extends TestCase
     #[DataProvider('viewOnlyScreens')]
     public function deleting_is_denied_with_the_view_permission_only(
         string $route,
-        string $permission,
+        Permission $permission,
         string $model,
     ): void {
         $record = $this->record($model);
@@ -223,7 +224,7 @@ final class CrudOperationPermissionsTest extends TestCase
     #[Test]
     public function the_archive_policies_open_with_the_system_permission(): void
     {
-        $user = $this->backendUser(['can_configure_system']);
+        $user = $this->backendUser([Permission::SYSTEM_CONFIGURE]);
 
         $httpClient = $this->actingAs($user, 'backpack');
         $response = $httpClient->get('/admin/archive-policy/create');
@@ -232,7 +233,7 @@ final class CrudOperationPermissionsTest extends TestCase
     }
 
     /**
-     * @param  list<string>  $permissions
+     * @param  list<Permission>  $permissions
      */
     private function backendUser(array $permissions): User
     {
@@ -241,9 +242,9 @@ final class CrudOperationPermissionsTest extends TestCase
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );
-        foreach (['backpack.access', ...$permissions] as $permission) {
+        foreach ([Permission::BACKPACK_ACCESS, ...$permissions] as $permission) {
             $user->givePermissionTo(
-                Permission::findByName($permission, 'backpack'),
+                PermissionModel::findByName($permission->value, 'backpack'),
             );
         }
 
@@ -261,7 +262,7 @@ final class CrudOperationPermissionsTest extends TestCase
             return $paymentMethodQuery->firstOrFail();
         }
 
-        if ($model === Role::class || $model === Permission::class) {
+        if ($model === Role::class || $model === PermissionModel::class) {
             return $model::create(
                 ['name' => uniqid('screen_'), 'guard_name' => 'web'],
             );

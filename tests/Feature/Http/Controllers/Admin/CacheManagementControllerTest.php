@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -93,7 +94,7 @@ final class CacheManagementControllerTest extends TestCase
             Role::findByName('backend_user', 'backpack'),
         );
         $user->givePermissionTo(
-            Permission::findByName('backpack.access', 'backpack'),
+            PermissionModel::findByName(Permission::BACKPACK_ACCESS->value, 'backpack'),
         );
 
         $httpClient = $this->actingAs($user, 'backpack');

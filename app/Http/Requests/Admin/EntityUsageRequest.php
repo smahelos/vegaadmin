@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,11 +18,11 @@ final class EntityUsageRequest extends FormRequest
     {
         $entity = $this->string('entity');
         $permissions = match (LimitedEntity::tryFrom($entity->toString())) {
-            LimitedEntity::INVOICE => ['can_create_invoice', 'can_update_invoice'],
-            LimitedEntity::EXPENSE => ['can_create_expense', 'can_update_expense'],
-            LimitedEntity::BUSINESS => ['can_create_business', 'can_update_business'],
-            LimitedEntity::CONTACT => ['can_create_contact', 'can_update_contact'],
-            LimitedEntity::PRODUCT => ['can_create_product', 'can_update_product'],
+            LimitedEntity::INVOICE => [Permission::INVOICE_CREATE, Permission::INVOICE_UPDATE],
+            LimitedEntity::EXPENSE => [Permission::EXPENSE_CREATE, Permission::EXPENSE_UPDATE],
+            LimitedEntity::BUSINESS => [Permission::BUSINESS_CREATE, Permission::BUSINESS_UPDATE],
+            LimitedEntity::CONTACT => [Permission::CONTACT_CREATE, Permission::CONTACT_UPDATE],
+            LimitedEntity::PRODUCT => [Permission::PRODUCT_CREATE, Permission::PRODUCT_UPDATE],
             null => [],
         };
         $user = backpack_user();

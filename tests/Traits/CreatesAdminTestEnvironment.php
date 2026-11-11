@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Traits;
 
+use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
 trait CreatesAdminTestEnvironment
@@ -33,7 +34,7 @@ trait CreatesAdminTestEnvironment
         ]);
 
         // Give admin role all permissions
-        $permissionQuery = Permission::where('guard_name', PermissionCatalog::BACKPACK);
+        $permissionQuery = PermissionModel::where('guard_name', PermissionCatalog::BACKPACK);
         $permissionQuery->whereIn('name', PermissionCatalog::PERMISSIONS[PermissionCatalog::BACKPACK]);
         $permissions = $permissionQuery->get();
         $adminRole->syncPermissions($permissions);
@@ -56,7 +57,7 @@ trait CreatesAdminTestEnvironment
         $this->regularUser->assignRole($planRole);
 
         // Get backpack.access permission if it exists
-        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery = PermissionModel::where('name', Permission::BACKPACK_ACCESS->value);
         $permissionQuery->where('guard_name', 'backpack');
         $backpackAccessPermission = $permissionQuery->first();
         if ($backpackAccessPermission) {

@@ -66,7 +66,7 @@ No other entity is limited. Admin reference data (taxes, banks, payment methods,
 
 - An admin edits the limits of each plan role in a dedicated "Role limits" screen: one form per role with a field per limited entity (number, unlimited, not allowed). Only `web` guard roles are offered.
 - An admin sees a user's usage and limits, read-only, on the user's detail.
-- Access to the screen is governed by the permissions `can_view_role_limit`, `can_create_role_limit`, `can_update_role_limit` and `can_delete_role_limit`.
+- Access to the screen is governed by the permissions `role_limit.{view,create,update,delete}`.
 
 ### 4.6 Plans
 

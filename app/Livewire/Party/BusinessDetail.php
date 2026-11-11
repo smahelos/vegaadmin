@@ -8,6 +8,7 @@ use App\Application\Party\Services\BusinessApplicationService;
 use App\Domain\Party\Exceptions\BusinessArchivedException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
@@ -40,7 +41,7 @@ final class BusinessDetail extends Component
 
     public function mount(BusinessApplicationService $businesses, int $businessId): void
     {
-        $this->requirePermission('frontend.can_view_business');
+        $this->requirePermission(Permission::BUSINESS_VIEW);
         $businesses->get(
             $this->userId(),
             BusinessId::fromInt($businessId),
@@ -50,7 +51,7 @@ final class BusinessDetail extends Component
 
     public function archive(BusinessApplicationService $businesses): void
     {
-        $this->requirePermission('frontend.can_archive_business');
+        $this->requirePermission(Permission::BUSINESS_ARCHIVE);
         $this->errorMessage = null;
         $this->successMessage = null;
         $newDefault = $this->newDefault === '' ? null : BusinessId::fromInt((int) $this->newDefault);
@@ -84,7 +85,7 @@ final class BusinessDetail extends Component
 
     public function restore(BusinessApplicationService $businesses): void
     {
-        $this->requirePermission('frontend.can_restore_business');
+        $this->requirePermission(Permission::BUSINESS_RESTORE);
         $this->limitMessage = null;
         $this->successMessage = null;
 
@@ -106,7 +107,7 @@ final class BusinessDetail extends Component
 
     public function makeDefault(BusinessApplicationService $businesses): void
     {
-        $this->requirePermission('frontend.can_set_default_business');
+        $this->requirePermission(Permission::BUSINESS_SET_DEFAULT);
         $this->errorMessage = null;
         $this->successMessage = null;
 

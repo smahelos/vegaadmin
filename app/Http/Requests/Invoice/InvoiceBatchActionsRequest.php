@@ -6,6 +6,7 @@ namespace App\Http\Requests\Invoice;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,7 +16,7 @@ final class InvoiceBatchActionsRequest extends FormRequest
     {
         $user = $this->user();
 
-        return $user?->can('frontend.can_update_invoice') === true;
+        return $user?->can(Permission::INVOICE_UPDATE) === true;
     }
 
     /**

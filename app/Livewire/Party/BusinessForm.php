@@ -11,6 +11,7 @@ use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Party\Forms\PartyDetailsForm;
@@ -47,13 +48,13 @@ final class BusinessForm extends Component
     public function mount(BusinessApplicationService $businesses, ?int $businessId = null): void
     {
         if ($businessId === null) {
-            $this->requirePermission('frontend.can_create_business');
+            $this->requirePermission(Permission::BUSINESS_CREATE);
             $this->party->country = 'CZ';
 
             return;
         }
 
-        $this->requirePermission('frontend.can_update_business');
+        $this->requirePermission(Permission::BUSINESS_UPDATE);
         $business = $businesses->get(
             $this->userId(),
             BusinessId::fromInt($businessId),
@@ -68,7 +69,7 @@ final class BusinessForm extends Component
     {
         $creating = $this->businessId === null;
         $this->requirePermission(
-            $creating ? 'frontend.can_create_business' : 'frontend.can_update_business',
+            $creating ? Permission::BUSINESS_CREATE : Permission::BUSINESS_UPDATE,
         );
         $this->errorMessage = null;
         $this->limitMessage = null;

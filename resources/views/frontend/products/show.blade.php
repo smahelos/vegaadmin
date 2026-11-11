@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 @extends('layouts.frontend')
 
 @section('content')
@@ -14,7 +15,7 @@
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600 rounded-sm text-gray-700 dark:text-gray-200 text-sm font-medium transition-colors">
             <i class="fas fa-list"></i>
         </a>
-        @can('frontend.can_update_product')
+        @can(Permission::PRODUCT_UPDATE)
         <a href="{{ route('frontend.product.edit', ['locale' => App::getLocale(), 'id' => $product->id]) }}"
             title="{{ __('products.actions.edit') }}" aria-label="{{ __('products.actions.edit') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-pink-300 dark:bg-pink-500 hover:bg-pink-500 dark:hover:bg-pink-800 rounded-sm text-gray-700 dark:text-gray-200 hover:text-white text-sm font-medium transition-colors">

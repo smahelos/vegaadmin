@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Models\Contact;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
@@ -113,7 +114,7 @@ final class ContactCrudControllerTest extends TestCase
     {
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create();
-        $backendUser = $this->backendUser('can_view_contact');
+        $backendUser = $this->backendUser(Permission::CONTACT_VIEW);
 
         $httpClient = $this->actingAs($backendUser, 'backpack');
         $httpResponse = $httpClient->put('/admin/contact/' . $contact->id, [

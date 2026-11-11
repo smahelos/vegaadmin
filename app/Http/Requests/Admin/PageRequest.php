@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,10 +15,10 @@ class PageRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_page') === true;
+            return $user?->can(Permission::PAGE_CREATE) === true;
         }
 
-        return $user?->can('can_update_page') === true;
+        return $user?->can(Permission::PAGE_UPDATE) === true;
     }
 
     /**

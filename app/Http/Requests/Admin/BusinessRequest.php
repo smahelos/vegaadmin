@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\DTO\PartyProfile;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Party\PartyInput;
 use App\Http\Requests\Party\PartyLogoInput;
 use Illuminate\Foundation\Http\FormRequest;
@@ -16,7 +17,7 @@ final class BusinessRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $permission = $this->isMethod('POST') ? 'can_create_business' : 'can_update_business';
+        $permission = $this->isMethod('POST') ? Permission::BUSINESS_CREATE : Permission::BUSINESS_UPDATE;
 
         $user = backpack_user();
 

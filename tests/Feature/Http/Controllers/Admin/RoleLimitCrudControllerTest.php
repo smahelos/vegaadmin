@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
+use App\Models\Permission as PermissionModel;
 use App\Models\RoleLimit;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -184,7 +185,7 @@ final class RoleLimitCrudControllerTest extends TestCase
     {
         $role = $this->webRole();
         $roleLimit = RoleLimit::create(['role_id' => $role->id]);
-        $user = $this->backendUser(['can_view_role_limit']);
+        $user = $this->backendUser([Permission::ROLE_LIMIT_VIEW]);
 
         $httpClient = $this->actingAs($user, 'backpack');
         $response = $httpClient->get('/admin/role-limit/create');
@@ -220,7 +221,7 @@ final class RoleLimitCrudControllerTest extends TestCase
     }
 
     /**
-     * @param  list<string>  $permissions
+     * @param  list<Permission>  $permissions
      */
     private function backendUser(array $permissions): User
     {
@@ -229,9 +230,9 @@ final class RoleLimitCrudControllerTest extends TestCase
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );
-        foreach (['backpack.access', ...$permissions] as $permission) {
+        foreach ([Permission::BACKPACK_ACCESS, ...$permissions] as $permission) {
             $user->givePermissionTo(
-                Permission::findByName($permission, 'backpack'),
+                PermissionModel::findByName($permission->value, 'backpack'),
             );
         }
 

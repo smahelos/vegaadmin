@@ -3,14 +3,15 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Frontend\SubscriptionController;
+use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\Support\Fakes\Payment\RecordingPaymentApplicationService;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
@@ -28,7 +29,7 @@ class SubscriptionControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         // Give user specific subscription permission
-        $permissionQuery = Permission::where('name', 'frontend.can_create_subscription');
+        $permissionQuery = PermissionModel::where('name', Permission::SUBSCRIPTION_CREATE->value);
         $permissionQuery->where('guard_name', 'web');
         $permission = $permissionQuery->first();
         if ($permission) {
@@ -276,7 +277,7 @@ class SubscriptionControllerFeatureTest extends TestCase
         ]);
 
         // Give user permission to cancel their own subscription
-        $this->user->givePermissionTo('frontend.can_cancel_subscription');
+        $this->user->givePermissionTo(Permission::SUBSCRIPTION_CANCEL);
 
         $this->actingAs($this->user);
 

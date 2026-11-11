@@ -2,11 +2,12 @@
 
 namespace Tests\Feature\Http\Middleware;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Middleware\RequireFrontendApiAccess;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Http\Request;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 
@@ -18,9 +19,11 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     {
         parent::setUp();
         $this->middleware = new RequireFrontendApiAccess;
-        Permission::firstOrCreate(['name' => 'frontend.api.access', 'guard_name' => 'web']);
+        PermissionModel::firstOrCreate(
+            ['name' => Permission::API_ACCESS->value, 'guard_name' => 'web'],
+        );
         $role = Role::firstOrCreate(['name' => 'frontend_user', 'guard_name' => 'web']);
-        $role->givePermissionTo('frontend.api.access');
+        $role->givePermissionTo(Permission::API_ACCESS);
     }
 
     #[Test]

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Invoice;
+use App\Models\Permission as PermissionModel;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
@@ -31,7 +32,7 @@ final class InvoiceLogoUploadTest extends TestCase
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-        $permissionQuery = Permission::where('name', 'frontend.can_create_invoice');
+        $permissionQuery = PermissionModel::where('name', Permission::INVOICE_CREATE->value);
         $permissionQuery->where('guard_name', 'web');
         $permission = $permissionQuery->first();
         if ($permission) {

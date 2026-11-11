@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 @extends('layouts.frontend')
 
 @use('App\Domain\Payment\Enums\PaymentMethodCode')
@@ -347,9 +348,9 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                                     __('invoices.placeholders.item_name') }}</label>
                                 <div class="grid grid-cols-4 md:grid-cols-6">
                                     <input type="text"
-                                        class="item-name @can('frontend.can_view_product')col-span-3 md:col-span-5 @else col-span-4 md:col-span-6 @endcan form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"
+                                        class="item-name @can(Permission::PRODUCT_VIEW)col-span-3 md:col-span-5 @else col-span-4 md:col-span-6 @endcan form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"
                                         placeholder="{{ __('invoices.placeholders.item_name') }}">
-                                    @can('frontend.can_view_product')
+                                    @can(Permission::PRODUCT_VIEW)
                                     <button type="button" title="{{ __('invoices.placeholders.select_product') }}"
                                         title="{{ __('invoices.placeholders.select_product') }}"
                                         class="select-product col-span-1 ml-1 px-2 py-1 border border-blue-300 dark:border-gray-600 rounded-sm cursor-pointer text-white dark:text-gray-200 bg-emerald-500 dark:bg-emerald-600 hover:bg-emerald-600 dark:hover:bg-emerald-700 transition-colors duration-200">
@@ -591,7 +592,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
             </div>
 
             <div class="product-list-content">
-                @can('frontend.can_view_product')
+                @can(Permission::PRODUCT_VIEW)
                 @livewire('product.product-list-select')
                 @endcan
             </div>

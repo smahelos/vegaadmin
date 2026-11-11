@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Domain\User\Enums\Permission;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -48,7 +49,7 @@ final class RequireBackpackAccess
 
         // If user has backpack role, they should have access
         // But let's also verify the permission as additional security layer
-        if (!$user->hasPermissionTo('backpack.access', 'backpack')) {
+        if (!$user->checkPermissionTo(Permission::BACKPACK_ACCESS, 'backpack')) {
             Log::warning(
                 'User with backpack role but without backpack.access permission attempted to access admin area',
                 [

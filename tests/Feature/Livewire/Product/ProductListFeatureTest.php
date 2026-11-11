@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Livewire\Product;
 
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Product\ProductList;
 use App\Models\Product;
 use App\Models\User;
@@ -20,7 +21,7 @@ class ProductListFeatureTest extends TestCase
         $this->setupTestRoutes();
         $userFactory = User::factory();
         $this->user = $userFactory->create();
-        $this->user->givePermissionTo('frontend.can_view_product');
+        $this->user->givePermissionTo(Permission::PRODUCT_VIEW);
     }
 
     /**

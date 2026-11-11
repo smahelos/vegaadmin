@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Traits;
 
+use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
@@ -18,10 +19,6 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     {
         parent::setUp();
         $this->adapter = new SpatieAuthorizationAdapter;
-
-        // Create required permissions/roles for backpack guard
-        Permission::firstOrCreate(['name' => 'test.permission', 'guard_name' => 'backpack']);
-        Permission::firstOrCreate(['name' => 'another.permission', 'guard_name' => 'backpack']);
     }
 
     #[Test]
@@ -30,7 +27,7 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
         $userFactory = User::factory();
         $user = $userFactory->create();
         $this->assertFalse(
-            $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
+            $this->adapter->hasBackpackPermission($user->id, Permission::USER_VIEW),
         );
     }
 
@@ -39,13 +36,26 @@ final class SpatieAuthorizationAdapterBackpackFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $permissionQuery = Permission::where('name', 'test.permission');
-        $permissionQuery->where('guard_name', 'backpack');
-        $permission = $permissionQuery->first();
-        $user->givePermissionTo($permission);
+        $user->givePermissionTo(
+            PermissionModel::findByName(Permission::USER_VIEW->value, 'backpack'),
+        );
 
         $this->assertTrue(
-            $this->adapter->hasBackpackPermission($user->id, 'test.permission'),
+            $this->adapter->hasBackpackPermission($user->id, Permission::USER_VIEW),
+        );
+    }
+
+    #[Test]
+    public function the_same_permission_in_the_web_guard_does_not_count(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->givePermissionTo(
+            PermissionModel::findByName(Permission::PRODUCT_VIEW->value, 'web'),
+        );
+
+        $this->assertFalse(
+            $this->adapter->hasBackpackPermission($user->id, Permission::PRODUCT_VIEW),
         );
     }
 }

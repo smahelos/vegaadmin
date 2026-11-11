@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 class TaxRequest extends FormRequest
@@ -10,10 +11,10 @@ class TaxRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_tax') === true;
+            return $user?->can(Permission::TAX_CREATE) === true;
         }
 
-        return $user?->can('can_update_tax') === true;
+        return $user?->can(Permission::TAX_UPDATE) === true;
     }
 
     /**

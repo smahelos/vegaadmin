@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class RunCronTaskRequest extends FormRequest
@@ -12,7 +13,7 @@ final class RunCronTaskRequest extends FormRequest
     {
         $user = backpack_user();
 
-        return $user?->can('can_run_cron_task') === true;
+        return $user?->can(Permission::CRON_TASK_RUN) === true;
     }
 
     /**

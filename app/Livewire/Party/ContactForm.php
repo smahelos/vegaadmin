@@ -11,6 +11,7 @@ use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
@@ -45,13 +46,13 @@ final class ContactForm extends Component
     public function mount(ContactApplicationService $contacts, ?int $contactId = null): void
     {
         if ($contactId === null) {
-            $this->requirePermission('frontend.can_create_contact');
+            $this->requirePermission(Permission::CONTACT_CREATE);
             $this->party->country = 'CZ';
 
             return;
         }
 
-        $this->requirePermission('frontend.can_update_contact');
+        $this->requirePermission(Permission::CONTACT_UPDATE);
         $contact = $contacts->get(
             $this->userId(),
             ContactId::fromInt($contactId),
@@ -67,7 +68,7 @@ final class ContactForm extends Component
     {
         $creating = $this->contactId === null;
         $this->requirePermission(
-            $creating ? 'frontend.can_create_contact' : 'frontend.can_update_contact',
+            $creating ? Permission::CONTACT_CREATE : Permission::CONTACT_UPDATE,
         );
         $this->errorMessage = null;
         $this->limitMessage = null;

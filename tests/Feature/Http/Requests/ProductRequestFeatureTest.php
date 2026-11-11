@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
 use App\Models\ProductCategory;
@@ -52,7 +53,7 @@ class ProductRequestFeatureTest extends TestCase
             );
         }
         $this->user->givePermissionTo(
-            ['frontend.can_create_product', 'frontend.can_update_product'],
+            [Permission::PRODUCT_CREATE, Permission::PRODUCT_UPDATE],
         );
 
         // Create related models

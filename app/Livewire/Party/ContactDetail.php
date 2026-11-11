@@ -6,6 +6,7 @@ namespace App\Livewire\Party;
 
 use App\Application\Party\Services\ContactApplicationService;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
@@ -33,7 +34,7 @@ final class ContactDetail extends Component
 
     public function mount(ContactApplicationService $contacts, int $contactId): void
     {
-        $this->requirePermission('frontend.can_view_contact');
+        $this->requirePermission(Permission::CONTACT_VIEW);
         $contacts->get(
             $this->userId(),
             ContactId::fromInt($contactId),
@@ -43,14 +44,14 @@ final class ContactDetail extends Component
 
     public function archive(ContactApplicationService $contacts): void
     {
-        $this->requirePermission('frontend.can_archive_contact');
+        $this->requirePermission(Permission::CONTACT_ARCHIVE);
         $contacts->archive($this->userId(), $this->currentId());
         $this->successMessage = __('contacts.messages.archived');
     }
 
     public function restore(ContactApplicationService $contacts): void
     {
-        $this->requirePermission('frontend.can_restore_contact');
+        $this->requirePermission(Permission::CONTACT_RESTORE);
         $this->limitMessage = null;
         $this->successMessage = null;
 

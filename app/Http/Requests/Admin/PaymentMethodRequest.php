@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,10 +13,10 @@ class PaymentMethodRequest extends FormRequest
     {
         $user = backpack_user();
         if ($this->isMethod('POST')) {
-            return $user?->can('can_create_payment_method') === true;
+            return $user?->can(Permission::PAYMENT_METHOD_CREATE) === true;
         }
 
-        return $user?->can('can_update_payment_method') === true;
+        return $user?->can(Permission::PAYMENT_METHOD_UPDATE) === true;
     }
 
     public function rules(): array

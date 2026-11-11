@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 <div>
     @if(isset($products) && $products->count() > 0)
     <div class="overflow-x-auto">
@@ -130,14 +131,14 @@
                             <i class="fas fa-eye"></i>
                         </a>
                         <!-- Edit button -->
-                        @can('frontend.can_update_product')
+                        @can(Permission::PRODUCT_UPDATE)
                         <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
                             title="{{ __('products.actions.edit') }}" class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
                         @endcan
                         <!-- Delete button -->
-                        @can('frontend.can_delete_product')
+                        @can(Permission::PRODUCT_DELETE)
                         <a href="#" title="{{ __('products.actions.delete') }}" class="text-red-600 hover:text-red-900"
                             onclick="event.preventDefault(); if(confirm('@php echo $confirmDeleteTxt; @endphp')) document.getElementById('delete-form-{{ $product->id }}').submit();">
                             <i class="fas fa-trash-alt"></i>
@@ -169,7 +170,7 @@
         </div>
         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-200 mb-2">{{ __('products.titles.empty') }}</h3>
         <p class="text-gray-500 mb-6">{{ __('products.titles.empty_message') }}</p>
-        @can('frontend.can_create_product')
+        @can(Permission::PRODUCT_CREATE)
         <a href="{{ route('frontend.product.create', ['locale' => App::getLocale()]) }}"
             class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
             <i class="fas fa-plus mr-2"></i> {{ __('products.actions.new') }}

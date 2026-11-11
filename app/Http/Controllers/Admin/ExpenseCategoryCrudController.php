@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
@@ -45,11 +46,11 @@ final class ExpenseCategoryCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_expense',
-                'show' => 'can_view_expense',
-                'create' => 'can_create_expense',
-                'update' => 'can_update_expense',
-                'delete' => 'can_delete_expense',
+                'list' => Permission::EXPENSE_VIEW,
+                'show' => Permission::EXPENSE_VIEW,
+                'create' => Permission::EXPENSE_CREATE,
+                'update' => Permission::EXPENSE_UPDATE,
+                'delete' => Permission::EXPENSE_DELETE,
             ],
         );
     }

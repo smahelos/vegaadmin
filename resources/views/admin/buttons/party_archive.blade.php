@@ -1,11 +1,12 @@
+@use('App\Domain\User\Enums\Permission')
 @php
     $entity = $crud->get('party.entity');
     if ($entity === 'business') {
         $routes = ['archive' => 'admin.businesses.archive', 'restore' => 'admin.businesses.restore'];
-        $permissions = ['archive' => 'can_archive_business', 'restore' => 'can_restore_business'];
+        $permissions = ['archive' => Permission::BUSINESS_ARCHIVE, 'restore' => Permission::BUSINESS_RESTORE];
     } else {
         $routes = ['archive' => 'admin.contacts.archive', 'restore' => 'admin.contacts.restore'];
-        $permissions = ['archive' => 'can_archive_contact', 'restore' => 'can_restore_contact'];
+        $permissions = ['archive' => Permission::CONTACT_ARCHIVE, 'restore' => Permission::CONTACT_RESTORE];
     }
     $action = $entry->archived_at === null ? 'archive' : 'restore';
     $user = backpack_user();

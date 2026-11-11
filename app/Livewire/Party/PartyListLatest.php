@@ -6,6 +6,7 @@ namespace App\Livewire\Party;
 
 use App\Application\Party\Services\LatestPartiesApplicationService;
 use App\Domain\Party\Enums\PartyKind;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
 use Livewire\Attributes\Locked;
@@ -26,7 +27,7 @@ final class PartyListLatest extends Component
     public function render(LatestPartiesApplicationService $parties): View
     {
         $this->requirePermission(
-            $this->kind === PartyKind::BUSINESS ? 'frontend.can_view_business' : 'frontend.can_view_contact',
+            $this->kind === PartyKind::BUSINESS ? Permission::BUSINESS_VIEW : Permission::CONTACT_VIEW,
         );
 
         return view(

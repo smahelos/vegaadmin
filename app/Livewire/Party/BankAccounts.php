@@ -11,6 +11,7 @@ use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
@@ -241,13 +242,13 @@ final class BankAccounts extends Component
         );
     }
 
-    private function permission(string $action): string
+    private function permission(string $action): Permission
     {
         $business = $this->ownerType === self::OWNER_BUSINESS;
 
         return match ($action) {
-            'view' => $business ? 'frontend.can_view_business' : 'frontend.can_view_contact',
-            'update' => $business ? 'frontend.can_update_business' : 'frontend.can_update_contact',
+            'view' => $business ? Permission::BUSINESS_VIEW : Permission::CONTACT_VIEW,
+            'update' => $business ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE,
         };
     }
 }

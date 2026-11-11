@@ -14,10 +14,7 @@ use Illuminate\Support\Facades\Log;
  */
 class LaravelUserPermissionService implements UserPermissionServiceInterface
 {
-    /**
-     * Get all permission names for a user.
-     */
-    public function getUserPermissions(int $userId): array
+    public function getUserPermissions(int $userId, string $guard): array
     {
         $user = User::find($userId);
 
@@ -30,6 +27,7 @@ class LaravelUserPermissionService implements UserPermissionServiceInterface
         }
 
         $permissions = $user->getAllPermissions();
+        $permissions = $permissions->where('guard_name', $guard);
         $permissionNames = $permissions->pluck('name');
         $permissionNames = $permissionNames->unique();
         $permissionNames = $permissionNames->values();

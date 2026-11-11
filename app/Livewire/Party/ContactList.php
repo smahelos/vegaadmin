@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Party;
 
 use App\Application\Party\Services\ContactApplicationService;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -16,7 +17,7 @@ final class ContactList extends Component
 
     public function render(ContactApplicationService $contacts): View
     {
-        $this->requirePermission('frontend.can_view_contact');
+        $this->requirePermission(Permission::CONTACT_VIEW);
 
         return view(
             'livewire.party.contact-list',

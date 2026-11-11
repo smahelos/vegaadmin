@@ -16,6 +16,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
@@ -31,7 +32,7 @@ final class InvoiceRequest extends FormRequest
         $user = backpack_user();
 
         return $user?->can(
-            $this->isMethod('POST') ? 'can_create_invoice' : 'can_update_invoice',
+            $this->isMethod('POST') ? Permission::INVOICE_CREATE : Permission::INVOICE_UPDATE,
         ) === true;
     }
 

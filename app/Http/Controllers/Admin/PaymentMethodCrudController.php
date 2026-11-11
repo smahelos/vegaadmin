@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\PaymentMethodRequest;
 use App\Infrastructure\Forms\Payment\PaymentMethodFormFields;
@@ -47,11 +48,11 @@ final class PaymentMethodCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_payment_method',
-                'show' => 'can_view_payment_method',
-                'create' => 'can_create_payment_method',
-                'update' => 'can_update_payment_method',
-                'delete' => 'can_delete_payment_method',
+                'list' => Permission::PAYMENT_METHOD_VIEW,
+                'show' => Permission::PAYMENT_METHOD_VIEW,
+                'create' => Permission::PAYMENT_METHOD_CREATE,
+                'update' => Permission::PAYMENT_METHOD_UPDATE,
+                'delete' => Permission::PAYMENT_METHOD_DELETE,
             ],
         );
     }

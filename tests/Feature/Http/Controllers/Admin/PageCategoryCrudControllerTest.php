@@ -2,12 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\PageCategoryCrudController;
 use App\Models\PageCategory;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -26,10 +27,10 @@ class PageCategoryCrudControllerTest extends TestCase
 
         $this->setUpAdminTestEnvironment();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_view_page', 'backpack'),
-            Permission::findByName('can_create_page', 'backpack'),
-            Permission::findByName('can_update_page', 'backpack'),
-            Permission::findByName('can_delete_page', 'backpack'),
+            PermissionModel::findByName(Permission::PAGE_VIEW->value, 'backpack'),
+            PermissionModel::findByName(Permission::PAGE_CREATE->value, 'backpack'),
+            PermissionModel::findByName(Permission::PAGE_UPDATE->value, 'backpack'),
+            PermissionModel::findByName(Permission::PAGE_DELETE->value, 'backpack'),
         );
     }
 
@@ -44,7 +45,7 @@ class PageCategoryCrudControllerTest extends TestCase
             Role::findByName('backend_user', 'backpack'),
         );
         $user->givePermissionTo(
-            Permission::findByName('backpack.access', 'backpack'),
+            PermissionModel::findByName(Permission::BACKPACK_ACCESS->value, 'backpack'),
         );
 
         $httpClient = $this->actingAs($user, 'backpack');

@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Authorization\Adapters\User;
 
 use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
+use App\Domain\User\Enums\Permission;
 use App\Models\User;
 
 /**
@@ -11,17 +12,14 @@ use App\Models\User;
  */
 class SpatieAuthorizationAdapter implements UserAuthorizationAdapterInterface
 {
-    public function hasBackpackPermission(int $userId, string $permission): bool
+    public function hasBackpackPermission(int $userId, Permission $permission): bool
     {
         $query = User::query();
         $user = $query->find($userId);
-        if (!$user || !method_exists($user, 'hasPermissionTo')) {
+        if ($user === null) {
             return false;
         }
-        try {
-            return (bool) $user->hasPermissionTo($permission, 'backpack');
-        } catch (\Throwable) {
-            return false;
-        }
+
+        return $user->checkPermissionTo($permission, 'backpack');
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ArchivePolicyRequest;
 use App\Models\ArchivePolicy;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -40,11 +41,11 @@ class ArchivePolicyCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_configure_system',
-                'show' => 'can_configure_system',
-                'create' => 'can_configure_system',
-                'update' => 'can_configure_system',
-                'delete' => 'can_configure_system',
+                'list' => Permission::SYSTEM_CONFIGURE,
+                'show' => Permission::SYSTEM_CONFIGURE,
+                'create' => Permission::SYSTEM_CONFIGURE,
+                'update' => Permission::SYSTEM_CONFIGURE,
+                'delete' => Permission::SYSTEM_CONFIGURE,
             ],
         );
     }

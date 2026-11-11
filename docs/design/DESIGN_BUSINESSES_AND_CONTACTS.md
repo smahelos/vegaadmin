@@ -73,7 +73,7 @@ The generated unique key, the CHECK with restricting foreign keys and the compos
 
 ### Capacity limits (Q8, Q9, Q10)
 
-No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. The limits are the `businesses` and `contacts` values of the owner's plan role ([D-047](../adr/D-047-entity-limits.md), which replaced the `limit_active_*` permissions and the UELS dashboard on 2026-11-06). The owner's limit applies in the admin too, without bypass: `can_create_{business,contact}_unlimited` is not introduced. The old `limit_yearly_{clients,suppliers}_basic`, the party `UsageRecordingHandler`, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
+No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. The limits are the `businesses` and `contacts` values of the owner's plan role ([D-047](../adr/D-047-entity-limits.md), which replaced the `limit_active_*` permissions and the UELS dashboard on 2026-11-06). The owner's limit applies in the admin too, without bypass: no permission lifts it. The old `limit_yearly_{clients,suppliers}_basic`, the party `UsageRecordingHandler`, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
 
 ### Events (Q26)
 
@@ -106,7 +106,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 - Required document data, the same for a selected contact, a one-off party, the frontend, the admin and guests: `supplier_*` and `customer_*` name, street, city, postal code and country. Company and VAT numbers are already stored when supplied; their requiredness by tax regime and further fiscal requirements belong to steps 12 and 13.
 - Account: only active accounts of the selected business, no one-off account on an issued invoice; required only for the `bankaccount` payment method; the default account is prefilled; a business without an active account shows a link to add one.
 - The request accepts new references only when they are active and owned, keeps a stored archived reference, and answers a changed identity on a contact-backed party with a validation error that offers a one-off party.
-- "Save to contacts" on the invoice detail, for an invoice without `contact_id`: one transaction with the capacity lock creates the contact and its address from `customer_*` and sets `contact_id`; the document data stay. A Czech IČO match offers "Link to the existing contact", which sets `contact_id` only. Requires `can_create_contact` and `can_update_invoice`. Step 7 offers it on every invoice without a contact; once step 12 introduces issuing, only on new invoices and drafts, because an issued invoice changes nothing, not even `contact_id`.
+- "Save to contacts" on the invoice detail, for an invoice without `contact_id`: one transaction with the capacity lock creates the contact and its address from `customer_*` and sets `contact_id`; the document data stay. A Czech IČO match offers "Link to the existing contact", which sets `contact_id` only. Requires `contact.create` and `invoice.update`. Step 7 offers it on every invoice without a contact; once step 12 introduces issuing, only on new invoices and drafts, because an issued invoice changes nothing, not even `contact_id`.
 - Payment reminders read the stored `supplier_email` / `customer_email`; an empty address skips the reminder. Sending a document by email does not exist yet (TECH_DEBT "Invoices cannot be sent by email").
 - Guest invoice: `DocumentPartyPicker` in guest mode, every party and the account one-off, no selections and no saving to contacts; `TemporaryInvoiceStore` keeps the `DocumentPartyDTO` shape and the print reads it like a stored invoice.
 - Removed: `client-form-data.js`, `supplier-form-data.js`, `bank-fields.js`, `/api/client*`, `/api/supplier*`, `/api/admin/client*`, `/api/admin/supplier*`.
@@ -119,8 +119,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 
 ### Permissions (Q11)
 
-- Frontend: `frontend.can_{view,create,update,archive,restore}_{business,contact}` and `frontend.can_set_default_business`.
-- Admin: `can_{view,create,update,archive,restore}_{business,contact}` and `can_set_default_business`.
+- `{business,contact}.{view,create,update,archive,restore}` and `business.set_default`, in both guards.
 - No delete permissions. Accounts have their own `bank_account.view` and `bank_account.update` (add, edit, archive, restore, default account); addresses fall under the owner's update. The API checks the same permissions plus `api.access`. The client/supplier permissions are removed by a migration; every frontend role gets all the new ones.
 
 ### API (Q28)

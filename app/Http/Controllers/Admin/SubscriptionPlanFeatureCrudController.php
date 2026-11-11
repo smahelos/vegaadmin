@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\SubscriptionPlanFeatureRequest;
 use App\Models\SubscriptionPlanFeature;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -43,11 +44,11 @@ class SubscriptionPlanFeatureCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_subscription_plan_feature',
-                'show' => 'can_view_subscription_plan_feature',
-                'create' => 'can_create_subscription_plan_feature',
-                'update' => 'can_update_subscription_plan_feature',
-                'delete' => 'can_delete_subscription_plan_feature',
+                'list' => Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW,
+                'show' => Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW,
+                'create' => Permission::SUBSCRIPTION_PLAN_FEATURE_CREATE,
+                'update' => Permission::SUBSCRIPTION_PLAN_FEATURE_UPDATE,
+                'delete' => Permission::SUBSCRIPTION_PLAN_FEATURE_DELETE,
             ],
         );
     }

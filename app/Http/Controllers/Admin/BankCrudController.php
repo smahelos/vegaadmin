@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\BankRequest;
 use App\Infrastructure\Forms\Party\BankFormFields;
 use App\Models\Bank;
@@ -42,11 +43,11 @@ class BankCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_bank',
-                'show' => 'can_view_bank',
-                'create' => 'can_create_bank',
-                'update' => 'can_update_bank',
-                'delete' => 'can_delete_bank',
+                'list' => Permission::BANK_VIEW,
+                'show' => Permission::BANK_VIEW,
+                'create' => Permission::BANK_CREATE,
+                'update' => Permission::BANK_UPDATE,
+                'delete' => Permission::BANK_DELETE,
             ],
         );
     }

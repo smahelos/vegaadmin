@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Livewire\Party;
 
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
+use App\Domain\User\Enums\Permission;
 use App\Livewire\Party\BankAccounts;
 use App\Models\BankAccount;
 use App\Models\Business;
@@ -135,7 +136,7 @@ final class BankAccountsTest extends TestCase
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
         $this->user->removeRole('frontend_user');
-        $this->user->givePermissionTo('frontend.can_view_business');
+        $this->user->givePermissionTo(Permission::BUSINESS_VIEW);
 
         $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
         $component->assertDontSee(
@@ -178,8 +179,8 @@ final class BankAccountsTest extends TestCase
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo(
             [
-                'frontend.can_view_' . $context,
-                'frontend.can_update_' . $context,
+                Permission::from($context . '.view'),
+                Permission::from($context . '.update'),
             ],
         );
         $model = $context === 'business' ? Business::class : Contact::class;

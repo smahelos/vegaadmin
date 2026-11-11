@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\User\Enums\Permission;
 use App\Models\CronTask;
+use App\Models\Permission as PermissionModel;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -198,10 +199,10 @@ final class CronTaskCrudControllerTest extends TestCase
         $task = $cronTaskFactory->create(['last_run' => null]);
         $user = $this->backendUser(
             [
-                'can_view_cron_task',
-                'can_create_cron_task',
-                'can_update_cron_task',
-                'can_delete_cron_task',
+                Permission::CRON_TASK_VIEW,
+                Permission::CRON_TASK_CREATE,
+                Permission::CRON_TASK_UPDATE,
+                Permission::CRON_TASK_DELETE,
             ],
         );
 
@@ -242,7 +243,7 @@ final class CronTaskCrudControllerTest extends TestCase
     {
         $cronTaskFactory = CronTask::factory();
         $task = $cronTaskFactory->create();
-        $user = $this->backendUser(['can_view_cron_task']);
+        $user = $this->backendUser([Permission::CRON_TASK_VIEW]);
 
         $httpClient = $this->actingAs($user, 'backpack');
         $response = $httpClient->get('/admin/cron-task');
@@ -254,7 +255,7 @@ final class CronTaskCrudControllerTest extends TestCase
     }
 
     /**
-     * @param  list<string>  $permissions
+     * @param  list<Permission>  $permissions
      */
     private function backendUser(array $permissions): User
     {
@@ -263,9 +264,9 @@ final class CronTaskCrudControllerTest extends TestCase
         $user->assignRole(
             Role::findByName('backend_user', 'backpack'),
         );
-        foreach (['backpack.access', ...$permissions] as $permission) {
+        foreach ([Permission::BACKPACK_ACCESS, ...$permissions] as $permission) {
             $user->givePermissionTo(
-                Permission::findByName($permission, 'backpack'),
+                PermissionModel::findByName($permission->value, 'backpack'),
             );
         }
 

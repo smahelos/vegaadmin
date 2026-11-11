@@ -2,7 +2,9 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ProductRequest;
+use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
 use App\Models\Tax;
@@ -12,7 +14,6 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -40,9 +41,9 @@ class ProductRequestFeatureTest extends TestCase
         // Set up admin test environment with roles and permissions
         $this->setUpAdminTestEnvironment();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_view_product', 'backpack'),
-            Permission::findByName('can_create_product', 'backpack'),
-            Permission::findByName('can_update_product', 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_VIEW->value, 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_CREATE->value, 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_UPDATE->value, 'backpack'),
         );
 
         $userFactory = User::factory();

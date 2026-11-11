@@ -11,6 +11,7 @@ use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
 use App\Domain\Product\DTO\CatalogProductDTO;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 
 final class InvoiceItemsApplicationService
@@ -52,15 +53,15 @@ final class InvoiceItemsApplicationService
 
     private function assertCanEdit(UserId $actorId): void
     {
-        $permissions = $this->permissions->getUserPermissions($actorId->toInt());
+        $permissions = $this->permissions->getUserPermissions($actorId->toInt(), 'backpack');
         if (
             !in_array(
-                'can_create_invoice',
+                Permission::INVOICE_CREATE->value,
                 $permissions,
                 true,
             )
             && !in_array(
-                'can_update_invoice',
+                Permission::INVOICE_UPDATE->value,
                 $permissions,
                 true,
             )

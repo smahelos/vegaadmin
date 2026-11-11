@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
 use App\Models\RoleLimit;
@@ -25,10 +26,10 @@ class ProductControllerFeatureTest extends TestCase
 
         $this->user->givePermissionTo(
             [
-                'frontend.can_view_product',
-                'frontend.can_create_product',
-                'frontend.can_update_product',
-                'frontend.can_delete_product',
+                Permission::PRODUCT_VIEW,
+                Permission::PRODUCT_CREATE,
+                Permission::PRODUCT_UPDATE,
+                Permission::PRODUCT_DELETE,
             ],
         );
     }

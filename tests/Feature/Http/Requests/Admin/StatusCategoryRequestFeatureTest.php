@@ -2,13 +2,14 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\StatusCategoryRequest;
+use App\Models\Permission as PermissionModel;
 use App\Models\StatusCategory;
 use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
@@ -232,7 +233,7 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $userFactory = User::factory();
         $userWithoutPermission = $userFactory->create();
         // Give basic backpack access but not the specific permission (for backpack guard)
-        $permissionQuery = Permission::where('name', 'backpack.access');
+        $permissionQuery = PermissionModel::where('name', Permission::BACKPACK_ACCESS->value);
         $permissionQuery->where('guard_name', 'backpack');
         $backpackAccess = $permissionQuery->first();
         if ($backpackAccess) {

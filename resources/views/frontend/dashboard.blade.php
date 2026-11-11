@@ -1,3 +1,4 @@
+@use('App\Domain\User\Enums\Permission')
 @extends('layouts.frontend')
 
 @use('App\Domain\User\Enums\LimitedEntity')
@@ -202,7 +203,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_contacts') }}</h3>
                         <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest contacts -->
-                            @can('frontend.can_view_contact')
+                            @can(Permission::CONTACT_VIEW)
                             @livewire('party.party-list-latest', ['partyType' => 'contact'], key('latest-contacts'))
                             @endcan
                         </div>
@@ -213,7 +214,7 @@
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_businesses') }}</h3>
                         <div class="rounded-sm overflow-hidden">
                             <!-- Livewire component - Latest businesses -->
-                            @can('frontend.can_view_business')
+                            @can(Permission::BUSINESS_VIEW)
                             @livewire('party.party-list-latest', ['partyType' => 'business'], key('latest-businesses'))
                             @endcan
                         </div>

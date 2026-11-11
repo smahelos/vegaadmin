@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\CronTaskRequest;
 use App\Http\Requests\Admin\RunCronTaskRequest;
 use App\Models\CronTask;
@@ -40,11 +41,11 @@ class CronTaskCrudController extends CrudController
 
         $this->denyOperationsWithout(
             [
-                'list' => 'can_view_cron_task',
-                'show' => 'can_view_cron_task',
-                'create' => 'can_create_cron_task',
-                'update' => 'can_update_cron_task',
-                'delete' => 'can_delete_cron_task',
+                'list' => Permission::CRON_TASK_VIEW,
+                'show' => Permission::CRON_TASK_VIEW,
+                'create' => Permission::CRON_TASK_CREATE,
+                'update' => Permission::CRON_TASK_UPDATE,
+                'delete' => Permission::CRON_TASK_DELETE,
             ],
         );
     }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
 use App\Models\Business;
+use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -42,7 +43,7 @@ final class EntityUsageControllerTest extends TestCase
     {
         $user = $this->userWithPlanRole();
         $this->regularUser->givePermissionTo(
-            Permission::findByName('can_update_product', 'backpack'),
+            PermissionModel::findByName(Permission::PRODUCT_UPDATE->value, 'backpack'),
         );
         $this->actingAs($this->regularUser, 'backpack');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Rules\UniquePerUser;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,10 +20,10 @@ class ProductRequest extends FormRequest
     {
         $user = Auth::user();
         if ($this->isMethod('POST')) {
-            return $user?->can('frontend.can_create_product') === true;
+            return $user?->can(Permission::PRODUCT_CREATE) === true;
         }
 
-        return $user?->can('frontend.can_update_product') === true;
+        return $user?->can(Permission::PRODUCT_UPDATE) === true;
     }
 
     /**
