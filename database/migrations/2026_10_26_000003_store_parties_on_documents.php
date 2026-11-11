@@ -45,18 +45,44 @@ return new class extends Migration
         Schema::table(
             'invoices',
             function (Blueprint $table): void {
-                $this->references($table);
-                $this->partyColumns(
-                    $table,
-                    'supplier',
-                    true,
-                );
-                $this->partyColumns(
-                    $table,
-                    'customer',
-                    true,
-                );
-                $this->accountColumns($table);
+                // The composite keys allow only a business and a contact of the document's user
+                $table->unsignedBigInteger('business_id')->after('user_id');
+                $table->unsignedBigInteger('contact_id')->nullable()->after('business_id');
+                $table->unsignedBigInteger('bank_account_id')->nullable()->after('contact_id');
+                $table->foreign(['business_id', 'user_id'], 'invoices_business_foreign')
+                    ->references(['id', 'user_id'])
+                    ->on('businesses')
+                    ->restrictOnDelete();
+                $table->foreign(['contact_id', 'user_id'], 'invoices_contact_foreign')
+                    ->references(['id', 'user_id'])
+                    ->on('contacts')
+                    ->restrictOnDelete();
+                $table->string('supplier_name');
+                $table->string('supplier_company_number')->nullable();
+                $table->char('supplier_registration_country', 2)->nullable();
+                $table->string('supplier_vat_number')->nullable();
+                $table->string('supplier_street');
+                $table->string('supplier_city');
+                $table->string('supplier_postal_code', 20);
+                $table->char('supplier_country', 2);
+                $table->string('supplier_email')->nullable();
+                $table->string('supplier_phone')->nullable();
+                $table->string('customer_name');
+                $table->string('customer_company_number')->nullable();
+                $table->char('customer_registration_country', 2)->nullable();
+                $table->string('customer_vat_number')->nullable();
+                $table->string('customer_street');
+                $table->string('customer_city');
+                $table->string('customer_postal_code', 20);
+                $table->char('customer_country', 2);
+                $table->string('customer_email')->nullable();
+                $table->string('customer_phone')->nullable();
+                $table->string('account_iban', 34)->nullable();
+                $table->string('account_number', 17)->nullable();
+                $table->string('account_bank_code', 10)->nullable();
+                $table->char('account_country', 2)->nullable();
+                $table->string('account_swift', 11)->nullable();
+                $table->string('account_bank_name')->nullable();
 
                 $table->foreign(['bank_account_id', 'business_id'], 'invoices_bank_account_foreign')
                     ->references(['id', 'business_id'])
@@ -71,18 +97,44 @@ return new class extends Migration
         Schema::table(
             'expenses',
             function (Blueprint $table): void {
-                $this->references($table);
-                $this->partyColumns(
-                    $table,
-                    'supplier',
-                    true,
-                );
-                $this->partyColumns(
-                    $table,
-                    'customer',
-                    false,
-                );
-                $this->accountColumns($table);
+                // The composite keys allow only a business and a contact of the document's user
+                $table->unsignedBigInteger('business_id')->after('user_id');
+                $table->unsignedBigInteger('contact_id')->nullable()->after('business_id');
+                $table->unsignedBigInteger('bank_account_id')->nullable()->after('contact_id');
+                $table->foreign(['business_id', 'user_id'], 'expenses_business_foreign')
+                    ->references(['id', 'user_id'])
+                    ->on('businesses')
+                    ->restrictOnDelete();
+                $table->foreign(['contact_id', 'user_id'], 'expenses_contact_foreign')
+                    ->references(['id', 'user_id'])
+                    ->on('contacts')
+                    ->restrictOnDelete();
+                $table->string('supplier_name');
+                $table->string('supplier_company_number')->nullable();
+                $table->char('supplier_registration_country', 2)->nullable();
+                $table->string('supplier_vat_number')->nullable();
+                $table->string('supplier_street');
+                $table->string('supplier_city');
+                $table->string('supplier_postal_code', 20);
+                $table->char('supplier_country', 2);
+                $table->string('supplier_email')->nullable();
+                $table->string('supplier_phone')->nullable();
+                $table->string('customer_name');
+                $table->string('customer_company_number')->nullable();
+                $table->char('customer_registration_country', 2)->nullable();
+                $table->string('customer_vat_number')->nullable();
+                $table->string('customer_street')->nullable();
+                $table->string('customer_city')->nullable();
+                $table->string('customer_postal_code', 20)->nullable();
+                $table->char('customer_country', 2)->nullable();
+                $table->string('customer_email')->nullable();
+                $table->string('customer_phone')->nullable();
+                $table->string('account_iban', 34)->nullable();
+                $table->string('account_number', 17)->nullable();
+                $table->string('account_bank_code', 10)->nullable();
+                $table->char('account_country', 2)->nullable();
+                $table->string('account_swift', 11)->nullable();
+                $table->string('account_bank_name')->nullable();
 
                 $table->foreign(['bank_account_id', 'contact_id'], 'expenses_bank_account_foreign')
                     ->references(['id', 'contact_id'])
@@ -162,57 +214,6 @@ return new class extends Migration
                 $table->index(['user_id', 'client_id'], 'idx_invoices_user_client');
             },
         );
-    }
-
-    /**
-     * The composite keys allow only a business and a contact of the document's user.
-     */
-    private function references(Blueprint $table): void
-    {
-        $documents = $table->getTable();
-
-        $table->unsignedBigInteger('business_id')->after('user_id');
-        $table->unsignedBigInteger('contact_id')->nullable()->after('business_id');
-        $table->unsignedBigInteger('bank_account_id')->nullable()->after('contact_id');
-
-        $table->foreign(['business_id', 'user_id'], $documents . '_business_foreign')
-            ->references(['id', 'user_id'])
-            ->on('businesses')
-            ->restrictOnDelete();
-        $table->foreign(['contact_id', 'user_id'], $documents . '_contact_foreign')
-            ->references(['id', 'user_id'])
-            ->on('contacts')
-            ->restrictOnDelete();
-    }
-
-    /**
-     * Name, street, city, postal code and country are the party data every document needs.
-     */
-    private function partyColumns(
-        Blueprint $table,
-        string $role,
-        bool $addressRequired,
-    ): void {
-        $table->string($role . '_name');
-        $table->string($role . '_company_number')->nullable();
-        $table->char($role . '_registration_country', 2)->nullable();
-        $table->string($role . '_vat_number')->nullable();
-        $table->string($role . '_street')->nullable(!$addressRequired);
-        $table->string($role . '_city')->nullable(!$addressRequired);
-        $table->string($role . '_postal_code', 20)->nullable(!$addressRequired);
-        $table->char($role . '_country', 2)->nullable(!$addressRequired);
-        $table->string($role . '_email')->nullable();
-        $table->string($role . '_phone')->nullable();
-    }
-
-    private function accountColumns(Blueprint $table): void
-    {
-        $table->string('account_iban', 34)->nullable();
-        $table->string('account_number', 17)->nullable();
-        $table->string('account_bank_code', 10)->nullable();
-        $table->char('account_country', 2)->nullable();
-        $table->string('account_swift', 11)->nullable();
-        $table->string('account_bank_name')->nullable();
     }
 
     /**
