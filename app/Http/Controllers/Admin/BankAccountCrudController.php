@@ -37,6 +37,7 @@ final class BankAccountCrudController extends CrudController
 {
     use CreateOperation;
     use ListOperation;
+    use NarrowsCrudTypes;
     use UpdateOperation {
         edit as private editAccount;
     }
@@ -77,7 +78,7 @@ final class BankAccountCrudController extends CrudController
 
     public function store(BankAccountApplicationService $accounts): RedirectResponse
     {
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(BankAccountRequest::class);
         $owner = $this->ownerFromRequest($request);
         $account = $accounts->add(
             $owner['user'],
@@ -96,8 +97,8 @@ final class BankAccountCrudController extends CrudController
 
     public function update(BankAccountApplicationService $accounts): RedirectResponse
     {
-        $request = $this->validatedRequest();
-        $entry = $this->entry();
+        $request = $this->validatedRequest(BankAccountRequest::class);
+        $entry = $this->currentEntry(BankAccount::class);
         $this->authorizeOwner($entry);
         $accounts->update(
             $this->userOf($entry),
@@ -358,21 +359,5 @@ final class BankAccountCrudController extends CrudController
         $owner = $entry->business ?? $entry->contact;
 
         return $owner !== null && $owner->default_bank_account_id === $entry->id;
-    }
-
-    private function validatedRequest(): BankAccountRequest
-    {
-        $request = $this->crud->validateRequest();
-        abort_unless($request instanceof BankAccountRequest, 500);
-
-        return $request;
-    }
-
-    private function entry(): BankAccount
-    {
-        $entry = $this->crud->getCurrentEntry();
-        abort_unless($entry instanceof BankAccount, 404);
-
-        return $entry;
     }
 }

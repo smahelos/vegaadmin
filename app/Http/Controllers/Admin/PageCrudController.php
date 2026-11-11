@@ -28,6 +28,7 @@ class PageCrudController extends CrudController
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use UpdateOperation;
 
@@ -448,7 +449,7 @@ class PageCrudController extends CrudController
         $this->crud->hasAccessOrFail('create');
 
         // Execute the FormRequest authorization and validation logic
-        $request = $this->crud->validateRequest();
+        $request = $this->validatedRequest(PageRequest::class);
 
         // PageRequest has already merged the per-locale inputs; only validated input reaches the model
         $item = $this->crud->create($request->validated());
@@ -468,7 +469,7 @@ class PageCrudController extends CrudController
         $this->crud->hasAccessOrFail('update');
 
         // Execute the FormRequest authorization and validation logic
-        $request = $this->crud->validateRequest();
+        $request = $this->validatedRequest(PageRequest::class);
 
         // PageRequest has already merged the per-locale inputs; only validated input reaches the model
         $item = $this->crud->update(

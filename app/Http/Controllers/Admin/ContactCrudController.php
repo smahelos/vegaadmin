@@ -36,6 +36,7 @@ final class ContactCrudController extends CrudController
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use StoresPartyLogo;
     use UpdateOperation;
@@ -58,7 +59,7 @@ final class ContactCrudController extends CrudController
 
     public function store(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
     {
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(ContactRequest::class);
         $contact = $this->withStoredLogo(
             $request,
             $logos,
@@ -86,8 +87,8 @@ final class ContactCrudController extends CrudController
 
     public function update(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
     {
-        $request = $this->validatedRequest();
-        $entry = $this->entry();
+        $request = $this->validatedRequest(ContactRequest::class);
+        $entry = $this->currentEntry(Contact::class);
         $this->withStoredLogo(
             $request,
             $logos,
@@ -204,7 +205,9 @@ final class ContactCrudController extends CrudController
         CRUD::addField(
             EntityUsageFormFields::field(LimitedEntity::CONTACT),
         );
-        $this->addProfileFields($this->entry()->address);
+        $this->addProfileFields(
+            $this->currentEntry(Contact::class)->address,
+        );
         $this->addContactPersonField();
         CRUD::addFields(PartyFormFields::logo());
     }
@@ -216,21 +219,5 @@ final class ContactCrudController extends CrudController
             __('contacts.fields.contact_person'),
         );
         $field->type('text');
-    }
-
-    private function validatedRequest(): ContactRequest
-    {
-        $request = $this->crud->validateRequest();
-        abort_unless($request instanceof ContactRequest, 500);
-
-        return $request;
-    }
-
-    private function entry(): Contact
-    {
-        $entry = $this->crud->getCurrentEntry();
-        abort_unless($entry instanceof Contact, 404);
-
-        return $entry;
     }
 }

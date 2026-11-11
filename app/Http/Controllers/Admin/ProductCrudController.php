@@ -30,6 +30,7 @@ final class ProductCrudController extends CrudController
     use CreateOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -320,7 +321,7 @@ final class ProductCrudController extends CrudController
     public function store(): JsonResponse|RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
-        $request = $this->crud->validateRequest();
+        $request = $this->validatedRequest(ProductRequest::class);
         $product = $this->productService->createProduct(
             $request->validated(),
             (int) $request->validated('user_id'),

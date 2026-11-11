@@ -37,6 +37,7 @@ class UserCrudController extends CrudController
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use UpdateOperation {
         update as traitUpdate;
@@ -219,14 +220,14 @@ class UserCrudController extends CrudController
                 ],
             ],
         );
-        $entry = $this->crud->getCurrentEntry();
+        $entry = $this->currentEntry(User::class);
         $column = $this->crud->column('entity_usage');
         $column->type('entity_usage');
         $column->label(
             __('role_limits.usage.title'),
         );
         $column->value(
-            $this->usages((int) $entry->getKey()),
+            $this->usages($entry->id),
         );
         $column = $this->crud->column('created_at');
         $column->label(

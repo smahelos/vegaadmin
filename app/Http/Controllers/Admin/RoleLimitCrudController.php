@@ -27,6 +27,7 @@ final class RoleLimitCrudController extends CrudController
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use RoleLimitFormFields;
     use ShowOperation;
     use UpdateOperation;
@@ -97,7 +98,7 @@ final class RoleLimitCrudController extends CrudController
     protected function setupUpdateOperation(): void
     {
         CRUD::setValidation(RoleLimitRequest::class);
-        $roleLimit = $this->crud->getCurrentEntry();
+        $roleLimit = $this->currentEntry(RoleLimit::class);
         $this->crud->addFields(
             [
                 $this->getRoleLimitRoleNameField($roleLimit),
