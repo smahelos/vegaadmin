@@ -1,0 +1,47 @@
+<?php
+
+// Spatie resolves the related class from config/permission.php, so its relations name no related model. Billex
+// configures App\Models\Role and App\Models\Permission, both subclasses of the models named here.
+
+namespace Spatie\Permission\Models {
+    use Illuminate\Database\Eloquent\Model;
+    use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+    class Permission extends Model
+    {
+        /**
+         * @return BelongsToMany<Role, $this>
+         */
+        public function roles(): BelongsToMany;
+    }
+
+    class Role extends Model
+    {
+        /**
+         * @return BelongsToMany<Permission, $this>
+         */
+        public function permissions(): BelongsToMany;
+    }
+}
+
+namespace Spatie\Permission\Traits {
+    use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+    use Spatie\Permission\Models\Permission;
+    use Spatie\Permission\Models\Role;
+
+    trait HasRoles
+    {
+        /**
+         * @return BelongsToMany<Role, $this>
+         */
+        public function roles(): BelongsToMany;
+    }
+
+    trait HasPermissions
+    {
+        /**
+         * @return BelongsToMany<Permission, $this>
+         */
+        public function permissions(): BelongsToMany;
+    }
+}

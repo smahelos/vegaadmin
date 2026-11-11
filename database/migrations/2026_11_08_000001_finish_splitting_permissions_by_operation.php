@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Infrastructure\Authorization\Services\PermissionCatalogSync;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -98,6 +99,10 @@ return new class extends Migration
                             $role->givePermissionTo($successors);
                         }
                         foreach ($legacy->users as $user) {
+                            // Spatie names the holder class only in config; every guard authenticates App\Models\User
+                            if (!$user instanceof User) {
+                                throw new LogicException('A permission holder is not a user');
+                            }
                             $user->givePermissionTo($successors);
                         }
 
