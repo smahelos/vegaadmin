@@ -4,24 +4,25 @@ namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
 use App\Models\Subscription;
-use Carbon\CarbonImmutable;
+use DateTimeImmutable;
 
 class EloquentSubscriptionWriteRepository implements SubscriptionWriteRepositoryInterface
 {
-    public function activateById(int $subscriptionId, int $durationDays): bool
-    {
+    public function activateById(
+        int $subscriptionId,
+        DateTimeImmutable $starts,
+        DateTimeImmutable $ends,
+    ): bool {
         $subscription = Subscription::find($subscriptionId);
         if (!$subscription) {
             return false;
         }
 
-        $now = CarbonImmutable::now();
-
         return $subscription->update(
             [
                 'status' => 'active',
-                'starts_at' => $now,
-                'ends_at' => $now->addDays($durationDays),
+                'starts_at' => $starts,
+                'ends_at' => $ends,
             ],
         );
     }

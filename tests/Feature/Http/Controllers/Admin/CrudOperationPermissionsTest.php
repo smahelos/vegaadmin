@@ -23,6 +23,7 @@ use App\Models\SubscriptionPlan;
 use App\Models\SubscriptionPlanFeature;
 use App\Models\Tax;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -268,7 +269,7 @@ final class CrudOperationPermissionsTest extends TestCase
             );
         }
 
-        $factory = $model::factory();
+        $factory = Factory::factoryForModel($model);
 
         return $factory->create();
     }

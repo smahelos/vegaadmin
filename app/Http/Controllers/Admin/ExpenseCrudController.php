@@ -39,6 +39,7 @@ final class ExpenseCrudController extends CrudController
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use UpdateOperation;
 
@@ -250,7 +251,7 @@ final class ExpenseCrudController extends CrudController
     public function store(ExpenseApplicationService $expenses): RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(ExpenseRequest::class);
         $expense = $expenses->create(
             UserId::fromInt(
                 (int) $request->validated('user_id'),
@@ -270,7 +271,7 @@ final class ExpenseCrudController extends CrudController
     public function update(ExpenseApplicationService $expenses): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(ExpenseRequest::class);
         $expense = $expenses->update(
             UserId::fromInt(
                 (int) $request->validated('user_id'),
@@ -286,14 +287,6 @@ final class ExpenseCrudController extends CrudController
         $this->crud->setSaveAction();
 
         return $this->crud->performSaveAction($expense->id->value);
-    }
-
-    private function validatedRequest(): ExpenseRequest
-    {
-        $request = $this->crud->validateRequest();
-        abort_unless($request instanceof ExpenseRequest, 500);
-
-        return $request;
     }
 
     /**

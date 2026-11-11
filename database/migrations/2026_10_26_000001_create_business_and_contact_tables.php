@@ -14,18 +14,70 @@ return new class extends Migration
         Schema::create(
             'businesses',
             function (Blueprint $table): void {
-                $this->partyColumns($table);
+                $table->id();
+                $table->foreignId('user_id')->constrained()->restrictOnDelete();
+                $table->string('name');
+                $table->string('short_name')->nullable();
+                $table->char('registration_country', 2)->nullable();
+                $table->string('company_number')->nullable();
+                // A Czech IČO identifies the party within the account, archived records included; foreign numbers
+                // only warn, so they stay out of the unique key (MySQL ignores NULL there)
+                $table->string('czech_company_number')
+                    ->nullable()
+                    ->virtualAs("IF(registration_country = 'CZ', company_number, NULL)");
+                $table->string('vat_number')->nullable();
+                $table->string('email')->nullable();
+                $table->string('phone')->nullable();
+                $table->text('note')->nullable();
+                $table->unsignedBigInteger('default_bank_account_id')->nullable();
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
                 $table->string('logo')->nullable();
-                $this->partyKeys($table);
+                // Target of the composite keys that keep a document or a default selection within the owner's account
+                $table->unique(['id', 'user_id']);
+                $table->unique(['user_id', 'czech_company_number']);
+                $table->index(['user_id', 'company_number']);
+                $table->index([
+                    'user_id',
+                    'archived_at',
+                    'name',
+                ]);
+                $table->index(['user_id', 'email']);
             },
         );
 
         Schema::create(
             'contacts',
             function (Blueprint $table): void {
-                $this->partyColumns($table);
+                $table->id();
+                $table->foreignId('user_id')->constrained()->restrictOnDelete();
+                $table->string('name');
+                $table->string('short_name')->nullable();
+                $table->char('registration_country', 2)->nullable();
+                $table->string('company_number')->nullable();
+                // A Czech IČO identifies the party within the account, archived records included; foreign numbers
+                // only warn, so they stay out of the unique key (MySQL ignores NULL there)
+                $table->string('czech_company_number')
+                    ->nullable()
+                    ->virtualAs("IF(registration_country = 'CZ', company_number, NULL)");
+                $table->string('vat_number')->nullable();
+                $table->string('email')->nullable();
+                $table->string('phone')->nullable();
+                $table->text('note')->nullable();
+                $table->unsignedBigInteger('default_bank_account_id')->nullable();
+                $table->timestamp('archived_at')->nullable();
+                $table->timestamps();
                 $table->string('contact_person')->nullable();
-                $this->partyKeys($table);
+                // Target of the composite keys that keep a document or a default selection within the owner's account
+                $table->unique(['id', 'user_id']);
+                $table->unique(['user_id', 'czech_company_number']);
+                $table->index(['user_id', 'company_number']);
+                $table->index([
+                    'user_id',
+                    'archived_at',
+                    'name',
+                ]);
+                $table->index(['user_id', 'email']);
             },
         );
 
@@ -115,41 +167,5 @@ return new class extends Migration
         Schema::dropIfExists('addresses');
         Schema::dropIfExists('contacts');
         Schema::dropIfExists('businesses');
-    }
-
-    private function partyColumns(Blueprint $table): void
-    {
-        $table->id();
-        $table->foreignId('user_id')->constrained()->restrictOnDelete();
-        $table->string('name');
-        $table->string('short_name')->nullable();
-        $table->char('registration_country', 2)->nullable();
-        $table->string('company_number')->nullable();
-        // A Czech IČO identifies the party within the account, archived records included; foreign numbers
-        // only warn, so they stay out of the unique key (MySQL ignores NULL there)
-        $table->string('czech_company_number')
-            ->nullable()
-            ->virtualAs("IF(registration_country = 'CZ', company_number, NULL)");
-        $table->string('vat_number')->nullable();
-        $table->string('email')->nullable();
-        $table->string('phone')->nullable();
-        $table->text('note')->nullable();
-        $table->unsignedBigInteger('default_bank_account_id')->nullable();
-        $table->timestamp('archived_at')->nullable();
-        $table->timestamps();
-    }
-
-    private function partyKeys(Blueprint $table): void
-    {
-        // Target of the composite keys that keep a document or a default selection within the owner's account
-        $table->unique(['id', 'user_id']);
-        $table->unique(['user_id', 'czech_company_number']);
-        $table->index(['user_id', 'company_number']);
-        $table->index([
-            'user_id',
-            'archived_at',
-            'name',
-        ]);
-        $table->index(['user_id', 'email']);
     }
 };

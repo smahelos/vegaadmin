@@ -29,6 +29,8 @@ class PaymentMethod extends Model
     */
     /**
      * Get the expenses in this payment method.
+     *
+     * @return HasMany<Expense, $this>
      */
     public function expenses(): HasMany
     {

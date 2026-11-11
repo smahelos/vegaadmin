@@ -7,30 +7,32 @@ namespace Tests\Feature\Infrastructure\Authorization;
 use App\Domain\User\Enums\Permission;
 use App\Models\Permission as PermissionModel;
 use App\Models\User;
-use Illuminate\Database\Migrations\Migration;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
+use Tests\Support\RunsMigrationFile;
 use Tests\TestCase;
 
 final class PermissionSplitMigrationTest extends TestCase
 {
+    use RunsMigrationFile;
+
+    private const MIGRATION = '2026_11_08_000001_finish_splitting_permissions_by_operation.php';
+
     /**
      * The migration speaks the names before the rename, so the rename is rolled back first.
      */
     protected function setUp(): void
     {
         parent::setUp();
-        $rename = require database_path(
-            'migrations/2026_11_10_000001_rename_permissions_by_entity_and_action.php',
+        $this->migrateDown(
+            '2026_11_10_000001_rename_permissions_by_entity_and_action.php',
         );
-        $rename->down();
     }
 
     #[Test]
     public function holders_of_an_old_permission_receive_its_successors(): void
     {
-        $migration = $this->migration();
-        $migration->down();
+        $this->migrateDown(self::MIGRATION);
         $userFactory = User::factory();
         $holder = $userFactory->create();
         $holder->givePermissionTo(
@@ -39,7 +41,7 @@ final class PermissionSplitMigrationTest extends TestCase
         $role = Role::create(['name' => 'custom_editor', 'guard_name' => 'web']);
         $role->givePermissionTo('frontend.can_create_edit_product');
 
-        $migration->up();
+        $this->migrateUp(self::MIGRATION);
 
         $this->assertTrue(
             $holder->hasDirectPermission(
@@ -59,10 +61,9 @@ final class PermissionSplitMigrationTest extends TestCase
     #[Test]
     public function permissions_nothing_checks_are_removed_and_frontend_users_may_delete_products(): void
     {
-        $migration = $this->migration();
-        $migration->down();
+        $this->migrateDown(self::MIGRATION);
 
-        $migration->up();
+        $this->migrateUp(self::MIGRATION);
 
         $this->assertDatabaseMissing('permissions', ['name' => 'frontend.api.extended', 'guard_name' => 'web']);
         $this->assertDatabaseMissing(
@@ -82,9 +83,7 @@ final class PermissionSplitMigrationTest extends TestCase
     #[Test]
     public function rollback_restores_the_old_permissions_with_their_role_grants(): void
     {
-        $migration = $this->migration();
-
-        $migration->down();
+        $this->migrateDown(self::MIGRATION);
 
         $role = Role::findByName('admin', 'backpack');
         $this->assertTrue(
@@ -100,13 +99,6 @@ final class PermissionSplitMigrationTest extends TestCase
         $role = Role::findByName('frontend_user_plus', 'web');
         $this->assertTrue(
             $role->hasPermissionTo('frontend.can_create_edit_expense', 'web'),
-        );
-    }
-
-    private function migration(): Migration
-    {
-        return require database_path(
-            'migrations/2026_11_08_000001_finish_splitting_permissions_by_operation.php',
         );
     }
 }

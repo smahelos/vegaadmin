@@ -1,0 +1,85 @@
+<?php
+
+// Backpack sets any unknown attribute through __call; its own @method lists name only some of them. A stub
+// replaces the class PHPDoc, so each list repeats the package's tags and adds the attributes Billex uses.
+
+namespace Backpack\CRUD\app\Library\CrudPanel {
+    use Closure;
+
+    /**
+     * @method self type(string $value)
+     * @method self label(string $value)
+     * @method self searchLogic(mixed $value)
+     * @method self orderLogic(callable $value)
+     * @method self orderable(bool $value)
+     * @method self wrapper(array<mixed> $value)
+     * @method self visibleInTable(bool $value)
+     * @method self visibleInModal(bool $value)
+     * @method self visibleInExport(bool $value)
+     * @method self visibleInShow(bool $value)
+     * @method self priority(int $value)
+     * @method self key(string $value)
+     * @method self upload(bool $value)
+     * @method self linkTo(string $routeName, ?array<string, mixed> $parameters = [])
+     * @method self attribute(string $value)
+     * @method self columns(array<mixed> $value)
+     * @method self decimals(int $value)
+     * @method self default(mixed $value)
+     * @method self disk(string $value)
+     * @method self entity(string $value)
+     * @method self escaped(bool $value)
+     * @method self function(Closure $value)
+     * @method self limit(int $value)
+     * @method self model(string $value)
+     * @method self options(array<mixed> $value)
+     * @method self prefix(string $value)
+     * @method self raw(bool $value)
+     * @method self suffix(string $value)
+     * @method self text(string $value)
+     * @method self value(mixed $value)
+     */
+    class CrudColumn
+    {
+    }
+
+    /**
+     * @method self type(string $value)
+     * @method self label(string $value)
+     * @method self tab(string $value)
+     * @method self prefix(string $value)
+     * @method self suffix(string $value)
+     * @method self default(mixed $value)
+     * @method self hint(string $value)
+     * @method self attributes(array<mixed> $value)
+     * @method self wrapper(array<mixed> $value)
+     * @method self fake(bool $value)
+     * @method self store_in(string $value)
+     * @method self validationRules(string $value)
+     * @method self validationMessages(array<mixed> $value)
+     * @method self entity(string $value)
+     * @method self addMorphOption(string $key, string $label, array<mixed> $options)
+     * @method self morphTypeField(array<mixed> $value)
+     * @method self morphIdField(array<mixed> $value)
+     * @method self upload(bool $value)
+     * @method self allows_null(bool $value)
+     * @method self attribute(string $value)
+     * @method self datepicker_options(array<mixed> $value)
+     * @method self model(string $value)
+     * @method self options(mixed $value)
+     * @method self pivot(bool $value)
+     * @method self value(mixed $value)
+     */
+    class CrudField
+    {
+    }
+}
+
+namespace Backpack\CRUD\app\Library {
+    /**
+     * @method self content(mixed $value)
+     * @method self type(string $value)
+     */
+    class Widget
+    {
+    }
+}

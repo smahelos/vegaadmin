@@ -127,10 +127,10 @@ class DatabaseDashboardController extends CrudController
                 function ($metric) {
                     return [
                         'type' => $metric->metric_type,
-                        'count' => $metric->count,
+                        'count' => $metric->getAttribute('count'),
                         'label' => $this->getMetricTypeLabel($metric->metric_type),
-                        'last_measured' => $metric->last_measured,
-                        'first_measured' => $metric->first_measured,
+                        'last_measured' => $metric->getAttribute('last_measured'),
+                        'first_measured' => $metric->getAttribute('first_measured'),
                     ];
                 },
             );
@@ -1202,11 +1202,16 @@ class DatabaseDashboardController extends CrudController
      */
     public function resolveAlert(DatabaseDashboardRequest $request): JsonResponse
     {
-        $alertId = $request->input('alert_id');
-
         try {
-            $alert = DatabaseHealthAlert::findOrFail($alertId);
-            $alert->resolve();
+            $alert = DatabaseHealthAlert::findOrFail(
+                $request->integer('alert_id'),
+            );
+            $alert->update(
+                [
+                    'resolved' => true,
+                    'resolved_at' => CarbonImmutable::now(),
+                ],
+            );
 
             $responseFactory = response();
 

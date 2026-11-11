@@ -187,11 +187,6 @@ class CronTaskCrudController extends CrudController
         $field->tab(
             __('cron_tasks.tabs.schedule'),
         );
-        $field->depends('frequency', [
-            'daily',
-            'weekly',
-            'monthly',
-        ]);
 
         $field = CRUD::field('day_of_week');
         $field->label(
@@ -212,7 +207,6 @@ class CronTaskCrudController extends CrudController
         $field->tab(
             __('cron_tasks.tabs.schedule'),
         );
-        $field->depends('frequency', 'weekly');
 
         $field = CRUD::field('day_of_month');
         $field->label(
@@ -223,7 +217,6 @@ class CronTaskCrudController extends CrudController
         $field->tab(
             __('cron_tasks.tabs.schedule'),
         );
-        $field->depends('frequency', 'monthly');
 
         $field = CRUD::field('custom_expression');
         $field->label(
@@ -236,7 +229,6 @@ class CronTaskCrudController extends CrudController
         $field->tab(
             __('cron_tasks.tabs.schedule'),
         );
-        $field->depends('frequency', 'custom');
 
         $field = CRUD::field('is_active');
         $field->label(

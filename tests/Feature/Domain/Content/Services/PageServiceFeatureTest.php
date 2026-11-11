@@ -140,6 +140,7 @@ class PageServiceFeatureTest extends TestCase
             $navigationPageIds->contains($rootPage2->id),
         );
         $firstPage = $navigationPages->firstWhere('id', $rootPage1->id);
+        $this->assertInstanceOf(Page::class, $firstPage);
         $this->assertCount(2, $firstPage->children);
     }
 

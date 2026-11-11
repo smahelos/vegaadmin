@@ -32,7 +32,6 @@ interface UserReadRepositoryInterface
     /**
      * Search users by name (admin scope).
      *
-     * @param  int  $perPage
      * @return PaginatedResult<UserDTO>
      */
     public function searchUsers(?string $term, PageRequest $page): PaginatedResult;

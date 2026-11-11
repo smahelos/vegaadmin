@@ -25,6 +25,8 @@ interface PageApplicationServiceInterface
 
     /**
      * Get all published pages in a specific category.
+     *
+     * @return Collection<int, Page>
      */
     public function getPagesByCategory(int $categoryId): Collection;
 

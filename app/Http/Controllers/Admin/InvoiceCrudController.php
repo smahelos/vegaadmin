@@ -38,6 +38,7 @@ final class InvoiceCrudController extends CrudController
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use UpdateOperation;
 
@@ -294,7 +295,7 @@ final class InvoiceCrudController extends CrudController
     public function store(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(InvoiceRequest::class);
         $result = $invoices->create(
             $request->owner(),
             $request->toWriteData(),
@@ -308,7 +309,7 @@ final class InvoiceCrudController extends CrudController
     public function update(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(InvoiceRequest::class);
         $result = $invoices->update(
             $request->owner(),
             InvoiceId::fromInt((int) $this->crud->getCurrentEntryId()),
@@ -332,14 +333,6 @@ final class InvoiceCrudController extends CrudController
                 $create ? null : CRUD::getCurrentEntry(),
             ),
         );
-    }
-
-    private function validatedRequest(): InvoiceRequest
-    {
-        $request = $this->crud->validateRequest();
-        abort_unless($request instanceof InvoiceRequest, 500);
-
-        return $request;
     }
 
     private function mutationResponse(InvoiceActionResult $result): RedirectResponse

@@ -4,7 +4,7 @@ includes:
     - vendor/shipmonk/dead-code-detector/rules.neon
 
 parameters:
-    level: 1
+    level: 2
     paths:
         - app/
         - bootstrap/app.php
@@ -13,6 +13,9 @@ parameters:
         - phpstan/
         - routes/
         - tests/
+    stubFiles:
+        - phpstan/stubs/backpack.stub
+        - phpstan/stubs/permission.stub
     # Every own property has a native type (.claude/rules/php.md, Types); properties declared by a parent
     # class (Eloquent $fillable, Command $signature, ...) are not counted. Return and parameter types are
     # enforced by PHP_CodeSniffer (phpcs.xml), typed class constants need PHP 8.3.

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Models\DatabaseHealthAlert;
 use App\Models\PerformanceMetric;
 use Illuminate\Support\Facades\Artisan;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -103,5 +104,21 @@ class DatabaseDashboardControllerTest extends TestCase
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertJsonPath('success', true);
         $this->assertDatabaseMissing('performance_metrics', ['id' => $metric->id]);
+    }
+
+    #[Test]
+    public function admin_resolves_an_alert(): void
+    {
+        $alertFactory = DatabaseHealthAlert::factory();
+        $alertFactory = $alertFactory->unresolved();
+        $alert = $alertFactory->create();
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $httpResponse = $this->postJson('/admin/database-dashboard/resolve-alert', ['alert_id' => $alert->id]);
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse->assertJsonPath('success', true);
+        $alert->refresh();
+        $this->assertTrue($alert->resolved);
+        $this->assertNotNull($alert->resolved_at);
     }
 }

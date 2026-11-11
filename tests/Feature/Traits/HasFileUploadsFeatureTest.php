@@ -394,7 +394,9 @@ class HasFileUploadsFeatureTest extends TestCase
         );
 
         // Verify file was uploaded
-        $this->assertNotNull($model->profile_image);
+        $this->assertNotNull(
+            $model->getAttribute('profile_image'),
+        );
 
         // Get URL
         $url = $model->callGetFileUrl('profile_image');
@@ -428,12 +430,12 @@ class HasFileUploadsFeatureTest extends TestCase
                 $file,
                 'uploads/mixed',
             );
-            $uploadedFiles[] = $model->{"file_{$index}"};
+            $uploadedFiles[] = $model->getAttribute("file_{$index}");
         }
 
         // Act & Assert
         foreach ($uploadedFiles as $index => $filename) {
-            $model->current_file = $filename;
+            $model->setAttribute('current_file', $filename);
 
             $url = $model->callGetFileUrl('current_file');
             $this->assertNotNull($url);

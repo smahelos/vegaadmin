@@ -37,6 +37,7 @@ final class BusinessCrudController extends CrudController
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use StoresPartyLogo;
     use UpdateOperation;
@@ -59,7 +60,7 @@ final class BusinessCrudController extends CrudController
 
     public function store(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
     {
-        $request = $this->validatedRequest();
+        $request = $this->validatedRequest(BusinessRequest::class);
         $business = $this->withStoredLogo(
             $request,
             $logos,
@@ -84,8 +85,8 @@ final class BusinessCrudController extends CrudController
 
     public function update(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
     {
-        $request = $this->validatedRequest();
-        $entry = $this->entry();
+        $request = $this->validatedRequest(BusinessRequest::class);
+        $entry = $this->currentEntry(Business::class);
         $this->withStoredLogo(
             $request,
             $logos,
@@ -223,28 +224,14 @@ final class BusinessCrudController extends CrudController
         CRUD::addField(
             EntityUsageFormFields::field(LimitedEntity::BUSINESS),
         );
-        $this->addProfileFields($this->entry()->address);
+        $this->addProfileFields(
+            $this->currentEntry(Business::class)->address,
+        );
         $this->addLogoField();
     }
 
     private function addLogoField(): void
     {
         CRUD::addFields(PartyFormFields::logo());
-    }
-
-    private function validatedRequest(): BusinessRequest
-    {
-        $request = $this->crud->validateRequest();
-        abort_unless($request instanceof BusinessRequest, 500);
-
-        return $request;
-    }
-
-    private function entry(): Business
-    {
-        $entry = $this->crud->getCurrentEntry();
-        abort_unless($entry instanceof Business, 404);
-
-        return $entry;
     }
 }

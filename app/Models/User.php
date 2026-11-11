@@ -65,6 +65,8 @@ class User extends Authenticatable
     */
     /**
      * Get the invoices belonging to the user
+     *
+     * @return HasMany<Invoice, $this>
      */
     public function invoices(): HasMany
     {
@@ -73,6 +75,8 @@ class User extends Authenticatable
 
     /**
      * Get contacts belonging to this user
+     *
+     * @return HasMany<Contact, $this>
      */
     public function contacts(): HasMany
     {
@@ -81,6 +85,8 @@ class User extends Authenticatable
 
     /**
      * Get businesses belonging to this user
+     *
+     * @return HasMany<Business, $this>
      */
     public function businesses(): HasMany
     {
@@ -89,6 +95,8 @@ class User extends Authenticatable
 
     /**
      * Get user's subscriptions
+     *
+     * @return HasMany<Subscription, $this>
      */
     public function subscriptions(): HasMany
     {

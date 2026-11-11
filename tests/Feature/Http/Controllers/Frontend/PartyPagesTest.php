@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\AssertsLivewireComponent;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
 
@@ -18,6 +19,7 @@ use Tests\TestCase;
  */
 final class PartyPagesTest extends TestCase
 {
+    use AssertsLivewireComponent;
     use BuildsParties;
 
     protected function setUp(): void
@@ -133,7 +135,7 @@ final class PartyPagesTest extends TestCase
             route($route, [$parameter => $record->id]),
         );
         $response->assertOk();
-        $response->assertSeeLivewire($component);
+        $this->assertSeesLivewire($response, $component);
     }
 
     /**

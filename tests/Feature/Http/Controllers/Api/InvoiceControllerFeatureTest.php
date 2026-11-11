@@ -236,9 +236,15 @@ class InMemoryInvoiceServiceStub implements InvoiceListingApplicationServiceInte
             issue_date: null,
             tax_point_date: null,
             due_in: null,
-            subtotal: Money::fromString((string) $inv->amount, 'CZK'),
+            subtotal: Money::fromString(
+                (string) $inv->getAttribute('amount'),
+                'CZK',
+            ),
             total_tax: Money::fromString('0.00', 'CZK'),
-            total_amount: Money::fromString((string) $inv->amount, 'CZK'),
+            total_amount: Money::fromString(
+                (string) $inv->getAttribute('amount'),
+                'CZK',
+            ),
             payment_method_id: null,
             invoice_text: null,
             currency: 'CZK',

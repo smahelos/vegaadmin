@@ -205,6 +205,8 @@ class PageCategory extends Model
 
     /**
      * Pages belonging to this category
+     *
+     * @return HasMany<Page, $this>
      */
     public function pages(): HasMany
     {

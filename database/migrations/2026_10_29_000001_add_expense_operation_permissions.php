@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Infrastructure\Authorization\Services\PermissionCatalogSync;
+use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Spatie\Permission\Models\Permission;
 
@@ -29,6 +30,10 @@ return new class extends Migration
             );
         }
         foreach ($legacy->users as $user) {
+            // Spatie names the holder class only in config; every guard authenticates App\Models\User
+            if (!$user instanceof User) {
+                throw new LogicException('A permission holder is not a user');
+            }
             $user->givePermissionTo(
                 [
                     'can_view_expense',

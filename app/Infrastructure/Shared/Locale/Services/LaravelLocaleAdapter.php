@@ -47,13 +47,6 @@ class LaravelLocaleAdapter implements Locale
         return config('locale.country_locale_map', []);
     }
 
-    /**
-     * Summary of determineLocale
-     *
-     * @param  mixed  $requestLocale
-     * @param  mixed  $dataLocale
-     * @return void
-     */
     public function determineLocale(?string $requestLocale = null, ?string $dataLocale = null): string
     {
         $availableLocales = $this->getAvailableLocales();

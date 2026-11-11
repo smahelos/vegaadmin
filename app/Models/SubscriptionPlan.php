@@ -34,6 +34,8 @@ class SubscriptionPlan extends Model
 
     /**
      * Get subscriptions for this plan
+     *
+     * @return HasMany<Subscription, $this>
      */
     public function subscriptions(): HasMany
     {
@@ -42,6 +44,8 @@ class SubscriptionPlan extends Model
 
     /**
      * Get features associated with this plan
+     *
+     * @return BelongsToMany<SubscriptionPlanFeature, $this>
      */
     public function features(): BelongsToMany
     {

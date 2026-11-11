@@ -136,6 +136,8 @@ class UserActivitySummary extends Model
 
     /**
      * Get relationship to User model
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {

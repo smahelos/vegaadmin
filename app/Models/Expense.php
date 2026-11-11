@@ -81,17 +81,25 @@ class Expense extends Model
 
     /**
      * The business whose purchase this document records.
+     *
+     * @return BelongsTo<Business, $this>
      */
     public function business(): BelongsTo
     {
         return $this->belongsTo(Business::class);
     }
 
+    /**
+     * @return BelongsTo<Contact, $this>
+     */
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
     }
 
+    /**
+     * @return BelongsTo<BankAccount, $this>
+     */
     public function bankAccount(): BelongsTo
     {
         return $this->belongsTo(BankAccount::class);
@@ -99,6 +107,8 @@ class Expense extends Model
 
     /**
      * Get the user who recorded this expense.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -107,6 +117,8 @@ class Expense extends Model
 
     /**
      * Get the tax who recorded this expense.
+     *
+     * @return BelongsTo<Tax, $this>
      */
     public function tax(): BelongsTo
     {
@@ -115,6 +127,8 @@ class Expense extends Model
 
     /**
      * Get the status of this expense.
+     *
+     * @return BelongsTo<Status, $this>
      */
     public function status(): BelongsTo
     {
@@ -123,6 +137,8 @@ class Expense extends Model
 
     /**
      * Get the category of this expense.
+     *
+     * @return BelongsTo<ExpenseCategory, $this>
      */
     public function category(): BelongsTo
     {
@@ -131,6 +147,8 @@ class Expense extends Model
 
     /**
      * Get the payment method used for this expense.
+     *
+     * @return BelongsTo<PaymentMethod, $this>
      */
     public function paymentMethod(): BelongsTo
     {

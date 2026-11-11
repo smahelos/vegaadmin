@@ -30,16 +30,12 @@ interface UserApplicationServiceInterface
     /**
      * Update user profile
      *
-     * @param  User  $user
-     *
      * @throws \Exception
      */
     public function updateProfile(int $userId, array $data): bool;
 
     /**
      * Update user password
-     *
-     * @param  User  $user
      *
      * @throws \Exception
      */

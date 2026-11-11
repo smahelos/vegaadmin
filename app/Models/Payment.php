@@ -36,6 +36,8 @@ class Payment extends Model
 
     /**
      * Get the subscription that owns the payment
+     *
+     * @return BelongsTo<Subscription, $this>
      */
     public function subscription(): BelongsTo
     {

@@ -38,6 +38,8 @@ class Subscription extends Model
 
     /**
      * Get the user that owns the subscription
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -46,6 +48,8 @@ class Subscription extends Model
 
     /**
      * Get the subscription plan
+     *
+     * @return BelongsTo<SubscriptionPlan, $this>
      */
     public function subscriptionPlan(): BelongsTo
     {
@@ -54,6 +58,8 @@ class Subscription extends Model
 
     /**
      * Get payments for this subscription
+     *
+     * @return HasMany<Payment, $this>
      */
     public function payments(): HasMany
     {

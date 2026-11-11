@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
-use Database\Factories\BusinessFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,9 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Business extends Model
 {
-    /** @use HasFactory<BusinessFactory> */
     use CrudTrait;
-
     use HasFactory;
 
     protected $fillable = [
@@ -41,16 +38,25 @@ class Business extends Model
         ];
     }
 
+    /**
+     * @return BelongsTo<User, $this>
+     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return HasOne<Address, $this>
+     */
     public function address(): HasOne
     {
         return $this->hasOne(Address::class);
     }
 
+    /**
+     * @return HasMany<BankAccount, $this>
+     */
     public function bankAccounts(): HasMany
     {
         return $this->hasMany(BankAccount::class);

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -163,7 +164,9 @@ class ProfileControllerFeatureTest extends TestCase
             ],
         );
 
-        $session = $response->getSession();
+        $redirect = $response->baseResponse;
+        $this->assertInstanceOf(RedirectResponse::class, $redirect);
+        $session = $redirect->getSession();
         $errorBag = $session->get('errors');
         $errors = $errorBag->all();
         $this->assertSame(

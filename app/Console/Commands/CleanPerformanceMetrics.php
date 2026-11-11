@@ -135,9 +135,11 @@ class CleanPerformanceMetrics extends Command
         $totalDeleted = 0;
 
         foreach ($duplicates as $duplicate) {
+            // An alias of the grouped select, not a column of the model
+            $date = $duplicate->getAttribute('date');
             // Get all metrics for this type/date
             $query = PerformanceMetric::where('metric_type', $duplicate->metric_type);
-            $query->whereDate('measured_at', $duplicate->date);
+            $query->whereDate('measured_at', $date);
             $query->orderBy('measured_at', 'desc');
             $metrics = $query->get();
 
@@ -146,7 +148,7 @@ class CleanPerformanceMetrics extends Command
 
             if ($dryRun) {
                 $this->line(
-                    "Would delete {$toDelete->count()} duplicates for {$duplicate->metric_type} on {$duplicate->date}",
+                    "Would delete {$toDelete->count()} duplicates for {$duplicate->metric_type} on {$date}",
                 );
             } else {
                 $deletedIds = $toDelete->pluck('id');

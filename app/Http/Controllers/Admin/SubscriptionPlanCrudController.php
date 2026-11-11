@@ -16,6 +16,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use LogicException;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -28,6 +29,7 @@ class SubscriptionPlanCrudController extends CrudController
     use CreateOperation;
     use GatesCrudOperations;
     use ListOperation;
+    use NarrowsCrudTypes;
     use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
@@ -308,7 +310,7 @@ class SubscriptionPlanCrudController extends CrudController
         $this->crud->hasAccessOrFail('create');
 
         // Execute the FormRequest authorization and validation logic
-        $request = $this->crud->validateRequest();
+        $request = $this->validatedRequest(SubscriptionPlanRequest::class);
 
         // Extract features before saving
         $features = $request->input('features', []);
@@ -316,6 +318,9 @@ class SubscriptionPlanCrudController extends CrudController
 
         // Create the subscription plan
         $item = $this->crud->create($requestData);
+        if (!$item instanceof SubscriptionPlan) {
+            throw new LogicException('The plan screen created no subscription plan');
+        }
 
         // Sync the features
         if (!empty($features)) {
@@ -342,7 +347,7 @@ class SubscriptionPlanCrudController extends CrudController
         $this->crud->hasAccessOrFail('update');
 
         // Execute the FormRequest authorization and validation logic
-        $request = $this->crud->validateRequest();
+        $request = $this->validatedRequest(SubscriptionPlanRequest::class);
 
         // Extract features before saving
         $features = $request->input('features', []);

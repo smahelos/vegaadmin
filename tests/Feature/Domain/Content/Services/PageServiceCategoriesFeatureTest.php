@@ -54,6 +54,7 @@ class PageServiceCategoriesFeatureTest extends TestCase
 
         // Eager loaded pages are only published and ordered
         $returned = $categories->firstWhere('id', $catWithPages->id);
+        $this->assertInstanceOf(PageCategory::class, $returned);
         $this->assertCount(2, $returned->pages);
         $this->assertTrue(
             $returned->pages->every(fn ($p) => $p->published),
