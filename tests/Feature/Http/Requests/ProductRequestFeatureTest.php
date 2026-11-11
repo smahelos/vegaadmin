@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Requests;
 
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\ProductRequest;
 use App\Models\Product;
@@ -205,7 +206,6 @@ class ProductRequestFeatureTest extends TestCase
     public function validation_fails_with_invalid_currency_values(): void
     {
         $invalidCurrencies = [
-            'GBP',
             'JPY',
             'invalid',
             '',
@@ -233,11 +233,7 @@ class ProductRequestFeatureTest extends TestCase
     #[Test]
     public function validation_passes_with_valid_currency_values(): void
     {
-        $validCurrencies = [
-            'CZK',
-            'EUR',
-            'USD',
-        ];
+        $validCurrencies = array_column(Currency::cases(), 'value');
 
         foreach ($validCurrencies as $validCurrency) {
             $data = $this->validProductData;
