@@ -1202,11 +1202,16 @@ class DatabaseDashboardController extends CrudController
      */
     public function resolveAlert(DatabaseDashboardRequest $request): JsonResponse
     {
-        $alertId = $request->input('alert_id');
-
         try {
-            $alert = DatabaseHealthAlert::findOrFail($alertId);
-            $alert->resolve();
+            $alert = DatabaseHealthAlert::findOrFail(
+                $request->integer('alert_id'),
+            );
+            $alert->update(
+                [
+                    'resolved' => true,
+                    'resolved_at' => CarbonImmutable::now(),
+                ],
+            );
 
             $responseFactory = response();
 
