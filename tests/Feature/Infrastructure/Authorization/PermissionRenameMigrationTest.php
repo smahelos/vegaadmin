@@ -30,7 +30,10 @@ final class PermissionRenameMigrationTest extends TestCase
         $migration->down();
 
         $this->assertDatabaseHas('permissions', ['name' => 'can_view_user', 'guard_name' => 'backpack']);
-        $this->assertDatabaseHas('permissions', ['name' => 'frontend.can_view_product', 'guard_name' => 'web']);
+        $this->assertDatabaseHas(
+            'permissions',
+            ['name' => 'frontend.can_view_product', 'guard_name' => 'web'],
+        );
         $this->assertDatabaseMissing('permissions', ['name' => Permission::PRODUCT_VIEW->value]);
 
         $migration->up();
