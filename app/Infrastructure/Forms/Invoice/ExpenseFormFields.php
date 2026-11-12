@@ -115,10 +115,6 @@ final class ExpenseFormFields
         );
         $fields['description']['wrapper'] = ['class' => 'form-group col-12'];
         $parties = AdminDocumentFormFields::parties('supplier', $document);
-        if ($document !== null) {
-            // The expense keeps the owner its parties belong to; update reads the stored one
-            $parties[0]['attributes'] = ['disabled' => 'disabled'];
-        }
 
         return [
             AdminDocumentFormFields::section(
