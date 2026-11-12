@@ -8,6 +8,8 @@ use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
 use App\Domain\Party\Contracts\BankAccountWriteRepositoryInterface;
 use App\Domain\Party\DTO\BankAccountDTO;
 use App\Domain\Party\DTO\BankAccountWriteData;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
@@ -61,8 +63,20 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
         return $id === null ? null : BankAccountId::fromInt($id);
     }
 
-    public function create(AccountOwner $owner, BankAccountWriteData $data): BankAccountDTO
-    {
+    public function create(
+        WriteScope $scope,
+        AccountOwner $owner,
+        BankAccountWriteData $data,
+    ): BankAccountDTO {
+        $ownerQuery = $this->ownerQuery($owner);
+        $ownerQuery->where('user_id', $scope->owner->toInt());
+        // Exactly one id is set, so the owner is looked up once
+        if ($owner->businessId !== null && !$ownerQuery->exists()) {
+            throw new BusinessNotFoundException($owner->businessId);
+        }
+        if ($owner->contactId !== null && !$ownerQuery->exists()) {
+            throw new ContactNotFoundException($owner->contactId);
+        }
         $query = BankAccount::query();
         $account = $query->create(
             EloquentBankAccountMapper::toOwnerAttributes($owner) + EloquentBankAccountMapper::toAttributes($data),
@@ -102,9 +116,13 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
         $query->update(['archived_at' => null]);
     }
 
-    public function setDefaultForOwner(AccountOwner $owner, ?BankAccountId $id): void
-    {
+    public function setDefaultForOwner(
+        WriteScope $scope,
+        AccountOwner $owner,
+        ?BankAccountId $id,
+    ): void {
         $query = $this->ownerQuery($owner);
+        $query->where('user_id', $scope->owner->toInt());
         $query->update(['default_bank_account_id' => $id?->value]);
     }
 

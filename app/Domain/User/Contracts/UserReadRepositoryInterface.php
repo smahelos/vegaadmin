@@ -1,40 +1,41 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\Contracts;
 
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
-/**
- * Service contract for user operations.
- *
- * This interface allows Domain services to get user
- * without depending on Eloquent models or Infrastructure details.
- * Implementation will be in Infrastructure layer.
- */
 interface UserReadRepositoryInterface
 {
     /**
-     * Find user by ID.
+     * The account the scope belongs to; null when it was deleted.
+     */
+    public function findAccount(ReadScope $scope): ?UserDTO;
+
+    /**
+     * Without a scope for Invoice, which the gate does not run yet.
      */
     public function findUserById(UserId $id): ?UserDTO;
 
     /**
-     * Get all users (admin scope) – controller should use this instead of direct static model call.
-     *
-     * @return array<int,UserDTO>
-     */
-    public function getAllUsers(): array;
-
-    /**
-     * Search users by name (admin scope).
+     * Accounts whose name or email contains the term, every account without one.
      *
      * @return PaginatedResult<UserDTO>
      */
-    public function searchUsers(?string $term, PageRequest $page): PaginatedResult;
+    public function search(
+        AllOwnersScope $scope,
+        ?string $term,
+        PageRequest $page,
+    ): PaginatedResult;
+
+    public function findIdByEmail(AllOwnersScope $scope, string $email): ?UserId;
 
     /**
      * When the user's current plan role was assigned; null when no assignment was recorded.

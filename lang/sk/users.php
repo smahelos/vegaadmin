@@ -72,12 +72,7 @@ return [
     ],
     'messages' => [
         'profile_updated' => 'Profil bol úspešne aktualizovaný.',
-        'profile_update_failed' => 'Profil sa nepodarilo uložiť.',
-        'profile_load_failed' => 'Profil sa nepodarilo načítať.',
         'password_updated' => 'Heslo bolo úspešne zmenené.',
-        'password_update_failed' => 'Heslo sa nepodarilo zmeniť.',
-        'not_found' => 'Používateľ nebol nájdený.',
-        'load_failed' => 'Chyba pri načítaní používateľa.',
         'login_errors' => 'Vyskytli sa chyby pri prihlásení:',
         'no_account' => 'Nemáte účet?',
         'register_prompt' => 'Registrujte sa',

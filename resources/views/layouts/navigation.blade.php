@@ -1,6 +1,7 @@
 @use('App\Application\Party\Queries\ListBusinesses')
 @use('App\Application\Party\Queries\ListContacts')
 @use('App\Application\Product\Queries\ListProducts')
+@use('App\Application\User\Queries\GetProfile')
 @php($user = Auth::user())
 <nav x-data="{ open: false }"
     class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
@@ -112,10 +113,12 @@
 
                     <x-slot name="content">
                         <!-- Profile Link -->
+                        @allowed(GetProfile::class)
                         <a href="{{ route('frontend.profile.edit', ['locale' => App::getLocale()]) }}"
                             class="block w-full px-4 py-2 text-left text-sm leading-5 rounded-t-sm border-b border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out">
                             {{ __('general.navigation.profile') }}
                         </a>
+                        @endallowed
 
                         <!-- My Subscription Link -->
                         <a href="{{ route('subscriptions.my-subscription', ['locale' => App::getLocale()]) }}"
@@ -241,9 +244,11 @@
             </div>
 
             <div class="space-y-1">
+                @allowed(GetProfile::class)
                 <x-responsive-nav-link :href="route('frontend.profile.edit', ['locale' => App::getLocale()])">
                     {{ __('general.navigation.profile') }}
                 </x-responsive-nav-link>
+                @endallowed
 
                 <!-- Authentication -->
                 <form method="POST" action="{{ route('frontend.logout', ['locale' => App::getLocale()]) }}">

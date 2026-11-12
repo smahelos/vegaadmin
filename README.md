@@ -70,7 +70,7 @@ Codex and Claude share the project guidance in `AGENTS.md`, including the same `
 
    ```bash
    docker exec BILLEX-app php artisan backpack:user --name="Admin" --email=admin@example.com --password='change-me'
-   docker exec BILLEX-app php artisan user:permissions assign-role --user=admin@example.com --role=admin
+   docker exec BILLEX-app php artisan user:assign-role admin@example.com admin
    ```
 
 ### Services

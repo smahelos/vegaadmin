@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\UpdateProduct;
+use App\Application\User\Commands\ChangePassword;
+use App\Application\User\Commands\UpdateProfile;
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\BusinessController;
@@ -111,8 +113,11 @@ $registrar->group(
                         $route->name('frontend.profile.edit');
                         $route = Route::put('/profile', [ProfileController::class, 'update']);
                         $route->name('frontend.profile.update');
+                        // `allowed` names the use case the action runs through the gate: change them together
+                        $route->middleware('allowed:' . UpdateProfile::class);
                         $route = Route::put('/profile/password', [ProfileController::class, 'updatePassword']);
                         $route->name('frontend.profile.update.password');
+                        $route->middleware('allowed:' . ChangePassword::class);
 
                         // Products
                         $route = Route::get('/product', [ProductController::class, 'index']);

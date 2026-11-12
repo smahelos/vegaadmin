@@ -72,12 +72,7 @@ return [
     ],
     'messages' => [
         'profile_updated' => 'Profile was successfully updated.',
-        'profile_update_failed' => 'The profile could not be saved.',
-        'profile_load_failed' => 'The profile could not be loaded.',
         'password_updated' => 'Your password has been changed.',
-        'password_update_failed' => 'The password could not be changed.',
-        'not_found' => 'User not found.',
-        'load_failed' => 'Error loading user.',
         'login_errors' => 'There were errors during login:',
         'no_account' => 'Don\'t have an account?',
         'register_prompt' => 'Register now',

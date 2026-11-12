@@ -2,16 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\User\Services;
+namespace Tests\Feature\Application\User\Commands;
 
-use App\Application\User\Services\RegistrationApplicationService;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Commands\Register;
+use App\Domain\Party\DTO\BankAccountWriteData;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
+use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\Exceptions\PermissionDeniedException;
 use App\Models\BankAccount;
 use App\Models\Business;
+use App\Models\Role;
 use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,12 +26,12 @@ use Tests\Support\BuildsParties;
 use Tests\Support\Fakes\Shared\FixedClock;
 use Tests\TestCase;
 
-final class RegistrationApplicationServiceTest extends TestCase
+final class RegisterTest extends TestCase
 {
     use BuildsParties;
 
     #[Test]
-    public function registration_creates_the_account_with_its_default_business_and_account(): void
+    public function an_anonymous_visitor_registers_the_account_with_its_default_business_and_account(): void
     {
         $email = 'owner-' . uniqid() . '@billex.test';
         $this->app->instance(
@@ -34,13 +41,8 @@ final class RegistrationApplicationServiceTest extends TestCase
             ),
         );
 
-        $registrationService = $this->app->make(RegistrationApplicationService::class);
-        $registered = $registrationService->register(
-            new UserWriteData(
-                'Jana Nováková',
-                $email,
-                'secret-password',
-            ),
+        $registered = $this->register(
+            $email,
             new BusinessWriteData(
                 $this->profile(
                     'Studio Nováková',
@@ -77,19 +79,14 @@ final class RegistrationApplicationServiceTest extends TestCase
     }
 
     #[Test]
-    public function a_failing_business_leaves_no_account_behind(): void
+    public function a_business_over_the_limit_leaves_no_account_behind(): void
     {
         $this->limitFrontendUser(LimitedEntity::BUSINESS, 0);
         $email = 'owner-' . uniqid() . '@billex.test';
 
         try {
-            $registrationService = $this->app->make(RegistrationApplicationService::class);
-            $registrationService->register(
-                new UserWriteData(
-                    'Jana Nováková',
-                    $email,
-                    'secret-password',
-                ),
+            $this->register(
+                $email,
                 new BusinessWriteData($this->profile(), null),
                 null,
             );
@@ -98,5 +95,50 @@ final class RegistrationApplicationServiceTest extends TestCase
         }
 
         $this->assertDatabaseMissing('users', ['email' => $email]);
+    }
+
+    #[Test]
+    public function the_first_business_needs_the_new_users_business_create(): void
+    {
+        $roleQuery = Role::query();
+        $roleQuery->where('name', 'frontend_user');
+        $role = $roleQuery->sole();
+        $role->revokePermissionTo(Permission::BUSINESS_CREATE);
+        $email = 'owner-' . uniqid() . '@billex.test';
+
+        try {
+            $this->register(
+                $email,
+                new BusinessWriteData($this->profile(), null),
+                null,
+            );
+            $this->fail(
+                'The registration created a business without business.create',
+            );
+        } catch (PermissionDeniedException) {
+        }
+
+        $this->assertDatabaseMissing('users', ['email' => $email]);
+    }
+
+    private function register(
+        string $email,
+        BusinessWriteData $business,
+        ?BankAccountWriteData $account,
+    ): UserDTO {
+        $useCases = $this->app->make(AuthorizingUseCaseRunnerInterface::class);
+
+        return $useCases->run(
+            Actor::anonymous(),
+            new Register(
+                new UserWriteData(
+                    'Jana Nováková',
+                    $email,
+                    'secret-password',
+                ),
+                $business,
+                $account,
+            ),
+        );
     }
 }

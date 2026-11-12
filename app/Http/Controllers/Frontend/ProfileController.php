@@ -1,131 +1,103 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\User\Contracts\UserApplicationServiceInterface;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Commands\ChangePassword;
+use App\Application\User\Commands\UpdateProfile;
+use App\Application\User\Queries\GetProfile;
+use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\UserRequest;
 use App\Infrastructure\Forms\User\UserFormFields;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
-class ProfileController extends Controller
+/**
+ * The signed-in user's own profile and password. The locale is the first route parameter of every frontend page.
+ */
+final class ProfileController extends Controller
 {
     use UserFormFields;
 
-    /**
-     * Constructor
-     */
-    public function __construct(private readonly UserApplicationServiceInterface $userService) {}
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
 
-    /**
-     * Show form for editing user profile
-     */
-    public function edit(): View|RedirectResponse
+    public function edit(): View
     {
-        try {
-            // Get authenticated user as full model instance
-            $user = $this->userService->findUserById(Auth::id());
+        $owner = $this->owner();
+        $user = $this->useCases->run(
+            Actor::user($owner),
+            new GetProfile($owner),
+        );
 
-            // Get fields from trait
-            $userFields = $this->getUserFields();
-            $passwordFields = $this->getPasswordFields();
-
-            return view(
-                'frontend.profile.edit',
-                compact(
-                    'user',
-                    'userFields',
-                    'passwordFields',
-                ),
-            );
-        } catch (\Exception $e) {
-            Log::error('Profile loading failed', ['userId' => Auth::id(), 'exception' => $e]);
-
-            $redirector = redirect();
-            $application = app();
-            $redirect = $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
-
-            return $redirect->withErrors(
-                ['error' => __('users.messages.profile_load_failed')],
-            );
-        }
+        return view(
+            'frontend.profile.edit',
+            [
+                'user' => $user,
+                'userFields' => $this->getUserFields(),
+                'passwordFields' => $this->getPasswordFields(),
+            ],
+        );
     }
 
-    /**
-     * Update user profile
-     */
     public function update(UserRequest $request): RedirectResponse
     {
-        try {
-            // Get authenticated user
-            $user = $this->userService->findUserById(Auth::id());
+        $owner = $this->owner();
+        // The route's `allowed` middleware names UpdateProfile: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new UpdateProfile(
+                $owner,
+                (string) $request->string('name'),
+                (string) $request->string('email'),
+            ),
+        );
 
-            // Get validated data from request
-            $validatedData = $request->validated();
-
-            // Update user using service
-            $this->userService->updateProfile($user->id, $validatedData);
-
-            $redirector = redirect();
-            $application = app();
-            $redirect = $redirector->route('frontend.profile.edit', ['locale' => $application->getLocale()]);
-
-            return $redirect->with(
-                'success',
-                __('users.messages.profile_updated'),
-            );
-        } catch (\Exception $e) {
-            Log::error('Profile update failed', ['userId' => Auth::id(), 'exception' => $e]);
-
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withInput();
-
-            return $redirect->withErrors(
-                ['error' => __('users.messages.profile_update_failed')],
-            );
-        }
+        return $this->backToProfile('users.messages.profile_updated');
     }
 
-    /**
-     * Update only user password
-     */
     public function updatePassword(PasswordUpdateRequest $request): RedirectResponse
     {
-        try {
-            // Get authenticated user
-            $user = $this->userService->findUserById(Auth::id());
+        $owner = $this->owner();
+        // The route's `allowed` middleware names ChangePassword: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new ChangePassword(
+                $owner,
+                UserPassword::fromPlainText(
+                    (string) $request->string('password'),
+                ),
+            ),
+        );
 
-            // Wrap new password in value object for application service
-            $newPassword = UserPassword::fromPlainText($request->password);
-            $this->userService->updatePassword($user->id, $newPassword);
+        return $this->backToProfile('users.messages.password_updated');
+    }
 
-            $redirector = redirect();
-            $application = app();
-            $redirect = $redirector->route(
-                'frontend.profile.edit',
-                ['locale' => $request->input('locale', $application->getLocale())],
-            );
+    private function backToProfile(string $message): RedirectResponse
+    {
+        $redirector = redirect();
+        $redirect = $redirector->route(
+            'frontend.profile.edit',
+            ['locale' => App::getLocale()],
+        );
 
-            return $redirect->with(
-                'success',
-                __('users.messages.password_updated'),
-            );
-        } catch (\Exception $e) {
-            Log::error('Password change failed', ['userId' => Auth::id(), 'exception' => $e]);
+        return $redirect->with(
+            'success',
+            __($message),
+        );
+    }
 
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withInput();
-
-            return $redirect->withErrors(
-                ['error' => __('users.messages.password_update_failed')],
-            );
-        }
+    private function owner(): UserId
+    {
+        return UserId::fromInt((int) Auth::id());
     }
 }

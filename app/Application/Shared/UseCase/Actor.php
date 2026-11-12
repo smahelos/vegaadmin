@@ -8,14 +8,14 @@ use App\Application\Shared\UseCase\Enums\ActorKind;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
- * Who runs a use case. A closed set: a user reaches only their own data, an admin anyone's
- * (rules/permissions.md).
+ * Who runs a use case. A closed set: a user reaches only their own data, an admin anyone's, an anonymous
+ * visitor only public use cases and the system only system ones (rules/permissions.md).
  */
 final readonly class Actor
 {
     private function __construct(
         public ActorKind $kind,
-        public UserId $user,
+        public ?UserId $user,
     ) {}
 
     public static function user(UserId $id): self
@@ -26,5 +26,18 @@ final readonly class Actor
     public static function admin(UserId $id): self
     {
         return new self(ActorKind::ADMIN, $id);
+    }
+
+    public static function anonymous(): self
+    {
+        return new self(ActorKind::ANONYMOUS, null);
+    }
+
+    /**
+     * An operator's Artisan command or scheduled work; no user is signed in.
+     */
+    public static function system(): self
+    {
+        return new self(ActorKind::SYSTEM, null);
     }
 }

@@ -36,7 +36,7 @@ final class RestoreBusinessHandler
         }
 
         $this->limits->assertCanCreate($command->owner, LimitedEntity::BUSINESS);
-        $isFirstActive = $this->businesses->countActiveForUserForUpdate($command->owner) === 0;
+        $isFirstActive = $this->businesses->countActiveForUpdate($scope->read) === 0;
 
         $this->businessWriter->restore($command->id, $scope);
         $this->events->publish(
@@ -44,7 +44,7 @@ final class RestoreBusinessHandler
         );
 
         if ($isFirstActive) {
-            $this->businessWriter->setDefaultForUser($command->owner, $command->id);
+            $this->businessWriter->setDefault($scope, $command->id);
             $this->events->publish(
                 new DefaultBusinessChanged($command->owner),
             );

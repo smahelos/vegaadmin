@@ -39,27 +39,27 @@ final class EntityUsageControllerTest extends TestCase
     }
 
     #[Test]
-    public function only_a_permission_of_the_entity_shows_its_usage(): void
+    public function a_permission_to_fill_in_any_limited_form_shows_the_usage(): void
     {
         $user = $this->userWithPlanRole();
-        $this->regularUser->givePermissionTo(
-            PermissionModel::findByName(Permission::PRODUCT_UPDATE->value, 'backpack'),
-        );
         $this->actingAs($this->regularUser, 'backpack');
 
-        $allowed = $this->get(
-            $this->usageUrl('products', $user->id),
-        );
         $denied = $this->get(
             $this->usageUrl('invoices', $user->id),
         );
+        $this->regularUser->givePermissionTo(
+            PermissionModel::findByName(Permission::PRODUCT_UPDATE->value, 'backpack'),
+        );
+        $allowed = $this->get(
+            $this->usageUrl('invoices', $user->id),
+        );
 
-        $allowed->assertOk();
         $denied->assertForbidden();
+        $allowed->assertOk();
     }
 
     #[Test]
-    public function an_unknown_entity_is_refused_and_an_unknown_user_is_invalid(): void
+    public function an_unknown_entity_or_user_is_invalid(): void
     {
         $user = $this->userWithPlanRole();
         $this->actingAs($this->adminUser, 'backpack');
@@ -71,7 +71,7 @@ final class EntityUsageControllerTest extends TestCase
             $this->usageUrl('products', 0),
         );
 
-        $unknownEntity->assertForbidden();
+        $unknownEntity->assertUnprocessable();
         $unknownUser->assertUnprocessable();
     }
 

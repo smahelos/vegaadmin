@@ -32,6 +32,7 @@ final class CurrentActor
         return match ($kind) {
             ActorKind::USER => Actor::user($user),
             ActorKind::ADMIN => Actor::admin($user),
+            ActorKind::ANONYMOUS, ActorKind::SYSTEM => null,
         };
     }
 }

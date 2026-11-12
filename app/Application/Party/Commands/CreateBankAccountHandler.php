@@ -27,9 +27,17 @@ final class CreateBankAccountHandler
     {
         $this->users->lockForUpdate($command->owner);
         $this->owned->assertOwner($scope->read, $command->accountOwner);
-        $account = $this->accountWriter->create($command->accountOwner, $command->data);
+        $account = $this->accountWriter->create(
+            $scope,
+            $command->accountOwner,
+            $command->data,
+        );
         if ($this->accounts->findDefaultIdForOwner($scope->read, $command->accountOwner) === null) {
-            $this->accountWriter->setDefaultForOwner($command->accountOwner, $account->id);
+            $this->accountWriter->setDefaultForOwner(
+                $scope,
+                $command->accountOwner,
+                $account->id,
+            );
         }
 
         return $account;

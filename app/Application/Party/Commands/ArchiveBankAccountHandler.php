@@ -50,6 +50,7 @@ final class ArchiveBankAccountHandler
         $default = $this->accounts->findDefaultIdForOwner($scope->read, $account->owner);
         if ($default !== null && $default->equals($command->id)) {
             $this->accountWriter->setDefaultForOwner(
+                $scope,
                 $account->owner,
                 $this->replacementDefault(
                     $scope->read,

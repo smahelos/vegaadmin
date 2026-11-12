@@ -6,6 +6,8 @@ namespace App\Domain\Party\Contracts;
 
 use App\Domain\Party\DTO\BankAccountDTO;
 use App\Domain\Party\DTO\BankAccountWriteData;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
@@ -14,10 +16,14 @@ use DateTimeImmutable;
 interface BankAccountWriteRepositoryInterface
 {
     /**
-     * The caller has found the owner within its scope; BusinessCreator, which registration calls outside the gate,
-     * has just created it.
+     * @throws BusinessNotFoundException
+     * @throws ContactNotFoundException when the account's owner is missing or outside the scope
      */
-    public function create(AccountOwner $owner, BankAccountWriteData $data): BankAccountDTO;
+    public function create(
+        WriteScope $scope,
+        AccountOwner $owner,
+        BankAccountWriteData $data,
+    ): BankAccountDTO;
 
     public function update(
         BankAccountId $id,
@@ -34,7 +40,11 @@ interface BankAccountWriteRepositoryInterface
     public function restore(BankAccountId $id, WriteScope $scope): void;
 
     /**
-     * The database keeps the default within the owner's accounts. The caller has found the owner, as for create().
+     * The database keeps the default within the owner's accounts; an owner outside the scope is left unchanged.
      */
-    public function setDefaultForOwner(AccountOwner $owner, ?BankAccountId $id): void;
+    public function setDefaultForOwner(
+        WriteScope $scope,
+        AccountOwner $owner,
+        ?BankAccountId $id,
+    ): void;
 }

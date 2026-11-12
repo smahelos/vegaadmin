@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\User\Services\EntityUsageApplicationService;
-use App\Application\User\Services\PlanRoleApplicationService;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Commands\CreateUser;
+use App\Application\User\Commands\UpdateUser;
+use App\Application\User\Queries\GetEntityUsage;
 use App\Domain\User\DTO\EntityUsageDTO;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
+use App\Http\Requests\Admin\UserRequest;
 use App\Infrastructure\Forms\User\UserFormFields;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -18,11 +22,8 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Backpack\PermissionManager\app\Http\Requests\UserStoreCrudRequest as StoreRequest;
-use Backpack\PermissionManager\app\Http\Requests\UserUpdateCrudRequest as UpdateRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
+use Prologue\Alerts\Facades\Alert;
 
 /**
  * User management controller
@@ -31,21 +32,18 @@ use Illuminate\Support\Facades\Hash;
  */
 class UserCrudController extends CrudController
 {
-    use CreateOperation {
-        store as traitStore;
-    }
+    use ActsAsAdmin;
+    use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
     use NarrowsCrudTypes;
     use ShowOperation;
-    use UpdateOperation {
-        update as traitUpdate;
-    }
+    use UpdateOperation;
     use UserFormFields;
 
     public function __construct(
-        private readonly EntityUsageApplicationService $entityUsages,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
     ) {
         parent::__construct();
     }
@@ -169,7 +167,7 @@ class UserCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         $this->addUserFields();
-        CRUD::setValidation(StoreRequest::class);
+        CRUD::setValidation(UserRequest::class);
     }
 
     /**
@@ -178,7 +176,7 @@ class UserCrudController extends CrudController
     protected function setupUpdateOperation(): void
     {
         $this->addUserFields();
-        CRUD::setValidation(UpdateRequest::class);
+        CRUD::setValidation(UserRequest::class);
     }
 
     /**
@@ -246,74 +244,68 @@ class UserCrudController extends CrudController
      */
     private function usages(int $userId): ?array
     {
+        $usages = [];
         try {
-            return $this->entityUsages->usages(
-                UserId::fromInt($userId),
-            );
+            foreach (LimitedEntity::cases() as $entity) {
+                $usages[] = $this->useCases->run(
+                    $this->admin(),
+                    new GetEntityUsage(
+                        UserId::fromInt($userId),
+                        $entity,
+                    ),
+                );
+            }
         } catch (AmbiguousPlanRoleException) {
             return null;
         }
+
+        return $usages;
     }
 
-    /**
-     * Custom store method for password hashing
-     */
-    public function store(PlanRoleApplicationService $planRoles): RedirectResponse
+    public function store(): RedirectResponse
     {
-        $this->crud->setRequest($this->crud->validateRequest());
-        $this->crud->setRequest(
-            $this->handlePasswordInput($this->crud->getRequest()),
-        );
-        $this->crud->unsetValidation();
-        $response = $this->traitStore();
-        $planRoles->recordIfChanged(
-            UserId::fromInt((int) $this->crud->entry->id),
-            [],
+        $this->crud->hasAccessOrFail('create');
+        $request = $this->validatedRequest(UserRequest::class);
+        $user = $this->useCases->run(
+            $this->admin(),
+            new CreateUser(
+                $request->writeData(),
+                $request->roleIds(),
+                $request->permissionIds(),
+            ),
         );
 
-        return $response;
+        $alerts = Alert::success(
+            __('backpack::crud.insert_success'),
+        );
+        $alerts->flash();
+        $this->crud->setSaveAction();
+
+        return $this->crud->performSaveAction($user->id);
     }
 
-    /**
-     * Custom update method for password hashing
-     */
-    public function update(PlanRoleApplicationService $planRoles): RedirectResponse
+    public function update(): RedirectResponse
     {
-        $this->crud->setRequest($this->crud->validateRequest());
-        $this->crud->setRequest(
-            $this->handlePasswordInput($this->crud->getRequest()),
+        $this->crud->hasAccessOrFail('update');
+        $request = $this->validatedRequest(UserRequest::class);
+        $entry = $this->currentEntry(User::class);
+        $this->useCases->run(
+            $this->admin(),
+            new UpdateUser(
+                UserId::fromInt($entry->id),
+                $request->writeData(),
+                $request->roleIds(),
+                $request->permissionIds(),
+            ),
         );
-        $this->crud->unsetValidation();
-        $userId = UserId::fromInt((int) $this->crud->getCurrentEntryId());
-        $before = $planRoles->planRoles($userId);
-        $response = $this->traitUpdate();
-        $planRoles->recordIfChanged($userId, $before);
 
-        return $response;
-    }
+        $alerts = Alert::success(
+            __('backpack::crud.update_success'),
+        );
+        $alerts->flash();
+        $this->crud->setSaveAction();
 
-    /**
-     * Process password field - hash if provided
-     */
-    protected function handlePasswordInput(Request $request): Request
-    {
-        // Remove password if empty
-        if ($request->has('password') && $request->input('password') === null) {
-            $request->request->remove('password');
-            $request->request->remove('password_confirmation');
-        }
-
-        // Hash password if provided
-        if ($request->has('password')) {
-            $request->request->set(
-                'password',
-                Hash::make(
-                    $request->input('password'),
-                ),
-            );
-        }
-
-        return $request;
+        return $this->crud->performSaveAction($entry->id);
     }
 
     /**

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Shared\UseCase;
 
+use App\Application\Shared\UseCase\Enums\AccessKind;
 use App\Domain\User\Enums\Permission;
 
 /**
@@ -11,14 +12,22 @@ use App\Domain\User\Enums\Permission;
  */
 final readonly class Access
 {
+    /**
+     * @param  list<Permission>  $permissions  any one of them suffices; empty for public and system
+     */
     private function __construct(
-        public Permission $permission,
+        public AccessKind $kind,
+        public array $permissions,
         public bool $withOwner,
     ) {}
 
     public static function permission(Permission $permission): self
     {
-        return new self($permission, false);
+        return new self(
+            AccessKind::PERMISSION,
+            [$permission],
+            false,
+        );
     }
 
     /**
@@ -27,6 +36,55 @@ final readonly class Access
      */
     public static function permissionWithOwner(Permission $permission): self
     {
-        return new self($permission, true);
+        return new self(
+            AccessKind::PERMISSION,
+            [$permission],
+            true,
+        );
+    }
+
+    public static function anyOf(Permission ...$permissions): self
+    {
+        return new self(
+            AccessKind::PERMISSION,
+            array_values($permissions),
+            false,
+        );
+    }
+
+    /**
+     * An admin reading every owner's data; the handler gets AllOwnersScope.
+     */
+    public static function allOwners(Permission $permission): self
+    {
+        return new self(
+            AccessKind::ALL_OWNERS,
+            [$permission],
+            false,
+        );
+    }
+
+    /**
+     * Anyone, an anonymous visitor included; reaches no owner's data.
+     */
+    public static function public(): self
+    {
+        return new self(
+            AccessKind::PUBLIC,
+            [],
+            false,
+        );
+    }
+
+    /**
+     * Only Actor::system(); the handler gets AllOwnersScope.
+     */
+    public static function system(): self
+    {
+        return new self(
+            AccessKind::SYSTEM,
+            [],
+            false,
+        );
     }
 }

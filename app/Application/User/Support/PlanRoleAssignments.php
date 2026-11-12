@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\User\Services;
+namespace App\Application\User\Support;
 
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
@@ -11,10 +11,10 @@ use App\Domain\User\DTO\RoleLimitDTO;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
- * A change of the plan role restarts the monthly quota window (D-047 point 2), also when an admin changes the
- * roles by hand.
+ * A change of the plan role restarts the monthly quota window (D-047 point 2), also when an admin or an operator
+ * changes the roles by hand.
  */
-final class PlanRoleApplicationService
+final class PlanRoleAssignments
 {
     public function __construct(
         private readonly RoleLimitReadRepositoryInterface $roleLimits,

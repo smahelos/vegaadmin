@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\User\Queries\SearchUsers;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
 use App\Http\Controllers\Api\InvoiceController;
@@ -25,13 +26,10 @@ $registrar->prefix('admin');
 $registrar->name('api.admin.');
 $registrar->group(
     function (): void {
-        $route = Route::get('/user', [UserController::class, 'getUsersAdmin']);
-        $route->name('users');
-        $route = Route::get('/user/search', [UserController::class, 'searchUsersAdmin']);
+        $route = Route::get('/user/search', [UserController::class, 'search']);
         $route->name('users.search');
-        $route = Route::get('/user/{id}', [UserController::class, 'getUserAdmin']);
-        $route->whereNumber('id');
-        $route->name('user');
+        // `allowed` names the use case the action runs through the gate: change them together
+        $route->middleware('allowed:' . SearchUsers::class);
         $route = Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice']);
         $route->whereNumber('id');
         $route->name('invoice');

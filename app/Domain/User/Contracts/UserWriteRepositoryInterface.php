@@ -1,38 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\Contracts;
 
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use DateTimeImmutable;
 
-/**
- * Service contract for user permission operations.
- *
- * This interface allows Domain services to check user permissions
- * without depending on Eloquent models or Infrastructure details.
- * Implementation will be in Infrastructure layer.
- */
 interface UserWriteRepositoryInterface
 {
     /**
-     * Create new user from write data.
+     * A new account, from registration or the admin; it has no owner before it exists, so it takes no scope.
      */
-    public function create(UserWriteData $data): UserDTO;
+    public function newAccount(UserWriteData $data): UserDTO;
 
     /**
-     * Update profile with write data.
+     * The name and email, and the password when the data carries one.
      */
-    public function updateProfile(UserId $id, UserWriteData $data): bool;
+    public function updateAccount(WriteScope $scope, UserWriteData $data): void;
 
-    /**
-     * Update user password
-     *
-     * @throws \Exception
-     */
-    public function updatePassword(UserId $userId, UserPassword $password): bool;
+    public function changePassword(WriteScope $scope, UserPassword $password): void;
 
     /**
      * Locks the user's row until the surrounding transaction ends, so that checks of the user's capacity and the
@@ -41,6 +32,18 @@ interface UserWriteRepositoryInterface
     public function lockForUpdate(UserId $id): void;
 
     public function assignRole(UserId $id, string $role): void;
+
+    /**
+     * Replaces the user's roles and direct permissions, as the admin's user form selects them.
+     *
+     * @param  list<int>  $roleIds
+     * @param  list<int>  $permissionIds
+     */
+    public function syncRolesAndPermissions(
+        UserId $id,
+        array $roleIds,
+        array $permissionIds,
+    ): void;
 
     /**
      * Starts the monthly quota window of the user's new plan role.

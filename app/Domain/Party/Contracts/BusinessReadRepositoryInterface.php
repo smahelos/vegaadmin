@@ -21,7 +21,7 @@ interface BusinessReadRepositoryInterface
     public function findById(BusinessId $id, ReadScope $scope): ?BusinessDTO;
 
     /**
-     * Without a scope for the callers the gate does not run yet: Invoice and BusinessCreator (registration).
+     * Without a scope for Invoice, which the gate does not run yet.
      */
     public function findByIdForUser(BusinessId $id, UserId $userId): ?BusinessDTO;
 
@@ -45,7 +45,7 @@ interface BusinessReadRepositoryInterface
     public function countActive(ReadScope $scope): int;
 
     /** Reads committed rows while the caller holds the user's activation lock, regardless of an earlier snapshot. */
-    public function countActiveForUserForUpdate(UserId $userId): int;
+    public function countActiveForUpdate(ReadScope $scope): int;
 
     public function findDefaultId(ReadScope $scope): ?BusinessId;
 

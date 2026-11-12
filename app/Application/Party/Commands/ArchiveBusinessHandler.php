@@ -52,7 +52,7 @@ final class ArchiveBusinessHandler
                 $command->id,
                 $command->newDefault,
             );
-            $this->businessWriter->setDefaultForUser($command->owner, $replacement);
+            $this->businessWriter->setDefault($scope, $replacement);
             $this->events->publish(
                 new DefaultBusinessChanged($command->owner),
             );

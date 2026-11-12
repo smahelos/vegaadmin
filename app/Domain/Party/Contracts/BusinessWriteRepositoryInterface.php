@@ -9,18 +9,16 @@ use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
-use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
 interface BusinessWriteRepositoryInterface
 {
     /**
-     * Stores the business with its address. Takes the owner, not a scope, for BusinessCreator, which registration
-     * calls outside the gate.
+     * Stores the business with its address.
      *
      * @throws DuplicateCompanyNumberException
      */
-    public function create(UserId $userId, BusinessWriteData $data): BusinessDTO;
+    public function create(WriteScope $scope, BusinessWriteData $data): BusinessDTO;
 
     /**
      * Replaces the details and the address; an address of null deletes the stored one.
@@ -41,6 +39,6 @@ interface BusinessWriteRepositoryInterface
 
     public function restore(BusinessId $id, WriteScope $scope): void;
 
-    /** The user's own account setting; takes the owner for BusinessCreator, which registration calls outside the gate. */
-    public function setDefaultForUser(UserId $userId, ?BusinessId $id): void;
+    /** The owner's own account setting. */
+    public function setDefault(WriteScope $scope, ?BusinessId $id): void;
 }

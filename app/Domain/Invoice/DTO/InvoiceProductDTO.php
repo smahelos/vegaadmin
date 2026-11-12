@@ -13,7 +13,6 @@ class InvoiceProductDTO
         public readonly ?string $category,
         public readonly ?string $description,
         public readonly ?string $created_at = null,
-        public readonly ?string $updated_at = null,
     ) {}
 
     /**
@@ -27,7 +26,6 @@ class InvoiceProductDTO
             category: $data['category'] ?? null,
             description: $data['description'] ?? null,
             created_at: $data['created_at'] ?? null,
-            updated_at: $data['updated_at'] ?? null,
         );
     }
 }

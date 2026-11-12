@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-11T16:06:25+00:00",
+    "generated_at": "2026-11-12T09:38:34+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -434,10 +434,6 @@
                     "concrete": "App\\Domain\\User\\Services\\LocaleService"
                 },
                 {
-                    "abstract": "App\\Domain\\User\\Contracts\\UserServiceInterface",
-                    "concrete": "App\\Domain\\User\\Services\\UserService"
-                },
-                {
                     "abstract": "App\\Domain\\User\\Contracts\\Locale",
                     "concrete": "App\\Infrastructure\\Shared\\Locale\\Services\\LaravelLocaleAdapter"
                 },
@@ -451,23 +447,15 @@
                 },
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository"
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserRepository"
                 },
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\User\\Contracts\\UserAuthorizationAdapterInterface",
-                    "concrete": "App\\Infrastructure\\Authorization\\Adapters\\User\\SpatieAuthorizationAdapter"
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserRepository"
                 },
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface",
                     "concrete": "App\\Infrastructure\\Services\\User\\LaravelUserPermissionService"
-                },
-                {
-                    "abstract": "App\\Application\\User\\Contracts\\UserApplicationServiceInterface",
-                    "concrete": "App\\Application\\User\\Services\\UserApplicationService"
                 }
             ],
             "singleton": []
@@ -717,22 +705,6 @@
         "App\\Application\\Shared\\UseCase\\Contracts\\QueryInterface": {
             "status": "missing_binding",
             "actual": []
-        },
-        "App\\Application\\User\\Contracts\\UserApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\User\\Services\\UserApplicationService",
-                "provider": "App\\Providers\\UserServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\User\\Contracts\\UserAuthorizationAdapterInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Authorization\\Adapters\\User\\SpatieAuthorizationAdapter",
-                "provider": "App\\Providers\\UserServiceProvider",
-                "method": "bind"
-            }
         },
         "App\\Domain\\Analytics\\Contracts\\AnalyticsReadRepositoryInterface": {
             "status": "ok",
@@ -1225,15 +1197,7 @@
         "App\\Domain\\User\\Contracts\\UserReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository",
-                "provider": "App\\Providers\\UserServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\UserServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Domain\\User\\Services\\UserService",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserRepository",
                 "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }
@@ -1241,7 +1205,7 @@
         "App\\Domain\\User\\Contracts\\UserWriteRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserDtoRepository",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserRepository",
                 "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }

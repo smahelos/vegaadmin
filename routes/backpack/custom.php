@@ -10,6 +10,7 @@ use App\Application\Party\Commands\RestoreBusiness;
 use App\Application\Party\Commands\RestoreContact;
 use App\Application\Party\Commands\SetDefaultBankAccount;
 use App\Application\Party\Commands\SetDefaultBusiness;
+use App\Application\User\Queries\GetEntityUsage;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ArchivePolicyCrudController;
 use App\Http\Controllers\Admin\BankAccountCrudController;
@@ -65,6 +66,8 @@ Route::group(
         $route->name('admin.document-parties.accounts');
         $route = Route::get('entity-usage', [EntityUsageController::class, 'show']);
         $route->name('admin.entity-usage.show');
+        // `allowed` names the use case the action runs through the gate: change them together
+        $route->middleware('allowed:' . GetEntityUsage::class);
         $route = Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog']);
         $route->name('admin.invoice-items.catalog');
         $route = Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview']);

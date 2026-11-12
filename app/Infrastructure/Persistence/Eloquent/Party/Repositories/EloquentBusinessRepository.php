@@ -71,11 +71,11 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         );
     }
 
-    public function countActiveForUserForUpdate(UserId $userId): int
+    public function countActiveForUpdate(ReadScope $scope): int
     {
         return $this->records->countActiveForUser(
             Business::query(),
-            $userId,
+            $scope->owner,
             true,
         );
     }
@@ -129,10 +129,10 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return $this->list($query);
     }
 
-    public function create(UserId $userId, BusinessWriteData $data): BusinessDTO
+    public function create(WriteScope $scope, BusinessWriteData $data): BusinessDTO
     {
         $business = $this->records->save(
-            new Business(['user_id' => $userId->toInt()]),
+            new Business(['user_id' => $scope->owner->toInt()]),
             EloquentBusinessMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -171,10 +171,10 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         $query->update(['archived_at' => null]);
     }
 
-    public function setDefaultForUser(UserId $userId, ?BusinessId $id): void
+    public function setDefault(WriteScope $scope, ?BusinessId $id): void
     {
         $query = User::query();
-        $query->whereKey($userId->toInt());
+        $query->whereKey($scope->owner->toInt());
         $query->update(['default_business_id' => $id?->value]);
     }
 

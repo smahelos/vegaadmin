@@ -36,7 +36,11 @@ final class RestoreBankAccountHandler
 
         $this->accountWriter->restore($command->id, $scope);
         if ($this->accounts->findDefaultIdForOwner($scope->read, $account->owner) === null) {
-            $this->accountWriter->setDefaultForOwner($account->owner, $command->id);
+            $this->accountWriter->setDefaultForOwner(
+                $scope,
+                $account->owner,
+                $command->id,
+            );
         }
     }
 }

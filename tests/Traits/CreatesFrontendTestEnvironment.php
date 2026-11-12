@@ -108,7 +108,7 @@ trait CreatesFrontendTestEnvironment
             $this->user = $userFactory->create();
         }
         $this->user->assignRole($frontendUserRole);
-        // Give frontend_user role minimal API permissions and the party reads of the invoice form
+        // Give frontend_user role minimal API permissions, the party reads of the invoice form and the own profile
         $permissionQuery = PermissionModel::where('guard_name', 'web');
         $permissionQuery->whereIn(
             'name',
@@ -119,6 +119,7 @@ trait CreatesFrontendTestEnvironment
                 Permission::BUSINESS_VIEW,
                 Permission::CONTACT_VIEW,
                 Permission::BANK_ACCOUNT_VIEW,
+                Permission::PROFILE_UPDATE,
             ],
         );
         $frontendUserRole->syncPermissions(
