@@ -16,7 +16,6 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
-use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
@@ -28,27 +27,6 @@ use Illuminate\Validation\ValidationException;
 
 final class InvoiceRequest extends FormRequest
 {
-    /**
-     * Guests may use the guest store endpoint (a temporary invoice that is never stored) without an account.
-     */
-    public function authorize(): bool
-    {
-        if ($this->isGuestStore()) {
-            return true;
-        }
-
-        $user = $this->user();
-        if ($this->boolean('save_customer_to_contacts') && $user?->can(Permission::CONTACT_CREATE) !== true) {
-            return false;
-        }
-
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::INVOICE_CREATE) === true;
-        }
-
-        return $user?->can(Permission::INVOICE_UPDATE) === true;
-    }
-
     /**
      * Customize failed validation for guest JSON endpoint to avoid redirect (302) and return 422 JSON.
      */

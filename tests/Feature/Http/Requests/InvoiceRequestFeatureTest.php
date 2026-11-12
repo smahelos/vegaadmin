@@ -525,35 +525,6 @@ final class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_without_authenticated_user_returns_false(): void
-    {
-        $this->assertFalse((new InvoiceRequest)->authorize());
-    }
-
-    #[Test]
-    public function authorization_with_authenticated_user_succeeds(): void
-    {
-        $request = InvoiceRequest::create('/', 'POST');
-        $request->setUserResolver(fn (): User => $this->user);
-
-        $this->assertTrue($request->authorize());
-    }
-
-    #[Test]
-    public function saving_the_customer_to_the_contacts_needs_the_contact_permission(): void
-    {
-        $this->actingAs($this->user, 'web');
-        $request = InvoiceRequest::create(
-            '/',
-            'POST',
-            ['save_customer_to_contacts' => '1'],
-        );
-        $request->setUserResolver(fn (): User => $this->user);
-
-        $this->assertFalse($request->authorize());
-    }
-
-    #[Test]
     public function validation_passes_with_valid_currencies(): void
     {
         foreach (

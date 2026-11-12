@@ -18,6 +18,7 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         Auth::login($user);
 
         $response = $this->get('/cs/invoice/create');
@@ -41,7 +42,9 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
     public function create_form_preselects_the_bank_transfer(): void
     {
         $userFactory = User::factory();
-        Auth::login($userFactory->create());
+        $user = $userFactory->create();
+        $user->assignRole('frontend_user');
+        Auth::login($user);
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $bankTransferId = $paymentMethodQuery->firstOrFail()->id;
 

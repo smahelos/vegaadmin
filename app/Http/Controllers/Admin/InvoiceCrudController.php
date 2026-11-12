@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
-use App\Application\Invoice\DTO\InvoiceActionResult;
-use App\Application\Invoice\DTO\InvoiceActionStatus;
+use App\Application\Invoice\Commands\CreateInvoice;
+use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\InvoiceRequest;
@@ -34,6 +34,7 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class InvoiceCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -42,8 +43,9 @@ final class InvoiceCrudController extends CrudController
     use ShowOperation;
     use UpdateOperation;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
         $throttle->only('store');
@@ -292,33 +294,39 @@ final class InvoiceCrudController extends CrudController
         $this->setupForm(false);
     }
 
-    public function store(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
+    public function store(): RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(InvoiceRequest::class);
-        $result = $invoices->create(
-            $request->owner(),
-            $request->toWriteData(),
-            $request->partySelection(),
-            $request->products(),
+        $invoice = $this->useCases->run(
+            $this->admin(),
+            new CreateInvoice(
+                $request->owner(),
+                $request->toWriteData(),
+                $request->partySelection(),
+                $request->products(),
+            ),
         );
 
-        return $this->mutationResponse($result);
+        return $this->saved('invoices.messages.created', $invoice->id->value);
     }
 
-    public function update(InvoiceMutationApplicationServiceInterface $invoices): RedirectResponse
+    public function update(): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest(InvoiceRequest::class);
-        $result = $invoices->update(
-            $request->owner(),
-            InvoiceId::fromInt((int) $this->crud->getCurrentEntryId()),
-            $request->toWriteData(),
-            $request->partySelection(),
-            $request->products(),
+        $invoice = $this->useCases->run(
+            $this->admin(),
+            new UpdateInvoice(
+                $request->owner(),
+                InvoiceId::fromInt((int) $this->crud->getCurrentEntryId()),
+                $request->toWriteData(),
+                $request->partySelection(),
+                $request->products(),
+            ),
         );
 
-        return $this->mutationResponse($result);
+        return $this->saved('invoices.messages.updated', $invoice->id->value);
     }
 
     private function setupForm(bool $create): void
@@ -335,23 +343,14 @@ final class InvoiceCrudController extends CrudController
         );
     }
 
-    private function mutationResponse(InvoiceActionResult $result): RedirectResponse
+    private function saved(string $message, int $id): RedirectResponse
     {
-        if ($result->status !== InvoiceActionStatus::SUCCESS || $result->invoice === null) {
-            $redirector = redirect();
-            $redirect = $redirector->back();
-            $redirect->withInput();
-
-            return $redirect->withErrors(
-                ['invoice' => __($result->message ?? 'invoices.messages.update_failed')],
-            );
-        }
         $alerts = Alert::success(
-            __($result->message),
+            __($message),
         );
         $alerts->flash();
         $this->crud->setSaveAction();
 
-        return $this->crud->performSaveAction($result->invoice->id);
+        return $this->crud->performSaveAction($id);
     }
 }

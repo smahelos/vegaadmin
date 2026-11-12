@@ -2,20 +2,13 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
-use App\Application\Invoice\DTO\InvoiceActionResult;
-use App\Application\Invoice\DTO\InvoiceMutationPayload;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -69,7 +62,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function store_guest_creates_invoice_and_returns_json_success(): void
+    public function store_guest_stores_the_invoice_and_its_token_downloads_the_pdf(): void
     {
         // Provide full valid payload to satisfy validation (guest create)
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
@@ -108,208 +101,38 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'account_iban' => 'CZ1520100000002001234561',
             'account_country' => 'CZ',
         ];
-        // Mock assembler to return payload as validated
-        $invoiceRequestAssembler = $this->mock(InvoiceRequestAssemblerInterface::class);
-        $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
-        $expectation->once();
-        $expectation->andReturn(
-            new InvoiceMutationPayload($invoiceData),
-        );
-
-        $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
-        $expectation = $guestInvoiceApplicationService->shouldReceive('storeGuestInvoice');
-        $expectation->once();
-        $expectation->andReturn(
-            [
-                'success' => true,
-                'token' => 'tok_' . uniqid(),
-                'message' => __('invoices.messages.created'),
-            ],
-        );
-
         $payload = array_merge($invoiceData, ['lang' => 'cs']);
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
             $payload,
             ['Accept' => 'application/json'],
         );
-        $assertionResponse = $response->assertStatus(200);
-        $assertionResponse->assertJson(['success' => true]);
-    }
-
-    #[Test]
-    public function store_guest_handles_exception_and_returns_error_json(): void
-    {
-        // Provide full valid payload to satisfy validation then simulate exception in service
-        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
-        $now = CarbonImmutable::now();
-        $invoiceData = [
-            'invoice_vs' => $now->format('Y') . '0001',
-            'payment_method_id' => $paymentMethodId,
-            'payment_amount' => 50,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode(
-                [[
-                    'name' => 'Service',
-                    'quantity' => '1',
-                    'unit' => 'pieces',
-                    'price' => '100',
-                    'currency' => 'CZK',
-                    'tax_rate' => '0',
-                ]],
-            ),
-            'issue_date' => $now->format('Y-m-d'),
-            'tax_point_date' => $now->format('Y-m-d'),
-            'due_in' => 7,
-            'status' => InvoiceStatus::PENDING->value,
-            'template' => 'default',
-            'supplier_name' => 'Supp X',
-            'supplier_street' => 'S',
-            'supplier_city' => 'C',
-            'supplier_postal_code' => '11111',
-            'supplier_country' => 'CZ',
-            'customer_name' => 'Client X',
-            'customer_street' => 'CS',
-            'customer_city' => 'CC',
-            'customer_postal_code' => '22222',
-            'customer_country' => 'CZ',
-            'account_iban' => 'CZ1520100000002001234561',
-            'account_country' => 'CZ',
-        ];
-        $invoiceRequestAssembler = $this->mock(InvoiceRequestAssemblerInterface::class);
-        $expectation = $invoiceRequestAssembler->shouldReceive('assemble');
-        $expectation->once();
-        $expectation->andReturn(
-            new InvoiceMutationPayload($invoiceData),
-        );
-        $guestInvoiceApplicationService = $this->mock(GuestInvoiceApplicationServiceInterface::class);
-        $expectation = $guestInvoiceApplicationService->shouldReceive('storeGuestInvoice');
-        $expectation->once();
-        $expectation->andThrow(
-            new \Exception('boom'),
-        );
-        $response = $this->postJson(
-            route('frontend.invoice.store.guest', ['locale' => 'cs']),
-            array_merge($invoiceData, ['lang' => 'cs']),
-        );
-        $assertionResponse = $response->assertStatus(500);
-        $assertionResponse->assertJson(['success' => false]);
-    }
-
-    #[Test]
-    public function download_with_token_streams_pdf(): void
-    {
-        $pdfResponse = response(
-            'PDF',
-            200,
-            ['Content-Type' => 'application/pdf'],
-        );
-        $invoicePdfApplicationService = $this->mock(InvoicePdfApplicationServiceInterface::class);
-        $expectation = $invoicePdfApplicationService->shouldReceive('generate');
-        $expectation->once();
-        $expectation->andReturn(
-            InvoiceActionResult::success(response: $pdfResponse),
-        );
-
-        $response = $this->get(
-            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tok123']),
-        );
         $response->assertOk();
-        $this->assertEquals(
-            'application/pdf',
-            $response->headers->get('Content-Type'),
+        $response->assertJson(
+            ['success' => true, 'invoice_number' => $invoiceData['invoice_vs']],
         );
+        $response->assertSessionHas(
+            'last_guest_invoice_token',
+            $response->json('token'),
+        );
+
+        $download = $this->get(
+            $response->json('download_url'),
+        );
+
+        $download->assertOk();
+        $download->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF', (string) $download->getContent());
     }
 
     #[Test]
-    public function download_with_token_not_found_returns_404(): void
+    public function download_with_an_unknown_token_is_not_found(): void
     {
-        $this->withoutExceptionHandling();
-        $application = app();
-        $application->bind(
-            InvoicePdfApplicationServiceInterface::class,
-            function () {
-                return new class implements InvoicePdfApplicationServiceInterface
-                {
-                    public function generateForUser(
-                        ?int $userId,
-                        int $invoiceId,
-                        ?string $locale = null,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure();
-                    }
-
-                    public function generateForGuestByToken(
-                        ?string $token,
-                        ?string $requestedLocale,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure('invoices.messages.not_found');
-                    }
-
-                    public function generate(
-                        ?int $userId,
-                        ?int $invoiceId = null,
-                        ?string $token = null,
-                        ?string $locale = null,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure('invoices.messages.not_found');
-                    }
-                };
-            },
+        $response = $this->get(
+            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'unknown-token']),
         );
-        $this->expectException(NotFoundHttpException::class);
-        $this->get(
-            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokXXX']),
-        );
-    }
 
-    #[Test]
-    public function download_with_token_generic_failure_returns_500(): void
-    {
-        $this->withoutExceptionHandling();
-        $application = app();
-        $application->bind(
-            InvoicePdfApplicationServiceInterface::class,
-            function () {
-                return new class implements InvoicePdfApplicationServiceInterface
-                {
-                    public function generateForUser(
-                        ?int $userId,
-                        int $invoiceId,
-                        ?string $locale = null,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure();
-                    }
-
-                    public function generateForGuestByToken(
-                        ?string $token,
-                        ?string $requestedLocale,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure('invoices.messages.pdf_error');
-                    }
-
-                    public function generate(
-                        ?int $userId,
-                        ?int $invoiceId = null,
-                        ?string $token = null,
-                        ?string $locale = null,
-                        bool $preview = false,
-                    ): InvoiceActionResult {
-                        return InvoiceActionResult::failure('invoices.messages.pdf_error');
-                    }
-                };
-            },
-        );
-        $this->expectException(HttpException::class);
-        $this->get(
-            route('frontend.invoice.download.token', ['locale' => 'cs', 'token' => 'tokERR']),
-        );
+        $response->assertNotFound();
     }
 
     #[Test]

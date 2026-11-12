@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Invoice\Contracts;
 
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Models\Invoice;
 
 /**
- * Persistence boundary for Invoice aggregate.
- *
- * Wave 2: Initial minimal contract used by InvoiceApplicationService. Will be extended in later waves
- * (creation, querying, filtering) once application layer is refactored.
+ * The invoice model the show and edit pages render until step 12 replaces them (docs/TECH_DEBT.md).
  */
 interface InvoiceReadRepositoryInterface
 {
-    /** Find invoice for user by ID */
-    public function findForUser(int $userId, int $invoiceId): ?Invoice;
+    /** Null when the invoice does not exist or is outside the scope. */
+    public function find(InvoiceId $id, ReadScope $scope): ?Invoice;
 }

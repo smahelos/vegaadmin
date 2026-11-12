@@ -1,3 +1,4 @@
+@use('App\Application\Invoice\Queries\ListInvoices')
 @use('App\Application\Party\Queries\ListBusinesses')
 @use('App\Application\Party\Queries\ListContacts')
 @extends('layouts.frontend')
@@ -193,7 +194,9 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white border-b-1 pb-2 border-gray-200 dark:border-gray-700">{{ __('dashboard.recent_invoices') }}</h3>
                     <div class="overflow-hidden">
                         <!-- Livewire component - Latest invoices -->
+                        @allowed(ListInvoices::class)
                         @livewire('invoice.invoice-list-recent')
+                        @endallowed
                     </div>
                 </div>
 

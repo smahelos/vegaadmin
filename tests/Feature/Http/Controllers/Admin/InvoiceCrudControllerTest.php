@@ -80,7 +80,7 @@ final class InvoiceCrudControllerTest extends TestCase
             ['user_id' => $owner->id],
         );
         $httpResponse = $this->post('/admin/invoice', $data);
-        $httpResponse->assertRedirect();
+        $httpResponse->assertForbidden();
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 

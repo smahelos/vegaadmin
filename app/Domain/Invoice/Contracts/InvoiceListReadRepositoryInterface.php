@@ -7,22 +7,22 @@ namespace App\Domain\Invoice\Contracts;
 use App\Domain\Invoice\DTO\InvoiceListDTO;
 use App\Domain\Invoice\DTO\InvoicePartyFilterDTO;
 use App\Domain\Invoice\DTO\InvoiceSearch;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
-use App\Domain\User\ValueObjects\UserId;
 
 interface InvoiceListReadRepositoryInterface
 {
     /** @return PaginatedResult<InvoiceListDTO> */
-    public function searchForUser(
-        UserId $userId,
+    public function search(
+        ReadScope $scope,
         InvoiceSearch $search,
         PageRequest $page,
     ): PaginatedResult;
 
     /** @return list<InvoicePartyFilterDTO> Includes archived sources for historical filtering. */
-    public function businessFiltersForUser(UserId $userId): array;
+    public function businessFilters(ReadScope $scope): array;
 
     /** @return list<InvoicePartyFilterDTO> Includes archived sources for historical filtering. */
-    public function contactFiltersForUser(UserId $userId): array;
+    public function contactFilters(ReadScope $scope): array;
 }

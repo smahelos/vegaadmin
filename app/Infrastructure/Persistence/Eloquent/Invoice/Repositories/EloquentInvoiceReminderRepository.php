@@ -8,12 +8,13 @@ use App\Domain\Invoice\Contracts\InvoiceReminderReadRepositoryInterface;
 use App\Domain\Invoice\DTO\ReminderInvoiceDTO;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentReminderInvoiceMapper;
 use App\Models\Invoice;
 
 final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepositoryInterface
 {
-    public function findByIdAny(InvoiceId $id): ?ReminderInvoiceDTO
+    public function findById(InvoiceId $id, AllOwnersScope $scope): ?ReminderInvoiceDTO
     {
         $query = Invoice::query();
         $invoice = $query->find($id->getValue());
@@ -21,7 +22,7 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
         return $invoice === null ? null : EloquentReminderInvoiceMapper::toDTO($invoice);
     }
 
-    public function unpaidForReminders(): iterable
+    public function unpaidForReminders(AllOwnersScope $scope): iterable
     {
         $statuses = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::unpaid());
         $query = Invoice::query();

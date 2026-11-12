@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 
-use App\Domain\Invoice\Contracts\InvoiceListReadRepositoryInterface;
+use App\Application\Invoice\Queries\ListInvoices;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\User\ValueObjects\UserId;
@@ -12,10 +12,13 @@ use App\Models\Invoice;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class EloquentInvoiceListRepositoryTest extends TestCase
 {
+    use RunsUseCases;
+
     /** @return array<string, array{string}> */
     public static function columnsOutsideTheAllowlist(): array
     {
@@ -58,6 +61,7 @@ final class EloquentInvoiceListRepositoryTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $invoiceFactory = Invoice::factory();
         $rows = [
             [
@@ -86,18 +90,21 @@ final class EloquentInvoiceListRepositoryTest extends TestCase
                 ],
             );
         }
-        $repository = app(InvoiceListReadRepositoryInterface::class);
-        $result = $repository->searchForUser(
+        // The repository takes a scope only the gate issues, so the list is read through its use case
+        $result = $this->runAs(
             UserId::fromInt($user->id),
-            new InvoiceSearch(
-                '',
-                null,
-                null,
-                null,
-                $sort,
-                true,
+            new ListInvoices(
+                UserId::fromInt($user->id),
+                new InvoiceSearch(
+                    '',
+                    null,
+                    null,
+                    null,
+                    $sort,
+                    true,
+                ),
+                new PageRequest,
             ),
-            new PageRequest,
         );
         $numbers = [];
         foreach ($result->items() as $invoice) {

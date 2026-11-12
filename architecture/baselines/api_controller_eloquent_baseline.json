@@ -5,13 +5,11 @@
         "justification": "API thin controller guideline"
     },
     "controllers": [
-        "Http/Controllers/Api/ApiBackpackController.php",
         "Http/Controllers/Api/CountryController.php",
         "Http/Controllers/Api/CurrencyController.php",
-        "Http/Controllers/Api/InvoiceController.php",
         "Http/Controllers/Api/SessionController.php",
         "Http/Controllers/Api/StatisticsController.php",
         "Http/Controllers/Api/UserController.php"
     ],
-    "generated_at": "2026-11-07T17:12:06+00:00"
+    "generated_at": "2026-11-12T12:35:27+00:00"
 }

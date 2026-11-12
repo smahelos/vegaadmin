@@ -40,11 +40,6 @@ final class InvoicePermissionsTest extends TestCase
                 'frontend.invoice.set-template',
                 ['template' => 'modern'],
             ],
-            'batch actions' => [
-                'POST',
-                'frontend.invoice.batch-actions',
-                [],
-            ],
             'link contact' => [
                 'POST',
                 'frontend.invoices.link-contact',

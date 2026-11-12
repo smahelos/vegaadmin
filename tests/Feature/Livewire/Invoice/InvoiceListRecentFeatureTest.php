@@ -1,198 +1,82 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Livewire\Invoice;
 
-use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Livewire\Invoice\InvoiceListRecent;
 use App\Models\Invoice;
-use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class InvoiceListRecentFeatureTest extends TestCase
+final class InvoiceListRecentFeatureTest extends TestCase
 {
-    private User $user;
-
-    protected function setUp(): void
+    #[Test]
+    public function it_shows_the_five_newest_invoices_of_the_user_newest_first(): void
     {
-        parent::setUp();
+        $user = $this->frontendUser();
         $userFactory = User::factory();
-        $this->user = $userFactory->create();
-    }
-
-    #[Test]
-    public function component_can_be_rendered(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-
-        $component->assertStatus(200);
-    }
-
-    #[Test]
-    public function component_displays_user_invoices_only(): void
-    {
-        $userFactory = User::factory();
-        $otherUser = $userFactory->create();
-
-        $invoiceFactory = Invoice::factory();
-        $userInvoice = $invoiceFactory->create([
-            'user_id' => $this->user->id,
-        ]);
-
-        $otherUserInvoice = $invoiceFactory->create([
-            'user_id' => $otherUser->id,
-        ]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-        $invoices = $component->viewData('invoices');
-
-        $this->assertEquals(1, $invoices->count());
-        $this->assertEquals($userInvoice->id, $invoices->first()->id);
-    }
-
-    #[Test]
-    public function component_displays_empty_state_when_no_invoices(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-
-        $hasData = $component->viewData('hasData');
-        $this->assertFalse($hasData);
-    }
-
-    #[Test]
-    public function component_requires_authentication(): void
-    {
-        // Test that component works when authenticated
-        $this->actingAs($this->user);
-        $component = Livewire::test(InvoiceListRecent::class);
-        $component->assertStatus(200);
-
-        // Test behavior when not authenticated (Auth::id() returns null)
-        $auth = auth();
-        $auth->logout();
-
-        $component = Livewire::test(InvoiceListRecent::class);
-        $invoices = $component->viewData('invoices');
-
-        // Should return empty collection when no user authenticated
-        $this->assertEquals(0, $invoices->count());
-    }
-
-    #[Test]
-    public function component_uses_correct_view(): void
-    {
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-
-        $component->assertViewIs('livewire.invoice.invoice-list-recent');
-    }
-
-    #[Test]
-    public function component_passes_correct_data_to_view(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoiceFactory->create([
-            'user_id' => $this->user->id,
-        ]);
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-
-        $component->assertViewHas('invoices');
-        $component->assertViewHas('hasData', true);
-        $component->assertViewHas('errorMessage', null);
-    }
-
-    #[Test]
-    public function component_eager_loads_relationships(): void
-    {
-        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $paymentMethod = $paymentMethodQuery->firstOrFail();
-        $statusFactory = Status::factory();
-        $paymentStatus = $statusFactory->create();
-
-        $invoiceFactory = Invoice::factory();
-        $invoiceFactory->create(
-            [
-                'user_id' => $this->user->id,
-                'payment_method_id' => $paymentMethod->id,
-                'payment_status_id' => $paymentStatus->id,
-            ],
-        );
-
-        $this->actingAs($this->user);
-
-        $component = Livewire::test(InvoiceListRecent::class);
-        $invoices = $component->viewData('invoices');
-
-        // Check that relationships are loaded
-        $invoice = $invoices->first();
-        $this->assertTrue(
-            $invoice->relationLoaded('paymentMethod'),
-        );
-        $this->assertTrue(
-            $invoice->relationLoaded('paymentStatus'),
-        );
-    }
-
-    #[Test]
-    public function component_defaults_to_descending_created_at_order(): void
-    {
+        $other = $userFactory->create();
         $invoiceFactory = Invoice::factory();
         $now = CarbonImmutable::now();
-        $oldInvoice = $invoiceFactory->create(
-            [
-                'user_id' => $this->user->id,
-                'created_at' => $now->subDays(2),
-            ],
-        );
-
-        $newInvoice = $invoiceFactory->create(
-            [
-                'user_id' => $this->user->id,
-                'created_at' => $now->subDay(),
-            ],
-        );
-
-        $this->actingAs($this->user);
+        $numbers = [];
+        for ($day = 1; $day <= 6; $day++) {
+            $invoice = $invoiceFactory->create(
+                [
+                    'user_id' => $user->id,
+                    'created_at' => $now->subDays($day),
+                ],
+            );
+            $numbers[] = $invoice->invoice_vs;
+        }
+        $foreign = $invoiceFactory->create(['user_id' => $other->id, 'created_at' => $now]);
+        $this->actingAs($user);
 
         $component = Livewire::test(InvoiceListRecent::class);
-        $invoices = $component->viewData('invoices');
 
-        // Should be ordered by created_at desc by default (newest first)
-        $this->assertEquals($newInvoice->id, $invoices->first()->id);
+        $component->assertSeeInOrder(
+            array_slice(
+                $numbers,
+                0,
+                5,
+            ),
+        );
+        $component->assertDontSee($numbers[5]);
+        $component->assertDontSee($foreign->invoice_vs);
     }
 
     #[Test]
-    public function component_limits_to_5_invoices_per_page(): void
+    public function it_shows_the_empty_state_without_invoices(): void
     {
-        // Create 7 invoices
-        $invoiceFactory = Invoice::factory();
-        $invoiceFactory = $invoiceFactory->count(7);
-        $invoiceFactory->create([
-            'user_id' => $this->user->id,
-        ]);
-
-        $this->actingAs($this->user);
+        $this->actingAs($this->frontendUser());
 
         $component = Livewire::test(InvoiceListRecent::class);
-        $invoices = $component->viewData('invoices');
 
-        // Should only show 5 per page
-        $this->assertEquals(5, $invoices->perPage());
-        $this->assertEquals(7, $invoices->total());
-        $this->assertEquals(5, $invoices->count());
+        $component->assertSee(
+            __('dashboard.status.no_invoices'),
+        );
+    }
+
+    #[Test]
+    public function it_needs_the_invoice_view_permission(): void
+    {
+        $userFactory = User::factory();
+        $this->actingAs($userFactory->create());
+
+        $component = Livewire::test(InvoiceListRecent::class);
+
+        $component->assertForbidden();
+    }
+
+    private function frontendUser(): User
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->assignRole('frontend_user');
+
+        return $user;
     }
 }

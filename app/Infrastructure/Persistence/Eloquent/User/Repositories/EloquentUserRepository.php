@@ -31,13 +31,8 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
 
     public function findAccount(ReadScope $scope): ?UserDTO
     {
-        return $this->findUserById($scope->owner);
-    }
-
-    public function findUserById(UserId $id): ?UserDTO
-    {
         $query = User::query();
-        $user = $query->find($id->toInt());
+        $user = $query->find($scope->owner->toInt());
 
         return $user === null ? null : $this->mapper->toDto($user);
     }

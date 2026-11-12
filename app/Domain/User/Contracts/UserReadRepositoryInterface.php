@@ -20,11 +20,6 @@ interface UserReadRepositoryInterface
     public function findAccount(ReadScope $scope): ?UserDTO;
 
     /**
-     * Without a scope for Invoice, which the gate does not run yet.
-     */
-    public function findUserById(UserId $id): ?UserDTO;
-
-    /**
      * Accounts whose name or email contains the term, every account without one.
      *
      * @return PaginatedResult<UserDTO>

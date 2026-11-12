@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Livewire\Invoice;
 
 use App\Application\Invoice\Presenters\InvoiceListPresenter;
-use App\Application\Invoice\Services\InvoiceListApplicationService;
+use App\Application\Invoice\Queries\ListInvoiceFilters;
+use App\Application\Invoice\Queries\ListInvoices;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Party\Enums\PartyKind;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
-use App\Domain\User\Enums\Permission;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\Paginates;
 use App\Livewire\Shared\Sorts;
@@ -90,26 +91,28 @@ final class InvoiceList extends Component
         return 'created_at';
     }
 
-    public function render(InvoiceListApplicationService $invoices, InvoiceListPresenter $presenter): View
+    public function render(InvoiceListPresenter $presenter): View
     {
-        $this->requirePermission(Permission::INVOICE_VIEW);
-        $userId = $this->userId();
+        $this->requireAllowed(ListInvoices::class);
+        $owner = $this->userId();
         $status = InvoiceStatus::tryFrom($this->status);
         abort_if($this->status !== '' && $status === null, 404);
         $businessId = $this->filterId($this->businessId);
         $contactId = $this->filterId($this->contactId);
         try {
-            $result = $invoices->search(
-                $userId,
-                new InvoiceSearch(
-                    $this->search,
-                    $status,
-                    $businessId === null ? null : BusinessId::fromInt($businessId),
-                    $contactId === null ? null : ContactId::fromInt($contactId),
-                    $this->sortKey(),
-                    $this->orderAsc,
+            $result = $this->runUseCase(
+                new ListInvoices(
+                    $owner,
+                    new InvoiceSearch(
+                        $this->search,
+                        $status,
+                        $businessId === null ? null : BusinessId::fromInt($businessId),
+                        $contactId === null ? null : ContactId::fromInt($contactId),
+                        $this->sortKey(),
+                        $this->orderAsc,
+                    ),
+                    new PageRequest($this->getPage(), 10),
                 ),
-                new PageRequest($this->getPage(), 10),
             );
         } catch (BusinessNotFoundException|ContactNotFoundException) {
             abort(404);
@@ -120,8 +123,12 @@ final class InvoiceList extends Component
             [
                 'invoices' => $this->paginator($result),
                 'hasData' => $result->total() > 0,
-                'businesses' => $invoices->businessFilters($userId),
-                'contacts' => $invoices->contactFilters($userId),
+                'businesses' => $this->runUseCase(
+                    new ListInvoiceFilters($owner, PartyKind::BUSINESS),
+                ),
+                'contacts' => $this->runUseCase(
+                    new ListInvoiceFilters($owner, PartyKind::CONTACT),
+                ),
                 'statuses' => InvoiceStatus::cases(),
                 'presenter' => $presenter,
             ],

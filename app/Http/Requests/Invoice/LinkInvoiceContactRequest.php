@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Invoice;
 
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -14,13 +13,6 @@ use Illuminate\Validation\Rule;
  */
 final class LinkInvoiceContactRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = $this->user();
-
-        return $user?->can(Permission::INVOICE_UPDATE) === true;
-    }
-
     /**
      * @return array<string, list<string|object>>
      */

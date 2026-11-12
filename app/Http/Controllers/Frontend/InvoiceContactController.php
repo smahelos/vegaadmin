@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Invoice\Services\InvoiceContactApplicationService;
+use App\Application\Invoice\Commands\LinkInvoiceContact;
+use App\Application\Invoice\Commands\SaveInvoiceCustomerToContacts;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\LinkInvoiceContactRequest;
-use App\Http\Requests\Invoice\SaveCustomerToContactsRequest;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * Links the customer of an invoice to the address book from the invoice detail.
@@ -18,18 +21,21 @@ use Illuminate\Http\RedirectResponse;
 final class InvoiceContactController extends Controller
 {
     public function __construct(
-        private readonly InvoiceContactApplicationService $invoiceContacts,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
     ) {}
 
     public function saveToContacts(
-        SaveCustomerToContactsRequest $request,
+        Request $request,
         string $locale,
         int $invoice,
     ): RedirectResponse {
-        $user = $request->user();
-        $this->invoiceContacts->saveCustomerToContacts(
-            UserId::fromInt((int) $user?->getAuthIdentifier()),
-            InvoiceId::fromInt($invoice),
+        $owner = $this->owner($request);
+        $this->useCases->run(
+            Actor::user($owner),
+            new SaveInvoiceCustomerToContacts(
+                $owner,
+                InvoiceId::fromInt($invoice),
+            ),
         );
 
         $redirect = back();
@@ -45,11 +51,15 @@ final class InvoiceContactController extends Controller
         string $locale,
         int $invoice,
     ): RedirectResponse {
-        $user = $request->user();
-        $this->invoiceContacts->linkContact(
-            UserId::fromInt((int) $user?->getAuthIdentifier()),
-            InvoiceId::fromInt($invoice),
-            $request->contactId(),
+        $owner = $this->owner($request);
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new LinkInvoiceContact(
+                $owner,
+                InvoiceId::fromInt($invoice),
+                $request->contactId(),
+            ),
         );
 
         $redirect = back();
@@ -58,5 +68,12 @@ final class InvoiceContactController extends Controller
             'success',
             __('invoices.messages.contact_linked'),
         );
+    }
+
+    private function owner(Request $request): UserId
+    {
+        $user = $request->user();
+
+        return UserId::fromInt((int) $user?->getAuthIdentifier());
     }
 }

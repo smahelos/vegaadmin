@@ -16,7 +16,6 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
@@ -27,15 +26,6 @@ use Illuminate\Validation\Rule;
 
 final class InvoiceRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-
-        return $user?->can(
-            $this->isMethod('POST') ? Permission::INVOICE_CREATE : Permission::INVOICE_UPDATE,
-        ) === true;
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
