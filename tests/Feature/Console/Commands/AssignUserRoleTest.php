@@ -65,4 +65,19 @@ final class AssignUserRoleTest extends TestCase
         $command->assertExitCode(1);
         $command->run();
     }
+
+    #[Test]
+    public function an_unknown_role_is_reported(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+
+        $command = $this->pendingCommand(
+            'user:assign-role',
+            ['email' => $user->email, 'role' => 'missing-' . uniqid()],
+        );
+        $command->expectsOutputToContain('Role not found');
+        $command->assertExitCode(1);
+        $command->run();
+    }
 }

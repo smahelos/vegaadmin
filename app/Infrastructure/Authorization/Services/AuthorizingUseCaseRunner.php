@@ -75,6 +75,10 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
         if ($guard === null || $access->kind === AccessKind::SYSTEM) {
             return false;
         }
+        // Same rule as permits(): only an admin reads every owner's data
+        if ($access->kind === AccessKind::ALL_OWNERS && $actor->kind !== ActorKind::ADMIN) {
+            return false;
+        }
         $guardDriver = $this->auth->guard($guard);
         // The signed-in instance remembers its roles, so a page asking many times loads them once
         $user = $guardDriver->user();

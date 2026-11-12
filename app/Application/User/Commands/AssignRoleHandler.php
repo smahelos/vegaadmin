@@ -8,6 +8,7 @@ use App\Application\User\Support\PlanRoleAssignments;
 use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
+use App\Domain\User\Exceptions\RoleNotFoundException;
 use App\Domain\User\Exceptions\UserNotFoundException;
 
 final class AssignRoleHandler
@@ -19,6 +20,7 @@ final class AssignRoleHandler
     ) {}
 
     /**
+     * @throws RoleNotFoundException
      * @throws UserNotFoundException
      */
     public function handle(AssignRole $command, AllOwnersScope $scope): void

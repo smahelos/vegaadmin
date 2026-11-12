@@ -7,6 +7,7 @@ namespace App\Console\Commands;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\User\Commands\AssignRole;
+use App\Domain\User\Exceptions\RoleNotFoundException;
 use App\Domain\User\Exceptions\UserNotFoundException;
 use Illuminate\Console\Command;
 
@@ -33,6 +34,10 @@ final class AssignUserRole extends Command
             );
         } catch (UserNotFoundException) {
             $this->error('User not found: ' . $email);
+
+            return self::FAILURE;
+        } catch (RoleNotFoundException) {
+            $this->error('Role not found: ' . $role);
 
             return self::FAILURE;
         }

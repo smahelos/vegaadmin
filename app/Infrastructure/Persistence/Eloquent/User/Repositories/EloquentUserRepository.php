@@ -13,6 +13,7 @@ use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
+use App\Domain\User\Exceptions\RoleNotFoundException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentUserMapper;
@@ -20,6 +21,7 @@ use App\Models\Role;
 use App\Models\User;
 use DateTimeImmutable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 final class EloquentUserRepository implements UserReadRepositoryInterface, UserWriteRepositoryInterface
 {
@@ -139,9 +141,12 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
         // By the role itself, not its name: a name alone resolves in the user's default guard only
         $roleQuery = Role::query();
         $roleQuery->where('name', $role);
-        $user->assignRole(
-            $roleQuery->sole(),
-        );
+        try {
+            $record = $roleQuery->sole();
+        } catch (ModelNotFoundException) {
+            throw new RoleNotFoundException($role);
+        }
+        $user->assignRole($record);
     }
 
     public function syncRolesAndPermissions(

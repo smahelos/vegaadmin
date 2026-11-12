@@ -7,6 +7,7 @@ namespace App\Domain\User\Contracts;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\User\DTO\UserDTO;
 use App\Domain\User\DTO\UserWriteData;
+use App\Domain\User\Exceptions\RoleNotFoundException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
 use DateTimeImmutable;
@@ -31,6 +32,9 @@ interface UserWriteRepositoryInterface
      */
     public function lockForUpdate(UserId $id): void;
 
+    /**
+     * @throws RoleNotFoundException
+     */
     public function assignRole(UserId $id, string $role): void;
 
     /**
