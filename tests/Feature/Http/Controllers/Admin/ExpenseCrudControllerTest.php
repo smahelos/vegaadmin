@@ -11,6 +11,7 @@ use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\FileHash;
 use App\Models\RoleLimit;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
@@ -292,6 +293,18 @@ final class ExpenseCrudControllerTest extends TestCase
         $stored = $expense->fresh();
         $this->assertSame($this->regularUser->id, $stored->user_id);
         $this->assertSame('Corrected description', $stored->description);
+    }
+
+    #[Test]
+    public function an_owner_without_a_plan_role_gets_no_expense_whatever_the_admin_may_do(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        [$business] = $this->issuerOf($owner);
+        $data = $this->expenseInput($business);
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertForbidden();
+        $this->assertDatabaseMissing('expenses', ['reference_number' => $data['reference_number']]);
     }
 
     #[Test]
