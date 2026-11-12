@@ -9,6 +9,7 @@ use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
@@ -158,5 +159,27 @@ final class RegistrationFormTest extends TestCase
         $component->call('lookUpCompany');
         $component->assertHasNoErrors();
         $component->assertSet('party.vatNumber', '');
+    }
+
+    #[Test]
+    public function a_guest_is_refused_further_register_lookups_above_the_rate_limit(): void
+    {
+        Http::fake(
+            [
+                'ares.gov.cz/*' => Http::response(['obchodniJmeno' => 'Alza.cz a.s.']),
+            ],
+        );
+        $limit = Config::integer('billex.rate_limits.company_registry');
+
+        $component = Livewire::test(RegistrationForm::class);
+        $component->set('party.companyNumber', '27082440');
+        for ($i = 0; $i < $limit; $i++) {
+            $component->call('lookUpCompany');
+            $component->assertHasNoErrors();
+        }
+        $component->call('lookUpCompany');
+
+        $component->assertHasErrors('party.companyNumber');
+        Http::assertSentCount($limit);
     }
 }
