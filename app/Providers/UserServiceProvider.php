@@ -2,9 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\User\Contracts\UserApplicationServiceInterface;
-use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
-use App\Application\User\Services\UserApplicationService;
 use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\Locale;
@@ -12,15 +9,12 @@ use App\Domain\User\Contracts\LocaleServiceInterface;
 use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
 use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
-use App\Domain\User\Contracts\UserServiceInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\Services\LocaleService;
-use App\Domain\User\Services\UserService;
 use App\Domain\User\ValueObjects\UserPassword;
-use App\Infrastructure\Authorization\Adapters\User\SpatieAuthorizationAdapter;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
-use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserDtoRepository;
+use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserRepository;
 use App\Infrastructure\Services\User\LaravelUserPermissionService;
 use App\Infrastructure\Shared\Locale\Services\LaravelLocaleAdapter;
 use Illuminate\Support\ServiceProvider;
@@ -36,7 +30,6 @@ class UserServiceProvider extends ServiceProvider
     {
         $this->registerDomainServices();
         $this->registerInfrastructure();
-        $this->registerApplicationServices();
     }
 
     /**
@@ -47,11 +40,6 @@ class UserServiceProvider extends ServiceProvider
         $this->app->bind(
             LocaleServiceInterface::class,
             LocaleService::class,
-        );
-
-        $this->app->bind(
-            UserServiceInterface::class,
-            UserService::class,
         );
     }
 
@@ -79,35 +67,18 @@ class UserServiceProvider extends ServiceProvider
 
         $this->app->bind(
             UserReadRepositoryInterface::class,
-            EloquentUserDtoRepository::class,
+            EloquentUserRepository::class,
         );
 
         $this->app->bind(
             UserWriteRepositoryInterface::class,
-            EloquentUserDtoRepository::class,
-        );
-
-        // Authorization adapter (Backpack + Spatie) for Application layer
-        $this->app->bind(
-            UserAuthorizationAdapterInterface::class,
-            SpatieAuthorizationAdapter::class,
+            EloquentUserRepository::class,
         );
 
         // User permissions service
         $this->app->bind(
             UserPermissionServiceInterface::class,
             LaravelUserPermissionService::class,
-        );
-    }
-
-    /**
-     * Application use-case services, presenters and mappers.
-     */
-    private function registerApplicationServices(): void
-    {
-        $this->app->bind(
-            UserApplicationServiceInterface::class,
-            UserApplicationService::class,
         );
     }
 

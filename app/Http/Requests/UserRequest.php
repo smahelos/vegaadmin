@@ -13,11 +13,7 @@ use Illuminate\Validation\Rule;
  */
 final class UserRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        return $this->user() !== null;
-    }
-
+    /** @return array<string, mixed> */
     public function rules(): array
     {
         $user = $this->user();
@@ -34,6 +30,7 @@ final class UserRequest extends FormRequest
         ];
     }
 
+    /** @return array<string, string> */
     public function attributes(): array
     {
         return [

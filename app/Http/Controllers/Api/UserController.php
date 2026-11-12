@@ -1,157 +1,59 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
-use App\Application\User\Contracts\UserApplicationServiceInterface;
-use App\Application\User\Contracts\UserAuthorizationAdapterInterface;
-use App\Domain\User\Enums\Permission;
-// Use Application-layer facade instead of Domain in controllers
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Queries\SearchUsers;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\User\DTO\UserDTO;
+use App\Http\Controllers\Admin\ActsAsAdmin;
 use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
+use App\Http\Requests\Admin\UserSearchRequest;
+use App\Http\Resources\Admin\UserOptionResource;
+use Illuminate\Pagination\LengthAwarePaginator;
 
-class UserController extends Controller
+final class UserController extends Controller
 {
+    use ActsAsAdmin;
+
+    private const PER_PAGE = 10;
+
     public function __construct(
-        private UserApplicationServiceInterface $userService,
-        private ?UserAuthorizationAdapterInterface $auth = null,
-    ) {
-        $this->auth = $this->auth ?? app(UserAuthorizationAdapterInterface::class);
-    }
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
 
     /**
-     * Get User data by ID for admin users
-     * Admins can access any user.
+     * The owner lookup of admin forms. Backpack's select2_from_ajax reads the paginator's own shape (current_page
+     * and last_page at the top level), which a resource collection would move under meta, so each item goes through
+     * the resource inside the paginator.
      *
-     * @param  int  $id  User ID
+     * @return LengthAwarePaginator<int, UserOptionResource>
      */
-    public function getUserAdmin(int $id): JsonResponse
+    public function search(UserSearchRequest $request): LengthAwarePaginator
     {
-        try {
-            // Authenticate via backpack guard
-            $current = backpack_user();
-            if (!$current) {
-                $responseFactory = response();
-
-                return $responseFactory->json(
-                    ['error' => __('users.auth.unauthenticated')],
-                    401,
-                );
-            }
-            // Permission check via adapter (backpack guard)
-            if (!$this->auth->hasBackpackPermission((int) $current->id, Permission::USER_VIEW)) {
-                $responseFactory = response();
-
-                return $responseFactory->json(
-                    ['error' => __('users.auth.unauthorized')],
-                    403,
-                );
-            }
-
-            $user = $this->userService->findUserById((int) $id);
-
-            $responseFactory = response();
-
-            return $responseFactory->json($user);
-        } catch (ModelNotFoundException $e) {
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.messages.not_found')],
-                404,
-            );
-        } catch (\Exception $e) {
-            Log::error(
-                'UserController@getUserAdmin error',
-                [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'user_id' => $id,
-                ],
-            );
-
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.messages.load_failed')],
-                500,
-            );
-        }
-    }
-
-    /**
-     * Get list of users for authenticated user
-     */
-    public function getUsersAdmin(): JsonResponse
-    {
-        $user = backpack_user();
-        if (!$user) {
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.auth.unauthenticated'), 'code' => 401],
-                401,
-            );
-        }
-
-        // Check if user has permission to view users
-        if (!$this->auth->hasBackpackPermission((int) $user->id, Permission::USER_VIEW)) {
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.auth.unauthorized')],
-                403,
-            );
-        }
-
-        // Admins can see all users via service abstraction
-        $users = $this->userService->getAllUsers();
-
-        $responseFactory = response();
-
-        return $responseFactory->json($users);
-    }
-
-    /**
-     * Search users for admin
-     *
-     * This method allows admins to search for users by name.
-     * It returns paginated results.
-     */
-    public function searchUsersAdmin(Request $request): JsonResponse
-    {
-        $user = backpack_user();
-        if (!$user) {
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.auth.unauthenticated'), 'code' => 401],
-                401,
-            );
-        }
-
-        if (!$this->auth->hasBackpackPermission((int) $user->id, Permission::USER_VIEW)) {
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                ['error' => __('users.auth.unauthorized')],
-                403,
-            );
-        }
-
-        $search_term = $request->input('q');
-
-        $responseFactory = response();
-
-        return $responseFactory->json(
-            $this->userService->searchUsers(
-                $search_term,
-                10,
-                $request->integer('page', 1),
+        // The route's `allowed` middleware names SearchUsers: change them together
+        $found = $this->useCases->run(
+            $this->admin(),
+            new SearchUsers(
+                $request->validated('q'),
+                new PageRequest(
+                    $request->integer('page', 1),
+                    self::PER_PAGE,
+                ),
             ),
+        );
+
+        return new LengthAwarePaginator(
+            array_map(
+                fn (UserDTO $user): UserOptionResource => new UserOptionResource($user),
+                $found->items(),
+            ),
+            $found->total(),
+            $found->perPage(),
+            $found->currentPage(),
+            ['path' => $request->url()],
         );
     }
 }

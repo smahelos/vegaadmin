@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Middleware;
 
 use App\Domain\User\Enums\Permission;
@@ -52,6 +54,12 @@ class RequireBackpackApiAccess
 
             return $this->forbidden($request);
         }
+
+        // Like Backpack's admin middleware, so the gate's actor on these routes is the admin (CurrentActor)
+        $defaultAuth = auth();
+        $defaultAuth->shouldUse(
+            backpack_guard_name(),
+        );
 
         return $next($request);
     }

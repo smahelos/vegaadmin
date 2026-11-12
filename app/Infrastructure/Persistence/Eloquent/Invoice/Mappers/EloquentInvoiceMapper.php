@@ -55,7 +55,6 @@ final class EloquentInvoiceMapper
                 'template' => $model->getAttribute('template') ?? null,
                 'items' => $items,
                 'created_at' => $model->getAttribute('created_at'),
-                'updated_at' => $model->getAttribute('updated_at'),
                 'status' => $status,
             ],
         );

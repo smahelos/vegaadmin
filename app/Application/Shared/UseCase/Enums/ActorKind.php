@@ -8,15 +8,18 @@ enum ActorKind: string
 {
     case USER = 'user';
     case ADMIN = 'admin';
+    case ANONYMOUS = 'anonymous';
+    case SYSTEM = 'system';
 
     /**
-     * The guard that holds the actor's permissions.
+     * The guard that holds the actor's permissions; null for an actor without a user.
      */
-    public function guard(): string
+    public function guard(): ?string
     {
         return match ($this) {
             self::USER => 'web',
             self::ADMIN => 'backpack',
+            self::ANONYMOUS, self::SYSTEM => null,
         };
     }
 

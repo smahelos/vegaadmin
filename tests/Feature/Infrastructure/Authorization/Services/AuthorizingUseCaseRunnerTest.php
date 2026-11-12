@@ -7,11 +7,17 @@ namespace Tests\Feature\Infrastructure\Authorization\Services;
 use App\Application\Product\Commands\CreateProduct;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Commands\AssignRole;
+use App\Application\User\Commands\Register;
+use App\Application\User\Queries\GetEntityUsage;
+use App\Application\User\Queries\SearchUsers;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\PermissionDeniedException;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentProductDtoRepository;
@@ -161,6 +167,87 @@ final class AuthorizingUseCaseRunnerTest extends TestCase
                 CreateProduct::class,
             ),
         );
+    }
+
+    #[Test]
+    public function an_anonymous_visitor_reaches_only_public_use_cases(): void
+    {
+        $owner = $this->frontendUser();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+        $this->assertTrue(
+            $useCases->allowed(Actor::anonymous(), Register::class),
+        );
+        $this->expectException(PermissionDeniedException::class);
+
+        $useCases->run(
+            Actor::anonymous(),
+            new CreateProduct(
+                $this->idOf($owner),
+                $this->data(),
+            ),
+        );
+    }
+
+    #[Test]
+    public function only_the_system_runs_a_system_use_case(): void
+    {
+        $admin = $this->backendUser(Permission::USER_UPDATE);
+        $this->actingAs($admin, 'backpack');
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+        $this->assertFalse(
+            $useCases->allowed(
+                Actor::admin(
+                    $this->idOf($admin),
+                ),
+                AssignRole::class,
+            ),
+        );
+        $this->expectException(PermissionDeniedException::class);
+
+        $useCases->run(
+            Actor::admin(
+                $this->idOf($admin),
+            ),
+            new AssignRole($admin->email, 'backend_user'),
+        );
+    }
+
+    #[Test]
+    public function the_system_cannot_run_a_use_case_with_a_permission(): void
+    {
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+        $this->expectException(PermissionDeniedException::class);
+
+        $useCases->run(
+            Actor::system(),
+            new SearchUsers(
+                null,
+                new PageRequest(1, 10),
+            ),
+        );
+    }
+
+    #[Test]
+    public function any_of_the_declared_permissions_suffices(): void
+    {
+        $admin = $this->backendUser(Permission::INVOICE_UPDATE);
+        $owner = $this->frontendUser();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+        $usage = $useCases->run(
+            Actor::admin(
+                $this->idOf($admin),
+            ),
+            new GetEntityUsage(
+                $this->idOf($owner),
+                LimitedEntity::CONTACT,
+            ),
+        );
+
+        $this->assertSame(LimitedEntity::CONTACT, $usage->entity);
     }
 
     private function data(): ProductWriteData

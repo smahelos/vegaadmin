@@ -249,24 +249,6 @@ class PasswordUpdateRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorization_passes_when_authenticated(): void
-    {
-        $this->actingAs($this->user);
-
-        $request = new PasswordUpdateRequest;
-
-        $this->assertTrue($request->authorize());
-    }
-
-    #[Test]
-    public function authorization_fails_when_not_authenticated(): void
-    {
-        $request = new PasswordUpdateRequest;
-
-        $this->assertFalse($request->authorize());
-    }
-
-    #[Test]
     public function validation_fails_when_not_authenticated_for_current_password_check(): void
     {
         // Don't authenticate user

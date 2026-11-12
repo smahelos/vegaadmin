@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\User;
 
-use App\Application\User\Services\RegistrationApplicationService;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Commands\Register;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
@@ -62,7 +64,7 @@ final class RegistrationForm extends Component
         }
     }
 
-    public function save(RegistrationApplicationService $registration): void
+    public function save(AuthorizingUseCaseRunnerInterface $useCases): void
     {
         $this->errorMessage = null;
         $this->validate($this->rules());
@@ -73,14 +75,17 @@ final class RegistrationForm extends Component
         }
 
         try {
-            $user = $registration->register(
-                new UserWriteData(
-                    name: trim($this->name),
-                    email: trim($this->email),
-                    password: $this->password,
+            $user = $useCases->run(
+                Actor::anonymous(),
+                new Register(
+                    new UserWriteData(
+                        name: trim($this->name),
+                        email: trim($this->email),
+                        password: $this->password,
+                    ),
+                    new BusinessWriteData($this->party->profile(), null),
+                    $withAccount ? $this->account->writeData() : null,
                 ),
-                new BusinessWriteData($this->party->profile(), null),
-                $withAccount ? $this->account->writeData() : null,
             );
         } catch (EntityLimitExceededException $e) {
             // The registration plan must allow its first business; reaching this is a configuration error

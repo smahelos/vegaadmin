@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\User\Services\EntityUsageApplicationService;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\User\Queries\GetEntityUsage;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\AmbiguousPlanRoleException;
 use App\Domain\User\ValueObjects\UserId;
@@ -14,8 +15,10 @@ use Illuminate\View\View;
 
 final class EntityUsageController extends Controller
 {
+    use ActsAsAdmin;
+
     public function __construct(
-        private readonly EntityUsageApplicationService $usages,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
     ) {}
 
     /**
@@ -24,13 +27,17 @@ final class EntityUsageController extends Controller
     public function show(EntityUsageRequest $request): View
     {
         try {
+            // The route's `allowed` middleware names GetEntityUsage: change them together
             $usages = [
-                $this->usages->usage(
-                    UserId::fromInt(
-                        $request->integer('user_id'),
-                    ),
-                    LimitedEntity::from(
-                        $request->validated('entity'),
+                $this->useCases->run(
+                    $this->admin(),
+                    new GetEntityUsage(
+                        UserId::fromInt(
+                            $request->integer('user_id'),
+                        ),
+                        LimitedEntity::from(
+                            $request->validated('entity'),
+                        ),
                     ),
                 ),
             ];

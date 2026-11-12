@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Phpstan\Rules;
 
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
@@ -28,8 +29,9 @@ final class ScopeIssuedByGateRuleTest extends RuleTestCase
         $this->analyse(
             [__DIR__ . '/data/scope-issued-outside-the-gate.php'],
             [
-                ['Only the gate (' . AuthorizingUseCaseRunner::class . ') issues ' . ReadScope::class . '.', 15],
-                ['Only the gate (' . AuthorizingUseCaseRunner::class . ') issues ' . WriteScope::class . '.', 17],
+                ['Only the gate (' . AuthorizingUseCaseRunner::class . ') issues ' . ReadScope::class . '.', 16],
+                ['Only the gate (' . AuthorizingUseCaseRunner::class . ') issues ' . WriteScope::class . '.', 18],
+                ['Only the gate (' . AuthorizingUseCaseRunner::class . ') issues ' . AllOwnersScope::class . '.', 23],
             ],
         );
     }

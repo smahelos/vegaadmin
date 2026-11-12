@@ -33,6 +33,10 @@ final class SetDefaultBankAccountHandler
             throw new BankAccountArchivedException($command->id);
         }
 
-        $this->accountWriter->setDefaultForOwner($account->owner, $command->id);
+        $this->accountWriter->setDefaultForOwner(
+            $scope,
+            $account->owner,
+            $command->id,
+        );
     }
 }

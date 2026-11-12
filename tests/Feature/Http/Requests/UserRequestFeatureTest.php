@@ -38,21 +38,6 @@ class UserRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function guest_is_not_authorized(): void
-    {
-        $this->assertFalse((new UserRequest)->authorize());
-    }
-
-    #[Test]
-    public function signed_in_user_is_authorized(): void
-    {
-        $request = new UserRequest;
-        $request->setUserResolver(fn () => $this->user);
-
-        $this->assertTrue($request->authorize());
-    }
-
-    #[Test]
     public function name_and_email_pass(): void
     {
         $validator = $this->validate(

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Billex\PHPStan\Rules;
 
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
@@ -23,6 +24,7 @@ use PHPStan\Rules\RuleErrorBuilder;
 final class ScopeIssuedByGateRule implements Rule
 {
     private const SCOPES = [
+        AllOwnersScope::class,
         ReadScope::class,
         WriteScope::class,
     ];

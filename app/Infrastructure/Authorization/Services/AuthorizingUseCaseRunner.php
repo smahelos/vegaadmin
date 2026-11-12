@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Authorization\Services;
 
+use App\Application\Shared\UseCase\Access;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\Shared\UseCase\Contracts\CallsOutsideDatabaseInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\Contracts\QueryInterface;
+use App\Application\Shared\UseCase\Enums\AccessKind;
 use App\Application\Shared\UseCase\Enums\ActorKind;
 use App\Application\Shared\UseCase\OwnedUseCase;
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
@@ -36,21 +39,20 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
     public function run(Actor $actor, CommandInterface|QueryInterface $useCase): mixed
     {
         $access = $useCase::access();
-        $this->requirePermission(
-            $actor->user,
-            $actor->kind,
-            $access->permission,
-        );
+        if (!$this->permits($actor, $access)) {
+            throw new PermissionDeniedException($useCase::class);
+        }
 
         $arguments = [$useCase];
         if ($useCase instanceof OwnedUseCase) {
             $this->checkOwner(
                 $actor,
-                $useCase->owner,
-                $access->withOwner,
-                $access->permission,
+                $useCase,
+                $access,
             );
             $arguments[] = $this->scope($useCase);
+        } elseif ($access->kind === AccessKind::ALL_OWNERS || $access->kind === AccessKind::SYSTEM) {
+            $arguments[] = AllOwnersScope::issue();
         }
 
         $handler = $this->handler($useCase);
@@ -65,51 +67,101 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
 
     public function allowed(Actor $actor, string $useCase): bool
     {
+        $access = $useCase::access();
+        if ($access->kind === AccessKind::PUBLIC) {
+            return true;
+        }
         $guard = $actor->kind->guard();
+        if ($guard === null || $access->kind === AccessKind::SYSTEM) {
+            return false;
+        }
+        // Same rule as permits(): only an admin reads every owner's data
+        if ($access->kind === AccessKind::ALL_OWNERS && $actor->kind !== ActorKind::ADMIN) {
+            return false;
+        }
         $guardDriver = $this->auth->guard($guard);
         // The signed-in instance remembers its roles, so a page asking many times loads them once
         $user = $guardDriver->user();
-        if (!$user instanceof User || $user->getKey() !== $actor->user->toInt()) {
+        if (!$user instanceof User || $user->getKey() !== $actor->user?->toInt()) {
             return false;
         }
-        $access = $useCase::access();
 
-        return $user->checkPermissionTo($access->permission->value, $guard);
+        return $this->holdsAnyPermission(
+            $user,
+            $actor->kind,
+            $access,
+        );
+    }
+
+    private function permits(Actor $actor, Access $access): bool
+    {
+        return match ($access->kind) {
+            AccessKind::PUBLIC => true,
+            AccessKind::SYSTEM => $actor->kind === ActorKind::SYSTEM,
+            AccessKind::ALL_OWNERS => $actor->kind === ActorKind::ADMIN && $this->userHoldsAnyPermission($actor, $access),
+            AccessKind::PERMISSION => $this->userHoldsAnyPermission($actor, $access),
+        };
+    }
+
+    private function userHoldsAnyPermission(Actor $actor, Access $access): bool
+    {
+        if ($actor->user === null) {
+            return false;
+        }
+
+        return $this->holdsAnyPermission(
+            User::find($actor->user->toInt()),
+            $actor->kind,
+            $access,
+        );
+    }
+
+    private function holdsAnyPermission(
+        ?User $user,
+        ActorKind $kind,
+        Access $access,
+    ): bool {
+        $guard = $kind->guard();
+        if (!$user instanceof User || $guard === null) {
+            return false;
+        }
+        foreach ($access->permissions as $permission) {
+            if ($user->checkPermissionTo($permission->value, $guard)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function checkOwner(
         Actor $actor,
-        UserId $owner,
-        bool $withOwner,
-        Permission $permission,
+        OwnedUseCase $useCase,
+        Access $access,
     ): void {
-        if ($actor->kind === ActorKind::USER) {
+        $owner = $useCase->owner;
+        $allowed = match ($actor->kind) {
             // A user reaches only their own data; delivery passes the signed-in user as the owner
-            if ($owner->toInt() !== $actor->user->toInt()) {
-                throw new PermissionDeniedException($permission);
-            }
-
-            return;
-        }
-
-        if ($withOwner) {
-            $this->requirePermission(
-                $owner,
-                ActorKind::USER,
-                $permission,
-            );
+            ActorKind::USER => $owner->toInt() === $actor->user?->toInt(),
+            ActorKind::ADMIN => !$access->withOwner || $this->ownerHoldsPermission($owner, $access->permissions),
+            // Without a user the owner would come from input; no owned use case is public or system yet
+            ActorKind::ANONYMOUS, ActorKind::SYSTEM => false,
+        };
+        if (!$allowed) {
+            throw new PermissionDeniedException($useCase::class);
         }
     }
 
-    private function requirePermission(
-        UserId $userId,
-        ActorKind $kind,
-        Permission $permission,
-    ): void {
-        $user = User::find($userId->toInt());
-        if (!$user instanceof User || !$user->checkPermissionTo($permission->value, $kind->guard())) {
-            throw new PermissionDeniedException($permission);
-        }
+    /**
+     * @param  list<Permission>  $permissions
+     */
+    private function ownerHoldsPermission(UserId $owner, array $permissions): bool
+    {
+        return $this->holdsAnyPermission(
+            User::find($owner->toInt()),
+            ActorKind::USER,
+            Access::anyOf(...$permissions),
+        );
     }
 
     private function scope(OwnedUseCase $useCase): ReadScope|WriteScope

@@ -1,29 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rules\Password as PasswordRule;
 
-class PasswordUpdateRequest extends FormRequest
+final class PasswordUpdateRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request
-     */
-    public function authorize(): bool
-    {
-        return Auth::check();
-    }
-
-    /**
-     * Get the validation rules that apply to the request
-     */
+    /** @return array<string, mixed> */
     public function rules(): array
     {
         return [
             'current_password' => ['required', 'current_password'],
-            // Use Laravel Password rule (keeps min 8; can be extended later for complexity)
             'password' => [
                 'required',
                 PasswordRule::min(8),
@@ -33,9 +23,7 @@ class PasswordUpdateRequest extends FormRequest
         ];
     }
 
-    /**
-     * Get custom attributes for validator errors
-     */
+    /** @return array<string, string> */
     public function attributes(): array
     {
         return [

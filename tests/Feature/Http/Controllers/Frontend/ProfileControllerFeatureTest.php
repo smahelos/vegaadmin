@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Domain\User\Contracts\UserWriteRepositoryInterface;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
-use RuntimeException;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
 
@@ -106,6 +103,12 @@ class ProfileControllerFeatureTest extends TestCase
             route('frontend.profile.edit', ['locale' => 'cs']),
         );
         $response->assertSessionHas('success');
+        $this->assertTrue(
+            Hash::check(
+                'NewPassw0rd!',
+                $this->user->fresh()->password,
+            ),
+        );
     }
 
     #[Test]
@@ -147,31 +150,24 @@ class ProfileControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function failed_profile_update_does_not_show_the_exception_to_the_user(): void
+    public function a_user_without_profile_update_gets_403_before_validation(): void
     {
+        $this->user->syncRoles([]);
         $this->actingAs($this->user, 'web');
-        $userWriteRepository = $this->mock(UserWriteRepositoryInterface::class);
-        $expectation = $userWriteRepository->shouldReceive('updateProfile');
-        $expectation->andThrow(
-            new RuntimeException('SQLSTATE[42S22]: Unknown column users.secret'),
-        );
 
         $response = $this->put(
             route('frontend.profile.update', ['locale' => 'cs']),
-            [
-                'name' => 'Updated Name',
-                'email' => $this->user->email,
-            ],
+            ['name' => '', 'email' => 'bad-email'],
         );
-
-        $redirect = $response->baseResponse;
-        $this->assertInstanceOf(RedirectResponse::class, $redirect);
-        $session = $redirect->getSession();
-        $errorBag = $session->get('errors');
-        $errors = $errorBag->all();
-        $this->assertSame(
-            [__('users.messages.profile_update_failed')],
-            $errors,
+        $response->assertForbidden();
+        $response = $this->put(
+            route('frontend.profile.update.password', ['locale' => 'cs']),
+            [],
         );
+        $response->assertForbidden();
+        $response = $this->get(
+            route('frontend.profile.edit', ['locale' => 'cs']),
+        );
+        $response->assertForbidden();
     }
 }

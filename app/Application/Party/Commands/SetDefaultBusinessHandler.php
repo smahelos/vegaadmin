@@ -34,7 +34,7 @@ final class SetDefaultBusinessHandler
             throw new BusinessArchivedException($command->id);
         }
 
-        $this->businessWriter->setDefaultForUser($command->owner, $command->id);
+        $this->businessWriter->setDefault($scope, $command->id);
         $this->events->publish(
             new DefaultBusinessChanged($command->owner),
         );

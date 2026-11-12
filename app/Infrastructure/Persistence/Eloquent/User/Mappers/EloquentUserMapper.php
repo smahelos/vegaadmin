@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\User\Mappers;
 
 use App\Domain\User\DTO\UserDTO;
+use App\Domain\User\DTO\UserWriteData;
 use App\Models\User;
 
 /**
@@ -30,5 +33,22 @@ class EloquentUserMapper
                 'updated_at' => $updatedAt?->toDateTimeString(),
             ],
         );
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function toAttributes(UserWriteData $data): array
+    {
+        $attributes = [
+            'name' => $data->name,
+            'email' => $data->email,
+        ];
+        if ($data->password !== null) {
+            // The model's hashed cast hashes it
+            $attributes['password'] = $data->password;
+        }
+
+        return $attributes;
     }
 }
