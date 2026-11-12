@@ -14,6 +14,7 @@ use App\Models\Invoice;
 use App\Models\Status;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
@@ -199,6 +200,40 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $this->assertSame(
             1,
             Artisan::call('invoices:check-payment-status'),
+        );
+    }
+
+    #[Test]
+    public function queues_each_reminder_outside_a_transaction_a_later_failure_would_roll_back(): void
+    {
+        $notifier = new class implements InvoiceReminderNotifierInterface
+        {
+            /** @var list<int> */
+            public array $transactionLevels = [];
+
+            public function send(
+                InvoiceReminderType $type,
+                InvoiceReminderDTO $payload,
+                Recipient $recipient,
+            ): void {
+                $this->transactionLevels[] = DB::transactionLevel();
+                if (count($this->transactionLevels) === 2) {
+                    throw new RuntimeException('The mail queue is unavailable');
+                }
+            }
+        };
+        $this->app->instance(InvoiceReminderNotifierInterface::class, $notifier);
+        $this->dueInvoice(['customer_email' => null]);
+        $this->dueInvoice(['customer_email' => null]);
+        $levelBefore = DB::transactionLevel();
+
+        $this->assertSame(
+            1,
+            Artisan::call('invoices:check-payment-status'),
+        );
+        $this->assertSame(
+            [$levelBefore, $levelBefore],
+            $notifier->transactionLevels,
         );
     }
 

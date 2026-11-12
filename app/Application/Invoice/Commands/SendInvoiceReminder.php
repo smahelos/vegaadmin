@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Invoice\Commands;
 
 use App\Application\Shared\UseCase\Access;
+use App\Application\Shared\UseCase\Contracts\CallsOutsideDatabaseInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
@@ -15,7 +16,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
  *
  * @implements CommandInterface<null>
  */
-final readonly class SendInvoiceReminder implements CommandInterface
+final readonly class SendInvoiceReminder implements CallsOutsideDatabaseInterface, CommandInterface
 {
     /**
      * @param  list<InvoiceReminderType>  $types
