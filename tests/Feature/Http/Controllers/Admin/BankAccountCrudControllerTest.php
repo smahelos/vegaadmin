@@ -40,7 +40,7 @@ final class BankAccountCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function bank_account_reads_are_scoped_to_the_permitted_owner_type(): void
+    public function bank_account_screens_follow_the_bank_account_permissions_not_the_owners(): void
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create();
@@ -51,51 +51,38 @@ final class BankAccountCrudControllerTest extends TestCase
         $businessAccount = $ownedFactory->create();
         $ownedFactory = $bankAccountFactory->ownedBy($contact);
         $contactAccount = $ownedFactory->create(['iban' => 'DE89370400440532013000']);
-        foreach (
-            [
-                [
-                    'business',
-                    $businessAccount,
-                    $contactAccount,
-                ],
-                [
-                    'contact',
-                    $contactAccount,
-                    $businessAccount,
-                ],
-            ] as [$type, $visible, $hidden]
-        ) {
-            $this->actingAs(
-                $this->backendUser(
-                    Permission::from($type . '.view'),
-                ),
-                'backpack',
-            );
-            foreach (
-                [
-                    '',
-                    '?business_id=' . $business->id,
-                    '?contact_id=' . $contact->id,
-                ] as $filter
-            ) {
-                $response = $this->postJson('/admin/bank-account/search' . $filter, ['start' => 0, 'length' => 100]);
-                $response->assertOk();
-                $response->assertDontSee($hidden->iban);
-                if ($filter === '') {
-                    $response->assertSee($visible->iban);
-                }
-            }
-            $this->actingAs(
-                $this->backendUser(
-                    Permission::from($type . '.update'),
-                ),
-                'backpack',
-            );
-            $hiddenResponse = $this->get('/admin/bank-account/' . $hidden->id . '/edit');
-            $hiddenResponse->assertForbidden();
-            $visibleResponse = $this->get('/admin/bank-account/' . $visible->id . '/edit');
-            $visibleResponse->assertOk();
-        }
+
+        $this->actingAs(
+            $this->backendUser(
+                Permission::BUSINESS_VIEW,
+                Permission::CONTACT_VIEW,
+                Permission::BUSINESS_UPDATE,
+                Permission::CONTACT_UPDATE,
+            ),
+            'backpack',
+        );
+        $response = $this->postJson('/admin/bank-account/search', ['start' => 0, 'length' => 100]);
+        $response->assertForbidden();
+        $response = $this->get('/admin/bank-account/' . $businessAccount->id . '/edit');
+        $response->assertForbidden();
+
+        $this->actingAs(
+            $this->backendUser(Permission::BANK_ACCOUNT_VIEW),
+            'backpack',
+        );
+        $response = $this->postJson('/admin/bank-account/search', ['start' => 0, 'length' => 100]);
+        $response->assertOk();
+        $response->assertSee($businessAccount->iban);
+        $response->assertSee($contactAccount->iban);
+        $response = $this->get('/admin/bank-account/' . $contactAccount->id . '/edit');
+        $response->assertForbidden();
+
+        $this->actingAs(
+            $this->backendUser(Permission::BANK_ACCOUNT_UPDATE),
+            'backpack',
+        );
+        $response = $this->get('/admin/bank-account/' . $contactAccount->id . '/edit');
+        $response->assertOk();
     }
 
     #[Test]
@@ -163,19 +150,47 @@ final class BankAccountCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function changing_an_account_needs_the_owners_update_permission(): void
+    public function changing_an_account_needs_the_bank_account_update_permission(): void
     {
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create();
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $account = $bankAccountFactory->create();
-        $backendUser = $this->backendUser(Permission::BUSINESS_UPDATE);
+        $backendUser = $this->backendUser(
+            Permission::BUSINESS_UPDATE,
+            Permission::CONTACT_UPDATE,
+        );
 
         $httpClient = $this->actingAs($backendUser, 'backpack');
         $httpResponse = $httpClient->post(
             route('admin.bank-accounts.archive', ['id' => $account->id]),
         );
         $httpResponse->assertForbidden();
+    }
+
+    #[Test]
+    public function a_missing_record_is_refused_without_the_permission_like_an_existing_one(): void
+    {
+        // A 404 here would tell a user without the permission which ids exist
+        $accountQuery = BankAccount::query();
+        $missingId = (int) $accountQuery->max('id') + 1;
+
+        $httpClient = $this->actingAs(
+            $this->backendUser(Permission::BANK_ACCOUNT_VIEW),
+            'backpack',
+        );
+        foreach (
+            [
+                'admin.bank-accounts.archive',
+                'admin.bank-accounts.restore',
+                'admin.bank-accounts.set-default',
+            ] as $routeName
+        ) {
+            $httpResponse = $httpClient->post(
+                route($routeName, ['id' => $missingId]),
+            );
+            $httpResponse->assertForbidden();
+        }
     }
 }

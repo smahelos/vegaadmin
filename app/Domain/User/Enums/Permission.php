@@ -12,6 +12,8 @@ enum Permission: string
 {
     case API_ACCESS = 'api.access';
     case BACKPACK_ACCESS = 'backpack.access';
+    case BANK_ACCOUNT_UPDATE = 'bank_account.update';
+    case BANK_ACCOUNT_VIEW = 'bank_account.view';
     case BANK_CREATE = 'bank.create';
     case BANK_DELETE = 'bank.delete';
     case BANK_UPDATE = 'bank.update';

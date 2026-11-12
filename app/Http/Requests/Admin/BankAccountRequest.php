@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\DTO\BankAccountWriteData;
-use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Party\BankAccountInput;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -15,28 +14,6 @@ use Illuminate\Foundation\Http\FormRequest;
  */
 final class BankAccountRequest extends FormRequest
 {
-    /**
-     * A new account checks the permission of the owner it names; an edit is checked against the stored owner by
-     * the controller, which knows the account.
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($user === null) {
-            return false;
-        }
-
-        if ($this->isMethod('POST') && $this->filled('business_id')) {
-            return $user->can(Permission::BUSINESS_UPDATE);
-        }
-
-        if ($this->isMethod('POST') && $this->filled('contact_id')) {
-            return $user->can(Permission::CONTACT_UPDATE);
-        }
-
-        return $user->can(Permission::BUSINESS_UPDATE) || $user->can(Permission::CONTACT_UPDATE);
-    }
-
     /**
      * @return array<string, list<string|object>>
      */

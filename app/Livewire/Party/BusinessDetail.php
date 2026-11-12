@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\BusinessApplicationService;
+use App\Application\Party\Commands\ArchiveBusiness;
+use App\Application\Party\Commands\RestoreBusiness;
+use App\Application\Party\Commands\SetDefaultBusiness;
+use App\Application\Party\Queries\FindDefaultBusiness;
+use App\Application\Party\Queries\GetBusiness;
+use App\Application\Party\Queries\ListActiveBusinesses;
 use App\Domain\Party\Exceptions\BusinessArchivedException;
 use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\ValueObjects\BusinessId;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
@@ -18,7 +22,8 @@ use Livewire\Component;
 
 /**
  * The detail of one of the user's businesses with archiving, restoring and the default selection. Archiving the
- * default business while others stay active asks which of them becomes the default.
+ * default business while others stay active asks which of them becomes the default. The page has found the business
+ * before mounting it.
  */
 final class BusinessDetail extends Component
 {
@@ -39,28 +44,26 @@ final class BusinessDetail extends Component
 
     public ?string $successMessage = null;
 
-    public function mount(BusinessApplicationService $businesses, int $businessId): void
+    public function mount(int $businessId): void
     {
-        $this->requirePermission(Permission::BUSINESS_VIEW);
-        $businesses->get(
-            $this->userId(),
-            BusinessId::fromInt($businessId),
-        );
+        $this->requireAllowed(GetBusiness::class);
         $this->businessId = $businessId;
     }
 
-    public function archive(BusinessApplicationService $businesses): void
+    public function archive(): void
     {
-        $this->requirePermission(Permission::BUSINESS_ARCHIVE);
+        $this->requireAllowed(ArchiveBusiness::class);
         $this->errorMessage = null;
         $this->successMessage = null;
         $newDefault = $this->newDefault === '' ? null : BusinessId::fromInt((int) $this->newDefault);
 
         try {
-            $businesses->archive(
-                $this->userId(),
-                $this->currentId(),
-                $newDefault,
+            $this->runUseCase(
+                new ArchiveBusiness(
+                    $this->userId(),
+                    $this->currentId(),
+                    $newDefault,
+                ),
             );
         } catch (DefaultBusinessRequiredException) {
             $this->choosingNewDefault = true;
@@ -83,9 +86,9 @@ final class BusinessDetail extends Component
         $this->newDefault = '';
     }
 
-    public function restore(BusinessApplicationService $businesses): void
+    public function restore(): void
     {
-        $this->requirePermission(Permission::BUSINESS_RESTORE);
+        $this->requireAllowed(RestoreBusiness::class);
         $this->limitMessage = null;
         $this->successMessage = null;
 
@@ -95,7 +98,12 @@ final class BusinessDetail extends Component
         }
 
         try {
-            $businesses->restore($this->userId(), $this->currentId());
+            $this->runUseCase(
+                new RestoreBusiness(
+                    $this->userId(),
+                    $this->currentId(),
+                ),
+            );
         } catch (EntityLimitExceededException $e) {
             $this->limitMessage = __('businesses.messages.limit_exceeded', ['limit' => $e->limit]);
 
@@ -105,14 +113,19 @@ final class BusinessDetail extends Component
         $this->successMessage = __('businesses.messages.restored');
     }
 
-    public function makeDefault(BusinessApplicationService $businesses): void
+    public function makeDefault(): void
     {
-        $this->requirePermission(Permission::BUSINESS_SET_DEFAULT);
+        $this->requireAllowed(SetDefaultBusiness::class);
         $this->errorMessage = null;
         $this->successMessage = null;
 
         try {
-            $businesses->setDefault($this->userId(), $this->currentId());
+            $this->runUseCase(
+                new SetDefaultBusiness(
+                    $this->userId(),
+                    $this->currentId(),
+                ),
+            );
         } catch (BusinessArchivedException) {
             $this->errorMessage = __('businesses.messages.default_archived');
 
@@ -122,13 +135,20 @@ final class BusinessDetail extends Component
         $this->successMessage = __('businesses.messages.default_changed');
     }
 
-    public function render(BusinessApplicationService $businesses): View
+    public function render(): View
     {
-        $userId = $this->userId();
-        $business = $businesses->get($userId, $this->currentId());
-        $defaultId = $businesses->findDefaultId($userId);
+        $owner = $this->userId();
+        $business = $this->runUseCase(
+            new GetBusiness($owner, $this->currentId()),
+        );
+        $defaultId = $this->runUseCase(
+            new FindDefaultBusiness($owner),
+        );
+        $active = $this->runUseCase(
+            new ListActiveBusinesses($owner),
+        );
         $newDefaultOptions = [];
-        foreach ($businesses->listActive($userId) as $other) {
+        foreach ($active as $other) {
             if (!$other->id->equals($business->id)) {
                 $newDefaultOptions[$other->id->value] = $other->profile->name;
             }

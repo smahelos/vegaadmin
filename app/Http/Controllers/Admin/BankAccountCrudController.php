@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Party\Services\BankAccountApplicationService;
+use App\Application\Party\Commands\ArchiveBankAccount;
+use App\Application\Party\Commands\CreateBankAccount;
+use App\Application\Party\Commands\RestoreBankAccount;
+use App\Application\Party\Commands\SetDefaultBankAccount;
+use App\Application\Party\Commands\UpdateBankAccount;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -23,7 +28,6 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\Facades\Alert;
 
@@ -35,11 +39,16 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class BankAccountCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use CreateOperation;
     use ListOperation;
     use NarrowsCrudTypes;
-    use UpdateOperation {
-        edit as private editAccount;
+    use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
     }
 
     public function setup(): void
@@ -53,13 +62,14 @@ final class BankAccountCrudController extends CrudController
             __('parties.bank_accounts.entity.plural'),
         );
 
+        // Accounts have their own permissions, whichever party owns them (rules/permissions.md)
         $user = backpack_user();
         $denied = [];
-        if ($user?->can(Permission::BUSINESS_VIEW) !== true && $user?->can(Permission::CONTACT_VIEW) !== true) {
+        if ($user?->can(Permission::BANK_ACCOUNT_VIEW) !== true) {
             $denied[] = 'list';
         }
 
-        if ($user?->can(Permission::BUSINESS_UPDATE) !== true && $user?->can(Permission::CONTACT_UPDATE) !== true) {
+        if ($user?->can(Permission::BANK_ACCOUNT_UPDATE) !== true) {
             $denied[] = 'create';
             $denied[] = 'update';
         }
@@ -67,23 +77,18 @@ final class BankAccountCrudController extends CrudController
         CRUD::denyAccess($denied);
     }
 
-    public function edit(int $id): View
+    public function store(): RedirectResponse
     {
-        $accountQuery = BankAccount::query();
-        $entry = $accountQuery->findOrFail($id);
-        $this->authorizeOwner($entry);
-
-        return $this->editAccount($id);
-    }
-
-    public function store(BankAccountApplicationService $accounts): RedirectResponse
-    {
+        $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(BankAccountRequest::class);
         $owner = $this->ownerFromRequest($request);
-        $account = $accounts->add(
-            $owner['user'],
-            $owner['owner'],
-            $request->writeData(),
+        $account = $this->useCases->run(
+            $this->admin(),
+            new CreateBankAccount(
+                $owner['user'],
+                $owner['owner'],
+                $request->writeData(),
+            ),
         );
 
         $alerts = Alert::success(
@@ -95,16 +100,19 @@ final class BankAccountCrudController extends CrudController
         return $this->crud->performSaveAction($account->id->value);
     }
 
-    public function update(BankAccountApplicationService $accounts): RedirectResponse
+    public function update(): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest(BankAccountRequest::class);
         $entry = $this->currentEntry(BankAccount::class);
-        $this->authorizeOwner($entry);
-        $accounts->update(
-            $this->userOf($entry),
-            $this->ownerOf($entry),
-            BankAccountId::fromInt($entry->id),
-            $request->writeData(),
+        $this->useCases->run(
+            $this->admin(),
+            new UpdateBankAccount(
+                $this->userOf($entry),
+                $this->ownerOf($entry),
+                BankAccountId::fromInt($entry->id),
+                $request->writeData(),
+            ),
         );
 
         $alerts = Alert::success(
@@ -116,16 +124,19 @@ final class BankAccountCrudController extends CrudController
         return $this->crud->performSaveAction($entry->id);
     }
 
-    public function archive(BankAccountApplicationService $accounts, int $id): RedirectResponse
+    public function archive(int $id): RedirectResponse
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
-        $this->authorizeOwner($entry);
-        $accounts->archive(
-            $this->userOf($entry),
-            $this->ownerOf($entry),
-            BankAccountId::fromInt($entry->id),
-            null,
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new ArchiveBankAccount(
+                $this->userOf($entry),
+                $this->ownerOf($entry),
+                BankAccountId::fromInt($entry->id),
+                null,
+            ),
         );
         $alerts = Alert::success(
             __('parties.bank_accounts.messages.archived'),
@@ -137,15 +148,18 @@ final class BankAccountCrudController extends CrudController
         return $redirector->back();
     }
 
-    public function restore(BankAccountApplicationService $accounts, int $id): RedirectResponse
+    public function restore(int $id): RedirectResponse
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
-        $this->authorizeOwner($entry);
-        $accounts->restore(
-            $this->userOf($entry),
-            $this->ownerOf($entry),
-            BankAccountId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new RestoreBankAccount(
+                $this->userOf($entry),
+                $this->ownerOf($entry),
+                BankAccountId::fromInt($entry->id),
+            ),
         );
         $alerts = Alert::success(
             __('parties.bank_accounts.messages.restored'),
@@ -157,15 +171,18 @@ final class BankAccountCrudController extends CrudController
         return $redirector->back();
     }
 
-    public function setDefault(BankAccountApplicationService $accounts, int $id): RedirectResponse
+    public function setDefault(int $id): RedirectResponse
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
-        $this->authorizeOwner($entry);
-        $accounts->setDefault(
-            $this->userOf($entry),
-            $this->ownerOf($entry),
-            BankAccountId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new SetDefaultBankAccount(
+                $this->userOf($entry),
+                $this->ownerOf($entry),
+                BankAccountId::fromInt($entry->id),
+            ),
         );
         $alerts = Alert::success(
             __('parties.bank_accounts.messages.default_changed'),
@@ -179,13 +196,6 @@ final class BankAccountCrudController extends CrudController
 
     protected function setupListOperation(): void
     {
-        $user = backpack_user();
-        if ($user?->can(Permission::BUSINESS_VIEW) !== true) {
-            CRUD::addClause('whereNull', 'business_id');
-        }
-        if ($user?->can(Permission::CONTACT_VIEW) !== true) {
-            CRUD::addClause('whereNull', 'contact_id');
-        }
         $request = request();
         $businessId = $request->integer('business_id');
         $contactId = $request->integer('contact_id');
@@ -321,16 +331,6 @@ final class BankAccountCrudController extends CrudController
                 ContactId::fromInt($contact->id),
             ),
         ];
-    }
-
-    private function authorizeOwner(BankAccount $entry): void
-    {
-        $permission = $entry->business_id !== null ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE;
-        $user = backpack_user();
-        abort_unless(
-            $user?->can($permission) === true,
-            403,
-        );
     }
 
     private function userOf(BankAccount $entry): UserId

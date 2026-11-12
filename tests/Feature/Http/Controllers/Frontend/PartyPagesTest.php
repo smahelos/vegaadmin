@@ -143,6 +143,30 @@ final class PartyPagesTest extends TestCase
      */
     #[Test]
     #[DataProvider('recordPages')]
+    public function a_user_without_the_permission_cannot_open_a_record_whether_it_exists_or_not(
+        string $model,
+        string $route,
+        string $parameter,
+    ): void {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $modelFactory = $model::factory();
+        $record = $modelFactory->create(['user_id' => $user->id]);
+
+        $this->actingAs($user);
+        foreach ([$record->id, $record->id + 1000] as $id) {
+            $httpResponse = $this->get(
+                route($route, [$parameter => $id]),
+            );
+            $httpResponse->assertForbidden();
+        }
+    }
+
+    /**
+     * @param  class-string<Business|Contact>  $model
+     */
+    #[Test]
+    #[DataProvider('recordPages')]
     public function another_users_record_is_not_found(
         string $model,
         string $route,

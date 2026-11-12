@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\User\Services;
 
-use App\Application\Party\Services\BusinessApplicationService;
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\CreateBusiness;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Commands\RestoreBusiness;
+use App\Application\Party\Commands\RestoreContact;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -19,11 +21,13 @@ use PDOException;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class EntityLimitLockingTest extends TestCase
 {
     use BuildsParties;
+    use RunsUseCases;
 
     private const LOCK_WAIT_TIMEOUT = 1205;
 
@@ -47,10 +51,12 @@ final class EntityLimitLockingTest extends TestCase
             'The owner was locked before the capacity check',
         );
 
-        $contactService = $this->app->make(ContactApplicationService::class);
-        $contactService->create(
+        $this->runAs(
             UserId::fromInt($ownerId),
-            new ContactWriteData($this->profile(), null),
+            new CreateContact(
+                UserId::fromInt($ownerId),
+                new ContactWriteData($this->profile(), null),
+            ),
         );
 
         $this->assertSame(
@@ -124,32 +130,40 @@ final class EntityLimitLockingTest extends TestCase
         $this->expectException(EntityLimitExceededException::class);
         $userId = UserId::fromInt($ownerId);
         if ($business) {
-            $service = $this->app->make(BusinessApplicationService::class);
             if ($restore) {
-                $service->restore(
+                $this->runAs(
                     $userId,
-                    BusinessId::fromInt($archived[0]),
+                    new RestoreBusiness(
+                        $userId,
+                        BusinessId::fromInt($archived[0]),
+                    ),
                 );
             } else {
-                $service->create(
+                $this->runAs(
                     $userId,
-                    new BusinessWriteData($this->profile(), null),
-                    null,
+                    new CreateBusiness(
+                        $userId,
+                        new BusinessWriteData($this->profile(), null),
+                        null,
+                    ),
                 );
             }
-        } else {
-            $service = $this->app->make(ContactApplicationService::class);
-            if ($restore) {
-                $service->restore(
+        } elseif ($restore) {
+            $this->runAs(
+                $userId,
+                new RestoreContact(
                     $userId,
                     ContactId::fromInt($archived[0]),
-                );
-            } else {
-                $service->create(
+                ),
+            );
+        } else {
+            $this->runAs(
+                $userId,
+                new CreateContact(
                     $userId,
                     new ContactWriteData($this->profile(), null),
-                );
-            }
+                ),
+            );
         }
     }
 
@@ -204,18 +218,23 @@ final class EntityLimitLockingTest extends TestCase
         );
         $other->commit();
 
-        $service = $this->app->make(BusinessApplicationService::class);
         $userId = UserId::fromInt($ownerId);
         if ($restore) {
-            $service->restore(
+            $this->runAs(
                 $userId,
-                BusinessId::fromInt($archivedId),
+                new RestoreBusiness(
+                    $userId,
+                    BusinessId::fromInt($archivedId),
+                ),
             );
         } else {
-            $service->create(
+            $this->runAs(
                 $userId,
-                new BusinessWriteData($this->profile(), null),
-                null,
+                new CreateBusiness(
+                    $userId,
+                    new BusinessWriteData($this->profile(), null),
+                    null,
+                ),
             );
         }
 

@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Commands\UpdateContact;
+use App\Application\Party\Queries\FindContactDuplicates;
+use App\Application\Party\Queries\GetContactForEdit;
 use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
@@ -43,19 +45,21 @@ final class ContactForm extends Component
 
     public ?string $limitMessage = null;
 
-    public function mount(ContactApplicationService $contacts, ?int $contactId = null): void
+    public function mount(?int $contactId = null): void
     {
         if ($contactId === null) {
-            $this->requirePermission(Permission::CONTACT_CREATE);
+            $this->requireAllowed(CreateContact::class);
             $this->party->country = 'CZ';
 
             return;
         }
 
-        $this->requirePermission(Permission::CONTACT_UPDATE);
-        $contact = $contacts->get(
-            $this->userId(),
-            ContactId::fromInt($contactId),
+        $this->requireAllowed(GetContactForEdit::class);
+        $contact = $this->runUseCase(
+            new GetContactForEdit(
+                $this->userId(),
+                ContactId::fromInt($contactId),
+            ),
         );
 
         $this->contactId = $contactId;
@@ -64,12 +68,10 @@ final class ContactForm extends Component
         $this->currentLogo = $contact->logo;
     }
 
-    public function save(ContactApplicationService $contacts, PartyLogoApplicationService $logos): void
+    public function save(PartyLogoApplicationService $logos): void
     {
         $creating = $this->contactId === null;
-        $this->requirePermission(
-            $creating ? Permission::CONTACT_CREATE : Permission::CONTACT_UPDATE,
-        );
+        $this->requireAllowed($creating ? CreateContact::class : UpdateContact::class);
         $this->errorMessage = null;
         $this->limitMessage = null;
 
@@ -99,12 +101,16 @@ final class ContactForm extends Component
         $saved = false;
         try {
             if ($creating) {
-                $contact = $contacts->create($this->userId(), $data);
+                $contact = $this->runUseCase(
+                    new CreateContact($this->userId(), $data),
+                );
             } else {
-                $contact = $contacts->update(
-                    $this->userId(),
-                    ContactId::fromInt($this->contactId),
-                    $data,
+                $contact = $this->runUseCase(
+                    new UpdateContact(
+                        $this->userId(),
+                        ContactId::fromInt($this->contactId),
+                        $data,
+                    ),
                 );
             }
             $saved = true;
@@ -184,12 +190,12 @@ final class ContactForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        $contacts = app(ContactApplicationService::class);
-
-        return $contacts->findDuplicates(
-            $this->userId(),
-            $profile,
-            $this->contactId === null ? null : ContactId::fromInt($this->contactId),
+        return $this->runUseCase(
+            new FindContactDuplicates(
+                $this->userId(),
+                $profile,
+                $this->contactId === null ? null : ContactId::fromInt($this->contactId),
+            ),
         );
     }
 

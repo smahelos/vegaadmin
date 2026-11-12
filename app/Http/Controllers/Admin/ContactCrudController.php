@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\ArchiveContact;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Commands\RestoreContact;
+use App\Application\Party\Commands\UpdateContact;
 use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\Enums\LimitedEntity;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ContactRequest;
 use App\Infrastructure\Forms\Party\PartyFormFields;
@@ -33,6 +36,7 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class ContactCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;
@@ -41,8 +45,9 @@ final class ContactCrudController extends CrudController
     use StoresPartyLogo;
     use UpdateOperation;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
         $throttle->only('store');
@@ -57,21 +62,25 @@ final class ContactCrudController extends CrudController
         );
     }
 
-    public function store(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
+    public function store(PartyLogoApplicationService $logos): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(ContactRequest::class);
         $contact = $this->withStoredLogo(
             $request,
             $logos,
             null,
-            fn (?string $logo): ContactDTO => $contacts->create(
-                UserId::fromInt(
-                    (int) $request->validated('user_id'),
-                ),
-                new ContactWriteData(
-                    $request->writeData()->profile,
-                    $request->writeData()->contactPerson,
-                    $logo,
+            fn (?string $logo): ContactDTO => $this->useCases->run(
+                $this->admin(),
+                new CreateContact(
+                    UserId::fromInt(
+                        (int) $request->validated('user_id'),
+                    ),
+                    new ContactWriteData(
+                        $request->writeData()->profile,
+                        $request->writeData()->contactPerson,
+                        $logo,
+                    ),
                 ),
             ),
         );
@@ -85,21 +94,25 @@ final class ContactCrudController extends CrudController
         return $this->crud->performSaveAction($contact->id->value);
     }
 
-    public function update(ContactApplicationService $contacts, PartyLogoApplicationService $logos): RedirectResponse
+    public function update(PartyLogoApplicationService $logos): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest(ContactRequest::class);
         $entry = $this->currentEntry(Contact::class);
         $this->withStoredLogo(
             $request,
             $logos,
             $entry->logo,
-            fn (?string $logo): ContactDTO => $contacts->update(
-                $this->ownerOf($entry),
-                ContactId::fromInt($entry->id),
-                new ContactWriteData(
-                    $request->writeData()->profile,
-                    $request->writeData()->contactPerson,
-                    $logo,
+            fn (?string $logo): ContactDTO => $this->useCases->run(
+                $this->admin(),
+                new UpdateContact(
+                    $this->ownerOf($entry),
+                    ContactId::fromInt($entry->id),
+                    new ContactWriteData(
+                        $request->writeData()->profile,
+                        $request->writeData()->contactPerson,
+                        $logo,
+                    ),
                 ),
             ),
         );
@@ -113,18 +126,17 @@ final class ContactCrudController extends CrudController
         return $this->crud->performSaveAction($entry->id);
     }
 
-    public function archive(ContactApplicationService $contacts, int $id): RedirectResponse
+    public function archive(int $id): RedirectResponse
     {
-        $user = backpack_user();
-        abort_unless(
-            $user?->can(Permission::CONTACT_ARCHIVE) === true,
-            403,
-        );
         $contactQuery = Contact::query();
         $entry = $contactQuery->findOrFail($id);
-        $contacts->archive(
-            $this->ownerOf($entry),
-            ContactId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new ArchiveContact(
+                $this->ownerOf($entry),
+                ContactId::fromInt($entry->id),
+            ),
         );
 
         return $this->redirectWithSuccess(
@@ -132,18 +144,17 @@ final class ContactCrudController extends CrudController
         );
     }
 
-    public function restore(ContactApplicationService $contacts, int $id): RedirectResponse
+    public function restore(int $id): RedirectResponse
     {
-        $user = backpack_user();
-        abort_unless(
-            $user?->can(Permission::CONTACT_RESTORE) === true,
-            403,
-        );
         $contactQuery = Contact::query();
         $entry = $contactQuery->findOrFail($id);
-        $contacts->restore(
-            $this->ownerOf($entry),
-            ContactId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new RestoreContact(
+                $this->ownerOf($entry),
+                ContactId::fromInt($entry->id),
+            ),
         );
 
         return $this->redirectWithSuccess(

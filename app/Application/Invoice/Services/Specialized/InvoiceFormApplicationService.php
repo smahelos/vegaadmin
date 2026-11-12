@@ -7,13 +7,13 @@ use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\DTO\InvoiceFormDTO;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Application\Invoice\Services\InvoiceContactApplicationService;
-use App\Application\Party\Services\ContactApplicationService;
 use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
@@ -34,7 +34,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
         private InvoiceServiceInterface $invoiceService,
         private InvoiceDtoReadRepositoryInterface $invoices,
         private InvoiceContactApplicationService $invoiceContacts,
-        private ContactApplicationService $contacts,
+        private ContactReadRepositoryInterface $contacts,
     ) {}
 
     /**
@@ -157,7 +157,7 @@ class InvoiceFormApplicationService implements InvoiceFormApplicationServiceInte
             $owner,
         )?->parties
             ?? throw new ModelNotFoundException('Invoice not accessible for user');
-        $contact = $parties->contactId === null ? null : $this->contacts->get($owner, $parties->contactId);
+        $contact = $parties->contactId === null ? null : $this->contacts->findByIdForUser($parties->contactId, $owner);
         if ($contact === null) {
             $contactToLink = $this->invoiceContacts->findContactToLink(
                 $owner,

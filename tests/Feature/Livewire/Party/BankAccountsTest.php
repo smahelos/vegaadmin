@@ -131,12 +131,17 @@ final class BankAccountsTest extends TestCase
     }
 
     #[Test]
-    public function changing_accounts_needs_the_owners_update_permission(): void
+    public function changing_accounts_needs_the_bank_account_permission_not_the_owners(): void
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create(['user_id' => $this->user->id]);
         $this->user->removeRole('frontend_user');
-        $this->user->givePermissionTo(Permission::BUSINESS_VIEW);
+        $this->user->givePermissionTo(
+            [
+                Permission::BANK_ACCOUNT_VIEW,
+                Permission::BUSINESS_UPDATE,
+            ],
+        );
 
         $component = Livewire::test(BankAccounts::class, ['ownerType' => 'business', 'ownerId' => $business->id]);
         $component->assertDontSee(
@@ -179,8 +184,8 @@ final class BankAccountsTest extends TestCase
         $this->user->removeRole('frontend_user');
         $this->user->givePermissionTo(
             [
-                Permission::from($context . '.view'),
-                Permission::from($context . '.update'),
+                Permission::BANK_ACCOUNT_VIEW,
+                Permission::BANK_ACCOUNT_UPDATE,
             ],
         );
         $model = $context === 'business' ? Business::class : Contact::class;

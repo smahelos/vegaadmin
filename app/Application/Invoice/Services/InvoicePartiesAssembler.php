@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Application\Invoice\Services;
 
 use App\Application\Invoice\DTO\InvoicePartySelection;
-use App\Application\Party\Services\BankAccountApplicationService;
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentParties;
@@ -33,8 +35,8 @@ final class InvoicePartiesAssembler
 {
     public function __construct(
         private readonly DocumentBusinessAssembler $businesses,
-        private readonly ContactApplicationService $contacts,
-        private readonly BankAccountApplicationService $accounts,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly BankAccountReadRepositoryInterface $accounts,
         private readonly DocumentCounterpartyAssembler $counterparties,
     ) {}
 
@@ -119,7 +121,8 @@ final class InvoicePartiesAssembler
             return $stored->account;
         }
 
-        $account = $this->accounts->get($userId, $accountId);
+        $account = $this->accounts->findByIdForUser($accountId, $userId)
+            ?? throw new BankAccountNotFoundException($accountId);
         if ($account->owner->businessId === null || !$account->owner->businessId->equals($selection->businessId)) {
             throw new BankAccountNotFoundException($accountId);
         }
@@ -132,10 +135,16 @@ final class InvoicePartiesAssembler
 
     private function saveToContacts(UserId $userId, DocumentPartyDTO $customer): ContactId
     {
-        return $this->contacts->create(
-            $userId,
-            new ContactWriteData($customer->toProfile(), null),
-        )->id;
+        // Creating a contact is the owner's own action, with its permission and capacity (rules/permissions.md)
+        $contact = $this->useCases->run(
+            Actor::user($userId),
+            new CreateContact(
+                $userId,
+                new ContactWriteData($customer->toProfile(), null),
+            ),
+        );
+
+        return $contact->id;
     }
 
     private function isStored(

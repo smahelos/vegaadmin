@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\BankAccountApplicationService;
+use App\Application\Party\Commands\ArchiveBankAccount;
+use App\Application\Party\Commands\CreateBankAccount;
+use App\Application\Party\Commands\RestoreBankAccount;
+use App\Application\Party\Commands\SetDefaultBankAccount;
+use App\Application\Party\Commands\UpdateBankAccount;
+use App\Application\Party\Queries\FindDefaultBankAccount;
+use App\Application\Party\Queries\GetBankAccountForEdit;
+use App\Application\Party\Queries\ListBankAccounts;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
 use App\Domain\Party\Exceptions\DefaultBankAccountRequiredException;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
@@ -53,11 +59,8 @@ final class BankAccounts extends Component
 
     public ?string $successMessage = null;
 
-    public function mount(
-        BankAccountApplicationService $accounts,
-        string $ownerType,
-        int $ownerId,
-    ): void {
+    public function mount(string $ownerType, int $ownerId): void
+    {
         abort_unless(
             in_array(
                 $ownerType,
@@ -68,34 +71,29 @@ final class BankAccounts extends Component
         );
         $this->ownerType = $ownerType;
         $this->ownerId = $ownerId;
-        $this->requirePermission(
-            $this->permission('view'),
-        );
-        $accounts->listForOwner($this->userId(), $this->owner());
+        $this->requireAllowed(ListBankAccounts::class);
     }
 
     public function add(): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
-        );
+        $this->requireAllowed(CreateBankAccount::class);
         $this->account->reset();
         $this->account->resetErrorBag();
         $this->editingId = null;
         $this->editing = true;
     }
 
-    public function edit(BankAccountApplicationService $accounts, int $id): void
+    public function edit(int $id): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
-        );
+        $this->requireAllowed(GetBankAccountForEdit::class);
         $this->account->resetErrorBag();
         $this->account->fillFromAccount(
-            $accounts->getForOwner(
-                $this->userId(),
-                $this->owner(),
-                BankAccountId::fromInt($id),
+            $this->runUseCase(
+                new GetBankAccountForEdit(
+                    $this->userId(),
+                    $this->owner(),
+                    BankAccountId::fromInt($id),
+                ),
             ),
         );
         $this->editingId = $id;
@@ -111,25 +109,29 @@ final class BankAccounts extends Component
         $this->account->reset();
     }
 
-    public function save(BankAccountApplicationService $accounts): void
+    public function save(): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
+        $this->requireAllowed(
+            $this->editingId === null ? CreateBankAccount::class : UpdateBankAccount::class,
         );
         $this->account->validate();
 
         if ($this->editingId === null) {
-            $accounts->add(
-                $this->userId(),
-                $this->owner(),
-                $this->account->writeData(),
+            $this->runUseCase(
+                new CreateBankAccount(
+                    $this->userId(),
+                    $this->owner(),
+                    $this->account->writeData(),
+                ),
             );
         } else {
-            $accounts->update(
-                $this->userId(),
-                $this->owner(),
-                BankAccountId::fromInt($this->editingId),
-                $this->account->writeData(),
+            $this->runUseCase(
+                new UpdateBankAccount(
+                    $this->userId(),
+                    $this->owner(),
+                    BankAccountId::fromInt($this->editingId),
+                    $this->account->writeData(),
+                ),
             );
         }
 
@@ -137,21 +139,21 @@ final class BankAccounts extends Component
         $this->successMessage = __('parties.bank_accounts.messages.saved');
     }
 
-    public function archive(BankAccountApplicationService $accounts, int $id): void
+    public function archive(int $id): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
-        );
+        $this->requireAllowed(ArchiveBankAccount::class);
         $this->errorMessage = null;
         $this->successMessage = null;
         $newDefault = $this->archivingId === $id && $this->newDefault !== '' ? BankAccountId::fromInt((int) $this->newDefault) : null;
 
         try {
-            $accounts->archive(
-                $this->userId(),
-                $this->owner(),
-                BankAccountId::fromInt($id),
-                $newDefault,
+            $this->runUseCase(
+                new ArchiveBankAccount(
+                    $this->userId(),
+                    $this->owner(),
+                    BankAccountId::fromInt($id),
+                    $newDefault,
+                ),
             );
         } catch (DefaultBankAccountRequiredException) {
             $this->archivingId = $id;
@@ -167,32 +169,32 @@ final class BankAccounts extends Component
         $this->successMessage = __('parties.bank_accounts.messages.archived');
     }
 
-    public function restore(BankAccountApplicationService $accounts, int $id): void
+    public function restore(int $id): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
-        );
-        $accounts->restore(
-            $this->userId(),
-            $this->owner(),
-            BankAccountId::fromInt($id),
+        $this->requireAllowed(RestoreBankAccount::class);
+        $this->runUseCase(
+            new RestoreBankAccount(
+                $this->userId(),
+                $this->owner(),
+                BankAccountId::fromInt($id),
+            ),
         );
         $this->successMessage = __('parties.bank_accounts.messages.restored');
     }
 
-    public function makeDefault(BankAccountApplicationService $accounts, int $id): void
+    public function makeDefault(int $id): void
     {
-        $this->requirePermission(
-            $this->permission('update'),
-        );
+        $this->requireAllowed(SetDefaultBankAccount::class);
         $this->errorMessage = null;
         $this->successMessage = null;
 
         try {
-            $accounts->setDefault(
-                $this->userId(),
-                $this->owner(),
-                BankAccountId::fromInt($id),
+            $this->runUseCase(
+                new SetDefaultBankAccount(
+                    $this->userId(),
+                    $this->owner(),
+                    BankAccountId::fromInt($id),
+                ),
             );
         } catch (BankAccountArchivedException) {
             $this->errorMessage = __('parties.bank_accounts.messages.default_archived');
@@ -203,10 +205,12 @@ final class BankAccounts extends Component
         $this->successMessage = __('parties.bank_accounts.messages.default_changed');
     }
 
-    public function render(BankAccountApplicationService $accounts): View
+    public function render(): View
     {
-        $userId = $this->userId();
-        $ownerAccounts = $accounts->listForOwner($userId, $this->owner());
+        $owner = $this->userId();
+        $ownerAccounts = $this->runUseCase(
+            new ListBankAccounts($owner, $this->owner()),
+        );
         $newDefaultOptions = [];
         foreach ($ownerAccounts as $candidate) {
             if (!$candidate->isArchived() && $candidate->id->value !== $this->archivingId) {
@@ -219,9 +223,8 @@ final class BankAccounts extends Component
             [
                 'accounts' => $ownerAccounts,
                 'newDefaultOptions' => $newDefaultOptions,
-                'defaultId' => $accounts->findDefaultId($userId, $this->owner()),
-                'canUpdate' => $this->userCan(
-                    $this->permission('update'),
+                'defaultId' => $this->runUseCase(
+                    new FindDefaultBankAccount($owner, $this->owner()),
                 ),
                 'bankOptions' => $this->bankOptions($this->account->country),
                 'countries' => $this->countryOptions(),
@@ -240,15 +243,5 @@ final class BankAccounts extends Component
         return AccountOwner::contact(
             ContactId::fromInt($this->ownerId),
         );
-    }
-
-    private function permission(string $action): Permission
-    {
-        $business = $this->ownerType === self::OWNER_BUSINESS;
-
-        return match ($action) {
-            'view' => $business ? Permission::BUSINESS_VIEW : Permission::CONTACT_VIEW,
-            'update' => $business ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE,
-        };
     }
 }

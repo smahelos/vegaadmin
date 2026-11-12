@@ -1,5 +1,6 @@
+@use('App\Application\Party\Queries\ListBusinesses')
+@use('App\Application\Party\Queries\ListContacts')
 @use('App\Application\Product\Queries\ListProducts')
-@use('App\Domain\User\Enums\Permission')
 @php($user = Auth::user())
 <nav x-data="{ open: false }"
     class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 sticky top-0 z-50">
@@ -27,19 +28,19 @@
                         {{ __('general.navigation.invoices') }}
                     </x-nav-link>
 
-                    @can(Permission::BUSINESS_VIEW)
+                    @allowed(ListBusinesses::class)
                     <x-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-nav-link>
-                    @endcan
+                    @endallowed
 
-                    @can(Permission::CONTACT_VIEW)
+                    @allowed(ListContacts::class)
                     <x-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-nav-link>
-                    @endcan
+                    @endallowed
 
                     @allowed(ListProducts::class)
                     <x-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"
@@ -187,19 +188,19 @@
                 {{ __('general.navigation.invoices') }}
             </x-responsive-nav-link>
 
-            @can(Permission::BUSINESS_VIEW)
+            @allowed(ListBusinesses::class)
                     <x-responsive-nav-link :href="route('frontend.businesses.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.businesses.*')">
                         {{ __('businesses.titles.index') }}
                     </x-responsive-nav-link>
-                    @endcan
+                    @endallowed
 
-            @can(Permission::CONTACT_VIEW)
+            @allowed(ListContacts::class)
                     <x-responsive-nav-link :href="route('frontend.contacts.index', ['locale' => App::getLocale()])"
                         :active="Request::routeIs('frontend.contacts.*')">
                         {{ __('contacts.titles.index') }}
                     </x-responsive-nav-link>
-                    @endcan
+                    @endallowed
 
             @allowed(ListProducts::class)
             <x-responsive-nav-link :href="route('frontend.products', ['locale' => App::getLocale()])"

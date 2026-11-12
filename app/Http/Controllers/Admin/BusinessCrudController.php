@@ -4,13 +4,17 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Party\Services\BusinessApplicationService;
+use App\Application\Party\Commands\ArchiveBusiness;
+use App\Application\Party\Commands\CreateBusiness;
+use App\Application\Party\Commands\RestoreBusiness;
+use App\Application\Party\Commands\SetDefaultBusiness;
+use App\Application\Party\Commands\UpdateBusiness;
 use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\Enums\LimitedEntity;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ArchiveBusinessRequest;
 use App\Http\Requests\Admin\BusinessRequest;
@@ -34,6 +38,7 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class BusinessCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;
@@ -42,8 +47,9 @@ final class BusinessCrudController extends CrudController
     use StoresPartyLogo;
     use UpdateOperation;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
         $throttle->only('store');
@@ -58,19 +64,23 @@ final class BusinessCrudController extends CrudController
         );
     }
 
-    public function store(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
+    public function store(PartyLogoApplicationService $logos): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(BusinessRequest::class);
         $business = $this->withStoredLogo(
             $request,
             $logos,
             null,
-            fn (?string $logo): BusinessDTO => $businesses->create(
-                UserId::fromInt(
-                    (int) $request->validated('user_id'),
+            fn (?string $logo): BusinessDTO => $this->useCases->run(
+                $this->admin(),
+                new CreateBusiness(
+                    UserId::fromInt(
+                        (int) $request->validated('user_id'),
+                    ),
+                    new BusinessWriteData($request->profile(), $logo),
+                    null,
                 ),
-                new BusinessWriteData($request->profile(), $logo),
-                null,
             ),
         );
 
@@ -83,18 +93,22 @@ final class BusinessCrudController extends CrudController
         return $this->crud->performSaveAction($business->id->value);
     }
 
-    public function update(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): RedirectResponse
+    public function update(PartyLogoApplicationService $logos): RedirectResponse
     {
+        $this->crud->hasAccessOrFail('update');
         $request = $this->validatedRequest(BusinessRequest::class);
         $entry = $this->currentEntry(Business::class);
         $this->withStoredLogo(
             $request,
             $logos,
             $entry->logo,
-            fn (?string $logo): BusinessDTO => $businesses->update(
-                $this->ownerOf($entry),
-                BusinessId::fromInt($entry->id),
-                new BusinessWriteData($request->profile(), $logo),
+            fn (?string $logo): BusinessDTO => $this->useCases->run(
+                $this->admin(),
+                new UpdateBusiness(
+                    $this->ownerOf($entry),
+                    BusinessId::fromInt($entry->id),
+                    new BusinessWriteData($request->profile(), $logo),
+                ),
             ),
         );
 
@@ -107,22 +121,18 @@ final class BusinessCrudController extends CrudController
         return $this->crud->performSaveAction($entry->id);
     }
 
-    public function archive(
-        ArchiveBusinessRequest $request,
-        BusinessApplicationService $businesses,
-        int $id,
-    ): RedirectResponse {
-        $user = backpack_user();
-        abort_unless(
-            $user?->can(Permission::BUSINESS_ARCHIVE) === true,
-            403,
-        );
+    public function archive(ArchiveBusinessRequest $request, int $id): RedirectResponse
+    {
         $businessQuery = Business::query();
         $entry = $businessQuery->findOrFail($id);
-        $businesses->archive(
-            $this->ownerOf($entry),
-            BusinessId::fromInt($entry->id),
-            $request->replacement(),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new ArchiveBusiness(
+                $this->ownerOf($entry),
+                BusinessId::fromInt($entry->id),
+                $request->replacement(),
+            ),
         );
 
         return $this->redirectWithSuccess(
@@ -130,18 +140,17 @@ final class BusinessCrudController extends CrudController
         );
     }
 
-    public function restore(BusinessApplicationService $businesses, int $id): RedirectResponse
+    public function restore(int $id): RedirectResponse
     {
-        $user = backpack_user();
-        abort_unless(
-            $user?->can(Permission::BUSINESS_RESTORE) === true,
-            403,
-        );
         $businessQuery = Business::query();
         $entry = $businessQuery->findOrFail($id);
-        $businesses->restore(
-            $this->ownerOf($entry),
-            BusinessId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new RestoreBusiness(
+                $this->ownerOf($entry),
+                BusinessId::fromInt($entry->id),
+            ),
         );
 
         return $this->redirectWithSuccess(
@@ -149,18 +158,17 @@ final class BusinessCrudController extends CrudController
         );
     }
 
-    public function setDefault(BusinessApplicationService $businesses, int $id): RedirectResponse
+    public function setDefault(int $id): RedirectResponse
     {
-        $user = backpack_user();
-        abort_unless(
-            $user?->can(Permission::BUSINESS_SET_DEFAULT) === true,
-            403,
-        );
         $businessQuery = Business::query();
         $entry = $businessQuery->findOrFail($id);
-        $businesses->setDefault(
-            $this->ownerOf($entry),
-            BusinessId::fromInt($entry->id),
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            $this->admin(),
+            new SetDefaultBusiness(
+                $this->ownerOf($entry),
+                BusinessId::fromInt($entry->id),
+            ),
         );
 
         return $this->redirectWithSuccess(

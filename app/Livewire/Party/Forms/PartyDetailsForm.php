@@ -11,7 +11,11 @@ use App\Domain\Party\Exceptions\CompanyRegistryUnavailableException;
 use App\Domain\Party\ValueObjects\RegistrationNumber;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Http\Requests\Party\PartyInput;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Str;
 use Livewire\Form;
 
@@ -115,6 +119,26 @@ final class PartyDetailsForm extends Form
 
             return false;
         }
+
+        // Per user, or per IP for a guest (registration, guest invoice): the public register limits its callers
+        $key = 'company_registry:' . (Auth::id() ?? Request::ip());
+        if (
+            RateLimiter::tooManyAttempts(
+                $key,
+                Config::integer('billex.rate_limits.company_registry'),
+            )
+        ) {
+            $this->addError(
+                'companyNumber',
+                __(
+                    'general.messages.too_many_requests',
+                    ['seconds' => RateLimiter::availableIn($key)],
+                ),
+            );
+
+            return false;
+        }
+        RateLimiter::hit($key);
 
         try {
             $company = $registry->findCompany($number);

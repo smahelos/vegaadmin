@@ -4,8 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Analytics;
 
-use App\Application\Party\Services\BusinessApplicationService;
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\ArchiveBusiness;
+use App\Application\Party\Commands\ArchiveContact;
+use App\Application\Party\Commands\CreateBusiness;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Commands\RestoreBusiness;
+use App\Application\Party\Commands\RestoreContact;
+use App\Application\Party\Commands\UpdateContact;
 use App\Domain\Analytics\Services\DashboardService;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\ContactWriteData;
@@ -14,11 +19,13 @@ use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class PartyDashboardInvalidationTest extends TestCase
 {
     use BuildsParties;
+    use RunsUseCases;
 
     #[Test]
     public function party_lifecycle_refreshes_the_owners_dashboard_and_keeps_other_users_cached_data(): void
@@ -36,23 +43,26 @@ final class PartyDashboardInvalidationTest extends TestCase
         Invoice::withoutEvents(
             fn () => $invoiceFactory->create(['user_id' => $other->id]),
         );
-        $contacts = app(ContactApplicationService::class);
-        $businesses = app(BusinessApplicationService::class);
-
-        $contact = $contacts->create(
+        $contact = $this->runAs(
             $uid,
-            new ContactWriteData(
-                $this->profile('First name'),
-                null,
+            new CreateContact(
+                $uid,
+                new ContactWriteData(
+                    $this->profile('First name'),
+                    null,
+                ),
             ),
         );
-        $business = $businesses->create(
+        $business = $this->runAs(
             $uid,
-            new BusinessWriteData(
-                $this->profile('Own business'),
+            new CreateBusiness(
+                $uid,
+                new BusinessWriteData(
+                    $this->profile('Own business'),
+                    null,
+                ),
                 null,
             ),
-            null,
         );
         $this->assertSame(
             1,
@@ -66,23 +76,32 @@ final class PartyDashboardInvalidationTest extends TestCase
             'First name',
             $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
         );
-        $contacts->update(
+        $this->runAs(
             $uid,
-            $contact->id,
-            new ContactWriteData(
-                $this->profile('Renamed contact'),
-                null,
+            new UpdateContact(
+                $uid,
+                $contact->id,
+                new ContactWriteData(
+                    $this->profile('Renamed contact'),
+                    null,
+                ),
             ),
         );
         $this->assertSame(
             'Renamed contact',
             $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
         );
-        $contacts->archive($uid, $contact->id);
-        $businesses->archive(
+        $this->runAs(
             $uid,
-            $business->id,
-            null,
+            new ArchiveContact($uid, $contact->id),
+        );
+        $this->runAs(
+            $uid,
+            new ArchiveBusiness(
+                $uid,
+                $business->id,
+                null,
+            ),
         );
         $this->assertSame(
             1,
@@ -92,8 +111,14 @@ final class PartyDashboardInvalidationTest extends TestCase
             1,
             $dashboard->getUserStatistics($uid)->businessCount,
         );
-        $contacts->restore($uid, $contact->id);
-        $businesses->restore($uid, $business->id);
+        $this->runAs(
+            $uid,
+            new RestoreContact($uid, $contact->id),
+        );
+        $this->runAs(
+            $uid,
+            new RestoreBusiness($uid, $business->id),
+        );
         $this->assertSame(
             1,
             $dashboard->getUserStatistics($uid)->contactCount,
@@ -120,12 +145,14 @@ final class PartyDashboardInvalidationTest extends TestCase
         try {
             DB::transaction(
                 function () use ($uid): void {
-                    $contactApplicationService = app(ContactApplicationService::class);
-                    $contactApplicationService->create(
+                    $this->runAs(
                         $uid,
-                        new ContactWriteData(
-                            $this->profile('Rolled back'),
-                            null,
+                        new CreateContact(
+                            $uid,
+                            new ContactWriteData(
+                                $this->profile('Rolled back'),
+                                null,
+                            ),
                         ),
                     );
                     throw new RuntimeException('Roll back the use case');

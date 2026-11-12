@@ -2,9 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\Party\Services;
+namespace Tests\Feature\Application\Party;
 
-use App\Application\Party\Services\BusinessApplicationService;
+use App\Application\Party\Commands\ArchiveBusiness;
+use App\Application\Party\Commands\CreateBusiness;
+use App\Application\Party\Commands\RestoreBusiness;
+use App\Application\Party\Commands\SetDefaultBusiness;
+use App\Application\Party\Commands\UpdateBusiness;
+use App\Application\Party\Queries\GetBusiness;
+use App\Application\Party\Queries\ListActiveBusinesses;
+use App\Domain\Party\DTO\BankAccountWriteData;
+use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\Events\BusinessArchived;
 use App\Domain\Party\Events\BusinessCreated;
@@ -20,34 +28,27 @@ use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
-use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
-final class BusinessApplicationServiceTest extends TestCase
+final class BusinessUseCasesTest extends TestCase
 {
     use BuildsParties;
-
-    private BusinessApplicationService $businesses;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->businesses = $this->app->make(BusinessApplicationService::class);
-    }
+    use RunsUseCases;
 
     #[Test]
     public function the_first_business_becomes_the_default_and_its_first_account_the_default_account(): void
     {
         $user = $this->frontendUser();
 
-        $business = $this->businesses->create(
+        $business = $this->create(
             $this->idOf($user),
             $this->data('Studio', $this->brnoAddress()),
             $this->czechAccount(),
@@ -66,13 +67,13 @@ final class BusinessApplicationServiceTest extends TestCase
     public function another_business_leaves_the_default_unchanged(): void
     {
         $user = $this->frontendUser();
-        $first = $this->businesses->create(
+        $first = $this->create(
             $this->idOf($user),
             $this->data('First'),
             null,
         );
 
-        $second = $this->businesses->create(
+        $second = $this->create(
             $this->idOf($user),
             $this->data('Second'),
             null,
@@ -86,19 +87,19 @@ final class BusinessApplicationServiceTest extends TestCase
     public function archiving_the_default_business_needs_another_active_business_as_the_default(): void
     {
         $user = $this->frontendUser();
-        $first = $this->businesses->create(
+        $first = $this->create(
             $this->idOf($user),
             $this->data('First'),
             null,
         );
-        $second = $this->businesses->create(
+        $second = $this->create(
             $this->idOf($user),
             $this->data('Second'),
             null,
         );
 
         try {
-            $this->businesses->archive(
+            $this->archive(
                 $this->idOf($user),
                 $first->id,
                 null,
@@ -106,7 +107,7 @@ final class BusinessApplicationServiceTest extends TestCase
             $this->fail('The default business was archived without a replacement');
         } catch (DefaultBusinessRequiredException) {
         }
-        $business = $this->businesses->get(
+        $business = $this->getBusiness(
             $this->idOf($user),
             $first->id,
         );
@@ -114,13 +115,13 @@ final class BusinessApplicationServiceTest extends TestCase
             $business->isArchived(),
         );
 
-        $this->businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $first->id,
             $second->id,
         );
 
-        $business = $this->businesses->get(
+        $business = $this->getBusiness(
             $this->idOf($user),
             $first->id,
         );
@@ -134,12 +135,12 @@ final class BusinessApplicationServiceTest extends TestCase
     public function an_archived_business_is_no_replacement_for_the_default(): void
     {
         $user = $this->frontendUser();
-        $first = $this->businesses->create(
+        $first = $this->create(
             $this->idOf($user),
             $this->data('First'),
             null,
         );
-        $this->businesses->create(
+        $this->create(
             $this->idOf($user),
             $this->data('Second'),
             null,
@@ -150,7 +151,7 @@ final class BusinessApplicationServiceTest extends TestCase
 
         $this->expectException(BusinessArchivedException::class);
 
-        $this->businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $first->id,
             BusinessId::fromInt($archived->id),
@@ -161,13 +162,13 @@ final class BusinessApplicationServiceTest extends TestCase
     public function the_last_active_business_can_be_archived_and_leaves_no_default(): void
     {
         $user = $this->frontendUser();
-        $business = $this->businesses->create(
+        $business = $this->create(
             $this->idOf($user),
             $this->data('Only'),
             null,
         );
 
-        $this->businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $business->id,
             null,
@@ -176,7 +177,7 @@ final class BusinessApplicationServiceTest extends TestCase
         $this->assertNull($user->fresh()?->default_business_id);
         $this->assertSame(
             [],
-            $this->businesses->listActive(
+            $this->listActive(
                 $this->idOf($user),
             ),
         );
@@ -186,18 +187,18 @@ final class BusinessApplicationServiceTest extends TestCase
     public function a_business_restored_while_none_is_active_becomes_the_default(): void
     {
         $user = $this->frontendUser();
-        $business = $this->businesses->create(
+        $business = $this->create(
             $this->idOf($user),
             $this->data('Only'),
             null,
         );
-        $this->businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $business->id,
             null,
         );
 
-        $this->businesses->restore(
+        $this->restore(
             $this->idOf($user),
             $business->id,
         );
@@ -209,12 +210,12 @@ final class BusinessApplicationServiceTest extends TestCase
     public function restoring_beside_an_active_business_keeps_the_default_and_the_archived_accounts(): void
     {
         $user = $this->frontendUser();
-        $default = $this->businesses->create(
+        $default = $this->create(
             $this->idOf($user),
             $this->data('Default'),
             null,
         );
-        $other = $this->businesses->create(
+        $other = $this->create(
             $this->idOf($user),
             $this->data('Other'),
             null,
@@ -227,13 +228,13 @@ final class BusinessApplicationServiceTest extends TestCase
             );
         $archivedAccount = $bankAccountFactory
             ->create(['archived_at' => now()]);
-        $this->businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $other->id,
             null,
         );
 
-        $this->businesses->restore(
+        $this->restore(
             $this->idOf($user),
             $other->id,
         );
@@ -247,7 +248,7 @@ final class BusinessApplicationServiceTest extends TestCase
     {
         $this->limitFrontendUser(LimitedEntity::BUSINESS, 1);
         $user = $this->frontendUser();
-        $kept = $this->businesses->create(
+        $kept = $this->create(
             $this->idOf($user),
             $this->data('Kept'),
             null,
@@ -257,7 +258,7 @@ final class BusinessApplicationServiceTest extends TestCase
         $other = $archivedFactory->create(['user_id' => $user->id]);
 
         try {
-            $this->businesses->restore(
+            $this->restore(
                 $this->idOf($user),
                 BusinessId::fromInt($other->id),
             );
@@ -265,7 +266,7 @@ final class BusinessApplicationServiceTest extends TestCase
         } catch (EntityLimitExceededException) {
         }
 
-        $updated = $this->businesses->update(
+        $updated = $this->update(
             $this->idOf($user),
             $kept->id,
             $this->data('Kept and edited'),
@@ -278,7 +279,7 @@ final class BusinessApplicationServiceTest extends TestCase
     public function an_archived_business_cannot_become_the_default(): void
     {
         $user = $this->frontendUser();
-        $this->businesses->create(
+        $this->create(
             $this->idOf($user),
             $this->data('Active'),
             null,
@@ -289,7 +290,7 @@ final class BusinessApplicationServiceTest extends TestCase
 
         $this->expectException(BusinessArchivedException::class);
 
-        $this->businesses->setDefault(
+        $this->setDefault(
             $this->idOf($user),
             BusinessId::fromInt($archived->id),
         );
@@ -299,18 +300,18 @@ final class BusinessApplicationServiceTest extends TestCase
     public function the_default_can_move_to_another_active_business(): void
     {
         $user = $this->frontendUser();
-        $this->businesses->create(
+        $this->create(
             $this->idOf($user),
             $this->data('First'),
             null,
         );
-        $second = $this->businesses->create(
+        $second = $this->create(
             $this->idOf($user),
             $this->data('Second'),
             null,
         );
 
-        $this->businesses->setDefault(
+        $this->setDefault(
             $this->idOf($user),
             $second->id,
         );
@@ -322,7 +323,7 @@ final class BusinessApplicationServiceTest extends TestCase
     public function an_update_refuses_the_czech_company_number_of_another_business_of_the_user(): void
     {
         $user = $this->frontendUser();
-        $holder = $this->businesses->create(
+        $holder = $this->create(
             $this->idOf($user),
             $this->data(
                 'Holder',
@@ -331,14 +332,14 @@ final class BusinessApplicationServiceTest extends TestCase
             ),
             null,
         );
-        $other = $this->businesses->create(
+        $other = $this->create(
             $this->idOf($user),
             $this->data('Other'),
             null,
         );
 
         try {
-            $this->businesses->update(
+            $this->update(
                 $this->idOf($user),
                 $other->id,
                 $this->data(
@@ -373,7 +374,7 @@ final class BusinessApplicationServiceTest extends TestCase
             ],
         );
 
-        $business = $this->businesses->create(
+        $business = $this->create(
             $this->idOf($user),
             $this->data(
                 'Own',
@@ -390,30 +391,29 @@ final class BusinessApplicationServiceTest extends TestCase
     public function another_users_business_is_not_found(): void
     {
         $owner = $this->frontendUser();
-        $userFactory = User::factory();
-        $stranger = $userFactory->create();
-        $business = $this->businesses->create(
+        $stranger = $this->frontendUser();
+        $business = $this->create(
             $this->idOf($owner),
             $this->data('Secret'),
             null,
         );
 
         $attempts = [
-            fn () => $this->businesses->get(
+            fn () => $this->getBusiness(
                 $this->idOf($stranger),
                 $business->id,
             ),
-            fn () => $this->businesses->update(
+            fn () => $this->update(
                 $this->idOf($stranger),
                 $business->id,
                 $this->data('Taken'),
             ),
-            fn () => $this->businesses->archive(
+            fn () => $this->archive(
                 $this->idOf($stranger),
                 $business->id,
                 null,
             ),
-            fn () => $this->businesses->setDefault(
+            fn () => $this->setDefault(
                 $this->idOf($stranger),
                 $business->id,
             ),
@@ -449,26 +449,24 @@ final class BusinessApplicationServiceTest extends TestCase
                 DefaultBusinessChanged::class,
             ],
         );
-        // Resolved after the fake, so the publisher dispatches to it
-        $businesses = $this->app->make(BusinessApplicationService::class);
         $user = $this->frontendUser();
 
-        $business = $businesses->create(
+        $business = $this->create(
             $this->idOf($user),
             $this->data('Only'),
             null,
         );
-        $businesses->update(
+        $this->update(
             $this->idOf($user),
             $business->id,
             $this->data('Renamed'),
         );
-        $businesses->archive(
+        $this->archive(
             $this->idOf($user),
             $business->id,
             null,
         );
-        $businesses->restore(
+        $this->restore(
             $this->idOf($user),
             $business->id,
         );
@@ -502,6 +500,86 @@ final class BusinessApplicationServiceTest extends TestCase
                 address: $address,
             ),
             null,
+        );
+    }
+
+    private function create(
+        UserId $owner,
+        BusinessWriteData $data,
+        ?BankAccountWriteData $firstAccount,
+    ): BusinessDTO {
+        return $this->runAs(
+            $owner,
+            new CreateBusiness(
+                $owner,
+                $data,
+                $firstAccount,
+            ),
+        );
+    }
+
+    private function update(
+        UserId $owner,
+        BusinessId $id,
+        BusinessWriteData $data,
+    ): BusinessDTO {
+        return $this->runAs(
+            $owner,
+            new UpdateBusiness(
+                $owner,
+                $id,
+                $data,
+            ),
+        );
+    }
+
+    private function archive(
+        UserId $owner,
+        BusinessId $id,
+        ?BusinessId $newDefault,
+    ): void {
+        $this->runAs(
+            $owner,
+            new ArchiveBusiness(
+                $owner,
+                $id,
+                $newDefault,
+            ),
+        );
+    }
+
+    private function restore(UserId $owner, BusinessId $id): void
+    {
+        $this->runAs(
+            $owner,
+            new RestoreBusiness($owner, $id),
+        );
+    }
+
+    private function setDefault(UserId $owner, BusinessId $id): void
+    {
+        $this->runAs(
+            $owner,
+            new SetDefaultBusiness($owner, $id),
+        );
+    }
+
+    private function getBusiness(UserId $owner, BusinessId $id): BusinessDTO
+    {
+        return $this->runAs(
+            $owner,
+            new GetBusiness($owner, $id),
+        );
+    }
+
+    /**
+     * @return list<BusinessDTO>
+     */
+    private function listActive(UserId $owner): array
+    {
+        return $this->runAs(
+            $owner,
+            new ListActiveBusinesses($owner),
         );
     }
 }

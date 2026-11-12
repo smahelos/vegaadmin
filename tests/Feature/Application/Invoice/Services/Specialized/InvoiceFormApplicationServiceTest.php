@@ -63,6 +63,8 @@ final class InvoiceFormApplicationServiceTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        // The offer reads the contacts through FindContactDuplicates
+        $user->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(
             [

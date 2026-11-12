@@ -147,8 +147,9 @@ final class BusinessCrudControllerTest extends TestCase
     #[Test]
     public function updates_a_business_and_clears_emptied_fields(): void
     {
+        $owner = $this->frontendUser();
         $businessFactory = Business::factory();
-        $business = $businessFactory->create(['email' => 'old@example.test']);
+        $business = $businessFactory->create(['user_id' => $owner->id, 'email' => 'old@example.test']);
 
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->put(
@@ -277,5 +278,71 @@ final class BusinessCrudControllerTest extends TestCase
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->delete('/admin/business/' . $business->id);
         $httpResponse->assertStatus(405);
+    }
+
+    #[Test]
+    public function archiving_without_the_permission_is_refused_before_validation(): void
+    {
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create();
+
+        $httpClient = $this->actingAs(
+            $this->backendUser(Permission::BUSINESS_VIEW),
+            'backpack',
+        );
+        $httpResponse = $httpClient->post(
+            route('admin.businesses.archive', ['id' => $business->id]),
+            ['replacement_business_id' => 'not a number'],
+        );
+        $httpResponse->assertForbidden();
+        $httpResponse->assertSessionHasNoErrors();
+
+        $this->assertNull($business->fresh()?->archived_at);
+    }
+
+    #[Test]
+    public function an_update_for_an_owner_without_the_permission_is_refused(): void
+    {
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(['name' => 'Kept']);
+
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->put(
+            '/admin/business/' . $business->id,
+            [
+                'id' => $business->id,
+                'name' => 'Changed',
+                'country' => 'CZ',
+                '_save_action' => 'save_and_back',
+            ],
+        );
+        $httpResponse->assertForbidden();
+
+        $this->assertSame('Kept', $business->fresh()?->name);
+    }
+
+    #[Test]
+    public function a_missing_record_is_refused_without_the_permission_like_an_existing_one(): void
+    {
+        // A 404 here would tell a user without the permission which ids exist
+        $businessQuery = Business::query();
+        $missingId = (int) $businessQuery->max('id') + 1;
+
+        $httpClient = $this->actingAs(
+            $this->backendUser(Permission::BUSINESS_VIEW),
+            'backpack',
+        );
+        foreach (
+            [
+                'admin.businesses.archive',
+                'admin.businesses.restore',
+                'admin.businesses.set-default',
+            ] as $routeName
+        ) {
+            $httpResponse = $httpClient->post(
+                route($routeName, ['id' => $missingId]),
+            );
+            $httpResponse->assertForbidden();
+        }
     }
 }

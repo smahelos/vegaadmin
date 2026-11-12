@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\View\Components\Admin;
 
-use App\Application\Party\Services\BusinessApplicationService;
+use App\Application\Party\Queries\ListActiveBusinesses;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\User\ValueObjects\UserId;
+use App\Http\Support\CurrentActor;
 use Illuminate\Contracts\View\View;
 use Illuminate\View\Component;
 
@@ -16,17 +18,23 @@ final class BusinessArchive extends Component
     public readonly array $replacements;
 
     public function __construct(
-        BusinessApplicationService $businesses,
+        AuthorizingUseCaseRunnerInterface $useCases,
+        CurrentActor $currentActor,
         public readonly int $businessId,
         int $userId,
         bool $isDefault,
     ) {
-        if ($isDefault) {
+        $actor = $currentActor->find();
+        if ($isDefault && $actor !== null) {
+            $active = $useCases->run(
+                $actor,
+                new ListActiveBusinesses(
+                    UserId::fromInt($userId),
+                ),
+            );
             $this->replacements = array_values(
                 array_filter(
-                    $businesses->listActive(
-                        UserId::fromInt($userId),
-                    ),
+                    $active,
                     fn (BusinessDTO $business): bool => $business->id->value !== $businessId,
                 ),
             );

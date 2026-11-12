@@ -5,20 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Party\ValueObjects\BusinessId;
-use App\Domain\User\Enums\Permission;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class ArchiveBusinessRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-
-        return $user?->can(Permission::BUSINESS_ARCHIVE) === true;
-    }
-
     /** @return array<string, list<string|object>> */
     public function rules(): array
     {

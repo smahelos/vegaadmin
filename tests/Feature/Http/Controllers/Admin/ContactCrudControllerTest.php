@@ -123,4 +123,23 @@ final class ContactCrudControllerTest extends TestCase
         ]);
         $httpResponse->assertForbidden();
     }
+
+    #[Test]
+    public function a_missing_record_is_refused_without_the_permission_like_an_existing_one(): void
+    {
+        // A 404 here would tell a user without the permission which ids exist
+        $contactQuery = Contact::query();
+        $missingId = (int) $contactQuery->max('id') + 1;
+
+        $httpClient = $this->actingAs(
+            $this->backendUser(Permission::CONTACT_VIEW),
+            'backpack',
+        );
+        foreach (['admin.contacts.archive', 'admin.contacts.restore'] as $routeName) {
+            $httpResponse = $httpClient->post(
+                route($routeName, ['id' => $missingId]),
+            );
+            $httpResponse->assertForbidden();
+        }
+    }
 }

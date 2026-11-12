@@ -1,4 +1,8 @@
-@use('App\Domain\User\Enums\Permission')
+@use('App\Application\Party\Commands\ArchiveBusiness')
+@use('App\Application\Party\Commands\RestoreBusiness')
+@use('App\Application\Party\Commands\SetDefaultBusiness')
+@use('App\Application\Party\Commands\UpdateBusiness')
+@use('App\Application\Party\Queries\ListBankAccounts')
 <div>
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight pt-3">
@@ -15,24 +19,24 @@
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('businesses.actions.back_to_list')"
                 :href="route('frontend.businesses.index', ['locale' => App::getLocale()])" />
-            @can(Permission::BUSINESS_UPDATE)
+            @allowed(UpdateBusiness::class)
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
                     :href="route('frontend.businesses.edit', ['locale' => App::getLocale(), 'business' => $business->id->value])" />
-            @endcan
+            @endallowed
             @if ($business->isArchived())
-                @can(Permission::BUSINESS_RESTORE)
+                @allowed(RestoreBusiness::class)
                     <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')" wire:click="restore" />
-                @endcan
+                @endallowed
             @else
                 @if (! $isDefault)
-                    @can(Permission::BUSINESS_SET_DEFAULT)
+                    @allowed(SetDefaultBusiness::class)
                         <x-icon-button icon="fa-star" tone="yellow" :label="__('businesses.actions.make_default')" wire:click="makeDefault" />
-                    @endcan
+                    @endallowed
                 @endif
-                @can(Permission::BUSINESS_ARCHIVE)
+                @allowed(ArchiveBusiness::class)
                     <x-icon-button icon="fa-archive" tone="orange" :label="__('parties.actions.archive')"
                         wire:click="archive" wire:confirm="{{ __('businesses.messages.confirm_archive') }}" />
-                @endcan
+                @endallowed
             @endif
         </div>
     </div>
@@ -67,5 +71,7 @@
         </x-detail.card>
     </div>
 
-    <livewire:party.bank-accounts owner-type="business" :owner-id="$business->id->value" />
+    @allowed(ListBankAccounts::class)
+        <livewire:party.bank-accounts owner-type="business" :owner-id="$business->id->value" />
+    @endallowed
 </div>
