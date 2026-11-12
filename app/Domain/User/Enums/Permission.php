@@ -58,6 +58,7 @@ enum Permission: string
     case PRODUCT_DELETE = 'product.delete';
     case PRODUCT_UPDATE = 'product.update';
     case PRODUCT_VIEW = 'product.view';
+    case PROFILE_UPDATE = 'profile.update';
     case ROLE_CREATE = 'role.create';
     case ROLE_DELETE = 'role.delete';
     case ROLE_UPDATE = 'role.update';
