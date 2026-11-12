@@ -314,6 +314,10 @@ final class InvoiceCrudController extends CrudController
     public function update(): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
+        $stored = $this->currentEntry(Invoice::class);
+        // The owner field is disabled on edit (AdminInvoiceFormFields), so the stored owner is validated and kept
+        $httpRequest = $this->crud->getRequest();
+        $httpRequest->merge(['user_id' => $stored->user_id]);
         $request = $this->validatedRequest(InvoiceRequest::class);
         $invoice = $this->useCases->run(
             $this->admin(),
