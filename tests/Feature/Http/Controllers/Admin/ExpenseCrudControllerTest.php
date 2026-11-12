@@ -11,6 +11,7 @@ use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\FileHash;
 use App\Models\RoleLimit;
+use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Mockery\MockInterface;
@@ -76,6 +77,10 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse = $this->get('/admin/expense/' . $expense->id . '/edit');
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertSee('enctype="multipart/form-data"', false);
+        $this->assertMatchesRegularExpression(
+            '/<select(?=[^>]*name="user_id")(?=[^>]*disabled)[^>]*>/',
+            $httpResponse->getContent(),
+        );
     }
 
     #[Test]
@@ -268,16 +273,59 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function editing_with_the_wrong_owner_returns_not_found(): void
+    public function editing_keeps_the_stored_owner_whatever_owner_is_submitted(): void
     {
-        [$business] = $this->issuerOf($this->adminUser);
+        [$business] = $this->issuerOf($this->regularUser);
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['user_id' => $this->regularUser->id]);
         $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
-            $this->expenseInput($business),
+            $this->expenseInput(
+                $business,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'description' => 'Corrected description',
+                ],
+            ),
         );
-        $httpResponse->assertNotFound();
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
+        $stored = $expense->fresh();
+        $this->assertSame($this->regularUser->id, $stored->user_id);
+        $this->assertSame('Corrected description', $stored->description);
+    }
+
+    #[Test]
+    public function an_owner_without_a_plan_role_gets_no_expense_whatever_the_admin_may_do(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        [$business] = $this->issuerOf($owner);
+        $data = $this->expenseInput($business);
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertForbidden();
+        $this->assertDatabaseMissing('expenses', ['reference_number' => $data['reference_number']]);
+    }
+
+    #[Test]
+    public function an_update_for_an_owner_without_a_plan_role_is_refused(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        [$business] = $this->issuerOf($owner);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
+            ['user_id' => $owner->id, 'description' => 'Kept'],
+        );
+        $httpResponse = $this->put(
+            '/admin/expense/' . $expense->id,
+            $this->expenseInput(
+                $business,
+                ['description' => 'Changed'],
+            ),
+        );
+        $httpResponse->assertForbidden();
+        $this->assertSame('Kept', $expense->fresh()->description);
     }
 
     #[Test]

@@ -11,6 +11,7 @@ use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\InvoiceRequest;
+use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -318,6 +319,7 @@ final class InvoiceCrudController extends CrudController
         // The owner field is disabled on edit (AdminInvoiceFormFields), so the stored owner is validated and kept
         $httpRequest = $this->crud->getRequest();
         $httpRequest->merge(['user_id' => $stored->user_id]);
+        $httpRequest->attributes->set(AdminDocumentPartyInput::STORED_CONTACT, $stored->contact_id);
         $request = $this->validatedRequest(InvoiceRequest::class);
         $invoice = $this->useCases->run(
             $this->admin(),

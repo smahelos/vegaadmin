@@ -11,20 +11,20 @@ use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
 use App\Domain\Party\ValueObjects\BusinessId;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
 final class DocumentBusinessAssembler
 {
     public function __construct(private readonly BusinessReadRepositoryInterface $businesses) {}
 
     public function assemble(
-        UserId $userId,
+        ReadScope $scope,
         BusinessId $businessId,
         ?DocumentParties $stored,
         bool $reload,
         bool $supplier,
     ): DocumentPartyDTO {
-        $business = $this->businesses->findByIdForUser($businessId, $userId) ?? throw new BusinessNotFoundException($businessId);
+        $business = $this->businesses->findById($businessId, $scope) ?? throw new BusinessNotFoundException($businessId);
         $sameBusiness = $stored?->businessId->equals($businessId) === true;
         if ($business->isArchived() && !$sameBusiness) {
             throw new ArchivedReferenceSelectedException($businessId);

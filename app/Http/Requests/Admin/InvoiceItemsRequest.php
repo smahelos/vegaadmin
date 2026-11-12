@@ -5,20 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class InvoiceItemsRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-
-        return $user?->canAny([Permission::INVOICE_CREATE, Permission::INVOICE_UPDATE]) === true;
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -38,6 +31,20 @@ final class InvoiceItemsRequest extends FormRequest
             'q' => 'nullable|string|max:255',
             ...$itemRules,
         ];
+    }
+
+    public function owner(): UserId
+    {
+        return UserId::fromInt(
+            (int) $this->validated('user_id'),
+        );
+    }
+
+    public function currency(): Currency
+    {
+        return Currency::from(
+            $this->validated('payment_currency'),
+        );
     }
 
     /** @return array<string, string> */

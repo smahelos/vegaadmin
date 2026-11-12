@@ -17,7 +17,6 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
 use App\Models\Status;
@@ -39,13 +38,6 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $model = $query->find($id->getValue());
 
         return $model === null ? null : $this->mapper->toDto($model);
-    }
-
-    public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO
-    {
-        $model = $this->invoiceRepository->findForUser($userId->toInt(), $id->getValue());
-
-        return $model ? $this->mapper->toDto($model) : null;
     }
 
     public function findByIdForUpdate(InvoiceId $id, WriteScope $scope): ?InvoiceDTO

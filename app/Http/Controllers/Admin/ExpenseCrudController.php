@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Invoice\Services\ExpenseApplicationService;
+use App\Application\Invoice\Commands\CreateExpense;
+use App\Application\Invoice\Commands\UpdateExpense;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\ValueObjects\ExpenseId;
 use App\Domain\User\Enums\Permission;
-use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ExpenseRequest;
+use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Infrastructure\Forms\Invoice\ExpenseFormFields;
 use App\Models\Contact;
 use App\Models\Expense;
@@ -35,6 +37,7 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class ExpenseCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -43,8 +46,9 @@ final class ExpenseCrudController extends CrudController
     use ShowOperation;
     use UpdateOperation;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
         $throttle->only('store');
@@ -248,45 +252,51 @@ final class ExpenseCrudController extends CrudController
         );
     }
 
-    public function store(ExpenseApplicationService $expenses): RedirectResponse
+    public function store(): RedirectResponse
     {
         $this->crud->hasAccessOrFail('create');
         $request = $this->validatedRequest(ExpenseRequest::class);
-        $expense = $expenses->create(
-            UserId::fromInt(
-                (int) $request->validated('user_id'),
+        $expense = $this->useCases->run(
+            $this->admin(),
+            new CreateExpense(
+                $request->owner(),
+                $request->toWriteData(),
             ),
-            $request->toWriteData(),
-            UserId::fromInt((int) backpack_user()->id),
         );
-        $alerts = Alert::success(
-            __('expenses.messages.created'),
-        );
-        $alerts->flash();
-        $this->crud->setSaveAction();
 
-        return $this->crud->performSaveAction($expense->id->value);
+        return $this->saved('expenses.messages.created', $expense->id->value);
     }
 
-    public function update(ExpenseApplicationService $expenses): RedirectResponse
+    public function update(): RedirectResponse
     {
         $this->crud->hasAccessOrFail('update');
+        $stored = $this->currentEntry(Expense::class);
+        // The owner field is disabled on edit (ExpenseFormFields), so the stored owner is validated and kept
+        $httpRequest = $this->crud->getRequest();
+        $httpRequest->merge(['user_id' => $stored->user_id]);
+        $httpRequest->attributes->set(AdminDocumentPartyInput::STORED_CONTACT, $stored->contact_id);
         $request = $this->validatedRequest(ExpenseRequest::class);
-        $expense = $expenses->update(
-            UserId::fromInt(
-                (int) $request->validated('user_id'),
+        $expense = $this->useCases->run(
+            $this->admin(),
+            new UpdateExpense(
+                $request->owner(),
+                ExpenseId::fromInt((int) $this->crud->getCurrentEntryId()),
+                $request->toWriteData(),
             ),
-            ExpenseId::fromInt((int) $this->crud->getCurrentEntryId()),
-            $request->toWriteData(),
-            UserId::fromInt((int) backpack_user()->id),
         );
+
+        return $this->saved('expenses.messages.updated', $expense->id->value);
+    }
+
+    private function saved(string $message, int $id): RedirectResponse
+    {
         $alerts = Alert::success(
-            __('expenses.messages.updated'),
+            __($message),
         );
         $alerts->flash();
         $this->crud->setSaveAction();
 
-        return $this->crud->performSaveAction($expense->id->value);
+        return $this->crud->performSaveAction($id);
     }
 
     /**

@@ -4,16 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Application\Invoice\Services\ExpenseApplicationService;
 use App\Domain\Invoice\DTO\ExpenseWriteData;
-use App\Domain\Invoice\ValueObjects\ExpenseId;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\File\DTO\IncomingFile;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Http\Requests\Party\BankAccountInput;
@@ -25,15 +22,6 @@ use Illuminate\Validation\Rule;
 
 final class ExpenseRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-
-        return $user?->can(
-            $this->isMethod('POST') ? Permission::EXPENSE_CREATE : Permission::EXPENSE_UPDATE,
-        ) === true;
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -98,7 +86,7 @@ final class ExpenseRequest extends FormRequest
             ...AdminDocumentPartyInput::rules(
                 $this->all(),
                 'supplier',
-                $this->filled('contact_id') && !$this->keepsContact(),
+                $this->filled('contact_id') && !AdminDocumentPartyInput::keepsStoredContact($this),
             ),
             ...DocumentPartyInput::accountRules(
                 $this->all(),
@@ -124,6 +112,13 @@ final class ExpenseRequest extends FormRequest
             'supplier_logo' => $supplierLogoRules,
             'remove_supplier_logo' => 'nullable|boolean',
         ];
+    }
+
+    public function owner(): UserId
+    {
+        return UserId::fromInt(
+            (int) $this->validated('user_id'),
+        );
     }
 
     public function toWriteData(): ExpenseWriteData
@@ -249,23 +244,5 @@ final class ExpenseRequest extends FormRequest
                 )],
             );
         }
-    }
-
-    private function keepsContact(): bool
-    {
-        $id = (int) $this->route('id');
-        if ($this->isMethod('POST') || $id <= 0 || $this->integer('user_id') <= 0) {
-            return false;
-        }
-
-        $expenses = app(ExpenseApplicationService::class);
-        $expense = $expenses->get(
-            UserId::fromInt(
-                $this->integer('user_id'),
-            ),
-            ExpenseId::fromInt($id),
-        );
-
-        return $expense->parties->contactId?->value === $this->integer('contact_id');
     }
 }

@@ -30,12 +30,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
 
     public function findById(BusinessId $id, ReadScope $scope): ?BusinessDTO
     {
-        return $this->findByIdForUser($id, $scope->owner);
-    }
-
-    public function findByIdForUser(BusinessId $id, UserId $userId): ?BusinessDTO
-    {
-        $query = $this->ofUser($userId);
+        $query = $this->ofUser($scope->owner);
         $query->whereKey($id->value);
         $business = $query->first();
 

@@ -7,7 +7,6 @@ use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\Contracts\LocaleServiceInterface;
 use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
-use App\Domain\User\Contracts\UserPermissionServiceInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\Services\LocaleService;
@@ -15,7 +14,6 @@ use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserRepository;
-use App\Infrastructure\Services\User\LaravelUserPermissionService;
 use App\Infrastructure\Shared\Locale\Services\LaravelLocaleAdapter;
 use Illuminate\Support\ServiceProvider;
 
@@ -73,12 +71,6 @@ class UserServiceProvider extends ServiceProvider
         $this->app->bind(
             UserWriteRepositoryInterface::class,
             EloquentUserRepository::class,
-        );
-
-        // User permissions service
-        $this->app->bind(
-            UserPermissionServiceInterface::class,
-            LaravelUserPermissionService::class,
         );
     }
 

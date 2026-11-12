@@ -11,21 +11,21 @@ use App\Domain\Party\Exceptions\ContactIdentityChangedException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
 final class DocumentCounterpartyAssembler
 {
     public function __construct(private readonly ContactReadRepositoryInterface $contacts) {}
 
     public function assemble(
-        UserId $userId,
+        ReadScope $scope,
         ContactId $contactId,
         DocumentPartyDTO $entered,
         ?ContactId $storedContactId,
         ?DocumentPartyDTO $storedParty,
         bool $copyContact,
     ): DocumentPartyDTO {
-        $contact = $this->contacts->findByIdForUser($contactId, $userId) ?? throw new ContactNotFoundException($contactId);
+        $contact = $this->contacts->findById($contactId, $scope) ?? throw new ContactNotFoundException($contactId);
         $sameContact = $storedContactId?->equals($contactId) === true;
         if ($contact->isArchived() && !$sameContact) {
             throw new ArchivedReferenceSelectedException($contactId);

@@ -5,15 +5,13 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Invoice\Services;
 
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
-use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
 use App\Models\Business;
 use App\Models\Contact;
@@ -206,11 +204,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     public function a_guest_prints_the_same_snapshot_shape_and_server_totals(string $template): void
     {
         $invoice = $this->invoice();
-        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
-        $dto = $invoiceDtoReadRepository->findByIdForUser(
-            InvoiceId::fromInt($invoice->id),
-            UserId::fromInt($invoice->user_id),
-        );
+        $invoiceMapper = app(EloquentInvoiceMapper::class);
+        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $dto = $invoiceMapper->toDto($invoice);
         $temporaryInvoicePrintDataFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
         $print = $temporaryInvoicePrintDataFactory->fromArray(
             [
@@ -300,11 +296,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
 
     private function printable(Invoice $invoice): PrintableInvoiceDTO
     {
-        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
-        $dto = $invoiceDtoReadRepository->findByIdForUser(
-            InvoiceId::fromInt($invoice->id),
-            UserId::fromInt($invoice->user_id),
-        );
+        $invoiceMapper = app(EloquentInvoiceMapper::class);
+        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
 

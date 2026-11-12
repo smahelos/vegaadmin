@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Application\Invoice\Services;
 
+use App\Application\Invoice\Commands\CreateInvoice;
+use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\DTO\InvoicePartySelection;
-use App\Application\Invoice\Services\InvoicePartiesAssembler;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
@@ -21,14 +24,22 @@ use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
+use App\Models\Invoice;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\BuildsInvoiceInput;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
+/**
+ * The parties an invoice copies, asserted through CreateInvoice and UpdateInvoice run by the gate.
+ */
 final class InvoicePartiesAssemblerTest extends TestCase
 {
+    use BuildsInvoiceInput;
     use BuildsParties;
+    use RunsUseCases;
 
     private const CUSTOMER_NUMBER = '27082440';
 
@@ -36,13 +47,10 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
     private User $user;
 
-    private InvoicePartiesAssembler $assembler;
-
     protected function setUp(): void
     {
         parent::setUp();
         $this->user = $this->frontendUser();
-        $this->assembler = $this->app->make(InvoicePartiesAssembler::class);
     }
 
     #[Test]
@@ -53,10 +61,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
         $bankAccountFactory = $bankAccountFactory->ownedBy($business);
         $account = $bankAccountFactory->create();
 
-        $parties = $this->assembler->assemble(
-            $this->idOf($this->user),
+        $parties = $this->create(
             $this->selection($business, account: $account),
-            null,
         );
 
         $this->assertSame('Moje firma s.r.o.', $parties->supplier->name);
@@ -70,22 +76,16 @@ final class InvoicePartiesAssemblerTest extends TestCase
     public function a_stored_invoice_keeps_its_business_copy_until_the_user_reloads_it(): void
     {
         $business = $this->businessWithAddress(['name' => 'Původní název']);
-        $stored = $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business),
-            null,
         );
         $business->update(['name' => 'Nový název']);
 
-        $kept = $this->assembler->assemble(
-            $this->idOf($this->user),
+        $kept = $this->update(
             $this->selection($business),
-            $stored,
         );
-        $reloaded = $this->assembler->assemble(
-            $this->idOf($this->user),
+        $reloaded = $this->update(
             $this->selection($business, reloadBusiness: true),
-            $stored,
         );
 
         $this->assertSame('Původní název', $kept->supplier->name);
@@ -100,10 +100,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
         $this->expectException(ArchivedReferenceSelectedException::class);
 
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business),
-            null,
         );
     }
 
@@ -115,10 +113,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
         $this->expectException(IncompleteBusinessAddressException::class);
 
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business),
-            null,
         );
     }
 
@@ -132,10 +128,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
         $this->expectException(BusinessNotFoundException::class);
 
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($foreign),
-            null,
         );
     }
 
@@ -151,10 +145,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business, account: $account),
-            null,
         );
     }
 
@@ -172,10 +164,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
 
         $this->expectException(ContactIdentityChangedException::class);
 
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business, contact: $contact),
-            null,
         );
     }
 
@@ -184,10 +174,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
     {
         $business = $this->businessWithAddress();
 
-        $parties = $this->assembler->assemble(
-            $this->idOf($this->user),
+        $parties = $this->create(
             $this->selection($business, saveCustomerToContacts: true),
-            null,
         );
 
         $contactQuery = Contact::query();
@@ -214,23 +202,15 @@ final class InvoicePartiesAssemblerTest extends TestCase
             account: $account,
             contact: $contact,
         );
-        $stored = $this->assembler->assemble(
-            $this->idOf($this->user),
-            $selection,
-            null,
-        );
+        $stored = $this->create($selection);
         $account->update(
             ['archived_at' => now(), 'bank_name' => 'Changed source bank'],
         );
         $contact->update(['archived_at' => now(), 'name' => 'Changed source contact']);
 
-        $kept = $this->assembler->assemble(
-            $this->idOf($this->user),
-            $selection,
-            $stored,
-        );
-        $this->assertSame($stored->account, $kept->account);
-        $this->assertSame($stored->customer, $kept->customer);
+        $kept = $this->update($selection);
+        $this->assertEquals($stored->account, $kept->account);
+        $this->assertEquals($stored->customer, $kept->customer);
         $this->assertSame($account->id, $kept->bankAccountId?->value);
         $this->assertSame($contact->id, $kept->contactId?->value);
         $this->assertNotNull($account->fresh()->archived_at);
@@ -245,10 +225,8 @@ final class InvoicePartiesAssemblerTest extends TestCase
         $bankAccountFactory = $bankAccountFactory->ownedBy($business);
         $account = $bankAccountFactory->create(['archived_at' => now()]);
         $this->expectException(ArchivedReferenceSelectedException::class);
-        $this->assembler->assemble(
-            $this->idOf($this->user),
+        $this->create(
             $this->selection($business, account: $account),
-            null,
         );
     }
 
@@ -261,22 +239,47 @@ final class InvoicePartiesAssemblerTest extends TestCase
             ['user_id' => $this->user->id, 'company_number' => self::CUSTOMER_NUMBER],
         );
         $selection = $this->selection($business, contact: $contact);
-        $stored = $this->assembler->assemble(
-            $this->idOf($this->user),
-            $selection,
-            null,
-        );
+        $stored = $this->create($selection);
         $contact->update(['company_number' => self::OTHER_NUMBER]);
 
-        $kept = $this->assembler->assemble(
-            $this->idOf($this->user),
-            $selection,
-            $stored,
-        );
+        $kept = $this->update($selection);
 
-        $this->assertSame($stored->customer, $kept->customer);
+        $this->assertEquals($stored->customer, $kept->customer);
         $this->assertSame($contact->id, $kept->contactId?->value);
         $this->assertSame(self::OTHER_NUMBER, $contact->fresh()->company_number);
+    }
+
+    private function create(InvoicePartySelection $parties): DocumentParties
+    {
+        $invoice = $this->runAs(
+            $this->idOf($this->user),
+            new CreateInvoice(
+                $this->idOf($this->user),
+                $this->invoiceWriteData(),
+                $parties,
+                [],
+            ),
+        );
+
+        return $invoice->parties;
+    }
+
+    /** Updates the only invoice of the user. */
+    private function update(InvoicePartySelection $parties): DocumentParties
+    {
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoice = $this->runAs(
+            $this->idOf($this->user),
+            new UpdateInvoice(
+                $this->idOf($this->user),
+                InvoiceId::fromInt($invoiceQuery->sole()->id),
+                $this->invoiceWriteData(),
+                $parties,
+                [],
+            ),
+        );
+
+        return $invoice->parties;
     }
 
     /**

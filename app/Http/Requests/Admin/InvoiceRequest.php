@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
@@ -73,7 +71,7 @@ final class InvoiceRequest extends FormRequest
         $customerRules = AdminDocumentPartyInput::rules(
             $this->all(),
             'customer',
-            $this->filled('contact_id') && !$this->keepsContact(),
+            $this->filled('contact_id') && !AdminDocumentPartyInput::keepsStoredContact($this),
         );
 
         return [
@@ -158,23 +156,6 @@ final class InvoiceRequest extends FormRequest
         }
 
         return $attributes;
-    }
-
-    private function keepsContact(): bool
-    {
-        $id = (int) $this->route('id');
-        if ($this->isMethod('POST') || $id <= 0 || $this->integer('user_id') <= 0) {
-            return false;
-        }
-        $invoices = app(InvoiceListingApplicationServiceInterface::class);
-        $invoice = $invoices->getById(
-            InvoiceId::fromInt($id),
-            UserId::fromInt(
-                $this->integer('user_id'),
-            ),
-        );
-
-        return $invoice->parties?->contactId?->value === $this->integer('contact_id');
     }
 
     private function paysByBankTransfer(): bool

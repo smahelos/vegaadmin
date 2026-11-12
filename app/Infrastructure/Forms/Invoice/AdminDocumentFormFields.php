@@ -36,6 +36,8 @@ final class AdminDocumentFormFields
                 'attribute' => 'name',
                 'default' => backpack_user()?->id,
                 'allows_null' => false,
+                // A stored document keeps the owner its parties (and an invoice's number series) belong to; update reads it
+                'attributes' => $document === null ? [] : ['disabled' => 'disabled'],
                 'wrapper' => ['class' => 'form-group col-12 col-md-6'],
             ],
             self::selection(

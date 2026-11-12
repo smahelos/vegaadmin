@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
@@ -10,7 +9,6 @@ use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
-use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationService;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
 use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
@@ -133,11 +131,6 @@ class InvoiceServiceProvider extends ServiceProvider
         $this->app->bind(
             TemporaryInvoicePrintDataFactoryInterface::class,
             TemporaryInvoicePrintDataFactory::class,
-        );
-
-        $this->app->bind(
-            InvoiceListingApplicationServiceInterface::class,
-            InvoiceListingApplicationService::class,
         );
     }
 

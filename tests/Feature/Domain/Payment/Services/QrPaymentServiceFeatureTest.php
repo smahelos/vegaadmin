@@ -5,16 +5,14 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Payment\Services;
 
 use App\Application\Payment\Mappers\QrPaymentMapper;
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\BankAccount as StoredBankAccount;
 use App\Models\Business;
 use App\Models\Invoice;
@@ -129,11 +127,9 @@ final class QrPaymentServiceFeatureTest extends TestCase
             ],
         );
         $business->update(['archived_at' => now()]);
-        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
-        $stored = $invoiceDtoReadRepository->findByIdForUser(
-            InvoiceId::fromInt($invoice->id),
-            UserId::fromInt($invoice->user_id),
-        );
+        $invoiceMapper = app(EloquentInvoiceMapper::class);
+        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $stored = $invoiceMapper->toDto($invoice);
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilderInterface::class);
         $printable = $invoicePrintDataBuilder->build($stored);
         $qrPaymentMapper = app(QrPaymentMapper::class);

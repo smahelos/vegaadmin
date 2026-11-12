@@ -11,7 +11,6 @@ use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
-use App\Domain\User\ValueObjects\UserId;
 
 interface BusinessReadRepositoryInterface
 {
@@ -19,11 +18,6 @@ interface BusinessReadRepositoryInterface
      * Null when the business does not exist or is outside the scope; archived businesses are found.
      */
     public function findById(BusinessId $id, ReadScope $scope): ?BusinessDTO;
-
-    /**
-     * Without a scope for Invoice, which the gate does not run yet.
-     */
-    public function findByIdForUser(BusinessId $id, UserId $userId): ?BusinessDTO;
 
     /**
      * @return list<BusinessDTO> ordered by name

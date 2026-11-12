@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
-use App\Application\Party\Queries\FindContactDuplicates;
-use App\Application\Party\Queries\FindDefaultBankAccount;
-use App\Application\Party\Queries\FindDefaultBusiness;
-use App\Application\Party\Queries\GetBusiness;
-use App\Application\Party\Queries\GetContact;
-use App\Application\Party\Queries\ListActiveBusinesses;
-use App\Application\Party\Queries\ListBankAccounts;
-use App\Application\Party\Queries\ListContacts;
+use App\Application\Invoice\Queries\FindDefaultDocumentBankAccount;
+use App\Application\Invoice\Queries\FindDefaultDocumentBusiness;
+use App\Application\Invoice\Queries\FindDocumentContactDuplicates;
+use App\Application\Invoice\Queries\GetDocumentBusiness;
+use App\Application\Invoice\Queries\GetDocumentContact;
+use App\Application\Invoice\Queries\GetInvoiceParties;
+use App\Application\Invoice\Queries\ListActiveDocumentBusinesses;
+use App\Application\Invoice\Queries\ListDocumentBankAccounts;
+use App\Application\Invoice\Queries\ListDocumentContacts;
 use App\Application\Party\Services\CompanyRegistryApplicationService;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\BankAccountDTO;
@@ -22,8 +22,6 @@ use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
-use App\Domain\Party\DTO\PartySearch;
-use App\Domain\Party\Enums\PartySort;
 use App\Domain\Party\Exceptions\InvalidAddressException;
 use App\Domain\Party\Exceptions\InvalidRegistrationNumberException;
 use App\Domain\Party\ValueObjects\AccountOwner;
@@ -86,7 +84,6 @@ final class DocumentPartyPicker extends Component
     public ?string $supplierRegisterMessage = null;
 
     public function mount(
-        InvoiceListingApplicationServiceInterface $invoices,
         bool $guest = false,
         ?int $invoiceId = null,
         ?int $businessId = null,
@@ -100,11 +97,10 @@ final class DocumentPartyPicker extends Component
             if ($invoiceId === null) {
                 $this->startNew($businessId, $contactId);
             } else {
-                $invoice = $invoices->getById(
-                    InvoiceId::fromInt($invoiceId),
-                    $this->userId(),
+                $this->startFromInvoice(
+                    $this->storedParties($invoiceId),
+                    $invoiceId,
                 );
-                $this->startFromInvoice($invoice->parties, $invoiceId);
             }
         }
 
@@ -144,7 +140,7 @@ final class DocumentPartyPicker extends Component
 
     public function selectContact(int $contactId): void
     {
-        $this->requireAllowed(GetContact::class);
+        $this->requireAllowed(GetDocumentContact::class);
         $contact = $this->contact($contactId);
         if ($contact->isArchived()) {
             $this->addError(
@@ -164,7 +160,7 @@ final class DocumentPartyPicker extends Component
      */
     public function linkContact(int $contactId): void
     {
-        $this->requireAllowed(GetContact::class);
+        $this->requireAllowed(GetDocumentContact::class);
         $this->useContact(
             $this->contact($contactId),
         );
@@ -172,7 +168,7 @@ final class DocumentPartyPicker extends Component
 
     public function reloadContact(): void
     {
-        $this->requireAllowed(GetContact::class);
+        $this->requireAllowed(GetDocumentContact::class);
         if ($this->contactId !== null) {
             $contact = $this->contact($this->contactId);
             $this->customer->fillFromProfile($contact->profile);
@@ -194,7 +190,7 @@ final class DocumentPartyPicker extends Component
         $this->supplierRegisterMessage = $this->supplier->lookUpInRegister($registry) ? __('parties.messages.register_filled') : null;
     }
 
-    public function render(InvoiceListingApplicationServiceInterface $invoices): View
+    public function render(): View
     {
         if ($this->guest) {
             return view(
@@ -210,18 +206,14 @@ final class DocumentPartyPicker extends Component
         if ($this->invoiceId === null) {
             $stored = null;
         } else {
-            $invoice = $invoices->getById(
-                InvoiceId::fromInt($this->invoiceId),
-                $userId,
-            );
-            $stored = $invoice->parties;
+            $stored = $this->storedParties($this->invoiceId);
         }
 
         if ($this->businessId === null) {
             $business = null;
         } else {
             $business = $this->runUseCase(
-                new GetBusiness(
+                new GetDocumentBusiness(
                     $userId,
                     BusinessId::fromInt($this->businessId),
                 ),
@@ -234,11 +226,11 @@ final class DocumentPartyPicker extends Component
             $contact = $this->contact($this->contactId);
         }
 
-        if ($business === null || !$this->isAllowed(ListBankAccounts::class)) {
+        if ($business === null) {
             $businessAccounts = [];
         } else {
             $businessAccounts = $this->runUseCase(
-                new ListBankAccounts(
+                new ListDocumentBankAccounts(
                     $userId,
                     AccountOwner::business($business->id),
                 ),
@@ -267,29 +259,23 @@ final class DocumentPartyPicker extends Component
         );
     }
 
-    /**
-     * What the user cannot read stays empty: the invoice form works without it.
-     */
     private function startNew(?int $businessId, ?int $contactId): void
     {
-        if ($contactId !== null && $this->isAllowed(GetContact::class)) {
+        if ($contactId !== null) {
             $this->selectContact($contactId);
-        }
-        if (!$this->isAllowed(GetBusiness::class)) {
-            return;
         }
 
         $owner = $this->userId();
         if ($businessId === null) {
             $business = $this->runUseCase(
-                new FindDefaultBusiness($owner),
+                new FindDefaultDocumentBusiness($owner),
             );
         } else {
             $business = BusinessId::fromInt($businessId);
         }
         if ($business !== null) {
             $found = $this->runUseCase(
-                new GetBusiness($owner, $business),
+                new GetDocumentBusiness($owner, $business),
             );
             $this->businessId = $found->id->value;
             $this->bankAccountId = $this->defaultAccountId($business);
@@ -301,12 +287,8 @@ final class DocumentPartyPicker extends Component
      */
     private function activeBusinesses(): array
     {
-        if (!$this->isAllowed(ListActiveBusinesses::class)) {
-            return [];
-        }
-
         return $this->runUseCase(
-            new ListActiveBusinesses(
+            new ListActiveDocumentBusinesses(
                 $this->userId(),
             ),
         );
@@ -314,12 +296,8 @@ final class DocumentPartyPicker extends Component
 
     private function defaultAccountId(BusinessId $business): ?int
     {
-        if (!$this->isAllowed(FindDefaultBankAccount::class)) {
-            return null;
-        }
-
         $account = $this->runUseCase(
-            new FindDefaultBankAccount(
+            new FindDefaultDocumentBankAccount(
                 $this->userId(),
                 AccountOwner::business($business),
             ),
@@ -331,9 +309,19 @@ final class DocumentPartyPicker extends Component
     private function contact(int $id): ContactDTO
     {
         return $this->runUseCase(
-            new GetContact(
+            new GetDocumentContact(
                 $this->userId(),
                 ContactId::fromInt($id),
+            ),
+        );
+    }
+
+    private function storedParties(int $invoiceId): DocumentParties
+    {
+        return $this->runUseCase(
+            new GetInvoiceParties(
+                $this->userId(),
+                InvoiceId::fromInt($invoiceId),
             ),
         );
     }
@@ -551,19 +539,15 @@ final class DocumentPartyPicker extends Component
     private function contactResults(): array
     {
         $term = $this->searchTerm();
-        if ($term === null || !$this->isAllowed(ListContacts::class)) {
+        if ($term === null) {
             return [];
         }
 
         $results = $this->runUseCase(
-            new ListContacts(
+            new ListDocumentContacts(
                 $this->userId(),
-                new PartySearch(
-                    $term,
-                    false,
-                    PartySort::NAME,
-                    true,
-                ),
+                $term,
+                null,
                 new PageRequest(1, self::CONTACT_RESULTS),
             ),
         );
@@ -591,7 +575,6 @@ final class DocumentPartyPicker extends Component
             !$this->saveToContacts
             || $this->contactId !== null
             || trim($this->customer->companyNumber) === ''
-            || !$this->isAllowed(FindContactDuplicates::class)
         ) {
             return null;
         }
@@ -607,10 +590,9 @@ final class DocumentPartyPicker extends Component
         }
 
         $duplicates = $this->runUseCase(
-            new FindContactDuplicates(
+            new FindDocumentContactDuplicates(
                 $this->userId(),
                 $profile,
-                null,
             ),
         );
         foreach ($duplicates as $duplicate) {

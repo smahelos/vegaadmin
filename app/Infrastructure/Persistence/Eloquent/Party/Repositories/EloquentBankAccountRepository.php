@@ -26,12 +26,7 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
 {
     public function findById(BankAccountId $id, ReadScope $scope): ?BankAccountDTO
     {
-        return $this->findByIdForUser($id, $scope->owner);
-    }
-
-    public function findByIdForUser(BankAccountId $id, UserId $userId): ?BankAccountDTO
-    {
-        $query = $this->ofUser($userId);
+        $query = $this->ofUser($scope->owner);
         $query->whereKey($id->value);
         $account = $query->first();
 

@@ -2,9 +2,7 @@
 
 namespace App\Exceptions;
 
-use App\Domain\Invoice\Exceptions\ExpenseAccessDeniedException;
 use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
-use App\Domain\Invoice\Exceptions\InvoiceAccessDeniedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
@@ -49,22 +47,12 @@ class ExceptionHandling
             fn (PermissionDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
         );
 
-        $exceptions->map(
-            InvoiceAccessDeniedException::class,
-            fn (InvoiceAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
-        );
-
         $exceptions->render(
             fn (IncompleteDocumentPartyException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
                 $request,
                 'contact_id',
                 __('parties.messages.incomplete_document_address'),
             ),
-        );
-
-        $exceptions->map(
-            ExpenseAccessDeniedException::class,
-            fn (ExpenseAccessDeniedException $e): AccessDeniedHttpException => new AccessDeniedHttpException('', $e),
         );
 
         // A plan limit is reached: the message names the limit and the frontend links it to the plans

@@ -13,7 +13,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\LinkInvoiceContactRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Links the customer of an invoice to the address book from the invoice detail.
@@ -24,12 +24,9 @@ final class InvoiceContactController extends Controller
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
     ) {}
 
-    public function saveToContacts(
-        Request $request,
-        string $locale,
-        int $invoice,
-    ): RedirectResponse {
-        $owner = $this->owner($request);
+    public function saveToContacts(string $locale, int $invoice): RedirectResponse
+    {
+        $owner = $this->owner();
         $this->useCases->run(
             Actor::user($owner),
             new SaveInvoiceCustomerToContacts(
@@ -51,7 +48,7 @@ final class InvoiceContactController extends Controller
         string $locale,
         int $invoice,
     ): RedirectResponse {
-        $owner = $this->owner($request);
+        $owner = $this->owner();
         // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             Actor::user($owner),
@@ -70,10 +67,8 @@ final class InvoiceContactController extends Controller
         );
     }
 
-    private function owner(Request $request): UserId
+    private function owner(): UserId
     {
-        $user = $request->user();
-
-        return UserId::fromInt((int) $user?->getAuthIdentifier());
+        return UserId::fromInt((int) Auth::id());
     }
 }

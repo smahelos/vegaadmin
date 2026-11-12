@@ -2,42 +2,45 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\Invoice\Services;
+namespace Tests\Feature\Application\Invoice;
 
-use App\Application\Invoice\Services\ExpenseApplicationService;
+use App\Application\Invoice\Commands\CreateExpense;
 use App\Domain\Invoice\DTO\ExpenseWriteData;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\ValueObjects\UserId;
 use App\Models\Contact;
 use App\Models\ExpenseCategory;
 use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsInvoiceInput;
+use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
-use Tests\Traits\CreatesAdminTestEnvironment;
 
-final class ExpenseApplicationServiceTest extends TestCase
+/**
+ * The contact rejection is reached only after the gate, so it also proves expense.create on the web guard.
+ */
+final class ExpenseUseCasesTest extends TestCase
 {
     use BuildsInvoiceInput;
-    use CreatesAdminTestEnvironment;
+    use BuildsParties;
+    use RunsUseCases;
 
     #[Test]
     public function creating_an_expense_rejects_the_contact_of_another_user(): void
     {
-        $this->setUpAdminTestEnvironment();
-        [$business] = $this->issuerOf($this->adminUser);
+        $user = $this->frontendUser();
+        [$business] = $this->issuerOf($user);
         $userFactory = User::factory();
         $other = $userFactory->create();
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $other->id]);
         $expenseCategoryFactory = ExpenseCategory::factory();
         $expenseCategory = $expenseCategoryFactory->create();
-        $userId = UserId::fromInt($this->adminUser->id);
 
         $data = new ExpenseWriteData(
             BusinessId::fromInt($business->id),
@@ -62,14 +65,15 @@ final class ExpenseApplicationServiceTest extends TestCase
             false,
             null,
         );
-        $expenses = app(ExpenseApplicationService::class);
 
         $this->expectException(ContactNotFoundException::class);
 
-        $expenses->create(
-            $userId,
-            $data,
-            $userId,
+        $this->runAs(
+            $this->idOf($user),
+            new CreateExpense(
+                $this->idOf($user),
+                $data,
+            ),
         );
     }
 }

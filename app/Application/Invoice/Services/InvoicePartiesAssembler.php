@@ -23,6 +23,8 @@ use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
 
@@ -55,7 +57,7 @@ final class InvoicePartiesAssembler
      * @throws EntityLimitExceededException
      */
     public function assemble(
-        UserId $userId,
+        WriteScope $scope,
         InvoicePartySelection $selection,
         ?DocumentParties $stored,
     ): DocumentParties {
@@ -65,7 +67,7 @@ final class InvoicePartiesAssembler
         $copyBusiness = !$keepBusiness;
 
         $supplier = $this->businesses->assemble(
-            $userId,
+            $scope->read,
             $selection->businessId,
             $stored,
             $selection->reloadBusiness,
@@ -76,7 +78,7 @@ final class InvoicePartiesAssembler
         $contactId = $selection->contactId;
         if ($contactId !== null) {
             $customer = $this->counterparties->assemble(
-                $userId,
+                $scope->read,
                 $contactId,
                 $customer,
                 $stored?->contactId,
@@ -84,7 +86,7 @@ final class InvoicePartiesAssembler
                 $selection->copyContact,
             );
         } elseif ($selection->saveCustomerToContacts) {
-            $contactId = $this->saveToContacts($userId, $customer);
+            $contactId = $this->saveToContacts($scope->owner, $customer);
         }
 
         return new DocumentParties(
@@ -94,7 +96,7 @@ final class InvoicePartiesAssembler
             supplier: $supplier,
             customer: $customer,
             account: $this->account(
-                $userId,
+                $scope->read,
                 $selection,
                 $stored,
                 $copyBusiness,
@@ -106,7 +108,7 @@ final class InvoicePartiesAssembler
      * Only an account of the selected business; the stored copy stays while the account and business do.
      */
     private function account(
-        UserId $userId,
+        ReadScope $scope,
         InvoicePartySelection $selection,
         ?DocumentParties $stored,
         bool $copyBusiness,
@@ -121,7 +123,7 @@ final class InvoicePartiesAssembler
             return $stored->account;
         }
 
-        $account = $this->accounts->findByIdForUser($accountId, $userId)
+        $account = $this->accounts->findById($accountId, $scope)
             ?? throw new BankAccountNotFoundException($accountId);
         if ($account->owner->businessId === null || !$account->owner->businessId->equals($selection->businessId)) {
             throw new BankAccountNotFoundException($accountId);

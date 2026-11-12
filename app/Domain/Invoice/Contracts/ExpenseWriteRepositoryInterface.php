@@ -8,13 +8,13 @@ use App\Domain\Invoice\DTO\ExpenseDTO;
 use App\Domain\Invoice\DTO\ExpenseWriteData;
 use App\Domain\Invoice\ValueObjects\ExpenseId;
 use App\Domain\Party\DTO\DocumentParties;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
 interface ExpenseWriteRepositoryInterface
 {
     /** @param list<string> $attachments */
     public function create(
-        UserId $userId,
+        WriteScope $scope,
         ExpenseWriteData $data,
         DocumentParties $parties,
         array $attachments,
@@ -23,7 +23,7 @@ interface ExpenseWriteRepositoryInterface
     /** @param list<string> $attachments */
     public function update(
         ExpenseId $id,
-        UserId $userId,
+        WriteScope $scope,
         ExpenseWriteData $data,
         DocumentParties $parties,
         array $attachments,

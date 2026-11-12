@@ -111,7 +111,6 @@ final class ExpenseRequestFeatureTest extends TestCase
         $httpResponse = $this->put('/admin/expense/' . $expense->id, ['description' => 'Changed']);
         $httpResponse->assertSessionHasErrors([
             'business_id',
-            'user_id',
             'supplier_name',
         ]);
     }
