@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Invoice\Services;
 
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,11 +27,9 @@ final class InvoicePrintDataBuilderTest extends TestCase
                 'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
             ],
         );
-        $invoiceDtoReadRepository = app(InvoiceDtoReadRepositoryInterface::class);
-        $dto = $invoiceDtoReadRepository->findByIdForUser(
-            InvoiceId::fromInt($invoice->id),
-            UserId::fromInt($invoice->user_id),
-        );
+        $invoiceMapper = app(EloquentInvoiceMapper::class);
+        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
         $printData = $invoicePrintDataBuilder->build($dto);

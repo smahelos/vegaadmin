@@ -33,7 +33,7 @@ final class CreateInvoiceHandler
 
     public function handle(CreateInvoice $command, WriteScope $scope): InvoiceDTO
     {
-        $this->productOwnership->assertOwned($command->owner, $command->products);
+        $this->productOwnership->assertOwned($scope->read, $command->products);
         $business = $this->businesses->findById($command->parties->businessId, $scope->read)
             ?? throw new BusinessNotFoundException($command->parties->businessId);
 
@@ -47,7 +47,7 @@ final class CreateInvoiceHandler
                     $this->limits->assertCanCreate($command->owner, LimitedEntity::INVOICE);
 
                     $documentParties = $this->parties->assemble(
-                        $command->owner,
+                        $scope,
                         $command->parties,
                         null,
                     );

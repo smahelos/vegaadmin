@@ -76,6 +76,10 @@ final class ExpenseCrudControllerTest extends TestCase
         $httpResponse = $this->get('/admin/expense/' . $expense->id . '/edit');
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertSee('enctype="multipart/form-data"', false);
+        $this->assertMatchesRegularExpression(
+            '/<select(?=[^>]*name="user_id")(?=[^>]*disabled)[^>]*>/',
+            $httpResponse->getContent(),
+        );
     }
 
     #[Test]
@@ -268,16 +272,26 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function editing_with_the_wrong_owner_returns_not_found(): void
+    public function editing_keeps_the_stored_owner_whatever_owner_is_submitted(): void
     {
-        [$business] = $this->issuerOf($this->adminUser);
+        [$business] = $this->issuerOf($this->regularUser);
         $expenseFactory = Expense::factory();
         $expense = $expenseFactory->create(['user_id' => $this->regularUser->id]);
         $httpResponse = $this->put(
             '/admin/expense/' . $expense->id,
-            $this->expenseInput($business),
+            $this->expenseInput(
+                $business,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'description' => 'Corrected description',
+                ],
+            ),
         );
-        $httpResponse->assertNotFound();
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
+        $stored = $expense->fresh();
+        $this->assertSame($this->regularUser->id, $stored->user_id);
+        $this->assertSame('Corrected description', $stored->description);
     }
 
     #[Test]

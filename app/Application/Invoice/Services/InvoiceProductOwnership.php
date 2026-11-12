@@ -7,17 +7,17 @@ namespace App\Application\Invoice\Services;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
 final class InvoiceProductOwnership
 {
     public function __construct(private readonly CatalogProductReadRepositoryInterface $products) {}
 
     /** @param list<InvoiceProductWriteData> $lines */
-    public function assertOwned(UserId $userId, array $lines): void
+    public function assertOwned(ReadScope $scope, array $lines): void
     {
         foreach ($lines as $line) {
-            if ($line->productId !== null && !$this->products->isOwnedBy($line->productId, $userId)) {
+            if ($line->productId !== null && !$this->products->isOwnedBy($line->productId, $scope)) {
                 throw new InvoiceNotFoundException('Invoice product not accessible for user');
             }
         }

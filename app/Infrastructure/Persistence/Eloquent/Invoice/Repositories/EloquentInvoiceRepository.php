@@ -22,14 +22,6 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return $query->find($id->getValue());
     }
 
-    public function findForUser(int $userId, int $invoiceId): ?Invoice
-    {
-        $query = Invoice::with(['invoiceProducts']);
-        $query->where('user_id', $userId);
-
-        return $query->find($invoiceId);
-    }
-
     public function create(array $data): Invoice
     {
         return Invoice::create($data);

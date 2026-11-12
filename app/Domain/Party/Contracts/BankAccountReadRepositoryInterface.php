@@ -8,7 +8,6 @@ use App\Domain\Party\DTO\BankAccountDTO;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
-use App\Domain\User\ValueObjects\UserId;
 
 interface BankAccountReadRepositoryInterface
 {
@@ -16,11 +15,6 @@ interface BankAccountReadRepositoryInterface
      * Null when the account does not exist or its owner is outside the scope; archived accounts are found.
      */
     public function findById(BankAccountId $id, ReadScope $scope): ?BankAccountDTO;
-
-    /**
-     * Without a scope for Invoice, which the gate does not run yet.
-     */
-    public function findByIdForUser(BankAccountId $id, UserId $userId): ?BankAccountDTO;
 
     /**
      * Empty when the owner is outside the scope.

@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Application\Invoice\Queries\ListDocumentBankAccounts;
+use App\Application\Invoice\Queries\ListDocumentBusinesses;
+use App\Application\Invoice\Queries\ListDocumentContacts;
+use App\Application\Invoice\Queries\ListInvoiceCatalogProducts;
+use App\Application\Invoice\Queries\PreviewInvoiceTotals;
 use App\Application\Party\Commands\ArchiveBankAccount;
 use App\Application\Party\Commands\ArchiveBusiness;
 use App\Application\Party\Commands\ArchiveContact;
@@ -60,18 +65,23 @@ Route::group(
     function (): void { // custom admin routes
         $route = Route::get('document-parties/businesses', [DocumentPartyCrudController::class, 'businesses']);
         $route->name('admin.document-parties.businesses');
+        $route->middleware('allowed:' . ListDocumentBusinesses::class);
         $route = Route::get('document-parties/contacts', [DocumentPartyCrudController::class, 'contacts']);
         $route->name('admin.document-parties.contacts');
+        $route->middleware('allowed:' . ListDocumentContacts::class);
         $route = Route::get('document-parties/accounts', [DocumentPartyCrudController::class, 'accounts']);
         $route->name('admin.document-parties.accounts');
+        $route->middleware('allowed:' . ListDocumentBankAccounts::class);
         $route = Route::get('entity-usage', [EntityUsageController::class, 'show']);
         $route->name('admin.entity-usage.show');
         // `allowed` names the use case the action runs through the gate: change them together
         $route->middleware('allowed:' . GetEntityUsage::class);
         $route = Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog']);
         $route->name('admin.invoice-items.catalog');
+        $route->middleware('allowed:' . ListInvoiceCatalogProducts::class);
         $route = Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview']);
         $route->name('admin.invoice-items.preview');
+        $route->middleware('allowed:' . PreviewInvoiceTotals::class);
         Route::crud('invoice', InvoiceCrudController::class);
         // Each `allowed` below names the use case its action runs through the gate: change them together
         Route::crud('business', BusinessCrudController::class);

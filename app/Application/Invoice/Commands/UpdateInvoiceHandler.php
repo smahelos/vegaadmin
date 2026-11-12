@@ -35,7 +35,7 @@ final class UpdateInvoiceHandler
     {
         $stored = $this->invoices->findById($command->id, $scope->read)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
-        $this->productOwnership->assertOwned($command->owner, $command->products);
+        $this->productOwnership->assertOwned($scope->read, $command->products);
         $business = $this->businesses->findById($command->parties->businessId, $scope->read)
             ?? throw new BusinessNotFoundException($command->parties->businessId);
         $sameBusiness = $stored->parties->businessId->equals($command->parties->businessId);
@@ -49,7 +49,7 @@ final class UpdateInvoiceHandler
             fn (?string $logo): InvoiceDTO => $this->transactions->transaction(
                 function () use ($command, $scope, $stored, $logo): InvoiceDTO {
                     $documentParties = $this->parties->assemble(
-                        $command->owner,
+                        $scope,
                         $command->parties,
                         $stored->parties,
                     );

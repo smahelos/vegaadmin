@@ -29,12 +29,7 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
 
     public function findById(ContactId $id, ReadScope $scope): ?ContactDTO
     {
-        return $this->findByIdForUser($id, $scope->owner);
-    }
-
-    public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO
-    {
-        $query = $this->ofUser($userId);
+        $query = $this->ofUser($scope->owner);
         $query->whereKey($id->value);
         $contact = $query->first();
 

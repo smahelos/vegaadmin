@@ -4,25 +4,14 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
+use App\Domain\Party\ValueObjects\AccountOwner;
+use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Foundation\Http\FormRequest;
 
 final class DocumentPartySelectionRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-
-        return $user?->canAny(
-            [
-                Permission::INVOICE_CREATE,
-                Permission::INVOICE_UPDATE,
-                Permission::EXPENSE_CREATE,
-                Permission::EXPENSE_UPDATE,
-            ],
-        ) === true;
-    }
-
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -34,6 +23,46 @@ final class DocumentPartySelectionRequest extends FormRequest
             'page' => 'nullable|integer|min:1',
             'id' => 'nullable|integer|min:1',
         ];
+    }
+
+    public function owner(): UserId
+    {
+        return UserId::fromInt(
+            (int) $this->validated('user_id'),
+        );
+    }
+
+    public function term(): ?string
+    {
+        $term = $this->validated('q');
+
+        return $term === null ? null : (string) $term;
+    }
+
+    public function selectedId(): ?int
+    {
+        $id = $this->validated('id');
+
+        return $id === null ? null : (int) $id;
+    }
+
+    /** The business when both are sent: an account belongs to one of them. */
+    public function accountOwner(): ?AccountOwner
+    {
+        $business = $this->validated('business_id');
+        if ($business !== null) {
+            return AccountOwner::business(
+                BusinessId::fromInt((int) $business),
+            );
+        }
+        $contact = $this->validated('contact_id');
+        if ($contact !== null) {
+            return AccountOwner::contact(
+                ContactId::fromInt((int) $contact),
+            );
+        }
+
+        return null;
     }
 
     /** @return array<string, string> */

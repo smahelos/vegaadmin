@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-12T13:24:25+00:00",
+    "generated_at": "2026-11-12T15:24:53+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -243,10 +243,6 @@
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\TemporaryInvoicePrintDataFactoryInterface",
                     "concrete": "App\\Application\\Invoice\\Services\\TemporaryInvoicePrintDataFactory"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService"
                 }
             ],
             "singleton": []
@@ -416,10 +412,6 @@
                 {
                     "abstract": "App\\Domain\\User\\Contracts\\UserWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentUserRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface",
-                    "concrete": "App\\Infrastructure\\Services\\User\\LaravelUserPermissionService"
                 }
             ],
             "singleton": []
@@ -455,14 +447,6 @@
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageRepository",
                 "provider": "App\\Providers\\ContentServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
         },
@@ -1074,14 +1058,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\User\\Repositories\\EloquentRoleLimitRepository",
-                "provider": "App\\Providers\\UserServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\User\\Contracts\\UserPermissionServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Services\\User\\LaravelUserPermissionService",
                 "provider": "App\\Providers\\UserServiceProvider",
                 "method": "bind"
             }

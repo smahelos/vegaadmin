@@ -10,7 +10,7 @@ use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
 final class ExpensePartiesAssembler
 {
@@ -21,12 +21,12 @@ final class ExpensePartiesAssembler
     ) {}
 
     public function assemble(
-        UserId $userId,
+        ReadScope $scope,
         ExpenseWriteData $data,
         ?DocumentParties $stored,
     ): DocumentParties {
         $customer = $this->businesses->assemble(
-            $userId,
+            $scope,
             $data->businessId,
             $stored,
             false,
@@ -36,7 +36,7 @@ final class ExpensePartiesAssembler
             $supplier = $data->supplier;
         } else {
             $supplier = $this->counterparties->assemble(
-                $userId,
+                $scope,
                 $data->contactId,
                 $data->supplier,
                 $stored?->contactId,
@@ -52,7 +52,7 @@ final class ExpensePartiesAssembler
             $supplier,
             $customer,
             $this->account(
-                $userId,
+                $scope,
                 $data,
                 $stored,
             ),
@@ -60,7 +60,7 @@ final class ExpensePartiesAssembler
     }
 
     private function account(
-        UserId $userId,
+        ReadScope $scope,
         ExpenseWriteData $data,
         ?DocumentParties $stored,
     ): ?DocumentAccountDTO {
@@ -68,7 +68,7 @@ final class ExpensePartiesAssembler
         if ($id === null) {
             return $data->account;
         }
-        $account = $this->accounts->findByIdForUser($id, $userId) ?? throw new BankAccountNotFoundException($id);
+        $account = $this->accounts->findById($id, $scope) ?? throw new BankAccountNotFoundException($id);
         if ($data->contactId === null || $account->owner->contactId?->equals($data->contactId) !== true) {
             throw new BankAccountNotFoundException($id);
         }
