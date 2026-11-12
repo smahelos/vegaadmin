@@ -333,7 +333,7 @@ final class InvoiceController extends Controller
 
         return $response->cookie(
             'locale',
-            $request->get('lang') ?? App::getLocale(),
+            $pdf->locale,
             60 * 24 * 30,
         );
     }

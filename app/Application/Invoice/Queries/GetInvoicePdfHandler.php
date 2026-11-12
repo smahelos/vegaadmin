@@ -10,6 +10,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\User\Contracts\Locale;
 
 final class GetInvoicePdfHandler
 {
@@ -17,6 +18,7 @@ final class GetInvoicePdfHandler
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
         private readonly InvoicePrintDataBuilderInterface $printData,
         private readonly InvoicePdfRendererInterface $renderer,
+        private readonly Locale $locale,
     ) {}
 
     public function handle(GetInvoicePdf $query, ReadScope $scope): PdfInvoiceDTO
@@ -24,15 +26,21 @@ final class GetInvoicePdfHandler
         $invoice = $this->invoices->findById($query->id, $scope)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
         $printable = $this->printData->build($invoice);
+        // An unsupported requested language would break the formatters, so it falls back to the current one
+        $locale = $this->locale->determineLocale(
+            $query->locale,
+            $this->locale->getLocale(),
+        );
         $pdf = $this->renderer->render(
             $printable,
             $printable->template,
-            $query->locale,
+            $locale,
         );
 
         return new PdfInvoiceDTO(
             'faktura-' . ($printable->number ?? (string) $query->id->value) . '.pdf',
             $pdf->output(),
+            $locale,
         );
     }
 }

@@ -117,12 +117,14 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         );
 
         $download = $this->get(
-            $response->json('download_url'),
+            $response->json('download_url') . '?lang=xyz',
         );
 
         $download->assertOk();
         $download->assertHeader('Content-Type', 'application/pdf');
         $this->assertStringStartsWith('%PDF', (string) $download->getContent());
+        // An unsupported requested language renders and is remembered in the current one
+        $download->assertCookie('locale', 'cs');
     }
 
     #[Test]
