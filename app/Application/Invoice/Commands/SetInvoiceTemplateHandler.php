@@ -25,7 +25,7 @@ final class SetInvoiceTemplateHandler
         $this->invoiceWriter->setTemplate(
             $command->id,
             $scope,
-            $command->template->value,
+            $command->template,
         );
     }
 }

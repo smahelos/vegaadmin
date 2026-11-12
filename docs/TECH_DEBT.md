@@ -90,7 +90,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ### Invoice pages read the Eloquent model
 - **Where:** `InvoiceFormDTO` (`GetInvoice`, `GetInvoiceForEdit`, `GetInvoiceCreateForm`, `GuestInvoiceCreateForm`), `Application\Invoice\Contracts\InvoiceReadRepositoryInterface::find()`, `frontend/invoices/show.blade.php` and `edit.blade.php`
-- **Problem:** the show and edit pages get an untyped array with the Eloquent `Invoice` inside, so Application and the views receive a model (`rules/architecture.md`, Persistence path). Phase 5a moved the checks into the Queries and kept the pages as they were (decided 2026-11-12).
+- **Problem:** the show and edit pages get an untyped array with the Eloquent `Invoice` inside, so Application and the views receive a model (`rules/architecture.md`, Persistence path). Phase 5a moved the checks into the Queries and kept the pages as they were (decided 2026-11-12). `GetInvoice` therefore reads the invoice twice, as the model for the page and as `InvoiceDTO` for the parties.
 - **Fix:** with the document life cycle, typed page DTOs built from `InvoiceDTO` and the snapshot, and the Application read port deleted.
 
 ### Invoice status is stored as a reference to a statuses row

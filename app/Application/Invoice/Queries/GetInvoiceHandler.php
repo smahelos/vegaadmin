@@ -6,7 +6,6 @@ namespace App\Application\Invoice\Queries;
 
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\DTO\InvoiceFormDTO;
-use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
@@ -26,7 +25,6 @@ final class GetInvoiceHandler
     public function __construct(
         private readonly InvoiceReadRepositoryInterface $invoiceModels,
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
-        private readonly InvoiceProductReadRepositoryInterface $products,
         private readonly ContactReadRepositoryInterface $contacts,
         private readonly DuplicateFinder $duplicates,
     ) {}
@@ -56,7 +54,6 @@ final class GetInvoiceHandler
                 'parties' => $parties,
                 'contact' => $contact,
                 'contactToLink' => $contactToLink,
-                'invoiceProducts' => $this->products->allForInvoice($query->id->value),
             ],
         );
     }

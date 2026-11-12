@@ -32,7 +32,6 @@ use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
-use App\Domain\Party\Enums\PartyKind;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -498,16 +497,15 @@ final class InvoiceUseCasesTest extends TestCase
         $other = $this->frontendUser();
         $otherInvoice = $invoiceFactory->create(['user_id' => $other->id]);
 
-        $businesses = $this->runAs(
+        $filters = $this->runAs(
             $this->idOf($user),
             new ListInvoiceFilters(
                 $this->idOf($user),
-                PartyKind::BUSINESS,
             ),
         );
         $this->assertSame(
             [$invoice->business_id],
-            array_map(fn ($filter): int => $filter->id->value, $businesses),
+            array_map(fn ($filter): int => $filter->id->value, $filters->businesses),
         );
 
         $this->expectException(BusinessNotFoundException::class);
@@ -606,8 +604,7 @@ final class InvoiceUseCasesTest extends TestCase
     {
         return [
             ['invoices'],
-            ['businesses'],
-            ['contacts'],
+            ['filters'],
         ];
     }
 
@@ -629,8 +626,7 @@ final class InvoiceUseCasesTest extends TestCase
                     $this->search(null),
                     new PageRequest,
                 ),
-                'businesses' => new ListInvoiceFilters($user, PartyKind::BUSINESS),
-                'contacts' => new ListInvoiceFilters($user, PartyKind::CONTACT),
+                'filters' => new ListInvoiceFilters($user),
             },
         );
     }

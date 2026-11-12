@@ -53,23 +53,6 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return $numbers->all();
     }
 
-    public function setTemplate(
-        int $id,
-        int $owner,
-        string $template,
-    ): bool {
-        $query = Invoice::query();
-        $query->where('user_id', $owner);
-        $invoice = $query->find($id);
-        if (!$invoice) {
-            return false;
-        }
-        // Persist using existing 'template' column (legacy naming)
-        $invoice->template = $template;
-
-        return (bool) $invoice->save();
-    }
-
     public function updateById(
         int $id,
         int $owner,

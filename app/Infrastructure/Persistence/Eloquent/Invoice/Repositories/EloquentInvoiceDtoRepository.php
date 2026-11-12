@@ -9,6 +9,7 @@ use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Party\DTO\DocumentParties;
@@ -32,9 +33,12 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
 
     public function findById(InvoiceId $id, ReadScope $scope): ?InvoiceDTO
     {
-        $model = $this->invoiceRepository->find($id, $scope);
+        // The mapper reads the lines and the status name
+        $query = Invoice::with(['invoiceProducts', 'paymentStatus']);
+        $query->where('user_id', $scope->owner->toInt());
+        $model = $query->find($id->getValue());
 
-        return $model ? $this->mapper->toDto($model) : null;
+        return $model === null ? null : $this->mapper->toDto($model);
     }
 
     public function findByIdForUser(InvoiceId $id, UserId $userId): ?InvoiceDTO
@@ -102,13 +106,12 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     public function setTemplate(
         InvoiceId $id,
         WriteScope $scope,
-        string $template,
-    ): bool {
-        return $this->invoiceRepository->setTemplate(
-            $id->getValue(),
-            $scope->owner->toInt(),
-            $template,
-        );
+        InvoiceTemplate $template,
+    ): void {
+        $query = Invoice::query();
+        $query->whereKey($id->getValue());
+        $query->where('user_id', $scope->owner->toInt());
+        $query->update(['template' => $template->value]);
     }
 
     public function setStatus(

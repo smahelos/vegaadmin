@@ -7,6 +7,7 @@ namespace App\Domain\Invoice\Contracts;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
@@ -34,8 +35,8 @@ interface InvoiceDtoWriteRepositoryInterface
     public function setTemplate(
         InvoiceId $id,
         WriteScope $scope,
-        string $template,
-    ): bool;
+        InvoiceTemplate $template,
+    ): void;
 
     public function setStatus(
         InvoiceId $id,

@@ -9,7 +9,6 @@ use App\Application\Invoice\Queries\ListInvoiceFilters;
 use App\Application\Invoice\Queries\ListInvoices;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Party\Enums\PartyKind;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -99,6 +98,9 @@ final class InvoiceList extends Component
         abort_if($this->status !== '' && $status === null, 404);
         $businessId = $this->filterId($this->businessId);
         $contactId = $this->filterId($this->contactId);
+        $filters = $this->runUseCase(
+            new ListInvoiceFilters($owner),
+        );
         try {
             $result = $this->runUseCase(
                 new ListInvoices(
@@ -123,12 +125,8 @@ final class InvoiceList extends Component
             [
                 'invoices' => $this->paginator($result),
                 'hasData' => $result->total() > 0,
-                'businesses' => $this->runUseCase(
-                    new ListInvoiceFilters($owner, PartyKind::BUSINESS),
-                ),
-                'contacts' => $this->runUseCase(
-                    new ListInvoiceFilters($owner, PartyKind::CONTACT),
-                ),
+                'businesses' => $filters->businesses,
+                'contacts' => $filters->contacts,
                 'statuses' => InvoiceStatus::cases(),
                 'presenter' => $presenter,
             ],
