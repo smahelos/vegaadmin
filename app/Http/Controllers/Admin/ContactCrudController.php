@@ -130,6 +130,7 @@ final class ContactCrudController extends CrudController
     {
         $contactQuery = Contact::query();
         $entry = $contactQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new ArchiveContact(
@@ -147,6 +148,7 @@ final class ContactCrudController extends CrudController
     {
         $contactQuery = Contact::query();
         $entry = $contactQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new RestoreContact(

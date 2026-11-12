@@ -144,6 +144,7 @@ final class BusinessCrudController extends CrudController
     {
         $businessQuery = Business::query();
         $entry = $businessQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new RestoreBusiness(
@@ -161,6 +162,7 @@ final class BusinessCrudController extends CrudController
     {
         $businessQuery = Business::query();
         $entry = $businessQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new SetDefaultBusiness(

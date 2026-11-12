@@ -168,4 +168,29 @@ final class BankAccountCrudControllerTest extends TestCase
         );
         $httpResponse->assertForbidden();
     }
+
+    #[Test]
+    public function a_missing_record_is_refused_without_the_permission_like_an_existing_one(): void
+    {
+        // A 404 here would tell a user without the permission which ids exist
+        $accountQuery = BankAccount::query();
+        $missingId = (int) $accountQuery->max('id') + 1;
+
+        $httpClient = $this->actingAs(
+            $this->backendUser(Permission::BANK_ACCOUNT_VIEW),
+            'backpack',
+        );
+        foreach (
+            [
+                'admin.bank-accounts.archive',
+                'admin.bank-accounts.restore',
+                'admin.bank-accounts.set-default',
+            ] as $routeName
+        ) {
+            $httpResponse = $httpClient->post(
+                route($routeName, ['id' => $missingId]),
+            );
+            $httpResponse->assertForbidden();
+        }
+    }
 }

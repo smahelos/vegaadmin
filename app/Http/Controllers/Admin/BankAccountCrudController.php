@@ -128,6 +128,7 @@ final class BankAccountCrudController extends CrudController
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new ArchiveBankAccount(
@@ -151,6 +152,7 @@ final class BankAccountCrudController extends CrudController
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new RestoreBankAccount(
@@ -173,6 +175,7 @@ final class BankAccountCrudController extends CrudController
     {
         $accountQuery = BankAccount::query();
         $entry = $accountQuery->findOrFail($id);
+        // The route names the same use case in its `allowed` middleware: change them together
         $this->useCases->run(
             $this->admin(),
             new SetDefaultBankAccount(
