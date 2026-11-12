@@ -55,6 +55,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the factory draws these values with `dateTimeBetween()`, and the columns are `timestamp`, which the database converts through its `SYSTEM` time zone. A draw inside the hour skipped by daylight saving, such as `2027-03-28 02:26:41`, is refused as an invalid value and fails an unrelated test (seen 2026-11-04; the next full run passed).
 - **Fix:** generate times that cannot fall into the skipped hour, for example a fixed time of day, or run the test connection in UTC; a test creating a subscription then always passes.
 
+### Admin browser scripts fail against the current forms
+- **Where:** `tests/Browser/admin-document-forms.mjs`, `tests/Browser/admin-invoice-items.mjs` (last changed 2026-10-30); no workflow, script or document runs them.
+- **Problem:** both scripts fail on `main` against the development data (seen 2026-11-12): `admin-document-forms.mjs` stops at its layout assertion "invoice-create: owner and business are not on the same row", `admin-invoice-items.mjs` finds no `[name=invoice-products]` input on the invoice page. Since nothing runs them, a change to the admin document forms is not checked in a browser, and a failure says nothing about the branch it runs on.
+- **Fix:** find why each assertion fails (a changed form or a broken page) and fix the form or update the script; then either run the scripts where a change to the admin document forms is checked, or delete what the feature tests already cover.
+
 ### `MoneyFormatter` formats through a float
 - **Where:** `app/Domain/Shared/Money/Services/MoneyFormatter.php`, `Money::toFloat()`
 - **Problem:** the formatter passes `$money->toFloat()` to the number formatting and to its sign check, its only production use of `toFloat()`. Amounts leave `Money` as a float just before display (`docs/adr/D-046-money-amounts.md`).
