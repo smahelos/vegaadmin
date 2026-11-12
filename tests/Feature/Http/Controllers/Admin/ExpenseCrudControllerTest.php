@@ -308,6 +308,27 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function an_update_for_an_owner_without_a_plan_role_is_refused(): void
+    {
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        [$business] = $this->issuerOf($owner);
+        $expenseFactory = Expense::factory();
+        $expense = $expenseFactory->create(
+            ['user_id' => $owner->id, 'description' => 'Kept'],
+        );
+        $httpResponse = $this->put(
+            '/admin/expense/' . $expense->id,
+            $this->expenseInput(
+                $business,
+                ['description' => 'Changed'],
+            ),
+        );
+        $httpResponse->assertForbidden();
+        $this->assertSame('Kept', $expense->fresh()->description);
+    }
+
+    #[Test]
     public function an_expense_an_admin_creates_counts_against_the_owners_quota(): void
     {
         $role = Role::findByName('frontend_user', 'web');
