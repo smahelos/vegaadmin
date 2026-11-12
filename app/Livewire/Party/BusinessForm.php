@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\BusinessApplicationService;
+use App\Application\Party\Commands\CreateBusiness;
+use App\Application\Party\Commands\UpdateBusiness;
+use App\Application\Party\Queries\FindBusinessDuplicates;
+use App\Application\Party\Queries\GetBusinessForEdit;
 use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\BankAccountForm;
 use App\Livewire\Party\Forms\PartyDetailsForm;
@@ -45,19 +47,21 @@ final class BusinessForm extends Component
 
     public ?string $limitMessage = null;
 
-    public function mount(BusinessApplicationService $businesses, ?int $businessId = null): void
+    public function mount(?int $businessId = null): void
     {
         if ($businessId === null) {
-            $this->requirePermission(Permission::BUSINESS_CREATE);
+            $this->requireAllowed(CreateBusiness::class);
             $this->party->country = 'CZ';
 
             return;
         }
 
-        $this->requirePermission(Permission::BUSINESS_UPDATE);
-        $business = $businesses->get(
-            $this->userId(),
-            BusinessId::fromInt($businessId),
+        $this->requireAllowed(GetBusinessForEdit::class);
+        $business = $this->runUseCase(
+            new GetBusinessForEdit(
+                $this->userId(),
+                BusinessId::fromInt($businessId),
+            ),
         );
 
         $this->businessId = $businessId;
@@ -65,12 +69,10 @@ final class BusinessForm extends Component
         $this->currentLogo = $business->logo;
     }
 
-    public function save(BusinessApplicationService $businesses, PartyLogoApplicationService $logos): void
+    public function save(PartyLogoApplicationService $logos): void
     {
         $creating = $this->businessId === null;
-        $this->requirePermission(
-            $creating ? Permission::BUSINESS_CREATE : Permission::BUSINESS_UPDATE,
-        );
+        $this->requireAllowed($creating ? CreateBusiness::class : UpdateBusiness::class);
         $this->errorMessage = null;
         $this->limitMessage = null;
 
@@ -99,16 +101,20 @@ final class BusinessForm extends Component
         $saved = false;
         try {
             if ($creating) {
-                $business = $businesses->create(
-                    $this->userId(),
-                    $data,
-                    $withAccount ? $this->account->writeData() : null,
+                $business = $this->runUseCase(
+                    new CreateBusiness(
+                        $this->userId(),
+                        $data,
+                        $withAccount ? $this->account->writeData() : null,
+                    ),
                 );
             } else {
-                $business = $businesses->update(
-                    $this->userId(),
-                    BusinessId::fromInt($this->businessId),
-                    $data,
+                $business = $this->runUseCase(
+                    new UpdateBusiness(
+                        $this->userId(),
+                        BusinessId::fromInt($this->businessId),
+                        $data,
+                    ),
                 );
             }
             $saved = true;
@@ -184,12 +190,12 @@ final class BusinessForm extends Component
 
     protected function findDuplicates(PartyProfile $profile): array
     {
-        $businesses = app(BusinessApplicationService::class);
-
-        return $businesses->findDuplicates(
-            $this->userId(),
-            $profile,
-            $this->businessId === null ? null : BusinessId::fromInt($this->businessId),
+        return $this->runUseCase(
+            new FindBusinessDuplicates(
+                $this->userId(),
+                $profile,
+                $this->businessId === null ? null : BusinessId::fromInt($this->businessId),
+            ),
         );
     }
 

@@ -4,20 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Party\Services;
 
-use App\Application\Party\Services\BankAccountApplicationService;
+use App\Application\Party\Commands\SetDefaultBankAccount;
 use App\Domain\Party\ValueObjects\AccountOwner;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\BankAccount;
 use App\Models\Contact;
+use App\Models\User;
 use PDO;
 use PDOException;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class BankAccountDefaultSerializationTest extends TestCase
 {
+    use RunsUseCases;
+
     #[Test]
     public function a_concurrent_archive_waits_until_the_default_selection_commits(): void
     {
@@ -41,13 +45,18 @@ final class BankAccountDefaultSerializationTest extends TestCase
             $this->lockError($connection, $userId),
         );
 
-        $bankAccountApplicationService = app(BankAccountApplicationService::class);
-        $bankAccountApplicationService->setDefault(
+        $userQuery = User::query();
+        $owner = $userQuery->findOrFail($userId);
+        $owner->assignRole('frontend_user');
+        $this->runAs(
             UserId::fromInt($userId),
-            AccountOwner::contact(
-                ContactId::fromInt($contact->id),
+            new SetDefaultBankAccount(
+                UserId::fromInt($userId),
+                AccountOwner::contact(
+                    ContactId::fromInt($contact->id),
+                ),
+                BankAccountId::fromInt($account->id),
             ),
-            BankAccountId::fromInt($account->id),
         );
 
         $this->assertSame($account->id, $contact->fresh()->default_bank_account_id);

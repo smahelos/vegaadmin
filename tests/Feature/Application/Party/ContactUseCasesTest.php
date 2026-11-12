@@ -2,11 +2,19 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\Party\Services;
+namespace Tests\Feature\Application\Party;
 
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\ArchiveContact;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Commands\RestoreContact;
+use App\Application\Party\Commands\UpdateContact;
+use App\Application\Party\Queries\FindContactDuplicates;
+use App\Application\Party\Queries\GetContact;
+use App\Application\Party\Queries\ListContacts;
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
+use App\Domain\Party\DTO\DuplicatePartyDTO;
+use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\Enums\DuplicateReason;
 use App\Domain\Party\Enums\PartySort;
@@ -16,34 +24,31 @@ use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Contact;
+use App\Models\RoleLimit;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use PHPUnit\Framework\Attributes\Test;
+use Spatie\Permission\Models\Role;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
-final class ContactApplicationServiceTest extends TestCase
+final class ContactUseCasesTest extends TestCase
 {
     use BuildsParties;
-
-    private ContactApplicationService $contacts;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->contacts = $this->app->make(ContactApplicationService::class);
-    }
+    use RunsUseCases;
 
     #[Test]
     public function a_contact_needs_only_a_name(): void
     {
         $user = $this->frontendUser();
 
-        $contact = $this->contacts->create(
+        $contact = $this->create(
             $this->idOf($user),
             new ContactWriteData(
                 $this->profile('Jan Novák'),
@@ -70,7 +75,7 @@ final class ContactApplicationServiceTest extends TestCase
     public function an_update_stores_emptied_fields_as_empty_and_deletes_an_emptied_address(): void
     {
         $user = $this->frontendUser();
-        $contact = $this->contacts->create(
+        $contact = $this->create(
             $this->idOf($user),
             new ContactWriteData(
                 $this->profile(
@@ -83,7 +88,7 @@ final class ContactApplicationServiceTest extends TestCase
         );
         $this->assertSame('Brno', $contact->profile->address?->city);
 
-        $updated = $this->contacts->update(
+        $updated = $this->update(
             $this->idOf($user),
             $contact->id,
             new ContactWriteData($this->profile(), null),
@@ -111,7 +116,7 @@ final class ContactApplicationServiceTest extends TestCase
         );
 
         try {
-            $this->contacts->create(
+            $this->create(
                 $this->idOf($user),
                 new ContactWriteData(
                     $this->profile('Copy', '27074358'),
@@ -155,12 +160,12 @@ final class ContactApplicationServiceTest extends TestCase
             'office@wiener.test',
         );
 
-        $duplicates = $this->contacts->findDuplicates(
+        $duplicates = $this->findDuplicates(
             $this->idOf($user),
             $profile,
             null,
         );
-        $this->contacts->create(
+        $this->create(
             $this->idOf($user),
             new ContactWriteData($profile, null),
         );
@@ -182,7 +187,7 @@ final class ContactApplicationServiceTest extends TestCase
         $own = $contactFactory->create(['user_id' => $user->id, 'name' => 'Acme']);
         $contactFactory->create(['name' => 'Acme']);
 
-        $duplicates = $this->contacts->findDuplicates(
+        $duplicates = $this->findDuplicates(
             $this->idOf($user),
             $this->profile('Acme'),
             ContactId::fromInt($own->id),
@@ -196,7 +201,7 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $this->limitFrontendUser(LimitedEntity::CONTACT, 1);
         $user = $this->frontendUser();
-        $first = $this->contacts->create(
+        $first = $this->create(
             $this->idOf($user),
             new ContactWriteData(
                 $this->profile('First'),
@@ -205,7 +210,7 @@ final class ContactApplicationServiceTest extends TestCase
         );
 
         $this->assertLimitExceeded(
-            fn () => $this->contacts->create(
+            fn () => $this->create(
                 $this->idOf($user),
                 new ContactWriteData(
                     $this->profile('Second'),
@@ -214,11 +219,11 @@ final class ContactApplicationServiceTest extends TestCase
             ),
         );
 
-        $this->contacts->archive(
+        $this->archive(
             $this->idOf($user),
             $first->id,
         );
-        $this->contacts->create(
+        $this->create(
             $this->idOf($user),
             new ContactWriteData(
                 $this->profile('Second'),
@@ -227,12 +232,12 @@ final class ContactApplicationServiceTest extends TestCase
         );
 
         $this->assertLimitExceeded(
-            fn () => $this->contacts->restore(
+            fn () => $this->restore(
                 $this->idOf($user),
                 $first->id,
             ),
         );
-        $contact = $this->contacts->get(
+        $contact = $this->getContact(
             $this->idOf($user),
             $first->id,
         );
@@ -244,11 +249,15 @@ final class ContactApplicationServiceTest extends TestCase
     #[Test]
     public function an_account_without_a_configured_limit_creates_no_contact(): void
     {
-        $userFactory = User::factory();
-        $user = $userFactory->create();
+        // The plan role grants contact.create; without its limits row it allows no contact
+        $user = $this->frontendUser();
+        $role = Role::findByName('frontend_user', 'web');
+        $roleLimitQuery = RoleLimit::query();
+        $roleLimitQuery->where('role_id', $role->id);
+        $roleLimitQuery->delete();
 
         $this->assertLimitExceeded(
-            fn () => $this->contacts->create(
+            fn () => $this->create(
                 $this->idOf($user),
                 new ContactWriteData($this->profile(), null),
             ),
@@ -259,12 +268,12 @@ final class ContactApplicationServiceTest extends TestCase
     public function an_archived_contact_is_listed_apart_and_still_found(): void
     {
         $user = $this->frontendUser();
-        $contact = $this->contacts->create(
+        $contact = $this->create(
             $this->idOf($user),
             new ContactWriteData($this->profile(), null),
         );
 
-        $this->contacts->archive(
+        $this->archive(
             $this->idOf($user),
             $contact->id,
         );
@@ -277,7 +286,7 @@ final class ContactApplicationServiceTest extends TestCase
             [$contact->id->value],
             $this->listedIds($user, true),
         );
-        $storedContact = $this->contacts->get(
+        $storedContact = $this->getContact(
             $this->idOf($user),
             $contact->id,
         );
@@ -291,7 +300,7 @@ final class ContactApplicationServiceTest extends TestCase
     {
         $owner = $this->frontendUser();
         $stranger = $this->frontendUser();
-        $contact = $this->contacts->create(
+        $contact = $this->create(
             $this->idOf($owner),
             new ContactWriteData(
                 $this->profile('Secret'),
@@ -300,11 +309,11 @@ final class ContactApplicationServiceTest extends TestCase
         );
 
         $attempts = [
-            fn () => $this->contacts->get(
+            fn () => $this->getContact(
                 $this->idOf($stranger),
                 $contact->id,
             ),
-            fn () => $this->contacts->update(
+            fn () => $this->update(
                 $this->idOf($stranger),
                 $contact->id,
                 new ContactWriteData(
@@ -312,7 +321,7 @@ final class ContactApplicationServiceTest extends TestCase
                     null,
                 ),
             ),
-            fn () => $this->contacts->archive(
+            fn () => $this->archive(
                 $this->idOf($stranger),
                 $contact->id,
             ),
@@ -343,11 +352,9 @@ final class ContactApplicationServiceTest extends TestCase
     public function creating_a_contact_publishes_its_event(): void
     {
         Event::fake([ContactCreated::class]);
-        // Resolved after the fake, so the publisher dispatches to it
-        $contacts = $this->app->make(ContactApplicationService::class);
         $user = $this->frontendUser();
 
-        $contacts->create(
+        $this->create(
             $this->idOf($user),
             new ContactWriteData($this->profile(), null),
         );
@@ -363,7 +370,7 @@ final class ContactApplicationServiceTest extends TestCase
      */
     private function listedIds(User $user, bool $archived): array
     {
-        $result = $this->contacts->search(
+        $result = $this->search(
             $this->idOf($user),
             new PartySearch(
                 null,
@@ -388,5 +395,88 @@ final class ContactApplicationServiceTest extends TestCase
         }
 
         $this->fail('The limit was not enforced');
+    }
+
+    private function create(UserId $owner, ContactWriteData $data): ContactDTO
+    {
+        return $this->runAs(
+            $owner,
+            new CreateContact($owner, $data),
+        );
+    }
+
+    private function update(
+        UserId $owner,
+        ContactId $id,
+        ContactWriteData $data,
+    ): ContactDTO {
+        return $this->runAs(
+            $owner,
+            new UpdateContact(
+                $owner,
+                $id,
+                $data,
+            ),
+        );
+    }
+
+    private function archive(UserId $owner, ContactId $id): void
+    {
+        $this->runAs(
+            $owner,
+            new ArchiveContact($owner, $id),
+        );
+    }
+
+    private function restore(UserId $owner, ContactId $id): void
+    {
+        $this->runAs(
+            $owner,
+            new RestoreContact($owner, $id),
+        );
+    }
+
+    private function getContact(UserId $owner, ContactId $id): ContactDTO
+    {
+        return $this->runAs(
+            $owner,
+            new GetContact($owner, $id),
+        );
+    }
+
+    /**
+     * @return PaginatedResult<ContactDTO>
+     */
+    private function search(
+        UserId $owner,
+        PartySearch $search,
+        PageRequest $page,
+    ): PaginatedResult {
+        return $this->runAs(
+            $owner,
+            new ListContacts(
+                $owner,
+                $search,
+                $page,
+            ),
+        );
+    }
+
+    /**
+     * @return list<DuplicatePartyDTO>
+     */
+    private function findDuplicates(
+        UserId $owner,
+        PartyProfile $profile,
+        ?ContactId $except,
+    ): array {
+        return $this->runAs(
+            $owner,
+            new FindContactDuplicates(
+                $owner,
+                $profile,
+                $except,
+            ),
+        );
     }
 }

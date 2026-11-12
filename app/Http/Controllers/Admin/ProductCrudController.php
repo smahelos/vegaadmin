@@ -8,7 +8,6 @@ use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\DeleteProduct;
 use App\Application\Product\Commands\UpdateProduct;
 use App\Application\Product\Contracts\ProductFormDataServiceInterface;
-use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\ValueObjects\ProductId;
@@ -34,6 +33,7 @@ use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -371,15 +371,6 @@ final class ProductCrudController extends CrudController
         }
 
         return '1';
-    }
-
-    private function admin(): Actor
-    {
-        $guard = backpack_auth();
-
-        return Actor::admin(
-            UserId::fromInt((int) $guard->id()),
-        );
     }
 
     private function saved(string $message, int $id): JsonResponse|RedirectResponse

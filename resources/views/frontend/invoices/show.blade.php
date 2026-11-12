@@ -1,3 +1,4 @@
+@use('App\Application\Party\Commands\CreateContact')
 @use('App\Domain\User\Enums\Permission')
 @extends('layouts.frontend')
 
@@ -132,14 +133,14 @@
                     </form>
                     @endcan
                     @else
-                    @can(Permission::CONTACT_CREATE)
+                    @allowed(CreateContact::class)
                     @can(Permission::INVOICE_UPDATE)
                     <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>
                     </form>
                     @endcan
-                    @endcan
+                    @endallowed
                     @endif
                 </div>
             </x-detail.card>

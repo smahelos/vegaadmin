@@ -1,17 +1,19 @@
-@use('App\Domain\User\Enums\Permission')
+@use('App\Application\Party\Commands\ArchiveBusiness')
+@use('App\Application\Party\Commands\ArchiveContact')
+@use('App\Application\Party\Commands\RestoreBusiness')
+@use('App\Application\Party\Commands\RestoreContact')
 @php
     $entity = $crud->get('party.entity');
     if ($entity === 'business') {
         $routes = ['archive' => 'admin.businesses.archive', 'restore' => 'admin.businesses.restore'];
-        $permissions = ['archive' => Permission::BUSINESS_ARCHIVE, 'restore' => Permission::BUSINESS_RESTORE];
+        $useCases = ['archive' => ArchiveBusiness::class, 'restore' => RestoreBusiness::class];
     } else {
         $routes = ['archive' => 'admin.contacts.archive', 'restore' => 'admin.contacts.restore'];
-        $permissions = ['archive' => Permission::CONTACT_ARCHIVE, 'restore' => Permission::CONTACT_RESTORE];
+        $useCases = ['archive' => ArchiveContact::class, 'restore' => RestoreContact::class];
     }
     $action = $entry->archived_at === null ? 'archive' : 'restore';
-    $user = backpack_user();
 @endphp
-@if ($user->can($permissions[$action]))
+@allowed($useCases[$action])
     @if ($entity === 'business' && $action === 'archive')
         <x-admin.business-archive :business-id="$entry->getKey()" :user-id="$entry->user_id" :is-default="$entry->user?->default_business_id === $entry->getKey()" />
     @else
@@ -22,4 +24,4 @@
             </button>
         </form>
     @endif
-@endif
+@endallowed

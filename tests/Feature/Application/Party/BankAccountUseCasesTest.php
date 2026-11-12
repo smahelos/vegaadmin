@@ -2,9 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\Party\Services;
+namespace Tests\Feature\Application\Party;
 
-use App\Application\Party\Services\BankAccountApplicationService;
+use App\Application\Party\Commands\ArchiveBankAccount;
+use App\Application\Party\Commands\CreateBankAccount;
+use App\Application\Party\Commands\RestoreBankAccount;
+use App\Application\Party\Commands\SetDefaultBankAccount;
+use App\Application\Party\Commands\UpdateBankAccount;
+use App\Application\Party\Queries\ListBankAccounts;
+use App\Domain\Party\DTO\BankAccountDTO;
+use App\Domain\Party\DTO\BankAccountWriteData;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
@@ -20,20 +27,13 @@ use App\Models\Contact;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
-final class BankAccountApplicationServiceTest extends TestCase
+final class BankAccountUseCasesTest extends TestCase
 {
     use BuildsParties;
-
-    private BankAccountApplicationService $accounts;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->accounts = $this->app->make(BankAccountApplicationService::class);
-    }
+    use RunsUseCases;
 
     #[Test]
     public function the_first_account_of_an_owner_becomes_its_default_and_the_next_one_does_not(): void
@@ -44,12 +44,12 @@ final class BankAccountApplicationServiceTest extends TestCase
             ContactId::fromInt($contact->id),
         );
 
-        $first = $this->accounts->add(
+        $first = $this->add(
             $this->ownerOf($contact),
             $owner,
             $this->czechAccount(),
         );
-        $second = $this->accounts->add(
+        $second = $this->add(
             $this->ownerOf($contact),
             $owner,
             $this->czechAccount('1234567899', '0100'),
@@ -58,7 +58,7 @@ final class BankAccountApplicationServiceTest extends TestCase
         $this->assertSame($first->id->value, $contact->fresh()?->default_bank_account_id);
         $this->assertCount(
             2,
-            $this->accounts->listForOwner(
+            $this->listForOwner(
                 $this->ownerOf($contact),
                 $owner,
             ),
@@ -74,19 +74,19 @@ final class BankAccountApplicationServiceTest extends TestCase
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
-        $default = $this->accounts->add(
+        $default = $this->add(
             $this->ownerOf($business),
             $owner,
             $this->czechAccount(),
         );
-        $other = $this->accounts->add(
+        $other = $this->add(
             $this->ownerOf($business),
             $owner,
             $this->czechAccount('1234567899', '0100'),
         );
 
         try {
-            $this->accounts->archive(
+            $this->archive(
                 $this->ownerOf($business),
                 $owner,
                 $default->id,
@@ -96,7 +96,7 @@ final class BankAccountApplicationServiceTest extends TestCase
         } catch (DefaultBankAccountRequiredException) {
         }
 
-        $this->accounts->archive(
+        $this->archive(
             $this->ownerOf($business),
             $owner,
             $default->id,
@@ -104,12 +104,14 @@ final class BankAccountApplicationServiceTest extends TestCase
         );
 
         $this->assertSame($other->id->value, $business->fresh()?->default_bank_account_id);
-        $account = $this->accounts->get(
+        $accounts = $this->listForOwner(
             $this->ownerOf($business),
-            $default->id,
+            AccountOwner::business(
+                BusinessId::fromInt($business->id),
+            ),
         );
         $this->assertTrue(
-            $account->isArchived(),
+            $accounts[0]->isArchived(),
         );
     }
 
@@ -121,13 +123,13 @@ final class BankAccountApplicationServiceTest extends TestCase
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
-        $account = $this->accounts->add(
+        $account = $this->add(
             $this->ownerOf($business),
             $owner,
             $this->czechAccount(),
         );
 
-        $this->accounts->archive(
+        $this->archive(
             $this->ownerOf($business),
             $owner,
             $account->id,
@@ -135,7 +137,7 @@ final class BankAccountApplicationServiceTest extends TestCase
         );
         $this->assertNull($business->fresh()?->default_bank_account_id);
 
-        $this->accounts->restore(
+        $this->restore(
             $this->ownerOf($business),
             $owner,
             $account->id,
@@ -152,12 +154,12 @@ final class BankAccountApplicationServiceTest extends TestCase
         $owner = AccountOwner::business(
             BusinessId::fromInt($business->id),
         );
-        $default = $this->accounts->add(
+        $default = $this->add(
             $this->ownerOf($business),
             $owner,
             $this->czechAccount(),
         );
-        $this->accounts->add(
+        $this->add(
             $this->ownerOf($business),
             $owner,
             $this->czechAccount('1234567899', '0100'),
@@ -168,7 +170,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        $this->accounts->archive(
+        $this->archive(
             $this->ownerOf($business),
             $owner,
             $default->id,
@@ -187,7 +189,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountArchivedException::class);
 
-        $this->accounts->setDefault(
+        $this->setDefault(
             $this->ownerOf($business),
             AccountOwner::business(
                 BusinessId::fromInt($business->id),
@@ -204,11 +206,12 @@ final class BankAccountApplicationServiceTest extends TestCase
         $bankAccountFactory = BankAccount::factory();
         $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $account = $bankAccountFactory->create();
-        $userFactory = User::factory();
-        $stranger = $this->idOf($userFactory->create());
+        $stranger = $this->idOf(
+            $this->frontendUser(),
+        );
 
         try {
-            $this->accounts->add(
+            $this->add(
                 $stranger,
                 AccountOwner::contact(
                     ContactId::fromInt($contact->id),
@@ -221,7 +224,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        $this->accounts->setDefault(
+        $this->setDefault(
             $stranger,
             AccountOwner::contact(
                 ContactId::fromInt($contact->id),
@@ -243,7 +246,7 @@ final class BankAccountApplicationServiceTest extends TestCase
 
         $this->expectException(BankAccountNotFoundException::class);
 
-        $this->accounts->update(
+        $this->update(
             $this->ownerOf($contact),
             AccountOwner::contact(
                 ContactId::fromInt($contact->id),
@@ -256,9 +259,102 @@ final class BankAccountApplicationServiceTest extends TestCase
     private function ownerOf(Business|Contact $party): UserId
     {
         $userQuery = User::query();
+        $user = $userQuery->findOrFail($party->user_id);
+        // A factory owner holds no plan role; the gate checks the owner's bank account permissions
+        if (!$user->hasRole('frontend_user')) {
+            $user->assignRole('frontend_user');
+        }
 
-        return $this->idOf(
-            $userQuery->findOrFail($party->user_id),
+        return $this->idOf($user);
+    }
+
+    private function add(
+        UserId $user,
+        AccountOwner $owner,
+        BankAccountWriteData $data,
+    ): BankAccountDTO {
+        return $this->runAs(
+            $user,
+            new CreateBankAccount(
+                $user,
+                $owner,
+                $data,
+            ),
+        );
+    }
+
+    private function update(
+        UserId $user,
+        AccountOwner $owner,
+        BankAccountId $id,
+        BankAccountWriteData $data,
+    ): BankAccountDTO {
+        return $this->runAs(
+            $user,
+            new UpdateBankAccount(
+                $user,
+                $owner,
+                $id,
+                $data,
+            ),
+        );
+    }
+
+    private function archive(
+        UserId $user,
+        AccountOwner $owner,
+        BankAccountId $id,
+        ?BankAccountId $newDefault,
+    ): void {
+        $this->runAs(
+            $user,
+            new ArchiveBankAccount(
+                $user,
+                $owner,
+                $id,
+                $newDefault,
+            ),
+        );
+    }
+
+    private function restore(
+        UserId $user,
+        AccountOwner $owner,
+        BankAccountId $id,
+    ): void {
+        $this->runAs(
+            $user,
+            new RestoreBankAccount(
+                $user,
+                $owner,
+                $id,
+            ),
+        );
+    }
+
+    private function setDefault(
+        UserId $user,
+        AccountOwner $owner,
+        BankAccountId $id,
+    ): void {
+        $this->runAs(
+            $user,
+            new SetDefaultBankAccount(
+                $user,
+                $owner,
+                $id,
+            ),
+        );
+    }
+
+    /**
+     * @return list<BankAccountDTO>
+     */
+    private function listForOwner(UserId $user, AccountOwner $owner): array
+    {
+        return $this->runAs(
+            $user,
+            new ListBankAccounts($user, $owner),
         );
     }
 }

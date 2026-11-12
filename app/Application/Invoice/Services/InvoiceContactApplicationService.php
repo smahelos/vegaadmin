@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Services;
 
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\CreateContact;
+use App\Application\Party\Queries\FindContactDuplicates;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\Enums\DuplicateReason;
@@ -20,6 +24,7 @@ use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
+use App\Domain\User\Exceptions\PermissionDeniedException;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
@@ -31,7 +36,8 @@ final class InvoiceContactApplicationService
     public function __construct(
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriter,
-        private readonly ContactApplicationService $contacts,
+        private readonly ContactReadRepositoryInterface $contacts,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly TransactionBoundaryInterface $transactions,
     ) {}
 
@@ -47,11 +53,19 @@ final class InvoiceContactApplicationService
             return null;
         }
 
-        $duplicates = $this->contacts->findDuplicates(
-            $userId,
-            $invoice->parties->customer->toProfile(),
-            null,
-        );
+        try {
+            $duplicates = $this->useCases->run(
+                Actor::user($userId),
+                new FindContactDuplicates(
+                    $userId,
+                    $invoice->parties->customer->toProfile(),
+                    null,
+                ),
+            );
+        } catch (PermissionDeniedException) {
+            // Only an offer: a user who cannot read the contacts gets none
+            return null;
+        }
         foreach ($duplicates as $duplicate) {
             if ($duplicate->reason === DuplicateReason::CZECH_COMPANY_NUMBER) {
                 return $duplicate;
@@ -78,9 +92,13 @@ final class InvoiceContactApplicationService
                     return $invoice->parties->contactId;
                 }
 
-                $contact = $this->contacts->create(
-                    $userId,
-                    new ContactWriteData($invoice->parties->customer->toProfile(), null),
+                // Creating a contact is the owner's own action, with its permission and capacity (rules/permissions.md)
+                $contact = $this->useCases->run(
+                    Actor::user($userId),
+                    new CreateContact(
+                        $userId,
+                        new ContactWriteData($invoice->parties->customer->toProfile(), null),
+                    ),
                 );
                 $this->invoiceWriter->linkContact($invoiceId, $contact->id);
 
@@ -103,7 +121,8 @@ final class InvoiceContactApplicationService
         $this->transactions->transaction(
             function () use ($userId, $invoiceId, $contactId): void {
                 $invoice = $this->get($userId, $invoiceId);
-                $contact = $this->contacts->get($userId, $contactId);
+                $contact = $this->contacts->findByIdForUser($contactId, $userId)
+                    ?? throw new ContactNotFoundException($contactId);
                 if ($contact->isArchived()) {
                     throw new ArchivedReferenceSelectedException($contactId);
                 }

@@ -1,3 +1,4 @@
+@use('App\Application\Party\Commands\CreateContact')
 {{-- The account is only asked for a bank transfer, chosen in the payment method field of the surrounding invoice form --}}
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"
     x-data="{
@@ -131,7 +132,8 @@
             <x-party.billing-fields :countries="$countries" :register-message="$customerRegisterMessage" form="customer"
                 look-up="lookUpCustomer" names="customer" required />
 
-            @if (! $guest && $contactId === null && $canSaveToContacts)
+            @if (! $guest && $contactId === null)
+            @allowed(CreateContact::class)
                 <label class="flex items-center gap-2 text-base text-gray-900 dark:text-white">
                     <input type="checkbox" name="save_customer_to_contacts" value="1" wire:model.live="saveToContacts"
                         class="rounded-sm border-blue-100 text-indigo-600 focus:ring-indigo-600">
@@ -147,6 +149,7 @@
                         @endunless
                     </div>
                 @endif
+            @endallowed
             @endif
         </div>
     </x-form.card>

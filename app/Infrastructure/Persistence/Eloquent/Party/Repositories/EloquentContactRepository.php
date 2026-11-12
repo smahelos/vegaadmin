@@ -11,6 +11,8 @@ use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
@@ -25,6 +27,11 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         private readonly PartyRecords $records,
     ) {}
 
+    public function findById(ContactId $id, ReadScope $scope): ?ContactDTO
+    {
+        return $this->findByIdForUser($id, $scope->owner);
+    }
+
     public function findByIdForUser(ContactId $id, UserId $userId): ?ContactDTO
     {
         $query = $this->ofUser($userId);
@@ -34,26 +41,26 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);
     }
 
-    public function listLatestActiveForUser(UserId $userId, int $limit): array
+    public function listLatestActive(ReadScope $scope, int $limit): array
     {
         return array_map(
             fn (Contact $contact): ContactDTO => EloquentContactMapper::toDTO($contact),
             $this->records->latestActive(
                 Contact::query(),
-                $userId,
+                $scope->owner,
                 $limit,
             ),
         );
     }
 
-    public function searchForUser(
-        UserId $userId,
+    public function search(
+        ReadScope $scope,
         PartySearch $search,
         PageRequest $page,
     ): PaginatedResult {
         $found = $this->records->search(
             Contact::query(),
-            $userId,
+            $scope->owner,
             $search,
             $page,
         );
@@ -70,13 +77,13 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
     }
 
     public function listPossibleDuplicates(
-        UserId $userId,
+        ReadScope $scope,
         PartyProfile $profile,
         ?ContactId $except,
     ): array {
         $query = $this->records->possibleDuplicates(
             Contact::query(),
-            $userId,
+            $scope->owner,
             $profile,
         );
         if ($except !== null) {
@@ -86,10 +93,10 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return $this->list($query);
     }
 
-    public function create(UserId $userId, ContactWriteData $data): ContactDTO
+    public function create(WriteScope $scope, ContactWriteData $data): ContactDTO
     {
         $contact = $this->records->save(
-            new Contact(['user_id' => $userId->toInt()]),
+            new Contact(['user_id' => $scope->owner->toInt()]),
             EloquentContactMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -97,9 +104,12 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return EloquentContactMapper::toDTO($contact);
     }
 
-    public function update(ContactId $id, ContactWriteData $data): ContactDTO
-    {
-        $query = Contact::query();
+    public function update(
+        ContactId $id,
+        WriteScope $scope,
+        ContactWriteData $data,
+    ): ContactDTO {
+        $query = $this->ofUser($scope->owner);
         $contact = $query->findOrFail($id->value);
         $contact = $this->records->save(
             $contact,
@@ -110,18 +120,31 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
         return EloquentContactMapper::toDTO($contact);
     }
 
-    public function archive(ContactId $id, DateTimeImmutable $archived): void
-    {
-        $query = Contact::query();
-        $query->whereKey($id->value);
+    public function archive(
+        ContactId $id,
+        WriteScope $scope,
+        DateTimeImmutable $archived,
+    ): void {
+        $query = $this->owned($id, $scope);
         $query->update(['archived_at' => $archived]);
     }
 
-    public function restore(ContactId $id): void
+    public function restore(ContactId $id, WriteScope $scope): void
+    {
+        $query = $this->owned($id, $scope);
+        $query->update(['archived_at' => null]);
+    }
+
+    /**
+     * @return Builder<Contact>
+     */
+    private function owned(ContactId $id, WriteScope $scope): Builder
     {
         $query = Contact::query();
         $query->whereKey($id->value);
-        $query->update(['archived_at' => null]);
+        $query->where('user_id', $scope->owner->toInt());
+
+        return $query;
     }
 
     /**

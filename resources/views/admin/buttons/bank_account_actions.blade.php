@@ -1,6 +1,5 @@
-@use('App\Domain\User\Enums\Permission')
-@php($user = backpack_user())
-@if ($user->can($entry->business_id !== null ? Permission::BUSINESS_UPDATE : Permission::CONTACT_UPDATE))
+@use('App\Application\Party\Commands\UpdateBankAccount')
+@allowed(UpdateBankAccount::class)
     @if ($entry->archived_at === null)
         <form method="POST" action="{{ route('admin.bank-accounts.set-default', ['id' => $entry->getKey()]) }}" class="d-inline">
             @csrf
@@ -16,4 +15,4 @@
             <button type="submit" class="btn btn-sm btn-link"><i class="la la-undo"></i> {{ __('parties.actions.restore') }}</button>
         </form>
     @endif
-@endif
+@endallowed

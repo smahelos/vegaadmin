@@ -11,6 +11,8 @@ use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\DTO\PartySearch;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
 use App\Domain\User\ValueObjects\UserId;
@@ -26,6 +28,11 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         private readonly PartyRecords $records,
     ) {}
 
+    public function findById(BusinessId $id, ReadScope $scope): ?BusinessDTO
+    {
+        return $this->findByIdForUser($id, $scope->owner);
+    }
+
     public function findByIdForUser(BusinessId $id, UserId $userId): ?BusinessDTO
     {
         $query = $this->ofUser($userId);
@@ -35,31 +42,31 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return $business === null ? null : EloquentBusinessMapper::toDTO($business);
     }
 
-    public function listActiveForUser(UserId $userId): array
+    public function listActive(ReadScope $scope): array
     {
-        $query = $this->ofUser($userId);
+        $query = $this->ofUser($scope->owner);
         $query->whereNull('archived_at');
 
         return $this->list($query);
     }
 
-    public function listLatestActiveForUser(UserId $userId, int $limit): array
+    public function listLatestActive(ReadScope $scope, int $limit): array
     {
         return array_map(
             fn (Business $business): BusinessDTO => EloquentBusinessMapper::toDTO($business),
             $this->records->latestActive(
                 Business::query(),
-                $userId,
+                $scope->owner,
                 $limit,
             ),
         );
     }
 
-    public function countActiveForUser(UserId $userId): int
+    public function countActive(ReadScope $scope): int
     {
         return $this->records->countActiveForUser(
             Business::query(),
-            $userId,
+            $scope->owner,
             false,
         );
     }
@@ -73,23 +80,23 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         );
     }
 
-    public function findDefaultIdForUser(UserId $userId): ?BusinessId
+    public function findDefaultId(ReadScope $scope): ?BusinessId
     {
         $query = User::query();
-        $query->whereKey($userId->toInt());
+        $query->whereKey($scope->owner->toInt());
         $id = $query->value('default_business_id');
 
         return $id === null ? null : BusinessId::fromInt($id);
     }
 
-    public function searchForUser(
-        UserId $userId,
+    public function search(
+        ReadScope $scope,
         PartySearch $search,
         PageRequest $page,
     ): PaginatedResult {
         $found = $this->records->search(
             Business::query(),
-            $userId,
+            $scope->owner,
             $search,
             $page,
         );
@@ -106,13 +113,13 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     }
 
     public function listPossibleDuplicates(
-        UserId $userId,
+        ReadScope $scope,
         PartyProfile $profile,
         ?BusinessId $except,
     ): array {
         $query = $this->records->possibleDuplicates(
             Business::query(),
-            $userId,
+            $scope->owner,
             $profile,
         );
         if ($except !== null) {
@@ -133,9 +140,12 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return EloquentBusinessMapper::toDTO($business);
     }
 
-    public function update(BusinessId $id, BusinessWriteData $data): BusinessDTO
-    {
-        $query = Business::query();
+    public function update(
+        BusinessId $id,
+        WriteScope $scope,
+        BusinessWriteData $data,
+    ): BusinessDTO {
+        $query = $this->ofUser($scope->owner);
         $business = $query->findOrFail($id->value);
         $business = $this->records->save(
             $business,
@@ -146,17 +156,18 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         return EloquentBusinessMapper::toDTO($business);
     }
 
-    public function archive(BusinessId $id, DateTimeImmutable $archived): void
-    {
-        $query = Business::query();
-        $query->whereKey($id->value);
+    public function archive(
+        BusinessId $id,
+        WriteScope $scope,
+        DateTimeImmutable $archived,
+    ): void {
+        $query = $this->owned($id, $scope);
         $query->update(['archived_at' => $archived]);
     }
 
-    public function restore(BusinessId $id): void
+    public function restore(BusinessId $id, WriteScope $scope): void
     {
-        $query = Business::query();
-        $query->whereKey($id->value);
+        $query = $this->owned($id, $scope);
         $query->update(['archived_at' => null]);
     }
 
@@ -165,6 +176,18 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
         $query = User::query();
         $query->whereKey($userId->toInt());
         $query->update(['default_business_id' => $id?->value]);
+    }
+
+    /**
+     * @return Builder<Business>
+     */
+    private function owned(BusinessId $id, WriteScope $scope): Builder
+    {
+        $query = Business::query();
+        $query->whereKey($id->value);
+        $query->where('user_id', $scope->owner->toInt());
+
+        return $query;
     }
 
     /**

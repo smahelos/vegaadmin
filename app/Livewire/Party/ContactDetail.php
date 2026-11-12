@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\ContactApplicationService;
+use App\Application\Party\Commands\ArchiveContact;
+use App\Application\Party\Commands\RestoreContact;
+use App\Application\Party\Queries\GetContact;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
@@ -15,7 +16,7 @@ use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
- * The detail of a contact with archiving and restoring.
+ * The detail of a contact with archiving and restoring. The page has found the contact before mounting it.
  */
 final class ContactDetail extends Component
 {
@@ -32,26 +33,27 @@ final class ContactDetail extends Component
 
     public ?string $successMessage = null;
 
-    public function mount(ContactApplicationService $contacts, int $contactId): void
+    public function mount(int $contactId): void
     {
-        $this->requirePermission(Permission::CONTACT_VIEW);
-        $contacts->get(
-            $this->userId(),
-            ContactId::fromInt($contactId),
-        );
+        $this->requireAllowed(GetContact::class);
         $this->contactId = $contactId;
     }
 
-    public function archive(ContactApplicationService $contacts): void
+    public function archive(): void
     {
-        $this->requirePermission(Permission::CONTACT_ARCHIVE);
-        $contacts->archive($this->userId(), $this->currentId());
+        $this->requireAllowed(ArchiveContact::class);
+        $this->runUseCase(
+            new ArchiveContact(
+                $this->userId(),
+                $this->currentId(),
+            ),
+        );
         $this->successMessage = __('contacts.messages.archived');
     }
 
-    public function restore(ContactApplicationService $contacts): void
+    public function restore(): void
     {
-        $this->requirePermission(Permission::CONTACT_RESTORE);
+        $this->requireAllowed(RestoreContact::class);
         $this->limitMessage = null;
         $this->successMessage = null;
 
@@ -61,7 +63,12 @@ final class ContactDetail extends Component
         }
 
         try {
-            $contacts->restore($this->userId(), $this->currentId());
+            $this->runUseCase(
+                new RestoreContact(
+                    $this->userId(),
+                    $this->currentId(),
+                ),
+            );
         } catch (EntityLimitExceededException $e) {
             $this->limitMessage = __('contacts.messages.limit_exceeded', ['limit' => $e->limit]);
 
@@ -71,12 +78,17 @@ final class ContactDetail extends Component
         $this->successMessage = __('contacts.messages.restored');
     }
 
-    public function render(ContactApplicationService $contacts): View
+    public function render(): View
     {
         return view(
             'livewire.party.contact-detail',
             [
-                'contact' => $contacts->get($this->userId(), $this->currentId()),
+                'contact' => $this->runUseCase(
+                    new GetContact(
+                        $this->userId(),
+                        $this->currentId(),
+                    ),
+                ),
                 'countries' => $this->countryOptions(),
             ],
         );

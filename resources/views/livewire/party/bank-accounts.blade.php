@@ -1,3 +1,4 @@
+@use('App\Application\Party\Commands\UpdateBankAccount')
 <div>
     <x-detail.card class="mb-20" :title="__('parties.bank_accounts.entity.plural')">
         <x-status-messages :error="$errorMessage" :success="$successMessage" />
@@ -27,7 +28,7 @@
                                 <p class="text-gray-500 dark:text-gray-400">{{ $bankAccount->account->number }}/{{ $bankAccount->account->bankCode }}</p>
                             @endif
                         </div>
-                        @if ($canUpdate)
+                        @allowed(UpdateBankAccount::class)
                             <div class="flex flex-wrap gap-2">
                                 @if ($bankAccount->isArchived())
                                     <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')"
@@ -43,7 +44,7 @@
                                         wire:click="archive({{ $bankAccount->id->value }})" />
                                 @endif
                             </div>
-                        @endif
+                        @endallowed
                     </li>
                     @if ($archivingId === $bankAccount->id->value)
                         <li class="py-4">
@@ -66,7 +67,7 @@
             </ul>
         @endif
 
-        @if ($canUpdate)
+        @allowed(UpdateBankAccount::class)
             @if ($editing)
                 <form wire:submit="save" class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-6">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
@@ -88,6 +89,6 @@
                     <i class="fas fa-plus mr-1"></i> {{ __('parties.bank_accounts.actions.add') }}
                 </button>
             @endif
-        @endif
+        @endallowed
     </x-detail.card>
 </div>

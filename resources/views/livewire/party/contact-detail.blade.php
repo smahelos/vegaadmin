@@ -1,4 +1,7 @@
-@use('App\Domain\User\Enums\Permission')
+@use('App\Application\Party\Commands\ArchiveContact')
+@use('App\Application\Party\Commands\RestoreContact')
+@use('App\Application\Party\Commands\UpdateContact')
+@use('App\Application\Party\Queries\ListBankAccounts')
 <div>
     <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white leading-tight pt-3">
@@ -12,19 +15,19 @@
             <x-back-button />
             <x-icon-button icon="fa-list" :label="__('contacts.actions.back_to_list')"
                 :href="route('frontend.contacts.index', ['locale' => App::getLocale()])" />
-            @can(Permission::CONTACT_UPDATE)
+            @allowed(UpdateContact::class)
                 <x-icon-button icon="fa-pencil-alt" tone="pink" :label="__('general.actions.edit')"
                     :href="route('frontend.contacts.edit', ['locale' => App::getLocale(), 'contact' => $contact->id->value])" />
-            @endcan
+            @endallowed
             @if ($contact->isArchived())
-                @can(Permission::CONTACT_RESTORE)
+                @allowed(RestoreContact::class)
                     <x-icon-button icon="fa-undo" tone="emerald" :label="__('parties.actions.restore')" wire:click="restore" />
-                @endcan
+                @endallowed
             @else
-                @can(Permission::CONTACT_ARCHIVE)
+                @allowed(ArchiveContact::class)
                     <x-icon-button icon="fa-archive" tone="orange" :label="__('parties.actions.archive')"
                         wire:click="archive" wire:confirm="{{ __('contacts.messages.confirm_archive') }}" />
-                @endcan
+                @endallowed
             @endif
         </div>
     </div>
@@ -44,5 +47,7 @@
         </x-detail.card>
     </div>
 
-    <livewire:party.bank-accounts owner-type="contact" :owner-id="$contact->id->value" />
+    @allowed(ListBankAccounts::class)
+        <livewire:party.bank-accounts owner-type="contact" :owner-id="$contact->id->value" />
+    @endallowed
 </div>

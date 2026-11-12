@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
-use App\Application\Party\Services\BusinessApplicationService;
-use App\Domain\User\Enums\Permission;
+use App\Application\Party\Queries\FindDefaultBusiness;
+use App\Application\Party\Queries\ListBusinesses;
 use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
 use Livewire\Component;
@@ -15,22 +15,26 @@ final class BusinessList extends Component
     use ActsForUser;
     use ListsParties;
 
-    public function render(BusinessApplicationService $businesses): View
+    public function render(): View
     {
-        $this->requirePermission(Permission::BUSINESS_VIEW);
-        $userId = $this->userId();
+        $this->requireAllowed(ListBusinesses::class);
+        $owner = $this->userId();
 
         return view(
             'livewire.party.business-list',
             [
                 'businesses' => $this->paginator(
-                    $businesses->search(
-                        $userId,
-                        $this->partySearch(),
-                        $this->pageRequest(),
+                    $this->runUseCase(
+                        new ListBusinesses(
+                            $owner,
+                            $this->partySearch(),
+                            $this->pageRequest(),
+                        ),
                     ),
                 ),
-                'defaultId' => $businesses->findDefaultId($userId),
+                'defaultId' => $this->runUseCase(
+                    new FindDefaultBusiness($owner),
+                ),
             ],
         );
     }

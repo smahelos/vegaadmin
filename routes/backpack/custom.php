@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\Party\Commands\ArchiveBusiness;
 use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\ArchivePolicyCrudController;
 use App\Http\Controllers\Admin\BankAccountCrudController;
@@ -66,6 +67,8 @@ Route::group(
         $route = Route::post('business/{id}/archive', [BusinessCrudController::class, 'archive']);
         $route->whereNumber('id');
         $route->name('admin.businesses.archive');
+        // `allowed` names the use case the action runs through the gate: change them together
+        $route->middleware('allowed:' . ArchiveBusiness::class);
         $route = Route::post('business/{id}/restore', [BusinessCrudController::class, 'restore']);
         $route->whereNumber('id');
         $route->name('admin.businesses.restore');
