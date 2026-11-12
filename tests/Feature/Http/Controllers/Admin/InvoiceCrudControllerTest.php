@@ -80,7 +80,7 @@ final class InvoiceCrudControllerTest extends TestCase
             ['user_id' => $owner->id],
         );
         $httpResponse = $this->post('/admin/invoice', $data);
-        $httpResponse->assertRedirect();
+        $httpResponse->assertForbidden();
         $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
@@ -99,6 +99,41 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpResponse = $httpResponse->assertOk();
         $httpResponse = $httpResponse->assertSee('name="bank_account_id"', false);
         $httpResponse->assertSee('name="customer_name"', false);
+        $this->assertMatchesRegularExpression(
+            '/<select(?=[^>]*name="user_id")(?=[^>]*disabled)[^>]*>/',
+            (string) $httpResponse->getContent(),
+        );
+    }
+
+    #[Test]
+    public function editing_keeps_the_stored_owner_whatever_owner_is_submitted(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $this->regularUser->id,
+                'business_id' => $business->id,
+                'bank_account_id' => $account->id,
+            ],
+        );
+        $httpResponse = $this->put(
+            '/admin/invoice/' . $invoice->id,
+            $this->invoiceInput(
+                $business,
+                $account,
+                [
+                    'user_id' => $this->adminUser->id,
+                    'invoice_vs' => $invoice->invoice_vs,
+                    'customer_name' => 'Corrected name',
+                ],
+            ),
+        );
+        $httpResponse = $httpResponse->assertSessionHasNoErrors();
+        $httpResponse->assertRedirect();
+        $stored = $invoice->fresh();
+        $this->assertSame($this->regularUser->id, $stored->user_id);
+        $this->assertSame('Corrected name', $stored->customer_name);
     }
 
     #[Test]

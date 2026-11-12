@@ -1,67 +1,48 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Livewire\Invoice;
 
-use App\Livewire\Shared\Paginates;
-use App\Models\Invoice;
+use App\Application\Invoice\Presenters\InvoiceListPresenter;
+use App\Application\Invoice\Queries\ListInvoices;
+use App\Domain\Invoice\DTO\InvoiceSearch;
+use App\Domain\Shared\Pagination\DTO\PageRequest;
+use App\Livewire\Shared\ActsForUser;
 use Illuminate\Contracts\View\View;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Livewire\Component;
-use Throwable;
 
 /**
- * InvoiceListRecent Livewire Component
- *
- * Displays recent invoices.
- * Shows last 5 invoices for authenticated user with pagination support.
+ * The owner's five newest invoices on the dashboard.
  */
-class InvoiceListRecent extends Component
+final class InvoiceListRecent extends Component
 {
-    use Paginates;
+    use ActsForUser;
 
-    /**
-     * Error message to display to user
-     */
-    public ?string $errorMessage = null;
-
-    /**
-     * Render the component with recent invoices data
-     */
-    public function render(): View
+    public function render(InvoiceListPresenter $presenter): View
     {
-        try {
-            $query = Invoice::with([
-                'paymentMethod',
-                'paymentStatus',
-            ]);
-            $query->where('user_id', Auth::id());
-            $query->latest();
+        $this->requireAllowed(ListInvoices::class);
+        $result = $this->runUseCase(
+            new ListInvoices(
+                $this->userId(),
+                new InvoiceSearch(
+                    '',
+                    null,
+                    null,
+                    null,
+                    'created_at',
+                    false,
+                ),
+                new PageRequest(1, 5),
+            ),
+        );
 
-            $invoices = $query->paginate(5);
-
-            return view(
-                'livewire.invoice.invoice-list-recent',
-                [
-                    'invoices' => $invoices,
-                    'hasData' => $invoices->total() > 0,
-                    'errorMessage' => $this->errorMessage,
-                ],
-            );
-        } catch (Throwable $e) {
-            Log::error('Loading recent invoices failed', ['exception' => $e]);
-            $this->errorMessage = __('invoices.messages.error_loading');
-
-            $query = Invoice::where('id', 0);
-
-            return view(
-                'livewire.invoice.invoice-list-recent',
-                [
-                    'invoices' => $query->paginate(10), // Empty paginator
-                    'hasData' => false,
-                    'errorMessage' => $this->errorMessage,
-                ],
-            );
-        }
+        return view(
+            'livewire.invoice.invoice-list-recent',
+            [
+                'invoices' => $result->items(),
+                'presenter' => $presenter,
+            ],
+        );
     }
 }

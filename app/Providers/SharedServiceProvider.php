@@ -28,7 +28,6 @@ use App\Domain\Shared\Money\Services\CurrencyService;
 use App\Domain\Shared\Money\Services\DeterministicCurrencyExchangeService;
 use App\Domain\Shared\Money\Services\MoneyFormatter;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
-use App\Domain\Shared\Status\Contracts\StatusDtoRepositoryInterface;
 use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Tax\Contracts\TaxDtoWriteRepositoryInterface;
@@ -39,7 +38,6 @@ use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
 use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
-use App\Infrastructure\Persistence\Eloquent\Shared\Status\Repositories\EloquentStatusDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories\EloquentTaxDtoRepository;
 use App\Infrastructure\Shared\Cache\CacheService;
 use App\Infrastructure\Shared\Config\Services\LaravelConfigAdapter;
@@ -250,11 +248,6 @@ class SharedServiceProvider extends ServiceProvider
         );
 
         // Shared repositories
-        $this->app->bind(
-            StatusDtoRepositoryInterface::class,
-            EloquentStatusDtoRepository::class,
-        );
-
         $this->app->bind(
             TaxDtoReadRepositoryInterface::class,
             EloquentTaxDtoRepository::class,

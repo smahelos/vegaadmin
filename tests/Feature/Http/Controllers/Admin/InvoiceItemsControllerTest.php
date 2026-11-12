@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
+use App\Application\Invoice\Commands\CreateInvoice;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\ValueObjects\BankAccountId;
@@ -345,26 +347,31 @@ final class InvoiceItemsControllerTest extends TestCase
             [$this->invoiceItem(['product_id' => (string) $product->id])],
         );
         $this->expectException(InvoiceNotFoundException::class);
-        $invoiceCrudApplicationService = app(InvoiceCrudApplicationServiceInterface::class);
-        $invoiceCrudApplicationService->create(
-            UserId::fromInt($this->regularUser->id),
-            $this->invoiceWriteData(),
-            new InvoicePartySelection(
-                BusinessId::fromInt($business->id),
-                BankAccountId::fromInt($account->id),
-                null,
-                new DocumentPartyDTO(
-                    'Customer',
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                ),
-                false,
-                false,
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $useCases->run(
+            Actor::user(
+                UserId::fromInt($this->regularUser->id),
             ),
-            $items,
+            new CreateInvoice(
+                UserId::fromInt($this->regularUser->id),
+                $this->invoiceWriteData(),
+                new InvoicePartySelection(
+                    BusinessId::fromInt($business->id),
+                    BankAccountId::fromInt($account->id),
+                    null,
+                    new DocumentPartyDTO(
+                        'Customer',
+                        null,
+                        null,
+                        null,
+                        null,
+                        null,
+                    ),
+                    false,
+                    false,
+                ),
+                $items,
+            ),
         );
     }
 

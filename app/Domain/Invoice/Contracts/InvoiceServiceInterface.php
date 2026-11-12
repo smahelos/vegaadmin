@@ -9,17 +9,16 @@ use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentParties;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
 interface InvoiceServiceInterface
 {
-    public function setInvoiceTemplate(InvoiceId $id, string $template): bool;
-
     /**
      * @param  list<InvoiceProductWriteData>  $invoiceProducts
      */
     public function createInvoice(
-        UserId $userId,
+        WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         array $invoiceProducts,
@@ -31,12 +30,12 @@ interface InvoiceServiceInterface
      * @param  list<InvoiceProductWriteData>  $invoiceProducts
      */
     public function updateInvoice(
-        UserId $userId,
+        WriteScope $scope,
         InvoiceId $invoiceId,
         InvoiceWriteData $data,
         DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO;
 
-    public function generateInvoiceNumber(UserId $userId, int $year): string;
+    public function generateInvoiceNumber(ReadScope $scope, int $year): string;
 }

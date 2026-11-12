@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\Product\Contracts\InvoiceProductReadRepositoryInterface;
 use App\Application\Product\Contracts\InvoiceProductWriteRepositoryInterface;
 use App\Application\Product\Contracts\ProductFormDataServiceInterface;
 use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
@@ -67,11 +66,6 @@ class ProductServiceProvider extends ServiceProvider
         );
 
         // Application layer product repositories
-        $this->app->bind(
-            InvoiceProductReadRepositoryInterface::class,
-            EloquentInvoiceProductRepository::class,
-        );
-
         $this->app->bind(
             InvoiceProductWriteRepositoryInterface::class,
             EloquentInvoiceProductRepository::class,

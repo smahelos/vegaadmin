@@ -4,10 +4,24 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Models\Invoice;
 
 class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, InvoiceWriteRepositoryInterface
 {
+    public function find(InvoiceId $id, ReadScope $scope): ?Invoice
+    {
+        $query = Invoice::with([
+            'invoiceProducts',
+            'paymentMethod',
+            'paymentStatus',
+        ]);
+        $query->where('user_id', $scope->owner->toInt());
+
+        return $query->find($id->getValue());
+    }
+
     public function findForUser(int $userId, int $invoiceId): ?Invoice
     {
         $query = Invoice::with(['invoiceProducts']);
@@ -39,22 +53,14 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         return $numbers->all();
     }
 
-    public function setTemplate(int $id, string $template): bool
-    {
-        $invoice = Invoice::find($id);
-        if (!$invoice) {
-            return false;
-        }
-        // Persist using existing 'template' column (legacy naming)
-        $invoice->template = $template;
-
-        return (bool) $invoice->save();
-    }
-
-    /** Update by ID without user scope (admin or internal use). */
-    public function updateById(int $id, array $data): Invoice
-    {
-        $invoice = Invoice::findOrFail($id);
+    public function updateById(
+        int $id,
+        int $owner,
+        array $data,
+    ): Invoice {
+        $query = Invoice::query();
+        $query->where('user_id', $owner);
+        $invoice = $query->findOrFail($id);
         $invoice->update($data);
 
         return $invoice->fresh();

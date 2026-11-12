@@ -167,6 +167,7 @@ final class ProductPermissionsTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->givePermissionTo(Permission::INVOICE_CREATE);
         $this->actingAs($user, 'web');
         $url = route('frontend.invoice.create', ['locale' => 'cs']);
 

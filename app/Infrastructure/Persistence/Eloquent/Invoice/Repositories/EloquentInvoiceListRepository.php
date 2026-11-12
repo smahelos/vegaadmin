@@ -6,9 +6,9 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 
 use App\Domain\Invoice\Contracts\InvoiceListReadRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceSearch;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Pagination\DTO\PaginatedResult;
-use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceListMapper;
 use App\Models\Business;
 use App\Models\Contact;
@@ -17,14 +17,14 @@ use Illuminate\Database\Eloquent\Builder;
 
 final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryInterface
 {
-    public function searchForUser(
-        UserId $userId,
+    public function search(
+        ReadScope $scope,
         InvoiceSearch $search,
         PageRequest $page,
     ): PaginatedResult {
         $query = Invoice::query();
         $query->with(['paymentMethod', 'paymentStatus']);
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $scope->owner->toInt());
         if ($search->term !== '') {
             $query->where(
                 static function (Builder $query) use ($search): void {
@@ -101,10 +101,10 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
         );
     }
 
-    public function businessFiltersForUser(UserId $userId): array
+    public function businessFilters(ReadScope $scope): array
     {
         $query = Business::query();
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $scope->owner->toInt());
         $query->orderBy('name');
         $query->orderBy('id');
         $businesses = $query->get([
@@ -119,10 +119,10 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
         return $businesses->all();
     }
 
-    public function contactFiltersForUser(UserId $userId): array
+    public function contactFilters(ReadScope $scope): array
     {
         $query = Contact::query();
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $scope->owner->toInt());
         $query->orderBy('name');
         $query->orderBy('id');
         $contacts = $query->get([

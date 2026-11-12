@@ -1,5 +1,6 @@
+@use('App\Application\Invoice\Commands\LinkInvoiceContact')
+@use('App\Application\Invoice\Commands\SaveInvoiceCustomerToContacts')
 @use('App\Application\Party\Commands\CreateContact')
-@use('App\Domain\User\Enums\Permission')
 @extends('layouts.frontend')
 
 @section('content')
@@ -123,7 +124,7 @@
                     <span class="text-gray-500 dark:text-gray-400">({{ __('parties.statuses.archived') }})</span>
                     @endif
                     @elseif($contactToLink)
-                    @can(Permission::INVOICE_UPDATE)
+                    @allowed(LinkInvoiceContact::class)
                     <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <input type="hidden" name="contact_id" value="{{ $contactToLink->id->value }}">
@@ -131,15 +132,15 @@
                             {{ __('invoices.actions.link_contact', ['name' => $contactToLink->name]) }}
                         </button>
                     </form>
-                    @endcan
+                    @endallowed
                     @else
                     @allowed(CreateContact::class)
-                    @can(Permission::INVOICE_UPDATE)
+                    @allowed(SaveInvoiceCustomerToContacts::class)
                     <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
                         @csrf
                         <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>
                     </form>
-                    @endcan
+                    @endallowed
                     @endallowed
                     @endif
                 </div>

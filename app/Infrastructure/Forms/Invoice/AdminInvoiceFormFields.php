@@ -58,13 +58,18 @@ final class AdminInvoiceFormFields
         }
         $fields['invoice_vs']['wrapper'] = ['class' => 'form-group col-12'];
         $fields['invoice_text']['wrapper'] = ['class' => 'form-group col-12'];
+        $parties = AdminDocumentFormFields::parties('customer', $document);
+        if ($document !== null) {
+            // The invoice keeps the owner its number series and parties belong to; update reads the stored one
+            $parties[0]['attributes'] = ['disabled' => 'disabled'];
+        }
 
         return [
             AdminDocumentFormFields::section(
                 'selection',
                 __('parties.sections.document_parties'),
             ),
-            ...AdminDocumentFormFields::parties('customer', $document),
+            ...$parties,
             AdminDocumentFormFields::section(
                 'document',
                 __('invoices.sections.document'),

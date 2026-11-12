@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+use App\Application\Invoice\Commands\CreateInvoice;
+use App\Application\Invoice\Commands\LinkInvoiceContact;
+use App\Application\Invoice\Commands\SetInvoiceTemplate;
+use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\UpdateProduct;
 use App\Application\User\Commands\ChangePassword;
@@ -63,6 +67,8 @@ $registrar->group(
                         $route->name('frontend.invoice.create');
                         $route = Route::post('/invoice', [InvoiceController::class, 'store']);
                         $route->name('frontend.invoice.store');
+                        // `allowed` names the use case the action runs through the gate: change them together
+                        $route->middleware('allowed:' . CreateInvoice::class);
                         $route->middleware('throttle:create');
                         $route = Route::get('/invoice/{id}', [InvoiceController::class, 'show']);
                         $route->name('frontend.invoice.show');
@@ -70,14 +76,14 @@ $registrar->group(
                         $route->name('frontend.invoice.edit');
                         $route = Route::put('/invoice/{id}', [InvoiceController::class, 'update']);
                         $route->name('frontend.invoice.update');
+                        $route->middleware('allowed:' . UpdateInvoice::class);
                         $route = Route::get('/invoice/{id}/download', [InvoiceController::class, 'download']);
                         $route->name('frontend.invoice.download');
                         $route = Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid']);
                         $route->name('frontend.invoice.mark-as-paid');
                         $route = Route::put('/invoice/{id}/set-template/{template}', [InvoiceController::class, 'setTemplate']);
                         $route->name('frontend.invoice.set-template');
-                        $route = Route::post('/invoice/{id}/actions', [InvoiceController::class, 'batchActions']);
-                        $route->name('frontend.invoice.batch-actions');
+                        $route->middleware('allowed:' . SetInvoiceTemplate::class);
                         $route = Route::post('/invoices/{invoice}/save-to-contacts', [InvoiceContactController::class, 'saveToContacts']);
                         $route->whereNumber('invoice');
                         $route->name('frontend.invoices.save-to-contacts');
@@ -85,6 +91,7 @@ $registrar->group(
                         $route = Route::post('/invoices/{invoice}/link-contact', [InvoiceContactController::class, 'linkContact']);
                         $route->whereNumber('invoice');
                         $route->name('frontend.invoices.link-contact');
+                        $route->middleware('allowed:' . LinkInvoiceContact::class);
 
                         // Businesses and contacts
                         $resource = Route::resource('businesses', BusinessController::class);

@@ -1,447 +1,345 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
+use App\Application\Invoice\Commands\CreateGuestInvoice;
+use App\Application\Invoice\Commands\CreateInvoice;
+use App\Application\Invoice\Commands\DeleteGuestInvoice;
+use App\Application\Invoice\Commands\MarkInvoicePaid;
+use App\Application\Invoice\Commands\SetInvoiceTemplate;
+use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
-use App\Application\Invoice\DTO\InvoiceActionStatus;
-use App\Application\Invoice\DTO\OrchestratedInvoiceActions;
+use App\Application\Invoice\DTO\PdfInvoiceDTO;
+use App\Application\Invoice\Queries\GetGuestInvoicePdf;
+use App\Application\Invoice\Queries\GetInvoice;
+use App\Application\Invoice\Queries\GetInvoiceCreateForm;
+use App\Application\Invoice\Queries\GetInvoiceForEdit;
+use App\Application\Invoice\Queries\GetInvoicePdf;
+use App\Application\Invoice\Services\GuestInvoiceCreateForm;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Invoice\InvoiceBatchActionsRequest;
-use App\Http\Requests\Invoice\MarkInvoicePaidRequest;
 use App\Http\Requests\Invoice\SetInvoiceTemplateRequest;
 use App\Http\Requests\InvoiceRequest;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
-class InvoiceController extends Controller
+/**
+ * Every action runs one use case through the gate; the routes name the same use cases in `allowed`, so the two
+ * change together.
+ */
+final class InvoiceController extends Controller
 {
-    /**
-     * Constructor – property promotion keeps controller thin and immutable.
-     */
     public function __construct(
-        private readonly InvoiceFormApplicationServiceInterface $invoiceFormService,
-        private readonly GuestInvoiceApplicationServiceInterface $guestInvoiceApplicationService,
-        private readonly InvoiceFrontendActionsApplicationServiceInterface $invoiceFrontendActions,
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly InvoiceRequestAssemblerInterface $invoiceRequestAssembler,
-        private readonly InvoiceMutationApplicationServiceInterface $invoiceMutationService,
-        private readonly InvoicePdfApplicationServiceInterface $invoicePdfApplicationService,
         private readonly CountryOptionsPresenter $countries,
     ) {}
 
-    /**
-     * Display paginated list of invoices for authenticated user
-     */
     public function index(): View
     {
         return view('frontend.invoices.index');
     }
 
-    /**
-     * Show form for creating a new invoice
-     */
     public function create(Request $request): View
     {
-        $dto = $this->invoiceFormService->prepareCreateData(Auth::user()->id);
+        $owner = $this->owner();
+        $form = $this->useCases->run(
+            Actor::user($owner),
+            new GetInvoiceCreateForm($owner),
+        );
 
         return view(
             'frontend.invoices.create',
             [
-                ...$dto->toArray(),
+                ...$form->toArray(),
                 'contactId' => $request->integer('contact_id') ?: null,
                 'businessId' => $request->integer('business_id') ?: null,
             ],
         );
     }
 
-    /**
-     * Show form for creating a new invoice for guest user
-     */
-    public function createForGuest(): View
+    public function createForGuest(GuestInvoiceCreateForm $guestForm): View
     {
-        $data = $this->guestInvoiceApplicationService->prepareGuestCreateData();
-        $data['userLoggedIn'] = false;
+        $form = $guestForm->read();
 
-        return view('frontend.invoices.create', $data);
+        return view('frontend.invoices.create', $form->toArray());
     }
 
-    /**
-     * Show form for editing an invoice
-     *
-     * @param  int  $id  Invoice ID
-     */
-    public function edit(string $locale, int $id): View|RedirectResponse
+    public function edit(string $locale, int $id): View
     {
-        try {
-            $dto = $this->invoiceFormService->prepareEditData(
-                Auth::user()->id,
-                $id,
-                $locale,
-            );
+        $owner = $this->owner();
+        $form = $this->useCases->run(
+            Actor::user($owner),
+            new GetInvoiceForEdit(
+                $owner,
+                InvoiceId::fromInt($id),
+            ),
+        );
 
-            return view('frontend.invoices.edit', $dto->toArray());
-        } catch (ModelNotFoundException $e) {
-            $redirector = redirect();
-            $redirect = $redirector->route('frontend.invoices', ['locale' => $locale]);
-
-            return $redirect->with(
-                'error',
-                __('invoices.messages.edit_error_unauthorized'),
-            );
-        }
+        return view('frontend.invoices.edit', $form->toArray());
     }
 
-    /**
-     * Store a new invoice
-     */
     public function store(InvoiceRequest $request): RedirectResponse
     {
-        $result = $this->invoiceMutationService->create(
-            UserId::fromInt(Auth::id()),
-            $request->toWriteData(),
-            $request->partySelection(),
-            $request->products(),
+        $owner = $this->owner();
+        $this->useCases->run(
+            Actor::user($owner),
+            new CreateInvoice(
+                $owner,
+                $request->toWriteData(),
+                $request->partySelection(),
+                $request->products(),
+            ),
         );
-        if ($result->status === InvoiceActionStatus::FAILURE) {
-            $redirect = back();
 
-            return $redirect->with(
-                'error',
-                __($result->message ?? 'invoices.messages.create_failed'),
-            );
-        }
-        $application = app();
-        $locale = $application->getLocale();
-        $targetUrl = '/' . $locale . '/invoice';
+        $redirector = redirect();
+        $redirect = $redirector->route(
+            'frontend.invoices',
+            ['locale' => App::getLocale()],
+        );
 
-        $redirect = redirect($targetUrl);
-        $redirect->with(
+        return $redirect->with(
             'success',
-            __($result->message ?? 'invoices.messages.created'),
+            __('invoices.messages.created'),
         );
-        $redirect->withInput();
-
-        return $redirect->withErrors($result->errors ?? []);
     }
 
-    /**
-     * Store invoice for guest user using cache
-     */
-    public function storeGuest(InvoiceRequest $request): JsonResponse|RedirectResponse
+    public function storeGuest(InvoiceRequest $request): JsonResponse
     {
-        try {
-            $payload = $this->invoiceRequestAssembler->assemble($request);
-            $response = $this->guestInvoiceApplicationService->storeGuestInvoice(
+        $payload = $this->invoiceRequestAssembler->assemble($request);
+        $result = $this->useCases->run(
+            Actor::anonymous(),
+            new CreateGuestInvoice(
                 $payload->validated,
                 $request->oneOffParty('supplier'),
                 $request->oneOffParty('customer'),
                 $request->oneOffAccount(),
                 $request->get('lang'),
-            );
+            ),
+        );
 
-            $responseFactory = response();
+        $session = session();
+        $session->put('last_guest_invoice_token', $result->token);
+        $session->put('last_guest_invoice_number', $result->number);
+        $now = CarbonImmutable::now();
+        $expiration = $now->addMinutes(10);
+        $session->put('last_guest_invoice_expires', $expiration->timestamp);
 
-            return $responseFactory->json($response);
-        } catch (ValidationException $e) {
-            $responseFactory = response();
+        $responseFactory = response();
 
-            return $responseFactory->json(
-                [
-                    'success' => false,
-                    'message' => __('invoices.messages.validation_failed'),
-                    'errors' => $e->errors(),
-                ],
-                422,
-            );
-        } catch (\Exception $e) {
-            Log::error('Guest invoice creation failed', ['exception' => $e]);
-
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                [
-                    'success' => false,
-                    'message' => __('invoices.messages.create_error'),
-                ],
-                500,
-            );
-        }
-    }
-
-    /**
-     * Display invoice details
-     *
-     * @param  int  $id  Invoice ID
-     */
-    public function show(string $locale, int $id): View|RedirectResponse|JsonResponse
-    {
-        try {
-            $dto = $this->invoiceFormService->prepareShowData(Auth::user()->id, $id);
-
-            return view(
-                'frontend.invoices.show',
-                [
-                    ...$dto->toArray(),
-                    'countries' => $this->countries->options($locale),
-                ],
-            );
-        } catch (ModelNotFoundException $e) {
-            Log::warning('Invoice not found or unauthorized for show: ID=' . $id);
-        } catch (\Exception $e) {
-            Log::error('Error viewing invoice: ' . $e->getMessage());
-        }
-
-        $redirector = redirect();
-        $redirect = $redirector->route('frontend.invoices', ['locale' => $locale]);
-
-        return $redirect->with(
-            'error',
-            __('invoices.messages.show_error'),
+        return $responseFactory->json(
+            [
+                'success' => true,
+                'message' => __('invoices.messages.created_guest'),
+                'invoice_number' => $result->number,
+                'download_url' => route(
+                    'frontend.invoice.download.token',
+                    ['locale' => $result->locale, 'token' => $result->token],
+                ),
+                'token' => $result->token,
+                'qr_code' => $result->qrCode,
+                'has_qr_code' => $result->qrCode !== null && $result->qrCode !== '',
+            ],
         );
     }
 
-    /**
-     * Generate and download invoice PDF
-     *
-     * @param  int  $id  Invoice ID
-     */
+    public function show(string $locale, int $id): View
+    {
+        $owner = $this->owner();
+        $invoice = $this->useCases->run(
+            Actor::user($owner),
+            new GetInvoice(
+                $owner,
+                InvoiceId::fromInt($id),
+            ),
+        );
+
+        return view(
+            'frontend.invoices.show',
+            [
+                ...$invoice->toArray(),
+                'countries' => $this->countries->options($locale),
+            ],
+        );
+    }
+
     public function download(
         string $locale,
         int $id,
         Request $request,
-    ): Response|RedirectResponse {
-        $result = $this->invoicePdfApplicationService->generate(
-            Auth::user()->id,
-            $id,
-            null,
-            $request->get('lang'),
-            $request->has('preview'),
+    ): Response {
+        $owner = $this->owner();
+        $pdf = $this->useCases->run(
+            Actor::user($owner),
+            new GetInvoicePdf(
+                $owner,
+                InvoiceId::fromInt($id),
+                $request->get('lang'),
+            ),
         );
-        if ($result->status === InvoiceActionStatus::FAILURE) {
-            $redirector = redirect();
-            $redirect = $redirector->back();
 
-            return $redirect->with(
-                'error',
-                __($result->message ?? 'invoices.messages.pdf_error'),
-            );
-        }
-
-        return $result->response;
+        return $this->pdfResponse($pdf, $request);
     }
 
-    /**
-     * Generate and download invoice PDF using token (for guests)
-     */
-    public function downloadWithToken(Request $request): Response|RedirectResponse
-    {
-        $result = $this->invoicePdfApplicationService->generate(
-            null,
-            null,
-            $request->get('token'),
-            $request->get('lang'),
-            $request->has('preview'),
+    public function downloadWithToken(
+        Request $request,
+        string $locale,
+        string $token,
+    ): Response {
+        $pdf = $this->useCases->run(
+            Actor::anonymous(),
+            new GetGuestInvoicePdf(
+                $token,
+                $request->get('lang'),
+            ),
         );
-        if ($result->status === InvoiceActionStatus::FAILURE) {
-            abort(
-                $result->message === 'invoices.messages.not_found' ? 404 : 500,
-                __($result->message),
-            );
-        }
 
-        return $result->response;
+        return $this->pdfResponse($pdf, $request);
     }
 
-    /**
-     * Update an existing invoice
-     *
-     * @param  int  $id  Invoice ID
-     */
     public function update(
         InvoiceRequest $request,
         string $locale,
         int $id,
     ): RedirectResponse {
-        $result = $this->invoiceMutationService->update(
-            UserId::fromInt(Auth::id()),
-            InvoiceId::fromInt($id),
-            $request->toWriteData(),
-            $request->partySelection(),
-            $request->products(),
+        $owner = $this->owner();
+        $invoice = $this->useCases->run(
+            Actor::user($owner),
+            new UpdateInvoice(
+                $owner,
+                InvoiceId::fromInt($id),
+                $request->toWriteData(),
+                $request->partySelection(),
+                $request->products(),
+            ),
         );
-        if ($result->status === InvoiceActionStatus::FAILURE) {
-            $redirect = back();
-            $redirect->with(
-                'error',
-                __($result->message ?? 'invoices.messages.update_failed'),
-            );
-            $redirect->withInput();
-
-            return $redirect->withErrors($result->errors ?? []);
-        }
 
         $redirector = redirect();
-        $application = app();
         $redirect = $redirector->route(
             'frontend.invoice.show',
-            ['id' => $result->invoice->id, 'locale' => $application->getLocale()],
+            ['id' => $invoice->id->value, 'locale' => $locale],
         );
 
         return $redirect->with(
             'success',
-            __($result->message ?? 'invoices.messages.updated'),
+            __('invoices.messages.updated'),
         );
     }
 
     public function destroyGuest(string $locale, string $token): RedirectResponse
     {
-        $application = app();
+        $session = session();
+        $redirector = redirect();
+        $redirect = $redirector->route('home', ['locale' => $locale]);
         try {
-            $deleted = $this->guestInvoiceApplicationService->deleteTemporary($token);
-
-            $redirector = redirect();
-            $redirect = $redirector->route('home', ['locale' => $application->getLocale()]);
-
-            return $redirect->with(
-                $deleted ? 'success' : 'error',
-                __(
-                    $deleted ? 'invoices.messages.deleted_guest' : 'invoices.messages.token_invalid',
+            $this->useCases->run(
+                Actor::anonymous(),
+                new DeleteGuestInvoice(
+                    $token,
+                    $session->get('last_guest_invoice_token'),
                 ),
             );
-        } catch (\Exception $e) {
-            Log::error('Error deleting guest invoice');
-
-            $redirector = redirect();
-            $redirect = $redirector->route('home', ['locale' => $application->getLocale()]);
-
+        } catch (InvoiceNotFoundException) {
             return $redirect->with(
                 'error',
-                __('invoices.messages.delete_error'),
+                __('invoices.messages.token_invalid'),
             );
         }
+        $session->forget(
+            [
+                'last_guest_invoice_token',
+                'last_guest_invoice_number',
+                'last_guest_invoice_expires',
+            ],
+        );
+
+        return $redirect->with(
+            'success',
+            __('invoices.messages.deleted_guest'),
+        );
     }
 
-    /**
-     * Mark invoice as paid
-     *
-     * @param  int  $id  Invoice ID
-     */
-    public function markAsPaid(
-        MarkInvoicePaidRequest $request,
-        string $locale,
-        int $id,
-    ): RedirectResponse {
-        $result = $this->invoiceFrontendActions->markAsPaid(
-            (int) Auth::id(),
-            $id,
+    public function markAsPaid(string $locale, int $id): RedirectResponse
+    {
+        $owner = $this->owner();
+        $this->useCases->run(
+            Actor::user($owner),
+            new MarkInvoicePaid(
+                $owner,
+                InvoiceId::fromInt($id),
+            ),
         );
-        $ok = $result->status === InvoiceActionStatus::SUCCESS;
 
         $redirect = back();
 
         return $redirect->with(
-            $ok ? 'success' : 'error',
-            __(
-                $ok ? ($result->message ?? 'invoices.messages.marked_as_paid') : ($result->message ?? 'invoices.messages.update_error'),
-            ),
+            'success',
+            __('invoices.messages.marked_as_paid'),
         );
     }
 
-    /**
-     * Set invoice pdf template
-     *
-     * @param  int  $id  Invoice ID
-     */
     public function setTemplate(
         SetInvoiceTemplateRequest $request,
         string $locale,
         int $id,
     ): RedirectResponse {
-        $template = $request->template();
-        $result = $this->invoiceFrontendActions->setTemplate(
-            (int) Auth::id(),
-            $id,
-            $template->value,
+        $owner = $this->owner();
+        $this->useCases->run(
+            Actor::user($owner),
+            new SetInvoiceTemplate(
+                $owner,
+                InvoiceId::fromInt($id),
+                $request->template(),
+            ),
         );
-        $ok = $result->status === InvoiceActionStatus::SUCCESS;
 
         $redirector = redirect();
-        $redirect = $redirector->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id]);
+        $redirect = $redirector->route(
+            'frontend.invoice.edit',
+            ['locale' => $locale, 'id' => $id],
+        );
 
         return $redirect->with(
-            $ok ? 'success' : 'error',
-            __(
-                $ok ? ($result->message ?? 'invoices.messages.template_set') : ($result->message ?? 'invoices.messages.update_error'),
-            ),
+            'success',
+            __('invoices.messages.template_set'),
         );
     }
 
-    /**
-     * Batch execute allowed lightweight frontend actions (template/status/mark_paid) via orchestrate().
-     * Non-fatal failures accumulate; any sub-action failure returns FAILURE with aggregated errors.
-     * Just prepared method for future AJAX support (currently only form POST).
-     * To use it, you need to call this method via AJAX or standard form POST.
-     * Example payload: { "template": "modern", "status": "partially-paid", "mark_paid": true }
-     * Example JS:
-     *
-     *  const batchActions = {
-     *      template: 'modern',
-     *      mark_paid: true
-     *  };
-     *
-     *  fetch(`/invoice/${invoiceId}/actions`, {
-     *      method: 'POST',
-     *      body: JSON.stringify(batchActions),
-     *      headers: {'Content-Type': 'application/json'}
-     *  })
-     *  .then(response => response.json())
-     *  .then(result => {
-     *      if (result.success) {
-     *          showMessage(result.message);
-     *          // Možno refresh časti stránky
-     *      }
-     *  });
-     */
-    public function batchActions(
-        InvoiceBatchActionsRequest $request,
-        string $locale,
-        int $id,
-    ): RedirectResponse {
-        $validated = $request->validated();
-        // Normalize boolean
-        if (array_key_exists('mark_paid', $validated)) {
-            $validated['mark_paid'] = filter_var($validated['mark_paid'], FILTER_VALIDATE_BOOLEAN);
-        }
-        $command = OrchestratedInvoiceActions::fromArray($validated, includeInvoice: true);
-        $result = $this->invoiceFrontendActions->orchestrate(
-            (int) Auth::id(),
-            $id,
-            $command,
+    private function pdfResponse(PdfInvoiceDTO $pdf, Request $request): Response
+    {
+        $disposition = HeaderUtils::makeDisposition(
+            $request->has('preview') ? HeaderUtils::DISPOSITION_INLINE : HeaderUtils::DISPOSITION_ATTACHMENT,
+            $pdf->filename,
         );
-        $ok = $result->status === InvoiceActionStatus::SUCCESS;
-
-        $redirector = redirect();
-        $redirect = $redirector->route('frontend.invoice.edit', ['locale' => $locale, 'id' => $id]);
-
-        return $redirect->with(
-            $ok ? 'success' : 'error',
-            __(
-                $result->message ?? ($ok ? 'invoices.messages.updated' : 'invoices.messages.update_error'),
-            ),
+        $response = new Response(
+            $pdf->content,
+            200,
+            ['Content-Type' => 'application/pdf', 'Content-Disposition' => $disposition],
         );
+
+        return $response->cookie(
+            'locale',
+            $pdf->locale,
+            60 * 24 * 30,
+        );
+    }
+
+    private function owner(): UserId
+    {
+        return UserId::fromInt((int) Auth::id());
     }
 }

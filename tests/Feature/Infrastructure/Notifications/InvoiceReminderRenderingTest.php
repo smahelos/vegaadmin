@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Notifications;
 
-use App\Application\Invoice\Services\InvoiceReminderApplicationService;
+use App\Application\Invoice\Commands\SendInvoiceReminder;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
@@ -59,10 +61,13 @@ final class InvoiceReminderRenderingTest extends TestCase
             ['name' => 'Changed source business', 'archived_at' => now()],
         );
 
-        $invoiceReminderApplicationService = app(InvoiceReminderApplicationService::class);
-        $invoiceReminderApplicationService->sendForInvoice(
-            InvoiceId::fromInt($invoice->id),
-            [$type],
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $useCases->run(
+            Actor::system(),
+            new SendInvoiceReminder(
+                InvoiceId::fromInt($invoice->id),
+                [$type],
+            ),
         );
 
         $collection = collect(Notification::sentNotifications());

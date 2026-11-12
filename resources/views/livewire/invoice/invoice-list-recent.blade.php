@@ -1,40 +1,36 @@
 <div>
-    @if(isset($invoices) && $invoices->count() > 0)
+    @if($invoices !== [])
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
             @foreach($invoices as $invoice)
-                <li class="px-4 hover:bg-gray-50 dark:hover:bg-gray-700 bg-{{ $invoice->status_color_class }}-100 dark:bg-{{ $invoice->status_color_class }}-600">
-                    <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id, 'locale' => App::getLocale()]) }}" class="flex flex-row items-center">
+                <li class="px-4 hover:bg-gray-50 dark:hover:bg-gray-700 bg-{{ $invoice->statusColor }}-100 dark:bg-{{ $invoice->statusColor }}-600">
+                    <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}" class="flex flex-row items-center">
                         <div class="basis-3/18 lg:basis-3/24">
-                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->invoice_vs }}</p>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number }}</p>
                         </div>
                         <div class="basis-6/18 lg:basis-6/24">
                             <p class="text-xs text-gray-500 dark:text-white">
-                                {{ $invoice->customer_name }} -
-                                {{ number_format($invoice->payment_amount, 0, ',', ' ') }} {{ __('general.currency') }}
+                                {{ $invoice->customerName }} -
+                                {{ $presenter->amount($invoice, App::getLocale()) }}
                             </p>
                         </div>
                         <div class="basis-6/24 hidden lg:block">
                             <p class="text-xs text-gray-500 dark:text-white">
                                 @if($invoice->paymentMethod)
-                                    {{ $invoice->paymentMethod->translated_name }}
+                                    {{ __('payment_methods.methods.' . $invoice->paymentMethod->value) }}
                                 @else
                                     <span class="text-white">{{ __('invoices.placeholders.not_available') }}</span>
                                 @endif
                             </p>
                         </div>
                         <div class="basis-6/18 lg:basis-6/24">
-                            <p class="p-3 text-{{ $invoice->status_color_class }}-800 dark:text-{{ $invoice->status_color_class }}-200">
-                                {{ $invoice->payment_status_name }}
-                            </p>
-                        </div>
-                        <div class="basis-2/18 lg:basis-2/24 p-4 text-{{ $invoice->status_color_class }}-800 dark:text-{{ $invoice->status_color_class }}-200">
-                            <p class="text-xs">
-                                @if($invoice->due_date)
-                                    {{ $invoice->due_date->format('d.m.Y') }}
-                                @else
-                                    <span class="text-white">—</span>
+                            <p class="p-3 text-{{ $invoice->statusColor }}-800 dark:text-{{ $invoice->statusColor }}-200">
+                                @if($invoice->status)
+                                    {{ __('statuses.statuses.' . $invoice->status->value) }}
                                 @endif
                             </p>
+                        </div>
+                        <div class="basis-2/18 lg:basis-2/24 p-4 text-{{ $invoice->statusColor }}-800 dark:text-{{ $invoice->statusColor }}-200">
+                            <p class="text-xs">{{ $presenter->dueDate($invoice, App::getLocale()) }}</p>
                         </div>
                         <div class="basis-1/24 text-right">
                             <i class="fas fa-chevron-right text-white"></i>

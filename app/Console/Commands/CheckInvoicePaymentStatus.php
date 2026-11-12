@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
-use App\Application\Invoice\Services\InvoiceReminderApplicationService;
+use App\Application\Invoice\Commands\SendInvoiceReminders;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -15,7 +17,7 @@ final class CheckInvoicePaymentStatus extends Command
 
     protected $description = 'Check invoice payment status and send reminders based on due dates';
 
-    public function handle(InvoiceReminderApplicationService $reminders): int
+    public function handle(AuthorizingUseCaseRunnerInterface $useCases): int
     {
         $this->info('Checking invoice for payment reminder...');
         $daysBefore = filter_var(
@@ -34,7 +36,10 @@ final class CheckInvoicePaymentStatus extends Command
             return self::INVALID;
         }
         try {
-            $result = $reminders->sendReminders($daysBefore, $daysAfter);
+            $result = $useCases->run(
+                Actor::system(),
+                new SendInvoiceReminders($daysBefore, $daysAfter),
+            );
             $this->info(
                 "Notifications sent: {$result->upcoming} upcoming, {$result->dueToday} today, {$result->overdue} overdue.",
             );

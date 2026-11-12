@@ -2,29 +2,15 @@
 
 namespace App\Providers;
 
-use App\Application\Invoice\Contracts\GuestInvoiceApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceCrudApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceFormApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceFrontendActionsApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceListingApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoiceMutationApplicationServiceInterface;
-use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
-use App\Application\Invoice\Contracts\InvoiceStatusApplicationServiceInterface;
 use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
-use App\Application\Invoice\Services\GuestInvoiceApplicationService;
-use App\Application\Invoice\Services\InvoiceFrontendActionsApplicationService;
-use App\Application\Invoice\Services\InvoiceMutationApplicationService;
-use App\Application\Invoice\Services\InvoicePdfApplicationService;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
-use App\Application\Invoice\Services\Specialized\InvoiceCrudApplicationService;
-use App\Application\Invoice\Services\Specialized\InvoiceFormApplicationService;
 use App\Application\Invoice\Services\Specialized\InvoiceListingApplicationService;
-use App\Application\Invoice\Services\Specialized\InvoiceStatusApplicationService;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
 use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
@@ -130,28 +116,8 @@ class InvoiceServiceProvider extends ServiceProvider
     {
         // Invoice application services
         $this->app->bind(
-            GuestInvoiceApplicationServiceInterface::class,
-            GuestInvoiceApplicationService::class,
-        );
-
-        $this->app->bind(
-            InvoiceFrontendActionsApplicationServiceInterface::class,
-            InvoiceFrontendActionsApplicationService::class,
-        );
-
-        $this->app->bind(
             InvoiceRequestAssemblerInterface::class,
             InvoiceRequestAssembler::class,
-        );
-
-        $this->app->bind(
-            InvoiceMutationApplicationServiceInterface::class,
-            InvoiceMutationApplicationService::class,
-        );
-
-        $this->app->bind(
-            InvoicePdfApplicationServiceInterface::class,
-            InvoicePdfApplicationService::class,
         );
 
         $this->app->bind(
@@ -169,25 +135,9 @@ class InvoiceServiceProvider extends ServiceProvider
             TemporaryInvoicePrintDataFactory::class,
         );
 
-        // Specialized Invoice Application Services
-        $this->app->bind(
-            InvoiceFormApplicationServiceInterface::class,
-            InvoiceFormApplicationService::class,
-        );
-
-        $this->app->bind(
-            InvoiceCrudApplicationServiceInterface::class,
-            InvoiceCrudApplicationService::class,
-        );
-
         $this->app->bind(
             InvoiceListingApplicationServiceInterface::class,
             InvoiceListingApplicationService::class,
-        );
-
-        $this->app->bind(
-            InvoiceStatusApplicationServiceInterface::class,
-            InvoiceStatusApplicationService::class,
         );
     }
 

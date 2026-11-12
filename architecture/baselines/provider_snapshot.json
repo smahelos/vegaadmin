@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-12T09:38:34+00:00",
+    "generated_at": "2026-11-12T13:24:25+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -107,10 +107,6 @@
                 {
                     "abstract": "App\\Domain\\Shared\\Database\\Contracts\\TransactionBoundaryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Database\\EloquentTransactionBoundary"
-                },
-                {
-                    "abstract": "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoReadRepositoryInterface",
@@ -233,24 +229,8 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceDtoRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\GuestInvoiceApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceFrontendActionsApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceFrontendActionsApplicationService"
-                },
-                {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface",
                     "concrete": "App\\Application\\Invoice\\Services\\InvoiceRequestAssembler"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoiceMutationApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\InvoicePdfApplicationService"
                 },
                 {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoicePdfRendererInterface",
@@ -265,20 +245,8 @@
                     "concrete": "App\\Application\\Invoice\\Services\\TemporaryInvoicePrintDataFactory"
                 },
                 {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceFormApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceCrudApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceCrudApplicationService"
-                },
-                {
                     "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface",
                     "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceStatusApplicationServiceInterface",
-                    "concrete": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceStatusApplicationService"
                 }
             ],
             "singleton": []
@@ -413,10 +381,6 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository"
                 },
                 {
-                    "abstract": "App\\Application\\Product\\Contracts\\InvoiceProductReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository"
-                },
-                {
                     "abstract": "App\\Application\\Product\\Contracts\\InvoiceProductWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository"
                 },
@@ -494,58 +458,10 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Invoice\\Contracts\\GuestInvoiceApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\GuestInvoiceApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceCrudApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceCrudApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceFormApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceFormApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceFrontendActionsApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\InvoiceFrontendActionsApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Invoice\\Contracts\\InvoiceListingApplicationServiceInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceListingApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceMutationApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\InvoiceMutationApplicationService",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoicePdfApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\InvoicePdfApplicationService",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -570,14 +486,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\InvoiceRequestAssembler",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceStatusApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Invoice\\Services\\Specialized\\InvoiceStatusApplicationService",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
@@ -643,14 +551,6 @@
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionWriteRepository",
                 "provider": "App\\Providers\\PaymentServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Product\\Contracts\\InvoiceProductReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository",
-                "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }
         },
@@ -1102,14 +1002,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Shared\\Session\\LaravelSessionStore",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Shared\\Status\\Contracts\\StatusDtoRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Status\\Repositories\\EloquentStatusDtoRepository",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }

@@ -5,7 +5,6 @@ declare(strict_types=1);
 use App\Application\User\Queries\SearchUsers;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
-use App\Http\Controllers\Api\InvoiceController;
 use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\UserController;
@@ -30,11 +29,6 @@ $registrar->group(
         $route->name('users.search');
         // `allowed` names the use case the action runs through the gate: change them together
         $route->middleware('allowed:' . SearchUsers::class);
-        $route = Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice']);
-        $route->whereNumber('id');
-        $route->name('invoice');
-        $route = Route::get('/invoice', [InvoiceController::class, 'getInvoice']);
-        $route->name('invoice.query');
     },
 );
 
@@ -43,13 +37,6 @@ $registrar = Route::middleware(['api.require.frontend', 'refresh.frontend.sessio
 $registrar->name('api.');
 $registrar->group(
     function (): void {
-        // Invoices
-        $route = Route::get('/invoice', [InvoiceController::class, 'getInvoice']);
-        $route->name('invoice.query');
-        $route = Route::get('/invoice/{id}', [InvoiceController::class, 'getInvoice']);
-        $route->whereNumber('id');
-        $route->name('invoice');
-
         // Dashboard charts
         $route = Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue']);
         $route->name('statistics.monthly-revenue');

@@ -8,7 +8,6 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\Contracts\QueryInterface;
-use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
@@ -72,20 +71,5 @@ trait ActsForUser
             Actor::user($this->userId()),
             $useCase,
         );
-    }
-
-    protected function requirePermission(Permission $permission): void
-    {
-        abort_unless(
-            $this->userCan($permission),
-            403,
-        );
-    }
-
-    protected function userCan(Permission $permission): bool
-    {
-        $user = Auth::user();
-
-        return $user?->can($permission) === true;
     }
 }

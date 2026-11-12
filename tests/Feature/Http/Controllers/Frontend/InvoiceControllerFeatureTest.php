@@ -2,9 +2,6 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Invoice\Contracts\InvoicePdfApplicationServiceInterface;
-use App\Application\Invoice\DTO\InvoiceActionResult;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\User\Enums\Permission;
@@ -31,6 +28,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->setUpFrontendTestEnvironment();
 
         $this->user->givePermissionTo(
+            PermissionModel::findByName(Permission::INVOICE_VIEW->value, 'web'),
             PermissionModel::findByName(Permission::INVOICE_CREATE->value, 'web'),
             PermissionModel::findByName(Permission::INVOICE_UPDATE->value, 'web'),
         );
@@ -150,7 +148,7 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function set_template_fails_for_non_existent_invoice(): void
+    public function set_template_of_a_missing_invoice_is_not_found(): void
     {
         $this->actingAs($this->user, 'web');
 
@@ -168,12 +166,11 @@ class InvoiceControllerFeatureTest extends TestCase
             ],
         );
 
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertNotFound();
     }
 
     #[Test]
-    public function set_template_fails_for_other_users_invoice(): void
+    public function set_template_of_another_users_invoice_is_not_found(): void
     {
         // Create another user and their invoice
         $userFactory = User::factory();
@@ -200,45 +197,13 @@ class InvoiceControllerFeatureTest extends TestCase
             ],
         );
 
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
+        $response->assertNotFound();
 
         // Verify template was not changed
         $this->assertDatabaseHas('invoices', [
             'id' => $otherInvoice->id,
             'template' => 'default',
         ]);
-    }
-
-    #[Test]
-    public function set_template_handles_service_exception(): void
-    {
-        $this->actingAs($this->user, 'web');
-
-        // Mock the service to throw an exception
-        $mockService = $this->mock(InvoiceServiceInterface::class);
-        $expectation = $mockService->shouldReceive('setInvoiceTemplate');
-        $expectation->with($this->invoice->id, 'modern');
-        $expectation->andThrow(
-            new \Exception('Service error'),
-        );
-
-        $response = $this->putJson(
-            route(
-                'frontend.invoice.set-template',
-                [
-                    'locale' => 'en',
-                    'id' => $this->invoice->id,
-                    'template' => 'modern',
-                ],
-            ),
-            [
-                'template' => 'modern',
-            ],
-        );
-
-        $response->assertRedirect();
-        $response->assertSessionHas('error');
     }
 
     #[Test]
@@ -417,58 +382,9 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function download_preview_streams_pdf(): void
-    {
-        $this->actingAs($this->user, 'web');
-        // Mock PDF application service (controller uses InvoicePdfApplicationServiceInterface->generate())
-        $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
-        $expectation = $pdfMock->shouldReceive('generate');
-        $expectation->once();
-        $expectation->andReturn(
-            InvoiceActionResult::success(
-                response: response(
-                    'PDF CONTENT',
-                    200,
-                    ['Content-Type' => 'application/pdf'],
-                ),
-            ),
-        );
-        $response = $this->get(
-            route(
-                'frontend.invoice.download',
-                [
-                    'locale' => 'en',
-                    'id' => $this->invoice->id,
-                    'preview' => 1,
-                ],
-            ),
-        );
-        $response->assertStatus(200);
-        $this->assertEquals(
-            'application/pdf',
-            $response->headers->get('Content-Type'),
-        );
-    }
-
-    #[Test]
     public function download_without_preview_sets_attachment_disposition(): void
     {
         $this->actingAs($this->user, 'web');
-        $filename = 'faktura-' . $this->invoice->invoice_vs . '.pdf';
-        $responseMock = response(
-            'PDF CONTENT',
-            200,
-            [
-                'Content-Type' => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
-            ],
-        );
-        $pdfMock = $this->mock(InvoicePdfApplicationServiceInterface::class);
-        $expectation = $pdfMock->shouldReceive('generate');
-        $expectation->once();
-        $expectation->andReturn(
-            InvoiceActionResult::success(response: $responseMock),
-        );
         $response = $this->get(
             route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id]),
         );

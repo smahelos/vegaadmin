@@ -7,12 +7,11 @@ use Tests\TestCase;
 
 /**
  * Ensures selected API controllers are delegating (no direct query building / model static calls / DB facade usage).
- * Target controllers: Api/InvoiceController.php, Api/StatisticsController.php
+ * Target controllers: Api/StatisticsController.php
  */
 class ApiControllersDelegationTest extends TestCase
 {
     private array $targets = [
-        'Http/Controllers/Api/InvoiceController.php',
         'Http/Controllers/Api/StatisticsController.php',
     ];
 
