@@ -68,7 +68,7 @@ The generated unique key, the CHECK with restricting foreign keys and the compos
 
 - `PartyProfile` (with `?Address`) is the shared part inside the business and contact write data and DTOs.
 - A domain service checks duplicates for both entities.
-- The domain service `BusinessCreator` creates a business with its capacity check, address, default selection and first bank account; the Command `CreateBusiness` and `RegistrationApplicationService` (User context) both call it inside one transaction through `TransactionBoundaryInterface`.
+- The Command `CreateBusiness` creates a business with its capacity check, address, default selection and first bank account in one transaction. Registration (the User Command `Register`) runs it through the gate as the new user, inside its own transaction.
 - `AccountOwner` (`BusinessId` | `ContactId`) names the owner of a bank account.
 
 ### Capacity limits (Q8, Q9, Q10)

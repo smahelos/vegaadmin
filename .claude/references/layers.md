@@ -60,7 +60,7 @@ interface ContactWriteRepositoryInterface
 }
 ```
 
-Ports are Domain, so `ReadScope` and `WriteScope` are too (`App\Domain\Shared\Authorization\ValueObjects`). A Command reads with the `ReadScope` its `WriteScope` holds: `$this->contacts->findById($command->id, $scope->read)`.
+Ports are Domain, so `ReadScope`, `WriteScope` and `AllOwnersScope` are too (`App\Domain\Shared\Authorization\ValueObjects`). Only a port that serves an admin-wide read accepts `AllOwnersScope`; a port over one owner's data takes `ReadScope` alone, whose owner is never missing. A Command reads with the `ReadScope` its `WriteScope` holds: `$this->contacts->findById($command->id, $scope->read)`.
 
 ## Infrastructure — repository and mapper
 
@@ -73,10 +73,7 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
     {
         $query = Contact::query();
         $query->whereKey($id->value);
-        // ReadScope::allOwners() has no owner
-        if ($scope->owner !== null) {
-            $query->where('user_id', $scope->owner->value);
-        }
+        $query->where('user_id', $scope->owner->value);
         $contact = $query->first();
 
         return $contact === null ? null : EloquentContactMapper::toDTO($contact);

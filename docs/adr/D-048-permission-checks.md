@@ -44,7 +44,7 @@ Permissions were checked in several places: `authorize()` of form requests, `req
 - A missing permission is answered with a 403 before validation, from the use case's declaration. The owner check runs in the gate, after validation, so rules must reveal nothing about another user's records.
 - A write to another entity runs that entity's Command as the record's owner. Its refusal comes after validation and rolls the whole action back; an acting admin needs only the main permission.
 - An admin form that selects an owner is refused after validation when the owner lacks the permission, because the owner comes from the input.
-- A use case over every owner's data (`allOwners`, `system`) gets the read-only `ReadScope::allOwners()`. No `WriteScope` covers every owner.
+- A use case over every owner's data (`allOwners`, `system`) gets the read-only `AllOwnersScope`. It is a separate type from `ReadScope`, so a port over one owner's data cannot receive it and the type, not a null check in each query, keeps one owner's port from returning every owner's rows. No `WriteScope` covers every owner.
 - `authorize()` is removed only in the commit that adds the check replacing it.
 - A broad `catch` around a use case would turn a 403 or 404 into a generic error, so such catches are narrowed with the conversion.
 - A Command that calls outside the database declares it with `CallsOutsideDatabaseInterface`, and its handler opens the transaction only around its writes.
