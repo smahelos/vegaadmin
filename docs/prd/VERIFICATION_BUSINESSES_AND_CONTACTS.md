@@ -27,22 +27,22 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 | Scenario | Principal tests |
 |---|---|
 | A01 shared contacts and products | `Http/Controllers/Frontend/SharedProductCatalogTest`, `Http/Controllers/Admin/InvoiceItemsControllerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
-| A02 optional profile fields and clearing | `Application/Party/Services/ContactApplicationServiceTest`, `Livewire/Party/ContactFormTest` |
+| A02 optional profile fields and clearing | `Application/Party/ContactUseCasesTest`, `Livewire/Party/ContactFormTest` |
 | A03 registration country | `tests/Unit/Domain/Party/ValueObjects/RegistrationNumberTest`, `Livewire/Party/ContactFormTest` |
-| A04 Czech constraint and foreign warnings | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/ContactApplicationServiceTest` |
+| A04 Czech constraint and foreign warnings | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/ContactUseCasesTest` |
 | A05 contacts without document roles | `Livewire/Party/DocumentPartyPickerTest`, `Http/Controllers/Admin/DocumentPartyCrudControllerTest` |
 | A06 one-off document data | `Http/Controllers/Admin/ExpenseCrudControllerTest`, `Domain/Invoice/Services/InvoicePdfServiceFeatureTest`, `Infrastructure/Persistence/Eloquent/Analytics/Repositories/CustomerRevenueTest` |
 | A07 explicit saving, permissions and atomicity | `Application/Invoice/Services/InvoicePartiesAssemblerTest`, `Http/Controllers/Frontend/InvoiceControllerFeatureTest`, `Application/Invoice/Services/Specialized/InvoiceCrudApplicationServiceTest` |
 | A08 stored copies and explicit reload | `Application/Invoice/Services/InvoicePartiesAssemblerTest`, `Livewire/Party/DocumentPartyPickerTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest` |
-| A09 address ownership | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/ContactApplicationServiceTest` |
-| A10 account defaults and owner constraints | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/Services/BankAccountApplicationServiceTest`, `Domain/Party/Services/BankAccountDefaultSerializationTest` |
-| A11 account validation and archive | `tests/Unit/Domain/Payment/ValueObjects/BankAccountTest` (including checksum-valid malformed local and foreign IBANs), `Livewire/Party/BankAccountsTest`, `Application/Party/Services/BankAccountApplicationServiceTest` |
+| A09 address ownership | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/ContactUseCasesTest` |
+| A10 account defaults and owner constraints | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/BankAccountUseCasesTest`, `Domain/Party/Services/BankAccountDefaultSerializationTest` |
+| A11 account validation and archive | `tests/Unit/Domain/Payment/ValueObjects/BankAccountTest` (including checksum-valid malformed local and foreign IBANs), `Livewire/Party/BankAccountsTest`, `Application/Party/BankAccountUseCasesTest` |
 | A12 issued-document roles and print | `Domain/Invoice/Services/InvoicePrintDataBuilderTest`, `Domain/Invoice/Services/InvoicePdfSnapshotTest`, `Domain/Invoice/Services/InvoicePdfServiceFeatureTest` |
 | A13 expense roles, optional own-business address and external account | `Http/Controllers/Admin/ExpenseCrudControllerTest`, `Http/Controllers/Admin/DocumentSupplierLogoTest` |
-| A14 archive, selections and history | `Application/Party/Services/ContactApplicationServiceTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Infrastructure/Persistence/Eloquent/Analytics/Repositories/CustomerRevenueTest` |
-| A15 default and last business | `Http/Controllers/Admin/BusinessCrudControllerTest`, `Application/Party/Services/BusinessApplicationServiceTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
-| A16 capacity, restoration and serialization | `Application/Party/Services/ContactApplicationServiceTest`, `Domain/Party/Services/CapacityLimitTest`, `Http/Controllers/Api/PartyCapacityTest` |
-| A17 downgrade without erasure | `Application/Party/Services/BusinessApplicationServiceTest`, `Application/Party/Services/ContactApplicationServiceTest` |
+| A14 archive, selections and history | `Application/Party/ContactUseCasesTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Infrastructure/Persistence/Eloquent/Analytics/Repositories/CustomerRevenueTest` |
+| A15 default and last business | `Http/Controllers/Admin/BusinessCrudControllerTest`, `Application/Party/BusinessUseCasesTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
+| A16 capacity, restoration and serialization | `Application/Party/ContactUseCasesTest`, `Domain/Party/Services/CapacityLimitTest`, `Http/Controllers/Api/PartyCapacityTest` |
+| A17 downgrade without erasure | `Application/Party/BusinessUseCasesTest`, `Application/Party/ContactUseCasesTest` |
 | A18 ownership across boundaries and invoice filters | `Http/Controllers/Admin/BankAccountCrudControllerTest`, `Http/Controllers/Frontend/PartyPagesTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Http/Controllers/Admin/DocumentPartyCrudControllerTest`, `Http/Controllers/Api/PartyCapacityTest`, `Livewire/Invoice/InvoiceListFeatureTest`, `Application/Invoice/Services/InvoiceListApplicationServiceTest` |
 | A19 admin and frontend invariants | `Http/Controllers/Admin/BusinessCrudControllerTest`, `Http/Controllers/Admin/ContactCrudControllerTest`, `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/ExpenseCrudControllerTest` |
 | A20 atomic registration and independent identity | `Application/User/Services/RegistrationApplicationServiceTest`, `Livewire/User/RegistrationFormTest` |
@@ -52,9 +52,9 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 | A24 document correction and explicit address-book save | `Application/Invoice/Services/InvoiceContactApplicationServiceTest`, `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest` |
 | A25 document-only email and account data | `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/ExpenseCrudControllerTest`; sending an invoice by email remains separate work |
 | A26 archived references during editing | `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Livewire/Party/DocumentPartyPickerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
-| A27 restoring defaults | `Application/Party/Services/BusinessApplicationServiceTest` |
+| A27 restoring defaults | `Application/Party/BusinessUseCasesTest` |
 | A28 company change, lines and counterparty identity | `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Http/Controllers/Admin/InvoiceItemsControllerTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
-| A29 same identity across entity kinds | `Application/Party/Services/BusinessApplicationServiceTest`, `Database/Migrations/BusinessAndContactConstraintTest` |
+| A29 same identity across entity kinds | `Application/Party/BusinessUseCasesTest`, `Database/Migrations/BusinessAndContactConstraintTest` |
 
 ## Source review against A01–A29
 
@@ -76,7 +76,7 @@ The review compares the PRD with the actual storage, use cases and consumers, in
 | A12 | `InvoicePartiesAssembler` maps business to supplier and selected business account to payment; the customer is the contact/one-off copy. PDF snapshots and QR exercise this path. |
 | A13 | `ExpensePartiesAssembler` maps own business to customer and external contact/one-off to supplier, with the external account. Review found the invoice-only complete-address check also applied to the expense customer; the HTTP regression failed before restricting that check to invoice suppliers (DESIGN Q47). Existing expense statuses/calculations stay. |
 | A14 | New selections exclude archived sources; stored references remain readable. Invoice filter options explicitly include owned archived parties for history and never restore them. |
-| A15 | `BusinessApplicationService::archive` requires a replacement default if another active business exists; the admin form accepts an active replacement of the same owner under the archive permission. The last archive clears the pointer. A new invoice rejects an archived business. |
+| A15 | `ArchiveBusiness` requires a replacement default if another active business exists; the admin form accepts an active replacement of the same owner under the archive permission. The last archive clears the pointer. A new invoice rejects an archived business. |
 | A16 | `CapacityLimit` locks the user and counts active rows through a current locking read. Create/restore run inside that transaction; no configured limit allows no creation. Second-PDO tests prove both serialization independently of FK locks and refusal after another request fills the last slot following an earlier consistent read. Business default selection also uses a current count. |
 | A17 | Capacity runs on create/restore only; edits, existing-document use and archival do not require a free slot or erase records on downgrade. |
 | A18 | Scoped Party/document reads and composite FKs guard ownership; admin selectors scope to the record owner. Bank-account operations bind the supplied id to the selected Business/Contact, so another owner's account cannot be changed through a component with different permissions. The list service validates filter ownership and invoice-view permission before reads; malformed ids are rejected at delivery. |

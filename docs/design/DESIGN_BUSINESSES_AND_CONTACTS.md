@@ -68,7 +68,7 @@ The generated unique key, the CHECK with restricting foreign keys and the compos
 
 - `PartyProfile` (with `?Address`) is the shared part inside the business and contact write data and DTOs.
 - A domain service checks duplicates for both entities.
-- The domain service `BusinessCreator` creates a business with its capacity check, address, default selection and first bank account; `BusinessApplicationService` and `RegistrationApplicationService` (User context) both call it inside one transaction through `TransactionBoundaryInterface`.
+- The domain service `BusinessCreator` creates a business with its capacity check, address, default selection and first bank account; the Command `CreateBusiness` and `RegistrationApplicationService` (User context) both call it inside one transaction through `TransactionBoundaryInterface`.
 - `AccountOwner` (`BusinessId` | `ContactId`) names the owner of a bank account.
 
 ### Capacity limits (Q8, Q9, Q10)
@@ -77,12 +77,12 @@ No counter. Creating or restoring a business or contact locks the owner (`SELECT
 
 ### Events (Q26)
 
-`BusinessCreated`, `BusinessUpdated`, `BusinessArchived`, `BusinessRestored`, the same four for `Contact`, and `DefaultBusinessChanged`, published by the application services. A Laravel listener invalidates the owner's dashboard cache after the commit. `ClientObserver`, `SupplierObserver` and the party `UsageRecordingHandler` go away.
+`BusinessCreated`, `BusinessUpdated`, `BusinessArchived`, `BusinessRestored`, the same four for `Contact`, and `DefaultBusinessChanged`, published by the Party Command handlers. A Laravel listener invalidates the owner's dashboard cache after the commit. `ClientObserver`, `SupplierObserver` and the party `UsageRecordingHandler` go away.
 
 ## 3. Application (Q4, Q14)
 
-- `BusinessApplicationService` and `ContactApplicationService` apply the shared capacity check on creation or restoration. `BankAccountApplicationService` serves either owner through `AccountOwner`; accounts consume no additional capacity, while their default/archive operations use the same owner lock for serialization.
-- Ports: `Business`, `Contact` and `BankAccount` read and write repositories. Business/contact `searchForUser` takes `PartySearch` and `PageRequest` for active or archived lists; `listLatestActiveForUser` serves the latest widgets. `BusinessReadRepositoryInterface::listActiveForUser` supplies business selections; `findByIdForUser` also finds archived records. No physical delete.
+- Every action is a Command or Query in `app/Application/Party` that runs through the gate (`rules/permissions.md`): `CreateBusiness`, `UpdateBusiness`, `ArchiveBusiness`, `RestoreBusiness`, `SetDefaultBusiness`, the same create/update/archive/restore for contacts and bank accounts, `SetDefaultBankAccount`; the Queries `GetBusiness`, `GetContact` (with `…ForEdit` for the edit forms), `ListBusinesses`, `ListContacts`, `ListActiveBusinesses`, `ListLatestBusinesses`, `ListLatestContacts`, `FindDefaultBusiness`, `FindBusinessDuplicates`, `FindContactDuplicates`, `ListBankAccounts`, `FindDefaultBankAccount`, `GetBankAccountForEdit`. Creating and restoring businesses and contacts apply the shared capacity check. The bank account use cases serve either owner through `AccountOwner` and check `bank_account.view` / `bank_account.update`; accounts consume no additional capacity, while their default/archive operations use the same owner lock for serialization.
+- Ports: `Business`, `Contact` and `BankAccount` read and write repositories. They take the scope the gate issued: business/contact `search` takes `PartySearch` and `PageRequest` for active or archived lists; `listLatestActive` serves the latest widgets. `BusinessReadRepositoryInterface::listActive` supplies business selections; `findById` also finds archived records. `findByIdForUser` stays for Invoice until it runs through the gate. No physical delete.
 - Deleted with their pairs: `InvoicePartyService`, `PartyApplicationService`, `PartyAuthorizationService`, `PartyInputValidationService`, `PartyCreationValidator`, `PartyDtoFactory`, the `*ArrayMapper` classes and the Application `Client*` / `Supplier*` repositories.
 - `DocumentPartyDTO` is shared by prefix (`supplier_`, `customer_`); `PartyPrintDTO` is built from it. `DocumentParties` holds both parties and their source references, with `DocumentAccountDTO` carrying the validated `BankAccount`. Step 12 adds issue-time locking of the complete document and stored PDFs on top of these independent copies.
 - `QrPaymentDTO` carries the stored `BankAccount` and Money through to the CZ/SK/EU providers; decimal amounts are rounded through Money without float conversion. `InvoiceReminderDTO` carries stored names, typed invoice identity and Money to the shared locale-aware mail factory; recipient addresses are selected from the stored document emails by the reminder application service.
@@ -113,7 +113,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 
 ### Admin (Q25, Q35, Q36, Q45)
 
-- `BusinessCrudController` and `ContactCrudController` with an owner select and the address, through the application services; archive and restore as buttons with POST routes, an active/archived filter, no Delete operation. `BankAccountCrudController` is opened from its owner.
+- `BusinessCrudController` and `ContactCrudController` with an owner select and the address, through the Party Commands; archive and restore as buttons with POST routes, an active/archived filter, no Delete operation. `BankAccountCrudController` is opened from its owner.
 - Admin invoice and expense: user → business (required, only that user's active ones) → contact (optional, only that user's active ones) → the counterparty fields (`customer_*` on the invoice, `supplier_*` on the expense). A new or changed contact copies its data into those fields on save and the typed values are ignored; without a contact the typed values are used (required as above); an edit that keeps the contact saves the typed values as a correction of the document. The business side and, on the invoice, the account come from the selected business. No "Save to contacts" in the admin.
 - Expense account: an optional `bank_account_id` from the active accounts of the selected contact, or one-off `account_*` fields validated through `BankAccount`; copied by the same rule. Without a contact only the one-off fields.
 
@@ -124,7 +124,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 
 ### API (Q28)
 
-The frontend stays on Livewire. A public API is built only for a real consumer, with its own ADR (authentication, versioning, resources over the same application services).
+The frontend stays on Livewire. A public API is built only for a real consumer, with its own ADR (authentication, versioning, resources over the same Commands and Queries).
 
 ### Analytics (Q27)
 
