@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Invoice\DTO;
+namespace App\Domain\Expense\DTO;
 
-use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\User\ValueObjects\UserId;
 

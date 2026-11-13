@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Storage\Invoice;
+namespace App\Infrastructure\Storage\Party;
 
-use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
+use App\Domain\Party\Contracts\DocumentLogoStorageInterface;
 use App\Domain\Shared\File\DTO\IncomingFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;

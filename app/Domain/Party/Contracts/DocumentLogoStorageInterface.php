@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Invoice\Contracts;
+namespace App\Domain\Party\Contracts;
 
 use App\Domain\Shared\File\DTO\IncomingFile;
 

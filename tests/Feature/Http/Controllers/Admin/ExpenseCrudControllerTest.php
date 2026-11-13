@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
+use App\Domain\Expense\Contracts\ExpenseWriteRepositoryInterface;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Contact;

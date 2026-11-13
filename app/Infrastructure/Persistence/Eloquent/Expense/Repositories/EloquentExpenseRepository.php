@@ -2,17 +2,17 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
+namespace App\Infrastructure\Persistence\Eloquent\Expense\Repositories;
 
-use App\Domain\Invoice\Contracts\ExpenseReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
-use App\Domain\Invoice\DTO\ExpenseDTO;
-use App\Domain\Invoice\DTO\ExpenseWriteData;
-use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\Expense\Contracts\ExpenseReadRepositoryInterface;
+use App\Domain\Expense\Contracts\ExpenseWriteRepositoryInterface;
+use App\Domain\Expense\DTO\ExpenseDTO;
+use App\Domain\Expense\DTO\ExpenseWriteData;
+use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
-use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentExpenseMapper;
+use App\Infrastructure\Persistence\Eloquent\Expense\Mappers\EloquentExpenseMapper;
 use App\Models\Expense;
 
 final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface, ExpenseWriteRepositoryInterface

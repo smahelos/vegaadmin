@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Support;
+namespace App\Application\Expense\Support;
 
-use App\Domain\Invoice\DTO\ExpenseWriteData;
+use App\Domain\Expense\DTO\ExpenseWriteData;
 use App\Domain\Shared\File\Contracts\FileUploadServiceInterface;
 use RuntimeException;
 

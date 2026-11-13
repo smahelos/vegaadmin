@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Invoice\ValueObjects;
+namespace App\Domain\Expense\ValueObjects;
 
 use InvalidArgumentException;
 

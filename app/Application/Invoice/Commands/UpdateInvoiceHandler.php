@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Commands;
 
-use App\Application\Invoice\Services\DocumentLogoApplicationService;
 use App\Application\Invoice\Services\InvoicePartiesAssembler;
 use App\Application\Invoice\Services\InvoiceProductOwnership;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
@@ -13,6 +12,7 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
+use App\Domain\Party\Services\DocumentLogoService;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 
@@ -23,7 +23,7 @@ final class UpdateInvoiceHandler
 {
     public function __construct(
         private readonly InvoiceServiceInterface $invoiceService,
-        private readonly DocumentLogoApplicationService $logos,
+        private readonly DocumentLogoService $logos,
         private readonly InvoiceProductOwnership $productOwnership,
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly InvoiceDtoReadRepositoryInterface $invoices,

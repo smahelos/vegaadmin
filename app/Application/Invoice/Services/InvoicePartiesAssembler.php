@@ -20,6 +20,8 @@ use App\Domain\Party\Exceptions\ContactIdentityChangedException;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
+use App\Domain\Party\Services\DocumentBusinessAssembler;
+use App\Domain\Party\Services\DocumentCounterpartyAssembler;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;

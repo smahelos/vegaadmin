@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-12T15:24:53+00:00",
+    "generated_at": "2026-11-13T09:07:40+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -178,6 +178,19 @@
             ],
             "singleton": []
         },
+        "App\\Providers\\ExpenseServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\Expense\\Contracts\\ExpenseReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Expense\\Repositories\\EloquentExpenseRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\Expense\\Contracts\\ExpenseWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Expense\\Repositories\\EloquentExpenseRepository"
+                }
+            ],
+            "singleton": []
+        },
         "App\\Providers\\InvoiceServiceProvider": {
             "bind": [
                 {
@@ -187,18 +200,6 @@
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoicePrintDataBuilderInterface",
                     "concrete": "App\\Domain\\Invoice\\Services\\InvoicePrintDataBuilder"
-                },
-                {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface",
-                    "concrete": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage"
-                },
-                {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
-                },
-                {
-                    "abstract": "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceListReadRepositoryInterface",
@@ -276,6 +277,10 @@
                 {
                     "abstract": "App\\Domain\\Party\\Contracts\\CompanyRegistryInterface",
                     "concrete": "App\\Infrastructure\\Gateways\\Party\\AresCompanyRegistry"
+                },
+                {
+                    "abstract": "App\\Domain\\Party\\Contracts\\DocumentLogoStorageInterface",
+                    "concrete": "App\\Infrastructure\\Storage\\Party\\PublicDocumentLogoStorage"
                 }
             ],
             "singleton": []
@@ -622,27 +627,19 @@
                 "method": "bind"
             }
         },
-        "App\\Domain\\Invoice\\Contracts\\DocumentLogoStorageInterface": {
+        "App\\Domain\\Expense\\Contracts\\ExpenseReadRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Storage\\Invoice\\PublicDocumentLogoStorage",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Expense\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\ExpenseServiceProvider",
                 "method": "bind"
             }
         },
-        "App\\Domain\\Invoice\\Contracts\\ExpenseReadRepositoryInterface": {
+        "App\\Domain\\Expense\\Contracts\\ExpenseWriteRepositoryInterface": {
             "status": "ok",
             "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Invoice\\Contracts\\ExpenseWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentExpenseRepository",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Expense\\Repositories\\EloquentExpenseRepository",
+                "provider": "App\\Providers\\ExpenseServiceProvider",
                 "method": "bind"
             }
         },
@@ -754,6 +751,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Party\\Repositories\\EloquentContactRepository",
+                "provider": "App\\Providers\\PartyServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Party\\Contracts\\DocumentLogoStorageInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Storage\\Party\\PublicDocumentLogoStorage",
                 "provider": "App\\Providers\\PartyServiceProvider",
                 "method": "bind"
             }

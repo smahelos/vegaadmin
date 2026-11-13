@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Services;
+namespace App\Domain\Party\Services;
 
-use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
+use App\Domain\Party\Contracts\DocumentLogoStorageInterface;
 use App\Domain\Shared\File\DTO\IncomingFile;
 
-final class DocumentLogoApplicationService
+final class DocumentLogoService
 {
     public function __construct(private readonly DocumentLogoStorageInterface $storage) {}
 

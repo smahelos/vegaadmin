@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Invoice\Commands\CreateExpense;
-use App\Application\Invoice\Commands\UpdateExpense;
+use App\Application\Expense\Commands\CreateExpense;
+use App\Application\Expense\Commands\UpdateExpense;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
-use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ExpenseRequest;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
-use App\Infrastructure\Forms\Invoice\ExpenseFormFields;
+use App\Infrastructure\Forms\Expense\ExpenseFormFields;
 use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;

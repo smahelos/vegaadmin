@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Invoice\Contracts;
+namespace App\Domain\Expense\Contracts;
 
-use App\Domain\Invoice\DTO\ExpenseDTO;
-use App\Domain\Invoice\DTO\ExpenseWriteData;
-use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\Expense\DTO\ExpenseDTO;
+use App\Domain\Expense\DTO\ExpenseWriteData;
+use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 

@@ -6,6 +6,7 @@ use App\Providers\AuthServiceProvider;
 use App\Providers\BladeServiceProvider;
 use App\Providers\ContentServiceProvider;
 use App\Providers\EventServiceProvider;
+use App\Providers\ExpenseServiceProvider;
 use App\Providers\InvoiceServiceProvider;
 use App\Providers\PartyServiceProvider;
 use App\Providers\PaymentServiceProvider;
@@ -28,6 +29,7 @@ return [
     SharedServiceProvider::class,
     AnalyticsServiceProvider::class,
     ContentServiceProvider::class,
+    ExpenseServiceProvider::class,
     InvoiceServiceProvider::class,
     PartyServiceProvider::class,
     PaymentServiceProvider::class,

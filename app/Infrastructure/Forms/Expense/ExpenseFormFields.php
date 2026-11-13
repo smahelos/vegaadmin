@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Forms\Invoice;
+namespace App\Infrastructure\Forms\Expense;
 
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Infrastructure\Forms\Party\AdminDocumentFormFields;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;

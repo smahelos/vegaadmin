@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\Invoice\DTO\ExpenseWriteData;
+use App\Domain\Expense\DTO\ExpenseWriteData;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;

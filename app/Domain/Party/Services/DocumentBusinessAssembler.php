@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Services;
+namespace App\Domain\Party\Services;
 
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\DTO\DocumentParties;
