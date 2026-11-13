@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\StatisticsController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,7 +22,10 @@ use Illuminate\Support\Facades\Route;
 
 // Admin API endpoints - require authentication and backpack API access
 $registrar = Route::middleware(['api.require.backpack', 'refresh.backpack.session']);
-$registrar->prefix('admin');
+// UseAdminSessionCookie gives api/<this prefix>/* the admin session
+$registrar->prefix(
+    Config::string('backpack.base.route_prefix'),
+);
 $registrar->name('api.admin.');
 $registrar->group(
     function (): void {
