@@ -11,6 +11,7 @@ use App\Http\Middleware\RequireBackpackAccess;
 use App\Http\Middleware\RequireBackpackApiAccess;
 use App\Http\Middleware\RequireFrontendApiAccess;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\UseAdminSessionCookie;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -29,6 +30,7 @@ $builder->withRouting(
 $builder->withMiddleware(
     function (Middleware $middleware): void {
         $middleware->statefulApi();
+        $middleware->prepend(UseAdminSessionCookie::class);
 
         $middleware->alias(
             [
