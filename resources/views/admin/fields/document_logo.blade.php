@@ -5,13 +5,11 @@
         <p class="text-muted mb-2" data-no-logo @if(!empty($field['logo_url'])) hidden @endif>{{ __('parties.messages.no_logo') }}</p>
         <p class="text-muted mb-2">{{ __($field['source'] === 'business' ? 'parties.hints.invoice_supplier_logo' : 'parties.hints.expense_supplier_logo') }}</p>
         @if ($field['source'] === 'contact')
-            <div>
-                <input type="file" name="supplier_logo" accept="image/png,image/jpeg,image/webp" class="form-control">
-                <label class="form-check mt-2">
-                    <input type="checkbox" name="remove_supplier_logo" value="1" class="form-check-input">
-                    <span class="form-check-label">{{ __('parties.actions.remove_logo') }}</span>
-                </label>
-            </div>
+            <input type="file" name="supplier_logo" accept="image/png,image/jpeg,image/webp" class="form-control">
+            <label class="form-check mt-2">
+                <input type="checkbox" name="remove_supplier_logo" value="1" class="form-check-input">
+                <span class="form-check-label">{{ __('parties.actions.remove_logo') }}</span>
+            </label>
         @endif
     </div>
 @include('crud::fields.inc.wrapper_end')
