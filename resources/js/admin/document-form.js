@@ -108,10 +108,7 @@ function initialize(form) {
         bindSelection(source, {
             read: () => ({logo_url: logo.find('img').attr('src') || ''}),
             write: values => draw(values.logo_url),
-            lock: () => {
-                const selected = !!contact.val();
-                logo.find('[data-one-off-logo]').toggle(!selected).find('input').prop('disabled', selected);
-            },
+            lock: () => {},
             status: mode => {
                 if (mode === 'manual') {
                     const keepOneOff = !originalContact && source === contact;

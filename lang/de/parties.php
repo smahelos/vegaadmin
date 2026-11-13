@@ -21,7 +21,7 @@ return [
     'hints' => [
         'logo' => 'PNG, JPG oder WebP bis 2 MB. Jeder Beleg behält eine eigene Kopie.',
         'invoice_supplier_logo' => 'Das Lieferantenlogo wird vom ausgewählten eigenen Unternehmen kopiert. Eine gespeicherte Rechnung behält ihre Kopie; beim Neuladen der Firmendaten wird auch das aktuelle Logo übernommen.',
-        'expense_supplier_logo' => 'Das Lieferantenlogo wird vom Kontakt kopiert. Ohne Kontakt können Sie das Logo eines einmaligen Lieferanten nur für diese Ausgabe hochladen.',
+        'expense_supplier_logo' => 'Das Lieferantenlogo wird vom Kontakt kopiert. Ein hochgeladenes Logo gilt nur für diese Ausgabe und ersetzt das Logo des Kontakts; der Kontakt bleibt unverändert.',
         'document_business_account' => 'Das Konto gehört zum ausgewählten eigenen Unternehmen (Lieferanten). Ein Kontowechsel kopiert die aktuellen Daten in die Rechnung; andernfalls bleibt die gespeicherte Kopie erhalten.',
         'document_contact_account' => 'Das Konto gehört zum ausgewählten Kontakt (Lieferanten). Ohne Kontoauswahl können Sie unten ein optionales einmaliges Konto nur für diese Ausgabe eingeben.',
         'document_business_snapshot' => 'Daten des ausgewählten eigenen Unternehmens auf diesem Beleg. Ein Unternehmenswechsel lädt die aktuellen Daten; bei demselben Unternehmen bleibt die gespeicherte Kopie erhalten.',

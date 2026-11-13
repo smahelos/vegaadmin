@@ -55,17 +55,6 @@ final class ExpenseRequest extends FormRequest
             },
         );
 
-        if ($this->filled('contact_id')) {
-            $supplierLogoRules = ['exclude'];
-        } else {
-            $supplierLogoRules = [
-                'nullable',
-                'image',
-                'mimes:png,jpg,jpeg,webp',
-                'max:2048',
-            ];
-        }
-
         return [
             'user_id' => 'required|integer|exists:users,id',
             'business_id' => [
@@ -109,7 +98,12 @@ final class ExpenseRequest extends FormRequest
             'attachments' => 'sometimes|nullable|array',
             'attachments.*' => 'nullable|file|mimes:jpeg,jpg,png,gif,webp,pdf,doc,docx,xls,xlsx,txt|max:10240',
             'attachments_removed' => 'nullable|json',
-            'supplier_logo' => $supplierLogoRules,
+            'supplier_logo' => [
+                'nullable',
+                'image',
+                'mimes:png,jpg,jpeg,webp',
+                'max:2048',
+            ],
             'remove_supplier_logo' => 'nullable|boolean',
         ];
     }
@@ -147,7 +141,7 @@ final class ExpenseRequest extends FormRequest
         } else {
             $removedAttachments = [];
         }
-        if ($this->filled('contact_id') || $logo === null) {
+        if ($logo === null) {
             $supplierLogo = null;
         } else {
             $supplierLogo = new IncomingFile(

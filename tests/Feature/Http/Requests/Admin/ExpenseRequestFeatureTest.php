@@ -62,7 +62,7 @@ final class ExpenseRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function an_expense_with_a_contact_ignores_an_uploaded_supplier_logo(): void
+    public function an_expense_with_a_contact_keeps_an_uploaded_supplier_logo(): void
     {
         [$business] = $this->issuerOf($this->adminUser);
         $contactFactory = Contact::factory();
@@ -83,7 +83,7 @@ final class ExpenseRequestFeatureTest extends TestCase
 
         $writeData = $request->toWriteData();
 
-        $this->assertNull($writeData->supplierLogo);
+        $this->assertSame('logo.png', $writeData->supplierLogo?->originalName);
     }
 
     #[Test]

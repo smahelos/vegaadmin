@@ -21,7 +21,7 @@ return [
     'hints' => [
         'logo' => 'PNG, JPG or WebP up to 2 MB. Each document keeps its own copy.',
         'invoice_supplier_logo' => 'The supplier logo is copied from the selected My business. A saved invoice keeps its own copy; reloading the business details also loads the current logo.',
-        'expense_supplier_logo' => 'The supplier logo is copied from the contact. Without a contact, upload a one-off supplier logo for this expense only.',
+        'expense_supplier_logo' => 'The supplier logo is copied from the contact. An uploaded logo applies to this expense only and replaces the contact logo; the contact stays unchanged.',
         'document_business_account' => 'The account belongs to the selected My business (supplier). Changing the account copies its current details to the invoice; otherwise the saved snapshot is kept.',
         'document_contact_account' => 'The account belongs to the selected contact (supplier). Leave the selection empty to enter an optional one-off account below for this expense only.',
         'document_business_snapshot' => 'Details of the selected My business on this document. Changing the business loads its current details; editing with the same business keeps the saved snapshot.',

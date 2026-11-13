@@ -7,7 +7,7 @@ Requirements: [PRD](PRD_BUSINESSES_AND_CONTACTS.md). Technical design: [DESIGN](
 ## Implemented paths
 
 - Business and Contact replace the old entities. Shared profiles, addresses, bank accounts, duplicate checks, archiving, restoration and capacity checks have one implementation. Source identity is separate from the login account.
-- Documents store their own supplier/customer and payment data. One-off counterparties need no address-book entry. Issued invoices copy the Business logo; expenses copy the external Contact supplier logo or accept a one-off logo. Each document owns its file copy.
+- Documents store their own supplier/customer and payment data. One-off counterparties need no address-book entry. Issued invoices copy the Business logo; expenses copy the external Contact supplier logo or accept an uploaded logo for that expense only. Each document owns its file copy.
 - Reminder notifications render their six templates from stored supplier/customer names, invoice identity and Money. A shared mail factory formats dates and amounts for the recipient locale; rendering is covered in all four locales.
 - Frontend and admin selectors scope records to their owner. Existing archived references remain identifiable; new choices use active records. Products belong to the user, and the admin invoice editor saves lines and computes totals through the application path.
 - Analytics includes archived sources and one-off customers. Revenue grouping uses contact identity, then registration number and country, then name. Dashboard projections use ids, DTOs and Money. Owner cache invalidation runs after commit.
