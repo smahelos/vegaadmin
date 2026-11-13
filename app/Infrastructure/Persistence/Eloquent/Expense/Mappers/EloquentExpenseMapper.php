@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
+namespace App\Infrastructure\Persistence\Eloquent\Expense\Mappers;
 
-use App\Domain\Invoice\DTO\ExpenseDTO;
-use App\Domain\Invoice\DTO\ExpenseWriteData;
-use App\Domain\Invoice\ValueObjects\ExpenseId;
+use App\Domain\Expense\DTO\ExpenseDTO;
+use App\Domain\Expense\DTO\ExpenseWriteData;
+use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentDocumentPartiesMapper;

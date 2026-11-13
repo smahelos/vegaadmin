@@ -11,10 +11,12 @@ use App\Domain\Party\Contracts\BusinessWriteRepositoryInterface;
 use App\Domain\Party\Contracts\CompanyRegistryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactWriteRepositoryInterface;
+use App\Domain\Party\Contracts\DocumentLogoStorageInterface;
 use App\Infrastructure\Gateways\Party\AresCompanyRegistry;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBankAccountRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentBusinessRepository;
 use App\Infrastructure\Persistence\Eloquent\Party\Repositories\EloquentContactRepository;
+use App\Infrastructure\Storage\Party\PublicDocumentLogoStorage;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -69,5 +71,9 @@ final class PartyServiceProvider extends ServiceProvider
             AresCompanyRegistry::class,
         );
 
+        $this->app->bind(
+            DocumentLogoStorageInterface::class,
+            PublicDocumentLogoStorage::class,
+        );
     }
 }

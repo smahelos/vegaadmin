@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
+namespace App\Infrastructure\Persistence\Eloquent\Party\Mappers;
 
 use App\Models\BankAccount;
 

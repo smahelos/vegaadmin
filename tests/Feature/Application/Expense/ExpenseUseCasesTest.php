@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Application\Invoice;
+namespace Tests\Feature\Application\Expense;
 
-use App\Application\Invoice\Commands\CreateExpense;
-use App\Domain\Invoice\DTO\ExpenseWriteData;
+use App\Application\Expense\Commands\CreateExpense;
+use App\Domain\Expense\DTO\ExpenseWriteData;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Commands;
+namespace App\Application\Expense\Commands;
 
 use App\Application\Shared\UseCase\Access;
 use App\Application\Shared\UseCase\Contracts\CallsOutsideDatabaseInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\OwnedUseCase;
-use App\Domain\Invoice\DTO\ExpenseDTO;
-use App\Domain\Invoice\DTO\ExpenseWriteData;
+use App\Domain\Expense\DTO\ExpenseDTO;
+use App\Domain\Expense\DTO\ExpenseWriteData;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 

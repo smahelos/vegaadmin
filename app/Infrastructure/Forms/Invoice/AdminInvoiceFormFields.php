@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Infrastructure\Forms\Invoice;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Infrastructure\Forms\Party\AdminDocumentFormFields;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 

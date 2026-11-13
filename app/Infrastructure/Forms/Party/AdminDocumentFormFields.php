@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Infrastructure\Forms\Invoice;
+namespace App\Infrastructure\Forms\Party;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Enums\LimitedEntity;
-use App\Infrastructure\Forms\Party\PartyFormFields;
 use App\Infrastructure\Forms\User\EntityUsageFormFields;
-use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentDocumentPartyOptionMapper;
+use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentDocumentPartyOptionMapper;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;

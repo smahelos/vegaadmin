@@ -2,7 +2,7 @@
 
 namespace App\Exceptions;
 
-use App\Domain\Invoice\Exceptions\ExpenseNotFoundException;
+use App\Domain\Expense\Exceptions\ExpenseNotFoundException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;

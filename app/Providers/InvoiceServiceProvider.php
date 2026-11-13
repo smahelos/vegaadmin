@@ -11,9 +11,6 @@ use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
-use App\Domain\Invoice\Contracts\DocumentLogoStorageInterface;
-use App\Domain\Invoice\Contracts\ExpenseReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\ExpenseWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceListReadRepositoryInterface;
@@ -26,13 +23,11 @@ use App\Domain\Invoice\Services\InvoiceService;
 use App\Infrastructure\Notifications\Invoice\LaravelInvoiceReminderNotifier;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
-use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentExpenseRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceListRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceReminderRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
-use App\Infrastructure\Storage\Invoice\PublicDocumentLogoStorage;
 use App\Models\Invoice;
 use App\Models\Tax;
 use Illuminate\Support\ServiceProvider;
@@ -72,10 +67,6 @@ class InvoiceServiceProvider extends ServiceProvider
      */
     private function registerInfrastructure(): void
     {
-        $this->app->bind(DocumentLogoStorageInterface::class, PublicDocumentLogoStorage::class);
-        $this->app->bind(ExpenseReadRepositoryInterface::class, EloquentExpenseRepository::class);
-        $this->app->bind(ExpenseWriteRepositoryInterface::class, EloquentExpenseRepository::class);
-
         $this->app->bind(InvoiceListReadRepositoryInterface::class, EloquentInvoiceListRepository::class);
         $this->app->bind(InvoiceReminderReadRepositoryInterface::class, EloquentInvoiceReminderRepository::class);
 

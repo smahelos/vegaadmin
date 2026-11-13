@@ -2,14 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Services;
+namespace App\Application\Expense\Services;
 
-use App\Domain\Invoice\DTO\ExpenseWriteData;
+use App\Domain\Expense\DTO\ExpenseWriteData;
 use App\Domain\Party\Contracts\BankAccountReadRepositoryInterface;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
+use App\Domain\Party\Services\DocumentBusinessAssembler;
+use App\Domain\Party\Services\DocumentCounterpartyAssembler;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
 final class ExpensePartiesAssembler
