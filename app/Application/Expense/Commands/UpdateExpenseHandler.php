@@ -39,7 +39,8 @@ final class UpdateExpenseHandler
                 ?? throw new ContactNotFoundException($data->contactId);
         }
         $sameSupplier = $stored->parties->contactId?->value === $data->contactId?->value;
-        $keepLogo = $sameSupplier && ($data->contactId !== null || ($data->supplierLogo === null && !$data->removeSupplierLogo));
+        $keepLogo = $sameSupplier && $data->supplierLogo === null && !$data->removeSupplierLogo;
+        $sourceLogo = $data->removeSupplierLogo ? null : $contact?->logo;
 
         return $this->attachments->saveWithAttachments(
             $stored->attachments,
@@ -47,8 +48,8 @@ final class UpdateExpenseHandler
             fn (callable $attachments): ExpenseDTO => $this->logos->saveWithLogo(
                 $stored->parties->supplierLogo,
                 $keepLogo,
-                $contact?->logo,
-                $data->contactId === null ? $data->supplierLogo : null,
+                $sourceLogo,
+                $data->supplierLogo,
                 fn (?string $logo): ExpenseDTO => $this->transactions->transaction(
                     function () use ($scope, $data, $stored, $logo, $attachments): ExpenseDTO {
                         $parties = $this->parties->assemble(

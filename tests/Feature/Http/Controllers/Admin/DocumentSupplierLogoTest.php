@@ -227,6 +227,93 @@ final class DocumentSupplierLogoTest extends TestCase
     }
 
     #[Test]
+    public function an_uploaded_logo_replaces_the_contact_logo_only_for_that_expense(): void
+    {
+        [$business] = $this->issuerOf($this->adminUser);
+        $contact = $this->supplierContact('external.png');
+        $disk = Storage::disk('public');
+        $disk->delete($contact->logo);
+        $contact->update(['logo' => null]);
+        $fileFactory = UploadedFile::fake();
+        $data = $this->expenseInput(
+            $business,
+            ['contact_id' => $contact->id, 'supplier_logo' => $fileFactory->image('uploaded.png')],
+        );
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $expenseQuery = Expense::where('reference_number', $data['reference_number']);
+        $expense = $expenseQuery->sole();
+        $uploaded = $expense->supplier_logo;
+        $this->assertNotNull($uploaded);
+        $disk->assertExists($uploaded);
+        $this->assertNull($contact->fresh()->logo);
+        unset($data['supplier_logo']);
+        // Editing the saved form submits its copied supplier identity.
+        $data['supplier_company_number'] = $expense->supplier_company_number;
+        $data['supplier_registration_country'] = $expense->supplier_registration_country;
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $this->assertSame($uploaded, $expense->fresh()->supplier_logo);
+        $data['supplier_logo'] = $fileFactory->image('replaced.png');
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $replaced = $expense->fresh()->supplier_logo;
+        $this->assertNotNull($replaced);
+        $this->assertNotSame($uploaded, $replaced);
+        $disk->assertMissing($uploaded);
+        unset($data['supplier_logo']);
+        $data['remove_supplier_logo'] = '1';
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $this->assertNull($expense->fresh()->supplier_logo);
+        $disk->assertMissing($replaced);
+        $this->assertNull($contact->fresh()->logo);
+    }
+
+    #[Test]
+    public function an_upload_wins_over_a_contact_change_and_a_removal(): void
+    {
+        [$business] = $this->issuerOf($this->adminUser);
+        $first = $this->supplierContact('first.png');
+        $second = $this->supplierContact('second.png');
+        $data = $this->expenseInput($business, ['contact_id' => $first->id]);
+        $httpResponse = $this->post('/admin/expense', $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $expenseQuery = Expense::where('reference_number', $data['reference_number']);
+        $expense = $expenseQuery->sole();
+        $contactCopy = $expense->supplier_logo;
+        $fileFactory = UploadedFile::fake();
+        $data['contact_id'] = $second->id;
+        $data['supplier_logo'] = $fileFactory->image('uploaded.png');
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $freshExpense = $expense->fresh();
+        $uploaded = $freshExpense->supplier_logo;
+        $this->assertNotNull($uploaded);
+        $disk = Storage::disk('public');
+        $this->assertNotSame(
+            $disk->get($second->logo),
+            $disk->get($uploaded),
+        );
+        $disk->assertMissing($contactCopy);
+        // Editing the saved form submits its copied supplier identity.
+        $data['supplier_company_number'] = $freshExpense->supplier_company_number;
+        $data['supplier_registration_country'] = $freshExpense->supplier_registration_country;
+        $data['supplier_logo'] = $fileFactory->image('replaced.png');
+        $data['remove_supplier_logo'] = '1';
+        $httpResponse = $this->put('/admin/expense/' . $expense->id, $data);
+        $httpResponse->assertSessionHasNoErrors();
+        $replaced = $expense->fresh()->supplier_logo;
+        $this->assertNotNull($replaced);
+        $this->assertNotSame($uploaded, $replaced);
+        $disk->assertMissing($uploaded);
+        $this->assertSame(
+            'second.png',
+            $disk->get($second->logo),
+        );
+    }
+
+    #[Test]
     public function rejects_an_invalid_one_off_logo(): void
     {
         [$business] = $this->issuerOf($this->adminUser);

@@ -21,7 +21,7 @@ return [
     'hints' => [
         'logo' => 'PNG, JPG alebo WebP do 2 MB. Doklad si uchová vlastnú kópiu.',
         'invoice_supplier_logo' => 'Logo dodávateľa sa kopíruje z vybranej Mojej firmy. Uložená faktúra si ponechá svoju kópiu; obnovenie údajov firmy načíta aj aktuálne logo.',
-        'expense_supplier_logo' => 'Logo dodávateľa sa kopíruje z kontaktu. Bez kontaktu môžete nahrať logo jednorazového dodávateľa iba pre tento výdavok.',
+        'expense_supplier_logo' => 'Logo dodávateľa sa kopíruje z kontaktu. Nahrané logo platí iba pre tento výdavok a nahradí logo z kontaktu; kontakt sa nezmení.',
         'document_business_account' => 'Účet patrí vybranej Mojej firme (dodávateľovi). Pri zmene účtu sa jeho údaje skopírujú na faktúru; uložená snímka sa inak zachová.',
         'document_contact_account' => 'Účet patrí vybranému kontaktu (dodávateľovi). Bez výberu účtu môžete nižšie zadať jednorazový účet iba pre tento výdavok.',
         'document_business_snapshot' => 'Údaje vybranej Mojej firmy na tomto doklade. Zmena firmy načíta jej aktuálne údaje; pri úprave rovnakej firmy sa zachová uložená snímka.',

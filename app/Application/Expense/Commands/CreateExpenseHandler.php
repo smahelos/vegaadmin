@@ -44,7 +44,7 @@ final class CreateExpenseHandler
                 null,
                 false,
                 $contact?->logo,
-                $data->contactId === null ? $data->supplierLogo : null,
+                $data->supplierLogo,
                 fn (?string $logo): ExpenseDTO => $this->transactions->transaction(
                     function () use ($scope, $data, $logo, $attachments): ExpenseDTO {
                         $this->limits->assertCanCreate($scope->owner, LimitedEntity::EXPENSE);
