@@ -51,6 +51,68 @@ final class UseAdminSessionCookieFeatureTest extends TestCase
     }
 
     #[Test]
+    public function logging_out_of_the_admin_keeps_the_frontend_user_logged_in(): void
+    {
+        $this->withoutMiddleware(VerifyCsrfToken::class);
+        $cookie = config('session.cookie');
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        // The frontend login form posts to the URL of the page that shows it.
+        $userLogin = $this->post(
+            route(
+                'frontend.login',
+                ['locale' => config('app.locale')],
+            ),
+            ['email' => $user->email, 'password' => 'password'],
+        );
+        $userLogin->assertCookie($cookie);
+        $userSession = $userLogin->getCookie($cookie);
+        // A real login, because actingAs() would make backpack the default guard of the frontend routes.
+        $admin = $this->backendUser();
+        $adminLogin = $this->post(
+            route('backpack.auth.login'),
+            ['email' => $admin->email, 'password' => 'password'],
+        );
+        $adminSession = $adminLogin->getCookie($cookie . '_admin');
+        // A browser sends every cookie of the domain.
+        $this->withCookie($cookie, $userSession->getValue());
+        $this->withCookie($cookie . '_admin', $adminSession->getValue());
+
+        $this->get(
+            route('backpack.auth.logout'),
+        );
+
+        // Guards keep their user between test requests; the frontend user must come back from the session.
+        $auth = $this->app['auth'];
+        $auth->forgetGuards();
+        $response = $this->get(
+            route(
+                'frontend.dashboard',
+                ['locale' => config('app.locale')],
+            ),
+        );
+        $response->assertOk();
+        $this->assertAuthenticatedAs($user, 'web');
+        $this->assertGuest('backpack');
+    }
+
+    #[Test]
+    public function frontend_uses_the_default_session_cookie(): void
+    {
+        $cookie = config('session.cookie');
+
+        $response = $this->get(
+            route(
+                'frontend.login',
+                ['locale' => config('app.locale')],
+            ),
+        );
+
+        $response->assertCookie($cookie);
+        $response->assertCookieMissing($cookie . '_admin');
+    }
+
+    #[Test]
     public function admin_api_uses_the_admin_session_cookie(): void
     {
         $cookie = config('session.cookie');

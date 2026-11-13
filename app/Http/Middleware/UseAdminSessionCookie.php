@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use Closure;
-use Illuminate\Contracts\Config\Repository;
+use Illuminate\Config\Repository;
 use Illuminate\Http\Request;
 use Illuminate\Session\SessionManager;
 use Symfony\Component\HttpFoundation\Response;
@@ -25,8 +25,8 @@ final class UseAdminSessionCookie
 
     public function handle(Request $request, Closure $next): Response
     {
-        $name = $this->config->get('session.cookie');
-        $prefix = $this->config->get('backpack.base.route_prefix');
+        $name = $this->config->string('session.cookie');
+        $prefix = $this->config->string('backpack.base.route_prefix');
 
         if (
             $request->is(
