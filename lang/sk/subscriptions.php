@@ -78,7 +78,6 @@ return [
         'already_subscribed' => 'Už máte aktívne predplatné',
         'none_active' => 'Nemáte žiadne aktívne predplatné',
         'cancelled' => 'Predplatné bolo úspešne zrušené',
-        'cancellation_failed' => 'Zrušenie predplatného sa nepodarilo',
         'payment_failed' => 'Platbu predplatného sa nepodarilo spustiť. Skúste to prosím znova.',
         'required' => 'Pre prístup k tejto funkcii je vyžadované aktívne predplatné',
         'confirm_cancel' => 'Naozaj chcete zrušiť predplatné?',

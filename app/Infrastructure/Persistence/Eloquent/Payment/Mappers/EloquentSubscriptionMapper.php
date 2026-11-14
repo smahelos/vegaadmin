@@ -40,9 +40,15 @@ class EloquentSubscriptionMapper
                 'next_billing_at' => $nextBillingAt?->toDateTimeString(),
                 'amount' => $model->getAttribute('amount'),
                 'currency' => $model->getAttribute('currency'),
-                'metadata' => $model->getAttribute('metadata'),
                 'created_at' => $createdAt?->toDateTimeString(),
             ],
+        );
+    }
+
+    public function toPlanDto(SubscriptionPlan $plan): SubscriptionPlanDTO
+    {
+        return SubscriptionPlanDTO::fromArray(
+            self::subscriptionPlanData($plan),
         );
     }
 

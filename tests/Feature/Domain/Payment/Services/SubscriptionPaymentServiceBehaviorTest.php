@@ -11,6 +11,10 @@ use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Domain\Payment\DTO\SubscriptionDTO;
+use App\Domain\Payment\DTO\SubscriptionWriteData;
+use App\Domain\Payment\ValueObjects\SubscriptionId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
@@ -20,6 +24,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use DateTimeImmutable;
+use LogicException;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
@@ -338,6 +343,29 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 ): bool {
                     throw new RuntimeException('Activation failed');
                 }
+
+                public function create(WriteScope $scope, SubscriptionWriteData $data): SubscriptionDTO
+                {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function update(
+                    SubscriptionId $id,
+                    WriteScope $scope,
+                    SubscriptionWriteData $data,
+                ): SubscriptionDTO {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function cancel(SubscriptionId $id, WriteScope $scope): void
+                {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function delete(SubscriptionId $id, WriteScope $scope): void
+                {
+                    throw new LogicException('Not used by the callback');
+                }
             },
         );
         $failingService = app(SubscriptionPaymentServiceInterface::class);
@@ -373,6 +401,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 public function findById(int $id): ?SubscriptionDTO
                 {
                     return null;
+                }
+
+                public function findActive(ReadScope $scope): ?SubscriptionDTO
+                {
+                    throw new LogicException('Not used by the callback');
                 }
             },
         );

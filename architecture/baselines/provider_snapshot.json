@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-13T09:07:40+00:00",
+    "generated_at": "2026-11-14T17:17:39+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -328,6 +328,10 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionDtoReadRepository"
                 },
                 {
+                    "abstract": "App\\Domain\\Payment\\Contracts\\SubscriptionPlanReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionPlanReadRepository"
+                },
+                {
                     "abstract": "App\\Domain\\Payment\\Contracts\\PaymentMethodDtoReadRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentPaymentMethodDtoRepository"
                 },
@@ -342,10 +346,6 @@
                 {
                     "abstract": "App\\Domain\\Payment\\Contracts\\QrCodeRendererInterface",
                     "concrete": "App\\Infrastructure\\Renderers\\Qr\\SimpleQrCodeRenderer"
-                },
-                {
-                    "abstract": "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface",
-                    "concrete": "App\\Application\\Payment\\Services\\PaymentApplicationService"
                 }
             ],
             "singleton": [
@@ -500,14 +500,6 @@
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\TemporaryInvoiceStore",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Payment\\Contracts\\PaymentApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Payment\\Services\\PaymentApplicationService",
-                "provider": "App\\Providers\\PaymentServiceProvider",
                 "method": "bind"
             }
         },
@@ -847,6 +839,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\Payment\\Services\\SubscriptionPaymentService",
+                "provider": "App\\Providers\\PaymentServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Payment\\Contracts\\SubscriptionPlanReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionPlanReadRepository",
                 "provider": "App\\Providers\\PaymentServiceProvider",
                 "method": "bind"
             }

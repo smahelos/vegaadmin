@@ -2,12 +2,10 @@
 
 namespace App\Providers;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
 use App\Application\Payment\Contracts\PaymentReadRepositoryInterface;
 use App\Application\Payment\Contracts\PaymentWriteRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionReadRepositoryInterface;
 use App\Application\Payment\Contracts\SubscriptionWriteRepositoryInterface;
-use App\Application\Payment\Services\PaymentApplicationService;
 use App\Domain\Payment\Contracts\BankDtoRepository;
 use App\Domain\Payment\Contracts\GatewayRegistryInterface;
 use App\Domain\Payment\Contracts\PaymentDtoReadRepositoryInterface;
@@ -19,6 +17,7 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\Contracts\SubscriptionPlanReadRepositoryInterface;
 use App\Domain\Payment\Services\GatewayRegistry;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\Services\SubscriptionPaymentService;
@@ -30,6 +29,7 @@ use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPayment
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentPaymentWriteRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionDtoWriteRepository;
+use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionPlanReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionReadRepository;
 use App\Infrastructure\Persistence\Eloquent\Payment\Repositories\EloquentSubscriptionWriteRepository;
 use App\Infrastructure\Providers\Payment\GoPayGateway;
@@ -47,7 +47,6 @@ class PaymentServiceProvider extends ServiceProvider
     {
         $this->registerDomainServices();
         $this->registerInfrastructure();
-        $this->registerApplicationServices();
     }
 
     /**
@@ -118,6 +117,11 @@ class PaymentServiceProvider extends ServiceProvider
             EloquentSubscriptionDtoReadRepository::class,
         );
 
+        $this->app->bind(
+            SubscriptionPlanReadRepositoryInterface::class,
+            EloquentSubscriptionPlanReadRepository::class,
+        );
+
         // Payment Method repositories
         $this->app->bind(
             PaymentMethodDtoReadRepositoryInterface::class,
@@ -151,17 +155,6 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(
             QrCodeRendererInterface::class,
             SimpleQrCodeRenderer::class,
-        );
-    }
-
-    /**
-     * Application use-case services, presenters and mappers.
-     */
-    private function registerApplicationServices(): void
-    {
-        $this->app->bind(
-            PaymentApplicationServiceInterface::class,
-            PaymentApplicationService::class,
         );
     }
 }

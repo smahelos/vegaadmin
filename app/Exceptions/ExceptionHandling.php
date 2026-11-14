@@ -18,6 +18,8 @@ use App\Domain\Party\Exceptions\IncompleteBusinessAddressException;
 use App\Domain\Party\Exceptions\IncompleteDocumentPartyException;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
+use App\Domain\Payment\Exceptions\SubscriptionPlanNotFoundException;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Exceptions\ProductNotFoundException;
 use App\Domain\User\Enums\LimitedEntity;
@@ -89,6 +91,8 @@ class ExceptionHandling
                 ContactNotFoundException::class,
                 BankAccountNotFoundException::class,
                 ProductNotFoundException::class,
+                SubscriptionNotFoundException::class,
+                SubscriptionPlanNotFoundException::class,
             ] as $notFound
         ) {
             $exceptions->map(

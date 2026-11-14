@@ -2,39 +2,38 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
+use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\User\Enums\Permission;
-use App\Http\Controllers\Frontend\SubscriptionController;
-use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\Support\Fakes\Payment\RecordingPaymentApplicationService;
+use Tests\Support\Fakes\Payment\FakeSubscriptionPaymentService;
 use Tests\TestCase;
 use Tests\Traits\CreatesFrontendTestEnvironment;
-use Tests\Traits\WithSyntheticPaymentAppService;
 
-class SubscriptionControllerFeatureTest extends TestCase
+final class SubscriptionControllerFeatureTest extends TestCase
 {
     use CreatesFrontendTestEnvironment;
-    use WithSyntheticPaymentAppService;
+
+    private FakeSubscriptionPaymentService $payments;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->setUpFrontendTestEnvironment();
-
-        // Give user specific subscription permission
-        $permissionQuery = PermissionModel::where('name', Permission::SUBSCRIPTION_CREATE->value);
-        $permissionQuery->where('guard_name', 'web');
-        $permission = $permissionQuery->first();
-        if ($permission) {
-            $this->user->givePermissionTo($permission);
-        }
+        $this->user->givePermissionTo(
+            [
+                Permission::SUBSCRIPTION_CREATE,
+                Permission::SUBSCRIPTION_VIEW,
+            ],
+        );
+        $this->payments = new FakeSubscriptionPaymentService;
+        $this->app->instance(SubscriptionPaymentServiceInterface::class, $this->payments);
     }
 
     #[Test]
@@ -79,7 +78,44 @@ class SubscriptionControllerFeatureTest extends TestCase
         );
 
         $response->assertStatus(200);
-        $response->assertViewHas('userSubscription', $subscription);
+        $response->assertViewHas(
+            'userSubscription',
+            fn (?SubscriptionDTO $active): bool => $active?->id === $subscription->id,
+        );
+    }
+
+    #[Test]
+    public function index_shows_the_plans_without_the_subscription_to_a_user_who_cannot_view_it(): void
+    {
+        $this->user->revokePermissionTo(Permission::SUBSCRIPTION_VIEW);
+        $subscriptionFactory = Subscription::factory();
+        $subscriptionFactory->create([
+            'user_id' => $this->user->id,
+            'status' => 'active',
+        ]);
+
+        $this->actingAs($this->user);
+
+        $response = $this->get(
+            route('subscriptions.index', ['locale' => 'en']),
+        );
+
+        $response->assertOk();
+        $response->assertViewHas('userSubscription', null);
+    }
+
+    #[Test]
+    public function my_subscription_is_forbidden_without_the_view_permission(): void
+    {
+        $this->user->revokePermissionTo(Permission::SUBSCRIPTION_VIEW);
+
+        $this->actingAs($this->user);
+
+        $response = $this->get(
+            route('subscriptions.my-subscription', ['locale' => 'en']),
+        );
+
+        $response->assertForbidden();
     }
 
     #[Test]
@@ -114,8 +150,6 @@ class SubscriptionControllerFeatureTest extends TestCase
         $plan = $subscriptionPlanFactory->create();
 
         $this->actingAs($this->user);
-
-        $this->bindSyntheticPaymentAppService();
 
         $response = $this->get(
             route('subscriptions.show', [
@@ -173,6 +207,104 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response->assertRedirect();
         $response->assertSessionHas('error');
+        $this->assertSame([], $this->payments->initiated);
+    }
+
+    #[Test]
+    public function subscribe_stores_a_pending_subscription_at_the_plan_price(): void
+    {
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create(
+            [
+                'price' => 50.00,
+                'currency' => 'EUR',
+            ],
+        );
+
+        $this->subscribeThroughFakeGateway($plan);
+
+        $this->assertDatabaseHas(
+            'subscriptions',
+            [
+                'user_id' => $this->user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => '50.00',
+                'currency' => 'EUR',
+            ],
+        );
+    }
+
+    #[Test]
+    public function subscribe_refuses_an_unknown_gateway(): void
+    {
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+            [
+                'gateway' => 'unknown',
+            ],
+        );
+
+        $response->assertSessionHasErrors('gateway');
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id]);
+    }
+
+    #[Test]
+    public function subscribe_is_forbidden_without_the_create_permission(): void
+    {
+        $this->user->revokePermissionTo(Permission::SUBSCRIPTION_CREATE);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+            [
+                'gateway' => 'gopay',
+            ],
+        );
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id]);
+    }
+
+    #[Test]
+    public function a_refused_payment_deletes_the_pending_subscription(): void
+    {
+        $this->payments = new FakeSubscriptionPaymentService(['success' => false]);
+        $this->app->instance(SubscriptionPaymentServiceInterface::class, $this->payments);
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $this->actingAs($this->user);
+
+        $response = $this->post(
+            route('subscriptions.subscribe', [
+                'locale' => 'en',
+                'plan' => $plan->id,
+            ]),
+            [
+                'gateway' => 'gopay',
+            ],
+        );
+
+        $response->assertRedirect(
+            route('subscriptions.show', ['locale' => 'en', 'plan' => $plan->id]),
+        );
+        $response->assertSessionHas('error');
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id]);
     }
 
     #[Test]
@@ -180,7 +312,7 @@ class SubscriptionControllerFeatureTest extends TestCase
     {
         config(['services.gopay.production' => true]);
 
-        $initiated = $this->subscribeThroughRecordingPaymentApp();
+        $initiated = $this->subscribeThroughFakeGateway();
 
         $this->assertSame(
             route('payment.return'),
@@ -203,7 +335,7 @@ class SubscriptionControllerFeatureTest extends TestCase
             ],
         );
 
-        $initiated = $this->subscribeThroughRecordingPaymentApp();
+        $initiated = $this->subscribeThroughFakeGateway();
 
         $this->assertSame('https://return.test/a', $initiated['return_url']);
         $this->assertSame('https://notify.test/b', $initiated['notify_url']);
@@ -234,7 +366,7 @@ class SubscriptionControllerFeatureTest extends TestCase
             ],
         );
 
-        $initiated = $this->subscribeThroughRecordingPaymentApp();
+        $initiated = $this->subscribeThroughFakeGateway();
 
         $this->assertSame(
             route('payment.return'),
@@ -293,16 +425,15 @@ class SubscriptionControllerFeatureTest extends TestCase
 
         $response->assertRedirect();
         $this->assertEquals('cancelled', $subscription->fresh()->status);
+        $this->assertSame([$subscription->id], $this->payments->cancelled);
     }
 
     #[Test]
-    public function user_cannot_cancel_other_users_subscription(): void
+    public function cancel_is_forbidden_without_the_cancel_permission(): void
     {
-        $userFactory = User::factory();
-        $otherUser = $userFactory->create();
         $subscriptionFactory = Subscription::factory();
         $subscription = $subscriptionFactory->create([
-            'user_id' => $otherUser->id,
+            'user_id' => $this->user->id,
             'status' => 'active',
         ]);
 
@@ -323,26 +454,42 @@ class SubscriptionControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function controller_uses_authorization(): void
+    public function user_cannot_cancel_other_users_subscription(): void
     {
-        $reflection = new \ReflectionClass(SubscriptionController::class);
+        $userFactory = User::factory();
+        $otherUser = $userFactory->create();
+        $subscriptionFactory = Subscription::factory();
+        $subscription = $subscriptionFactory->create([
+            'user_id' => $otherUser->id,
+            'status' => 'active',
+        ]);
 
-        $this->assertTrue(
-            $reflection->hasMethod('cancel'),
+        $this->user->givePermissionTo(Permission::SUBSCRIPTION_CANCEL);
+
+        $this->actingAs($this->user);
+
+        $response = $this->delete(
+            route(
+                'subscriptions.cancel',
+                [
+                    'locale' => 'en',
+                    'subscription' => $subscription->id,
+                ],
+            ),
         );
 
-        // Check if controller uses AuthorizesRequests trait
-        $traits = $reflection->getTraitNames();
-        $this->assertContains('Illuminate\Foundation\Auth\Access\AuthorizesRequests', $traits);
+        $response->assertNotFound();
+        $this->assertEquals('active', $subscription->fresh()->status);
+        $this->assertSame([], $this->payments->cancelled);
     }
 
     /** @return array<string, mixed> */
-    private function subscribeThroughRecordingPaymentApp(): array
+    private function subscribeThroughFakeGateway(?SubscriptionPlan $plan = null): array
     {
-        $paymentApp = new RecordingPaymentApplicationService;
-        $this->app->instance(PaymentApplicationServiceInterface::class, $paymentApp);
-        $subscriptionPlanFactory = SubscriptionPlan::factory();
-        $plan = $subscriptionPlanFactory->create();
+        if ($plan === null) {
+            $subscriptionPlanFactory = SubscriptionPlan::factory();
+            $plan = $subscriptionPlanFactory->create();
+        }
 
         $this->actingAs($this->user);
 
@@ -356,8 +503,8 @@ class SubscriptionControllerFeatureTest extends TestCase
             ],
         );
 
-        $response->assertRedirect(RecordingPaymentApplicationService::REDIRECT_URL);
+        $response->assertRedirect(FakeSubscriptionPaymentService::REDIRECT_URL);
 
-        return $paymentApp->initiated[0];
+        return $this->payments->initiated[0];
     }
 }

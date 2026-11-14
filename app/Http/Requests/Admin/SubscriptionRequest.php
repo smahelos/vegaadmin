@@ -1,34 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
+use App\Domain\Payment\DTO\SubscriptionWriteData;
+use App\Domain\Payment\Enums\SubscriptionStatus;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\User\ValueObjects\UserId;
+use DateTimeImmutable;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
-class SubscriptionRequest extends FormRequest
+final class SubscriptionRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::SUBSCRIPTION_CREATE) === true;
-        }
-
-        return $user?->can(Permission::SUBSCRIPTION_UPDATE) === true;
-    }
-
-    /**
-     * Get the validation rules that apply to the request.
+     * @return array<string, list<string|object>|string>
      */
     public function rules(): array
     {
         return [
             'user_id' => 'required|integer|exists:users,id',
             'subscription_plan_id' => 'required|integer|exists:subscription_plans,id',
-            'status' => 'required|string|in:pending,active,cancelled,expired,past_due',
+            'status' => [
+                'required',
+                Rule::enum(SubscriptionStatus::class),
+            ],
             'starts_at' => 'nullable|date',
             'ends_at' => 'nullable|date|after:starts_at',
             'trial_ends_at' => 'nullable|date',
@@ -40,7 +37,7 @@ class SubscriptionRequest extends FormRequest
     }
 
     /**
-     * Get custom attributes for validator errors.
+     * @return array<string, string>
      */
     public function attributes(): array
     {
@@ -56,5 +53,40 @@ class SubscriptionRequest extends FormRequest
             'currency' => __('subscriptions.fields.currency'),
             'metadata' => __('subscriptions.fields.metadata'),
         ];
+    }
+
+    public function owner(): UserId
+    {
+        return UserId::fromInt(
+            (int) $this->validated('user_id'),
+        );
+    }
+
+    public function toWriteData(): SubscriptionWriteData
+    {
+        $data = $this->validated();
+
+        return new SubscriptionWriteData(
+            (int) $data['subscription_plan_id'],
+            SubscriptionStatus::from($data['status']),
+            Money::fromString(
+                (string) $data['amount'],
+                $data['currency'],
+            ),
+            self::dateOrNull($data['starts_at'] ?? null),
+            self::dateOrNull($data['ends_at'] ?? null),
+            self::dateOrNull($data['trial_ends_at'] ?? null),
+            self::dateOrNull($data['next_billing_at'] ?? null),
+            $data['metadata'] ?? null,
+        );
+    }
+
+    private static function dateOrNull(?string $value): ?DateTimeImmutable
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        return new DateTimeImmutable($value);
     }
 }

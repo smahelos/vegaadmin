@@ -1,46 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
-use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
-use App\Models\Subscription;
+use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\Fakes\Payment\FakeSubscriptionPaymentService;
 use Tests\TestCase;
 
-class PaymentControllerCallbackTest extends TestCase
+final class PaymentControllerCallbackTest extends TestCase
 {
     #[Test]
     public function return_endpoint_redirects_on_success_completed(): void
     {
-        $this->swap(
-            PaymentApplicationServiceInterface::class,
-            new class implements PaymentApplicationServiceInterface
-            {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return true;
-                }
-            },
-        );
+        $this->answerCallbacksWith(['success' => true, 'status' => 'completed']);
 
         $response = $this->get('/payment/return?gateway=gopay');
         $response->assertRedirect();
@@ -53,34 +27,7 @@ class PaymentControllerCallbackTest extends TestCase
     #[Test]
     public function return_endpoint_redirects_on_failed(): void
     {
-        $this->swap(
-            PaymentApplicationServiceInterface::class,
-            new class implements PaymentApplicationServiceInterface
-            {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'failed']);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return true;
-                }
-            },
-        );
+        $this->answerCallbacksWith(['success' => true, 'status' => 'failed']);
 
         $response = $this->get('/payment/return?gateway=gopay');
         $response->assertRedirectContains('subscriptions');
@@ -89,34 +36,7 @@ class PaymentControllerCallbackTest extends TestCase
     #[Test]
     public function return_endpoint_redirects_on_pending(): void
     {
-        $this->swap(
-            PaymentApplicationServiceInterface::class,
-            new class implements PaymentApplicationServiceInterface
-            {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'pending']);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return true;
-                }
-            },
-        );
+        $this->answerCallbacksWith(['success' => true, 'status' => 'pending']);
 
         $response = $this->get('/payment/return?gateway=gopay');
         $response->assertRedirectContains('subscriptions');
@@ -125,37 +45,7 @@ class PaymentControllerCallbackTest extends TestCase
     #[Test]
     public function notify_endpoint_returns_ok_on_success(): void
     {
-        $paymentApp = new class implements PaymentApplicationServiceInterface
-        {
-            public function initiateSubscription(
-                Subscription $subscription,
-                string $gateway,
-                array $data = [],
-            ): SubscriptionPaymentResultDTO {
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-            }
-
-            /** @var list<array<string, mixed>> */
-            public array $payloads = [];
-
-            public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-            {
-                $this->payloads[] = $payload;
-
-                return SubscriptionPaymentResultDTO::fromArray(['success' => true, 'status' => 'completed']);
-            }
-
-            public function getAvailableGateways(): array
-            {
-                return [];
-            }
-
-            public function cancelSubscription(Subscription $subscription): bool
-            {
-                return true;
-            }
-        };
-        $this->swap(PaymentApplicationServiceInterface::class, $paymentApp);
+        $payments = $this->answerCallbacksWith(['success' => true, 'status' => 'completed']);
 
         $response = $this->getJson(
             '/payment/notify?gateway=gopay&id=3000006529&order_id=12&state=PAID',
@@ -163,48 +53,32 @@ class PaymentControllerCallbackTest extends TestCase
         $assertionResponse = $response->assertOk();
         $assertionResponse->assertJson(['status' => 'ok']);
 
-        // Only the payment id reaches the application; its state comes from the gateway
+        // Only the payment id reaches the payment service; its state comes from the gateway
         $this->assertSame(
             [['id' => '3000006529']],
-            $paymentApp->payloads,
+            $payments->callbacks,
         );
     }
 
     #[Test]
     public function notify_endpoint_returns_error_on_failure(): void
     {
-        $this->swap(
-            PaymentApplicationServiceInterface::class,
-            new class implements PaymentApplicationServiceInterface
-            {
-                public function initiateSubscription(
-                    Subscription $subscription,
-                    string $gateway,
-                    array $data = [],
-                ): SubscriptionPaymentResultDTO {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => true]);
-                }
-
-                public function handleCallback(string $gateway, array $payload): SubscriptionPaymentResultDTO
-                {
-                    return SubscriptionPaymentResultDTO::fromArray(['success' => false, 'error' => 'x']);
-                }
-
-                public function getAvailableGateways(): array
-                {
-                    return [];
-                }
-
-                public function cancelSubscription(Subscription $subscription): bool
-                {
-                    return true;
-                }
-            },
-        );
+        $this->answerCallbacksWith(['success' => false, 'error' => 'x']);
 
         // GoPay repeats a notification that does not get HTTP 200
         $response = $this->getJson('/payment/notify?gateway=gopay&id=3000006529');
         $response->assertStatus(503);
         $response->assertJson(['status' => 'error']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $callback
+     */
+    private function answerCallbacksWith(array $callback): FakeSubscriptionPaymentService
+    {
+        $payments = new FakeSubscriptionPaymentService(callback: $callback);
+        $this->app->instance(SubscriptionPaymentServiceInterface::class, $payments);
+
+        return $payments;
     }
 }

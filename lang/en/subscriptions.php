@@ -78,7 +78,6 @@ return [
         'already_subscribed' => 'You already have an active subscription',
         'none_active' => 'You don\'t have an active subscription',
         'cancelled' => 'Subscription has been cancelled successfully',
-        'cancellation_failed' => 'Subscription cancellation failed',
         'payment_failed' => 'The subscription payment could not be started. Please try again.',
         'required' => 'Active subscription required to access this feature',
         'confirm_cancel' => 'Are you sure you want to cancel your subscription?',

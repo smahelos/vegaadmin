@@ -78,7 +78,6 @@ return [
         'already_subscribed' => 'Sie haben bereits ein aktives Abonnement',
         'none_active' => 'Sie haben kein aktives Abonnement',
         'cancelled' => 'Abonnement wurde erfolgreich gekündigt',
-        'cancellation_failed' => 'Kündigung des Abonnements fehlgeschlagen',
         'payment_failed' => 'Die Zahlung des Abonnements konnte nicht gestartet werden. Bitte versuchen Sie es erneut.',
         'required' => 'Für den Zugang zu dieser Funktion ist ein aktives Abonnement erforderlich',
         'confirm_cancel' => 'Möchten Sie Ihr Abonnement wirklich kündigen?',
