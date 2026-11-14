@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Domain\Payment\Contracts\SubscriptionDtoReadRepositoryInterface;
@@ -9,7 +11,7 @@ use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentSubscriptionMapper;
 use App\Models\Subscription;
 
-class EloquentSubscriptionDtoReadRepository implements SubscriptionDtoReadRepositoryInterface
+final class EloquentSubscriptionDtoReadRepository implements SubscriptionDtoReadRepositoryInterface
 {
     public function __construct(
         private readonly EloquentSubscriptionReadRepository $subscriptionReadRepository,

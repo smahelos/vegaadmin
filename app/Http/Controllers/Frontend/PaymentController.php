@@ -26,16 +26,7 @@ final class PaymentController extends Controller
     public function return(Request $request): RedirectResponse
     {
         $application = app();
-        $gateway = $request->get('gateway', 'gopay');
-
-        $paymentId = $request->query('id');
-
-        Log::info('Payment return received', [
-            'gateway' => $gateway,
-            'paymentId' => $paymentId,
-        ]);
-
-        $result = $this->handleCallback($request);
+        $result = $this->handleCallback($request, 'Payment return received');
 
         if ($result->success) {
             $status = $result->status ?? 'unknown';
@@ -82,15 +73,7 @@ final class PaymentController extends Controller
      */
     public function notify(Request $request): JsonResponse
     {
-        $gateway = $request->get('gateway', 'gopay');
-        $paymentId = $request->query('id');
-
-        Log::info('Payment notification received', [
-            'gateway' => $gateway,
-            'paymentId' => $paymentId,
-        ]);
-
-        $result = $this->handleCallback($request);
+        $result = $this->handleCallback($request, 'Payment notification received');
 
         if ($result->success) {
             $responseFactory = response();
@@ -103,20 +86,28 @@ final class PaymentController extends Controller
         return $responseFactory->json(['status' => 'error'], 503);
     }
 
-    private function handleCallback(Request $request): SubscriptionPaymentResultDTO
+    private function handleCallback(Request $request, string $logMessage): SubscriptionPaymentResultDTO
     {
+        // An array in the query is no gateway: the payment service refuses it like an unknown one
+        $gateway = $request->query('gateway', 'gopay');
+        if (!is_string($gateway)) {
+            $gateway = '';
+        }
         $paymentId = $request->query('id');
         if (!is_string($paymentId)) {
             $paymentId = null;
         }
 
-        $gateway = $request->string('gateway', 'gopay');
+        Log::info($logMessage, [
+            'gateway' => $gateway,
+            'paymentId' => $paymentId,
+        ]);
 
         // Only the id: the gateway is asked for everything else
         return $this->useCases->run(
             Actor::anonymous(),
             new HandlePaymentCallback(
-                $gateway->toString(),
+                $gateway,
                 $paymentId,
             ),
         );

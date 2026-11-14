@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Mappers;
 
 use App\Domain\Payment\DTO\SubscriptionDTO;
@@ -12,7 +14,7 @@ use App\Models\SubscriptionPlan;
  * Maps between Eloquent Subscription models and Subscription DTOs.
  * Isolates Domain layer from Eloquent implementation details.
  */
-class EloquentSubscriptionMapper
+final class EloquentSubscriptionMapper
 {
     /**
      * Convert Eloquent Subscription model to SubscriptionDTO.

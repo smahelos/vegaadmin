@@ -64,7 +64,7 @@ final class SubscribeHandler
         );
         $result = SubscriptionPaymentResultDTO::fromArray($payment);
         if (!$result->success) {
-            // shortcut: a stored payment row blocks the delete (ON DELETE RESTRICT), TECH_DEBT step 18 "A refused subscription payment ends with a 500"
+            // shortcut: a stored payment row blocks the delete (SubscriptionInUseException), TECH_DEBT step 18 "A refused subscription payment ends with a 500"
             $this->transactions->transaction(
                 fn () => $this->subscriptionWriter->delete(
                     SubscriptionId::fromInt($subscription->id),

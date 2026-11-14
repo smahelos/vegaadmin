@@ -281,6 +281,28 @@ final class SubscriptionControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function subscribe_to_a_missing_plan_is_not_found(): void
+    {
+        $this->actingAs($this->user);
+
+        $response = $this->post(
+            route(
+                'subscriptions.subscribe',
+                [
+                    'locale' => 'en',
+                    'plan' => SubscriptionPlan::max('id') + 1,
+                ],
+            ),
+            [
+                'gateway' => 'gopay',
+            ],
+        );
+
+        $response->assertNotFound();
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $this->user->id]);
+    }
+
+    #[Test]
     public function a_refused_payment_deletes_the_pending_subscription(): void
     {
         $this->payments = new FakeSubscriptionPaymentService(['success' => false]);

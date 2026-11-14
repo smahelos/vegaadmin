@@ -156,6 +156,7 @@ $registrar->group(
                         $route->name('subscriptions.show');
                         $route = Route::post('/subscribe/{plan}', [SubscriptionController::class, 'subscribe']);
                         $route->name('subscriptions.subscribe');
+                        $route->whereNumber('plan');
                         // `allowed` names the use case the action runs through the gate: change them together
                         $route->middleware('allowed:' . Subscribe::class);
                         $route = Route::delete('/subscription/{subscription}/cancel', [SubscriptionController::class, 'cancel']);

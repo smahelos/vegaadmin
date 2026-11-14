@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Domain\Payment\Contracts\SubscriptionDtoWriteRepositoryInterface;
 use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Payment\DTO\SubscriptionWriteData;
 use App\Domain\Payment\Enums\SubscriptionStatus;
+use App\Domain\Payment\Exceptions\SubscriptionInUseException;
 use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
 use App\Domain\Payment\ValueObjects\SubscriptionId;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
@@ -13,7 +16,7 @@ use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentSubscription
 use App\Models\Subscription;
 use DateTimeImmutable;
 
-class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepositoryInterface
+final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepositoryInterface
 {
     public function __construct(
         private readonly EloquentSubscriptionWriteRepository $subscriptionWriteRepository,
@@ -64,6 +67,11 @@ class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWriteRepo
     public function delete(SubscriptionId $id, WriteScope $scope): void
     {
         $subscription = $this->owned($id, $scope);
+        $payments = $subscription->payments();
+        if ($payments->exists()) {
+            throw new SubscriptionInUseException($id->value);
+        }
+
         $subscription->delete();
     }
 

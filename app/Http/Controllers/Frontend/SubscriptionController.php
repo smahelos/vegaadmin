@@ -62,7 +62,7 @@ final class SubscriptionController extends Controller
     public function subscribe(
         SubscribeRequest $request,
         string $locale,
-        SubscriptionPlan $plan,
+        int $plan,
     ): RedirectResponse {
         // Outside production the URLs may point elsewhere (a tunnel to this machine); without an override they are ours
         $returnUrl = route('payment.return');
@@ -83,7 +83,7 @@ final class SubscriptionController extends Controller
                 Actor::user($owner),
                 new Subscribe(
                     $owner,
-                    $plan->id,
+                    $plan,
                     $request->gateway(),
                     $returnUrl,
                     $notifyUrl,

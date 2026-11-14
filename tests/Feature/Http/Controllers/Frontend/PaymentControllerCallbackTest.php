@@ -71,6 +71,15 @@ final class PaymentControllerCallbackTest extends TestCase
         $response->assertJson(['status' => 'error']);
     }
 
+    #[Test]
+    public function notify_endpoint_refuses_a_gateway_that_is_not_a_string(): void
+    {
+        // The real payment service: it refuses the gateway it does not know
+        $response = $this->getJson('/payment/notify?gateway[]=gopay&id=3000006529');
+        $response->assertStatus(503);
+        $response->assertJson(['status' => 'error']);
+    }
+
     /**
      * @param  array<string, mixed>  $callback
      */

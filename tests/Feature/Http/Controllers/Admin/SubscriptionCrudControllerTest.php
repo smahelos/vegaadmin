@@ -4,6 +4,7 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Models\Payment;
 use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -234,6 +235,22 @@ final class SubscriptionCrudControllerTest extends TestCase
         $this->assertDatabaseMissing('subscriptions', [
             'id' => $subscription->id,
         ]);
+    }
+
+    #[Test]
+    public function delete_of_a_subscription_with_payments_answers_with_a_notification(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create();
+
+        $response = $this->deleteJson('/admin/subscription/' . $payment->subscription_id);
+        $response->assertOk();
+        $response->assertExactJson(
+            ['error' => [__('general.messages.delete_referenced')]],
+        );
+
+        $this->assertDatabaseHas('subscriptions', ['id' => $payment->subscription_id]);
     }
 
     #[Test]

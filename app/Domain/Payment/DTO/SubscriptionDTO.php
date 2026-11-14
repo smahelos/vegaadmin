@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\DTO;
 
-class SubscriptionDTO
+final class SubscriptionDTO
 {
     public function __construct(
         public readonly int $id,

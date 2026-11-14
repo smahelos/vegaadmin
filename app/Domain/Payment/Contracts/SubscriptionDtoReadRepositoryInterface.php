@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\Contracts;
 
 use App\Domain\Payment\DTO\SubscriptionDTO;
