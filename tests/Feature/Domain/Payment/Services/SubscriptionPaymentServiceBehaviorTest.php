@@ -447,6 +447,41 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
     }
 
     #[Test]
+    public function repeated_completed_callback_activates_the_subscription_once(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $callback = ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'];
+        $application = app();
+        $application->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-01-31 10:30:00'),
+            ),
+        );
+        $service = app(SubscriptionPaymentServiceInterface::class);
+        $service->handlePaymentCallback('fake', $callback);
+        $application->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-02-15 08:00:00'),
+            ),
+        );
+        $service = app(SubscriptionPaymentServiceInterface::class);
+
+        $repeated = $service->handlePaymentCallback('fake', $callback);
+
+        $this->assertTrue($repeated['success']);
+        $subscription->refresh();
+        $this->assertSame('2026-01-31 10:30:00', $subscription->starts_at->toDateTimeString());
+        $this->assertSame('2026-02-28 10:30:00', $subscription->ends_at->toDateTimeString());
+    }
+
+    #[Test]
     public function callback_ignores_a_payment_of_another_gateway_with_the_same_id(): void
     {
         $subscription = $this->makeSubscription();

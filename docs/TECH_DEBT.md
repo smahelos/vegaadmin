@@ -212,8 +212,8 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ### A cancelled subscription can be activated by its payment
 - **Where:** `app/Application/Payment/Commands/CancelSubscriptionHandler.php`, `SubscriptionPaymentService::cancelSubscriptionPayment()` and `handlePaymentCallback()`, `SubscriptionDtoWriteRepositoryInterface::activateById()`
-- **Problem:** the result of cancelling the pending payment at the gateway is ignored and the user always sees "cancelled". When the gateway refuses the cancel and the customer then pays, the callback activates the subscription without checking its status, so the cancelled subscription becomes active and the customer is charged.
-- **Fix:** activate only a pending subscription; a refused gateway cancel ends with `subscriptions.messages.cancellation_failed` (deleted in phase 6a of step 11, add it back with `add-translation`) and the subscription stays as it was.
+- **Problem:** the result of cancelling the pending payment at the gateway is ignored and the user always sees "cancelled". When the gateway refuses the cancel and the customer then pays, the callback activates the subscription without checking its status, so the cancelled subscription becomes active and the customer is charged. `cancel()` does not check the status either: cancelling an expired subscription rewrites it to cancelled.
+- **Fix:** activate only a pending subscription; cancel only a pending or active one and refuse the others; a refused gateway cancel ends with `subscriptions.messages.cancellation_failed` (deleted in phase 6a of step 11, add it back with `add-translation`) and the subscription stays as it was.
 
 ### An inactive plan can be subscribed to
 - **Where:** `app/Application/Payment/Commands/SubscribeHandler.php`, `SubscriptionPlanReadRepositoryInterface::findById()`
