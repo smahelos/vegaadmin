@@ -2,14 +2,19 @@
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
+use App\Domain\User\Enums\Permission;
+use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Models\Payment;
+use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
-class SubscriptionCrudControllerTest extends TestCase
+final class SubscriptionCrudControllerTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
 
@@ -57,6 +62,10 @@ class SubscriptionCrudControllerTest extends TestCase
 
         $userFactory = User::factory();
         $user = $userFactory->create();
+        // The admin's default guard is backpack; the owner's permission lives on web
+        $user->givePermissionTo(
+            PermissionModel::findByName(Permission::SUBSCRIPTION_CREATE->value, PermissionCatalog::WEB),
+        );
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $plan = $subscriptionPlanFactory->create();
 
@@ -80,8 +89,34 @@ class SubscriptionCrudControllerTest extends TestCase
                 'subscription_plan_id' => $plan->id,
                 'status' => 'active',
                 'amount' => 99.99,
+                'starts_at' => '2025-01-01 00:00:00',
+                'ends_at' => '2025-12-31 23:59:59',
             ],
         );
+    }
+
+    #[Test]
+    public function an_owner_without_the_create_permission_gets_no_subscription(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $userFactory = User::factory();
+        $owner = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $response = $this->post(
+            '/admin/subscription',
+            [
+                'user_id' => $owner->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'active',
+                'amount' => 99.99,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $response->assertForbidden();
+        $this->assertDatabaseMissing('subscriptions', ['user_id' => $owner->id]);
     }
 
     #[Test]
@@ -134,12 +169,12 @@ class SubscriptionCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function admin_can_update_subscription(): void
+    public function admin_updates_a_subscription_and_keeps_its_owner(): void
     {
         $this->actingAs($this->adminUser, 'backpack');
 
         $userFactory = User::factory();
-        $user = $userFactory->create();
+        $otherUser = $userFactory->create();
         $subscriptionPlanFactory = SubscriptionPlan::factory();
         $plan = $subscriptionPlanFactory->create();
         $subscriptionFactory = Subscription::factory();
@@ -147,25 +182,30 @@ class SubscriptionCrudControllerTest extends TestCase
             'status' => 'pending',
             'amount' => 50.00,
         ]);
+        $owner = $subscription->user_id;
 
-        $data = [
-            'user_id' => $user->id,
-            'subscription_plan_id' => $plan->id,
-            'status' => 'active',
-            'amount' => 75.00,
-            'currency' => 'EUR',
-            'starts_at' => '2025-01-01 00:00:00',
-            'ends_at' => '2025-12-31 23:59:59',
-        ];
+        $response = $this->put(
+            '/admin/subscription/' . $subscription->id,
+            [
+                'id' => $subscription->id,
+                'user_id' => $otherUser->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'active',
+                'amount' => 75.00,
+                'currency' => 'EUR',
+                'starts_at' => '2025-01-01 00:00:00',
+                'ends_at' => '2025-12-31 23:59:59',
+            ],
+        );
 
-        // Update directly in database to test business logic
-        // HTTP update has complex Backpack dependencies similar to other CRUD operations
-        $subscription->update($data);
-
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
         $this->assertDatabaseHas(
             'subscriptions',
             [
                 'id' => $subscription->id,
+                'user_id' => $owner,
+                'subscription_plan_id' => $plan->id,
                 'status' => 'active',
                 'amount' => 75.00,
                 'currency' => 'EUR',
@@ -196,6 +236,22 @@ class SubscriptionCrudControllerTest extends TestCase
         $this->assertDatabaseMissing('subscriptions', [
             'id' => $subscription->id,
         ]);
+    }
+
+    #[Test]
+    public function delete_of_a_subscription_with_payments_answers_with_a_notification(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+        $paymentFactory = Payment::factory();
+        $payment = $paymentFactory->create();
+
+        $response = $this->deleteJson('/admin/subscription/' . $payment->subscription_id);
+        $response->assertOk();
+        $response->assertExactJson(
+            ['error' => [__('general.messages.delete_referenced')]],
+        );
+
+        $this->assertDatabaseHas('subscriptions', ['id' => $payment->subscription_id]);
     }
 
     #[Test]
@@ -324,6 +380,44 @@ class SubscriptionCrudControllerTest extends TestCase
 
         $response->assertStatus(422); // Validation error
         $response->assertJsonValidationErrors(['amount']);
+    }
+
+    #[Test]
+    #[DataProvider('amountsMoneyCannotReadProvider')]
+    public function create_refuses_an_amount_money_cannot_read(string $amount): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $response = $this->postJson(
+            '/admin/subscription',
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => $amount,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['amount']);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function amountsMoneyCannotReadProvider(): array
+    {
+        return [
+            'exponent' => ['1e2'],
+            'no integer part' => ['.50'],
+            'plus sign' => ['+50'],
+        ];
     }
 
     #[Test]

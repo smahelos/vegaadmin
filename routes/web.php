@@ -6,6 +6,8 @@ use App\Application\Invoice\Commands\CreateInvoice;
 use App\Application\Invoice\Commands\LinkInvoiceContact;
 use App\Application\Invoice\Commands\SetInvoiceTemplate;
 use App\Application\Invoice\Commands\UpdateInvoice;
+use App\Application\Payment\Commands\CancelSubscription;
+use App\Application\Payment\Commands\Subscribe;
 use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\UpdateProduct;
 use App\Application\User\Commands\ChangePassword;
@@ -154,8 +156,14 @@ $registrar->group(
                         $route->name('subscriptions.show');
                         $route = Route::post('/subscribe/{plan}', [SubscriptionController::class, 'subscribe']);
                         $route->name('subscriptions.subscribe');
+                        $route->whereNumber('plan');
+                        // `allowed` names the use case the action runs through the gate: change them together
+                        $route->middleware('allowed:' . Subscribe::class);
                         $route = Route::delete('/subscription/{subscription}/cancel', [SubscriptionController::class, 'cancel']);
                         $route->name('subscriptions.cancel');
+                        $route->whereNumber('subscription');
+                        // `allowed` names the use case the action runs through the gate: change them together
+                        $route->middleware('allowed:' . CancelSubscription::class);
                         $route = Route::get('/my-subscription', [SubscriptionController::class, 'mySubscription']);
                         $route->name('subscriptions.my-subscription');
                     },

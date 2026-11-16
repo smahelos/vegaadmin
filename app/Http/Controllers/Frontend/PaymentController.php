@@ -1,22 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Application\Payment\Commands\HandlePaymentCallback;
+use App\Application\Payment\DTO\SubscriptionPaymentResultDTO;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
-class PaymentController extends Controller
+final class PaymentController extends Controller
 {
-    private PaymentApplicationServiceInterface $paymentApp;
-
-    public function __construct(PaymentApplicationServiceInterface $paymentApp)
-    {
-        $this->paymentApp = $paymentApp;
-    }
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
 
     /**
      * Handle payment return from gateway
@@ -24,20 +26,7 @@ class PaymentController extends Controller
     public function return(Request $request): RedirectResponse
     {
         $application = app();
-        $gateway = $request->get('gateway', 'gopay');
-
-        $paymentId = $request->query('id');
-
-        Log::info('Payment return received', [
-            'gateway' => $gateway,
-            'paymentId' => $paymentId,
-        ]);
-
-        // Only the id: the gateway is asked for everything else
-        $result = $this->paymentApp->handleCallback(
-            $gateway,
-            ['id' => $paymentId],
-        );
+        $result = $this->handleCallback($request, 'Payment return received');
 
         if ($result->success) {
             $status = $result->status ?? 'unknown';
@@ -84,19 +73,7 @@ class PaymentController extends Controller
      */
     public function notify(Request $request): JsonResponse
     {
-        $gateway = $request->get('gateway', 'gopay');
-        $paymentId = $request->query('id');
-
-        Log::info('Payment notification received', [
-            'gateway' => $gateway,
-            'paymentId' => $paymentId,
-        ]);
-
-        // Only the id: the gateway is asked for everything else
-        $result = $this->paymentApp->handleCallback(
-            $gateway,
-            ['id' => $paymentId],
-        );
+        $result = $this->handleCallback($request, 'Payment notification received');
 
         if ($result->success) {
             $responseFactory = response();
@@ -107,5 +84,32 @@ class PaymentController extends Controller
         $responseFactory = response();
 
         return $responseFactory->json(['status' => 'error'], 503);
+    }
+
+    private function handleCallback(Request $request, string $logMessage): SubscriptionPaymentResultDTO
+    {
+        // An array in the query is no gateway: the payment service refuses it like an unknown one
+        $gateway = $request->query('gateway', 'gopay');
+        if (!is_string($gateway)) {
+            $gateway = '';
+        }
+        $paymentId = $request->query('id');
+        if (!is_string($paymentId)) {
+            $paymentId = null;
+        }
+
+        Log::info($logMessage, [
+            'gateway' => $gateway,
+            'paymentId' => $paymentId,
+        ]);
+
+        // Only the id: the gateway is asked for everything else
+        return $this->useCases->run(
+            Actor::anonymous(),
+            new HandlePaymentCallback(
+                $gateway,
+                $paymentId,
+            ),
+        );
     }
 }

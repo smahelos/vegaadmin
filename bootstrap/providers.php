@@ -2,7 +2,6 @@
 
 use App\Providers\AnalyticsServiceProvider;
 use App\Providers\AppServiceProvider;
-use App\Providers\AuthServiceProvider;
 use App\Providers\BladeServiceProvider;
 use App\Providers\ContentServiceProvider;
 use App\Providers\EventServiceProvider;
@@ -20,7 +19,6 @@ use App\Providers\UserServiceProvider;
 return [
     // Core Laravel providers
     AppServiceProvider::class,
-    AuthServiceProvider::class,
     EventServiceProvider::class,
     RouteServiceProvider::class,
     BladeServiceProvider::class,

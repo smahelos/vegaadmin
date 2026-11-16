@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Persistence\Eloquent\Payment\Mappers;
 
 use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Payment\DTO\SubscriptionPlanDTO;
+use App\Domain\Payment\DTO\SubscriptionWriteData;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -12,7 +15,7 @@ use App\Models\SubscriptionPlan;
  * Maps between Eloquent Subscription models and Subscription DTOs.
  * Isolates Domain layer from Eloquent implementation details.
  */
-class EloquentSubscriptionMapper
+final class EloquentSubscriptionMapper
 {
     /**
      * Convert Eloquent Subscription model to SubscriptionDTO.
@@ -40,9 +43,33 @@ class EloquentSubscriptionMapper
                 'next_billing_at' => $nextBillingAt?->toDateTimeString(),
                 'amount' => $model->getAttribute('amount'),
                 'currency' => $model->getAttribute('currency'),
-                'metadata' => $model->getAttribute('metadata'),
                 'created_at' => $createdAt?->toDateTimeString(),
             ],
+        );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAttributes(SubscriptionWriteData $data): array
+    {
+        return [
+            'subscription_plan_id' => $data->planId->value,
+            'status' => $data->status->value,
+            'amount' => $data->amount->getAmount(),
+            'currency' => $data->amount->getCurrency(),
+            'starts_at' => $data->starts,
+            'ends_at' => $data->ends,
+            'trial_ends_at' => $data->trialEnds,
+            'next_billing_at' => $data->nextBilling,
+            'metadata' => $data->metadata,
+        ];
+    }
+
+    public function toPlanDto(SubscriptionPlan $plan): SubscriptionPlanDTO
+    {
+        return SubscriptionPlanDTO::fromArray(
+            self::subscriptionPlanData($plan),
         );
     }
 

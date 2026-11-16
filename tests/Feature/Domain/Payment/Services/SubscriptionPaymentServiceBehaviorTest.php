@@ -11,6 +11,10 @@ use App\Domain\Payment\Contracts\SubscriptionPaymentServiceInterface;
 use App\Domain\Payment\DTO\PaymentDTO;
 use App\Domain\Payment\DTO\PaymentWriteData;
 use App\Domain\Payment\DTO\SubscriptionDTO;
+use App\Domain\Payment\DTO\SubscriptionWriteData;
+use App\Domain\Payment\ValueObjects\SubscriptionId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentPaymentMapper;
@@ -20,6 +24,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use DateTimeImmutable;
+use LogicException;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\Fakes\Payment\FakePaymentGateway;
@@ -338,6 +343,29 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 ): bool {
                     throw new RuntimeException('Activation failed');
                 }
+
+                public function create(WriteScope $scope, SubscriptionWriteData $data): SubscriptionDTO
+                {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function update(
+                    SubscriptionId $id,
+                    WriteScope $scope,
+                    SubscriptionWriteData $data,
+                ): SubscriptionDTO {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function cancel(SubscriptionId $id, WriteScope $scope): void
+                {
+                    throw new LogicException('Not used by the callback');
+                }
+
+                public function delete(SubscriptionId $id, WriteScope $scope): void
+                {
+                    throw new LogicException('Not used by the callback');
+                }
             },
         );
         $failingService = app(SubscriptionPaymentServiceInterface::class);
@@ -373,6 +401,11 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
                 public function findById(int $id): ?SubscriptionDTO
                 {
                     return null;
+                }
+
+                public function findActive(ReadScope $scope): ?SubscriptionDTO
+                {
+                    throw new LogicException('Not used by the callback');
                 }
             },
         );
@@ -411,6 +444,41 @@ class SubscriptionPaymentServiceBehaviorTest extends TestCase
             fn (array $entry): bool => $entry['message'] === 'Subscription payment failed',
         );
         $this->assertCount(1, $failures);
+    }
+
+    #[Test]
+    public function repeated_completed_callback_activates_the_subscription_once(): void
+    {
+        $subscription = $this->makeSubscription();
+        $process = $this->service->processSubscriptionPayment(
+            $subscription->id,
+            'fake',
+            ['amount' => '10.00', 'currency' => 'EUR'],
+        );
+        $callback = ['payment_id' => $process['gateway_payment_id'], 'status' => 'completed'];
+        $application = app();
+        $application->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-01-31 10:30:00'),
+            ),
+        );
+        $service = app(SubscriptionPaymentServiceInterface::class);
+        $service->handlePaymentCallback('fake', $callback);
+        $application->instance(
+            ClockInterface::class,
+            new FixedClock(
+                new DateTimeImmutable('2026-02-15 08:00:00'),
+            ),
+        );
+        $service = app(SubscriptionPaymentServiceInterface::class);
+
+        $repeated = $service->handlePaymentCallback('fake', $callback);
+
+        $this->assertTrue($repeated['success']);
+        $subscription->refresh();
+        $this->assertSame('2026-01-31 10:30:00', $subscription->starts_at->toDateTimeString());
+        $this->assertSame('2026-02-28 10:30:00', $subscription->ends_at->toDateTimeString());
     }
 
     #[Test]

@@ -1,42 +1,47 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Payment\Contracts\PaymentApplicationServiceInterface;
+use App\Application\Payment\Commands\CancelSubscription;
+use App\Application\Payment\Commands\Subscribe;
+use App\Application\Payment\Queries\FindActiveSubscription;
+use App\Application\Payment\Services\PaymentApplicationService;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Payment\Exceptions\ActiveSubscriptionExistsException;
+use App\Domain\Payment\ValueObjects\SubscriptionId;
+use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Payment\SubscribeRequest;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 
-class SubscriptionController extends Controller
+final class SubscriptionController extends Controller
 {
-    use AuthorizesRequests;
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly PaymentApplicationService $gateways,
+    ) {}
 
-    private PaymentApplicationServiceInterface $paymentApp;
-
-    public function __construct(PaymentApplicationServiceInterface $paymentApp)
-    {
-        $this->paymentApp = $paymentApp;
-    }
-
-    /**
-     * Display subscription plans
-     */
     public function index(): View
     {
         $planQuery = SubscriptionPlan::active();
         $plans = $planQuery->get();
+        $owner = $this->owner();
+        $actor = Actor::user($owner);
         $userSubscription = null;
-
-        if (Auth::check()) {
-            $user = Auth::user();
-            $subscriptions = $user->subscriptions();
-            $subscriptions->where('status', 'active');
-            $userSubscription = $subscriptions->first();
+        // The plans are for anyone; only the current subscription needs subscription.view
+        if ($this->useCases->allowed($actor, FindActiveSubscription::class)) {
+            $userSubscription = $this->useCases->run(
+                $actor,
+                new FindActiveSubscription($owner),
+            );
         }
 
         return view(
@@ -45,13 +50,9 @@ class SubscriptionController extends Controller
         );
     }
 
-    /**
-     * Show subscription plan details
-     */
     public function show(string $locale, SubscriptionPlan $plan): View
     {
-        // Gateways are still exposed by underlying subscription payment service; placeholder until unified list comes to application layer.
-        $availableGateways = $this->paymentApp->getAvailableGateways();
+        $availableGateways = $this->gateways->getAvailableGateways();
 
         return view(
             'frontend.subscriptions.show',
@@ -59,26 +60,38 @@ class SubscriptionController extends Controller
         );
     }
 
-    /**
-     * Subscribe to a plan
-     */
     public function subscribe(
-        Request $request,
+        SubscribeRequest $request,
         string $locale,
-        SubscriptionPlan $plan,
+        int $plan,
     ): RedirectResponse {
-        $request->validate([
-            'gateway' => 'required|string|in:gopay',
-        ]);
+        // Outside production the URLs may point elsewhere (a tunnel to this machine); without an override they are ours
+        $returnUrl = route('payment.return');
+        $notifyUrl = route('payment.notify');
+        if (!config('services.gopay.production')) {
+            $returnUrl = config('services.gopay.test_return_url') ?: $returnUrl;
+            $notifyUrl = config('services.gopay.test_notify_url') ?: $notifyUrl;
+        }
+        $language = 'EN';
+        if ($locale === 'cs') {
+            $language = 'CS';
+        }
 
-        $user = Auth::user();
-
-        // Check if user already has active subscription
-        $subscriptions = $user->subscriptions();
-        $subscriptions->where('status', 'active');
-        $existingSubscription = $subscriptions->first();
-
-        if ($existingSubscription) {
+        $owner = $this->owner();
+        try {
+            // The route names the same use case in its `allowed` middleware: change them together
+            $result = $this->useCases->run(
+                Actor::user($owner),
+                new Subscribe(
+                    $owner,
+                    SubscriptionPlanId::fromInt($plan),
+                    $request->gateway(),
+                    $returnUrl,
+                    $notifyUrl,
+                    $language,
+                ),
+            );
+        } catch (ActiveSubscriptionExistsException) {
             $redirector = redirect();
             $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
 
@@ -88,43 +101,9 @@ class SubscriptionController extends Controller
             );
         }
 
-        // Create subscription
-        $subscription = Subscription::create(
-            [
-                'user_id' => $user->id,
-                'subscription_plan_id' => $plan->id,
-                'status' => 'pending',
-                'amount' => $plan->price,
-                'currency' => $plan->currency,
-            ],
-        );
-
-        // Outside production the URLs may point elsewhere (a tunnel to this machine); without an override they are ours
-        $returnUrl = route('payment.return');
-        $notifyUrl = route('payment.notify');
-        if (!config('services.gopay.production')) {
-            $returnUrl = config('services.gopay.test_return_url') ?: $returnUrl;
-            $notifyUrl = config('services.gopay.test_notify_url') ?: $notifyUrl;
-        }
-
-        $application = app();
-        $paymentData = [
-            'return_url' => $returnUrl,
-            'notify_url' => $notifyUrl,
-            'lang' => $application->getLocale() === 'cs' ? 'CS' : 'EN',
-        ];
-
-        $result = $this->paymentApp->initiateSubscription(
-            $subscription,
-            $request->gateway,
-            $paymentData,
-        );
-
         if ($result->success && $result->redirectUrl) {
             return redirect($result->redirectUrl);
         }
-
-        $subscription->delete();
 
         $redirector = redirect();
         $redirect = $redirector->route('subscriptions.show', ['locale' => $locale, 'plan' => $plan]);
@@ -135,50 +114,37 @@ class SubscriptionController extends Controller
         );
     }
 
-    /**
-     * Cancel subscription
-     */
-    public function cancel(string $locale, Subscription $subscription): RedirectResponse
+    public function cancel(string $locale, int $subscription): RedirectResponse
     {
-        $this->authorize('update', $subscription);
-
-        if ($subscription->cancel()) {
-            // Delegation path – cancellation still uses domain service through application layer if exposed later.
-            $this->paymentApp->cancelSubscription($subscription);
-
-            $redirector = redirect();
-            $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
-
-            return $redirect->with(
-                'success',
-                __('subscriptions.messages.cancelled'),
-            );
-        }
+        $owner = $this->owner();
+        // The route names the same use case in its `allowed` middleware: change them together
+        $this->useCases->run(
+            Actor::user($owner),
+            new CancelSubscription(
+                $owner,
+                SubscriptionId::fromInt($subscription),
+            ),
+        );
 
         $redirector = redirect();
         $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
 
         return $redirect->with(
-            'error',
-            __('subscriptions.messages.cancellation_failed'),
+            'success',
+            __('subscriptions.messages.cancelled'),
         );
     }
 
-    /**
-     * View subscription details
-     */
-    public function mySubscription(): View|RedirectResponse
+    public function mySubscription(string $locale): View|RedirectResponse
     {
-        $user = Auth::user();
-        $subscriptions = $user->subscriptions();
-        $subscriptions->with(['subscriptionPlan', 'payments']);
-        $subscriptions->where('status', 'active');
-        $subscription = $subscriptions->first();
-
-        if (!$subscription) {
+        $owner = $this->owner();
+        $active = $this->useCases->run(
+            Actor::user($owner),
+            new FindActiveSubscription($owner),
+        );
+        if ($active === null) {
             $redirector = redirect();
-            $application = app();
-            $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+            $redirect = $redirector->route('subscriptions.index', ['locale' => $locale]);
 
             return $redirect->with(
                 'info',
@@ -186,9 +152,18 @@ class SubscriptionController extends Controller
             );
         }
 
+        // shortcut: the page reads the model with its plan and payments, TECH_DEBT step 19 "Subscription screens with placeholder content"
+        $subscriptionQuery = Subscription::with(['subscriptionPlan', 'payments']);
+        $subscription = $subscriptionQuery->findOrFail($active->id);
+
         return view(
             'frontend.subscriptions.my-subscription',
             compact('subscription'),
         );
+    }
+
+    private function owner(): UserId
+    {
+        return UserId::fromInt((int) Auth::id());
     }
 }

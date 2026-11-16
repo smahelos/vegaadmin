@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\DTO;
 
-class SubscriptionDTO
+final class SubscriptionDTO
 {
     public function __construct(
         public readonly int $id,
@@ -16,7 +18,6 @@ class SubscriptionDTO
         public readonly ?string $next_billing_at,
         public readonly ?string $amount,
         public readonly ?string $currency,
-        public readonly ?string $metadata,
         public readonly ?string $created_at,
     ) {}
 
@@ -35,7 +36,6 @@ class SubscriptionDTO
             next_billing_at: $data['next_billing_at'] ?? null,
             amount: $data['amount'] ?? null,
             currency: $data['currency'] ?? null,
-            metadata: $data['metadata'] ?? null,
             created_at: $data['created_at'] ?? null,
         );
     }
@@ -54,7 +54,6 @@ class SubscriptionDTO
             'next_billing_at' => $this->next_billing_at,
             'amount' => $this->amount,
             'currency' => $this->currency,
-            'metadata' => $this->metadata,
             'created_at' => $this->created_at,
         ];
     }

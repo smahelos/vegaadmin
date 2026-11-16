@@ -2,7 +2,13 @@
 
 namespace Tests\Feature\Infrastructure\Authorization;
 
+use App\Application\Payment\Commands\CancelSubscription;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
+use App\Domain\Payment\ValueObjects\SubscriptionId;
 use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Infrastructure\Authorization\Services\PermissionCatalogSync;
 use App\Models\Permission as PermissionModel;
@@ -61,14 +67,27 @@ class PermissionCatalogSyncTest extends TestCase
         $user->assignRole('frontend_user');
 
         $subscriptionFactory = Subscription::factory();
-        $this->assertTrue(
-            $user->can(
-                'update',
-                $subscriptionFactory->create(['user_id' => $user->id]),
+        $own = $subscriptionFactory->create(['user_id' => $user->id, 'status' => 'active']);
+        $foreign = $subscriptionFactory->create(['status' => 'active']);
+        $owner = UserId::fromInt($user->id);
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+
+        $useCases->run(
+            Actor::user($owner),
+            new CancelSubscription(
+                $owner,
+                SubscriptionId::fromInt($own->id),
             ),
         );
-        $this->assertFalse(
-            $user->can('update', $subscriptionFactory->create()),
+
+        $this->assertSame('cancelled', $own->fresh()->status);
+        $this->expectException(SubscriptionNotFoundException::class);
+        $useCases->run(
+            Actor::user($owner),
+            new CancelSubscription(
+                $owner,
+                SubscriptionId::fromInt($foreign->id),
+            ),
         );
     }
 

@@ -4,18 +4,27 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Payment\Commands\CreateSubscription;
+use App\Application\Payment\Commands\DeleteSubscription;
+use App\Application\Payment\Commands\UpdateSubscription;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Payment\Exceptions\SubscriptionInUseException;
+use App\Domain\Payment\ValueObjects\SubscriptionId;
 use App\Domain\User\Enums\Permission;
-use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\SubscriptionRequest;
 use App\Models\Subscription;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
+use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\RedirectResponse;
+use Prologue\Alerts\Facades\Alert;
 
 /**
  * Subscription CRUD controller
@@ -24,12 +33,20 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 final class SubscriptionCrudController extends CrudController
 {
+    use ActsAsAdmin;
     use CreateOperation;
+    use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
-    use RestrictedDeleteOperation;
+    use NarrowsCrudTypes;
     use ShowOperation;
     use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object and check user permissions
@@ -269,12 +286,81 @@ final class SubscriptionCrudController extends CrudController
         );
     }
 
+    public function store(): RedirectResponse
+    {
+        $this->crud->hasAccessOrFail('create');
+        $request = $this->validatedRequest(SubscriptionRequest::class);
+        $subscription = $this->useCases->run(
+            $this->admin(),
+            new CreateSubscription(
+                $request->owner(),
+                $request->toWriteData(),
+            ),
+        );
+
+        return $this->saved('backpack::crud.insert_success', $subscription->id);
+    }
+
+    public function update(): RedirectResponse
+    {
+        $this->crud->hasAccessOrFail('update');
+        $stored = $this->currentEntry(Subscription::class);
+        // The owner field is disabled on edit, so the stored owner is validated and kept
+        $httpRequest = $this->crud->getRequest();
+        $httpRequest->merge(['user_id' => $stored->user_id]);
+        $request = $this->validatedRequest(SubscriptionRequest::class);
+        $subscription = $this->useCases->run(
+            $this->admin(),
+            new UpdateSubscription(
+                $request->owner(),
+                SubscriptionId::fromInt((int) $this->crud->getCurrentEntryId()),
+                $request->toWriteData(),
+            ),
+        );
+
+        return $this->saved('backpack::crud.update_success', $subscription->id);
+    }
+
     /**
-     * Setup update operation
+     * @return string|array{error: list<string>} "1" when deleted; Backpack's delete button shows the notification
      */
+    public function destroy(int|string $id): string|array
+    {
+        $this->crud->hasAccessOrFail('delete');
+        $entry = $this->currentEntry(Subscription::class);
+        try {
+            $this->useCases->run(
+                $this->admin(),
+                new DeleteSubscription(
+                    UserId::fromInt($entry->user_id),
+                    SubscriptionId::fromInt($entry->id),
+                ),
+            );
+        } catch (SubscriptionInUseException) {
+            return ['error' => [__('general.messages.delete_referenced')]];
+        }
+
+        return '1';
+    }
+
+    private function saved(string $message, int $id): RedirectResponse
+    {
+        $alerts = Alert::success(
+            __($message),
+        );
+        $alerts->flash();
+        $this->crud->setSaveAction();
+
+        return $this->crud->performSaveAction($id);
+    }
+
     protected function setupUpdateOperation(): void
     {
         $this->setupCreateOperation();
+        CRUD::modifyField(
+            'user_id',
+            ['attributes' => ['disabled' => 'disabled']],
+        );
     }
 
     /**
