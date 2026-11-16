@@ -45,11 +45,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
 - **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
 
-### Bank factory can generate a seeded bank code
-- **Where:** `database/factories/BankFactory.php`, `database/seeders/ReferenceDataSeeder.php`; seen in `AdminCrudSmokeTest::crud_operations_render_with_a_record` (data set `bank`).
-- **Problem:** the factory draws `code` from `[0-9]{4}` while `banks.code` is unique and the reference data already holds real codes. Faker's `unique()` knows only its own values, so a draw of a seeded code such as `0300` fails the test with a duplicate key (seen 2026-11-02; the next full run passed). `rules/testing.md` requires unique values because seeded data is present.
-- **Fix:** generate a code that cannot match a seeded one (a reserved prefix or a lookup against `banks`), keeping the column's four-digit format; a test creating a bank then always passes.
-
 ### Subscription factory can generate a time skipped by daylight saving
 - **Where:** `database/factories/SubscriptionFactory.php`; columns `starts_at`, `ends_at`, `trial_ends_at` and `next_billing_at` of `subscriptions`.
 - **Problem:** the factory draws these values with `dateTimeBetween()`, and the columns are `timestamp`, which the database converts through its `SYSTEM` time zone. A draw inside the hour skipped by daylight saving, such as `2027-03-28 02:26:41`, is refused as an invalid value and fails an unrelated test (seen 2026-11-04; the next full run passed).

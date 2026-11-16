@@ -24,7 +24,8 @@ class BankFactory extends Factory
 
         return [
             'name' => $this->faker->company() . ' Bank',
-            'code' => $unique->regexify('[0-9]{4}'),
+            // The reference data holds real codes and none starts with 9, so a drawn code never hits banks_code_unique
+            'code' => $unique->regexify('9[0-9]{3}'),
             'swift' => $optional->regexify('[A-Z]{4}CZ[0-9A-Z]{4}'),
             'country' => $this->faker->randomElement([
                 'CZ',
