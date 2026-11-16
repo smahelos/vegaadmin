@@ -9,6 +9,7 @@ use App\Application\Shared\UseCase\Access;
 use App\Application\Shared\UseCase\Contracts\CallsOutsideDatabaseInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\OwnedUseCase;
+use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 
@@ -21,7 +22,7 @@ final readonly class Subscribe extends OwnedUseCase implements CallsOutsideDatab
 {
     public function __construct(
         UserId $owner,
-        public int $planId,
+        public SubscriptionPlanId $planId,
         public string $gateway,
         public string $returnUrl,
         public string $notifyUrl,
@@ -32,6 +33,6 @@ final readonly class Subscribe extends OwnedUseCase implements CallsOutsideDatab
 
     public static function access(): Access
     {
-        return Access::permission(Permission::SUBSCRIPTION_CREATE);
+        return Access::permissionWithOwner(Permission::SUBSCRIPTION_CREATE);
     }
 }

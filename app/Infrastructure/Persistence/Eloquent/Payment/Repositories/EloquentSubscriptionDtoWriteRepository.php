@@ -39,7 +39,9 @@ final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWri
     {
         $subscription = new Subscription;
         $subscription->user_id = $scope->owner->toInt();
-        $this->fill($subscription, $data);
+        $subscription->fill(
+            $this->mapper->toAttributes($data),
+        );
         $subscription->save();
 
         return $this->mapper->toDto($subscription);
@@ -51,7 +53,9 @@ final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWri
         SubscriptionWriteData $data,
     ): SubscriptionDTO {
         $subscription = $this->owned($id, $scope);
-        $this->fill($subscription, $data);
+        $subscription->fill(
+            $this->mapper->toAttributes($data),
+        );
         $subscription->save();
 
         return $this->mapper->toDto($subscription);
@@ -82,22 +86,5 @@ final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWri
 
         return $subscriptionQuery->find($id->value)
             ?? throw new SubscriptionNotFoundException($id->value);
-    }
-
-    private function fill(Subscription $subscription, SubscriptionWriteData $data): void
-    {
-        $subscription->fill(
-            [
-                'subscription_plan_id' => $data->planId,
-                'status' => $data->status->value,
-                'amount' => $data->amount->getAmount(),
-                'currency' => $data->amount->getCurrency(),
-                'starts_at' => $data->starts,
-                'ends_at' => $data->ends,
-                'trial_ends_at' => $data->trialEnds,
-                'next_billing_at' => $data->nextBilling,
-                'metadata' => $data->metadata,
-            ],
-        );
     }
 }

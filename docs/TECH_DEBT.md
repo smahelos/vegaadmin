@@ -145,6 +145,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the reference data creates the Czech rates (0, 12 and 21 %) for every supplier; a supplier from another country would need its own rates.
 - **Fix:** decide with an accountant whether the rates depend on the supplier's country; until then Czech rates only.
 
+### Expense amounts that Money cannot read end with a 500
+- **Where:** `app/Http/Requests/Admin/ExpenseRequest.php` (`amount`, `tax_amount`)
+- **Problem:** `numeric|decimal:0,2` accepts `.50` and `+50`, but `Money::fromString()` reads only plain decimals and throws, so the admin expense store and update answer 500 instead of a validation error. Found 2026-11-16 with the same fix in the admin subscription request (phase 6a of step 11).
+- **Fix:** the amount rule the subscription request uses (`regex:/^\d+(\.\d{1,2})?$/`), with an HTTP test of the refused formats.
+
 ## Step 14: Sending invoices
 
 ### Invoices cannot be sent by email
@@ -448,7 +453,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** check the permission where its action exists, or remove it with a migration if the action is not planned.
 
 ### A zero id in the URL ends with a 500
-- **Where:** routes with `whereNumber` whose controller builds an id value object (`ProductId::fromInt`, `InvoiceId`, `BusinessId`, `ContactId`, `SubscriptionId`, …) in `routes/web.php` and `app/Http/Controllers/Frontend`
+- **Where:** routes with `whereNumber` whose controller builds an id value object (`ProductId::fromInt`, `InvoiceId`, `BusinessId`, `ContactId`, `SubscriptionId`, `SubscriptionPlanId`, …) in `routes/web.php` and `app/Http/Controllers/Frontend`
 - **Problem:** `whereNumber` accepts `0`, the value object throws `InvalidArgumentException` for it, and `ExceptionHandling` does not map it, so `/…/0` answers 500 instead of 404. Found 2026-11-14 in the review of phase 6a of step 11.
 - **Fix:** one rule for every id parameter (a positive-number route pattern, or a specific exception of the id value objects mapped to 404), with a test per route group.
 

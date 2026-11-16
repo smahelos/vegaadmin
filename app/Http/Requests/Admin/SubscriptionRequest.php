@@ -6,6 +6,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\Payment\DTO\SubscriptionWriteData;
 use App\Domain\Payment\Enums\SubscriptionStatus;
+use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
@@ -30,7 +31,8 @@ final class SubscriptionRequest extends FormRequest
             'ends_at' => 'nullable|date|after:starts_at',
             'trial_ends_at' => 'nullable|date',
             'next_billing_at' => 'nullable|date',
-            'amount' => 'required|numeric|min:0|max:999999.99',
+            // Only the plain decimals Money reads: `numeric` alone accepts `1e2`, `.50` and `+50`
+            'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/|min:0|max:999999.99',
             'currency' => 'required|string|in:CZK,EUR,USD',
             'metadata' => 'nullable|string|max:2000',
         ];
@@ -67,7 +69,7 @@ final class SubscriptionRequest extends FormRequest
         $data = $this->validated();
 
         return new SubscriptionWriteData(
-            (int) $data['subscription_plan_id'],
+            SubscriptionPlanId::fromInt((int) $data['subscription_plan_id']),
             SubscriptionStatus::from($data['status']),
             Money::fromString(
                 (string) $data['amount'],

@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Payment\Repositories;
 
 use App\Domain\Payment\Contracts\SubscriptionPlanReadRepositoryInterface;
 use App\Domain\Payment\DTO\SubscriptionPlanDTO;
+use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentSubscriptionMapper;
 use App\Models\SubscriptionPlan;
 
@@ -15,9 +16,9 @@ final class EloquentSubscriptionPlanReadRepository implements SubscriptionPlanRe
         private readonly EloquentSubscriptionMapper $mapper,
     ) {}
 
-    public function findById(int $id): ?SubscriptionPlanDTO
+    public function findById(SubscriptionPlanId $id): ?SubscriptionPlanDTO
     {
-        $plan = SubscriptionPlan::find($id);
+        $plan = SubscriptionPlan::find($id->value);
 
         return $plan === null ? null : $this->mapper->toPlanDto($plan);
     }

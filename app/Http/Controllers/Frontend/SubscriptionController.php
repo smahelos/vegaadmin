@@ -12,6 +12,7 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Payment\Exceptions\ActiveSubscriptionExistsException;
 use App\Domain\Payment\ValueObjects\SubscriptionId;
+use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Payment\SubscribeRequest;
@@ -83,7 +84,7 @@ final class SubscriptionController extends Controller
                 Actor::user($owner),
                 new Subscribe(
                     $owner,
-                    $plan,
+                    SubscriptionPlanId::fromInt($plan),
                     $request->gateway(),
                     $returnUrl,
                     $notifyUrl,

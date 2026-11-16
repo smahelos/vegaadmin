@@ -9,6 +9,7 @@ use App\Models\Permission as PermissionModel;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -379,6 +380,44 @@ final class SubscriptionCrudControllerTest extends TestCase
 
         $response->assertStatus(422); // Validation error
         $response->assertJsonValidationErrors(['amount']);
+    }
+
+    #[Test]
+    #[DataProvider('amountsMoneyCannotReadProvider')]
+    public function create_refuses_an_amount_money_cannot_read(string $amount): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $subscriptionPlanFactory = SubscriptionPlan::factory();
+        $plan = $subscriptionPlanFactory->create();
+
+        $response = $this->postJson(
+            '/admin/subscription',
+            [
+                'user_id' => $user->id,
+                'subscription_plan_id' => $plan->id,
+                'status' => 'pending',
+                'amount' => $amount,
+                'currency' => 'CZK',
+            ],
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors(['amount']);
+    }
+
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function amountsMoneyCannotReadProvider(): array
+    {
+        return [
+            'exponent' => ['1e2'],
+            'no integer part' => ['.50'],
+            'plus sign' => ['+50'],
+        ];
     }
 
     #[Test]

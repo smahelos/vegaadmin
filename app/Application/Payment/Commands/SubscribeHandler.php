@@ -35,9 +35,9 @@ final class SubscribeHandler
     public function handle(Subscribe $command, WriteScope $scope): SubscriptionPaymentResultDTO
     {
         $plan = $this->plans->findById($command->planId)
-            ?? throw new SubscriptionPlanNotFoundException($command->planId);
+            ?? throw new SubscriptionPlanNotFoundException($command->planId->value);
         $subscription = $this->transactions->transaction(
-            function () use ($scope, $plan): SubscriptionDTO {
+            function () use ($command, $scope, $plan): SubscriptionDTO {
                 if ($this->subscriptions->findActive($scope->read) !== null) {
                     throw new ActiveSubscriptionExistsException;
                 }
@@ -45,7 +45,7 @@ final class SubscribeHandler
                 return $this->subscriptionWriter->create(
                     $scope,
                     new SubscriptionWriteData(
-                        $plan->id,
+                        $command->planId,
                         SubscriptionStatus::PENDING,
                         $plan->amount,
                     ),

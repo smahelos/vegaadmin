@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Payment\Mappers;
 
 use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Payment\DTO\SubscriptionPlanDTO;
+use App\Domain\Payment\DTO\SubscriptionWriteData;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -45,6 +46,24 @@ final class EloquentSubscriptionMapper
                 'created_at' => $createdAt?->toDateTimeString(),
             ],
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toAttributes(SubscriptionWriteData $data): array
+    {
+        return [
+            'subscription_plan_id' => $data->planId->value,
+            'status' => $data->status->value,
+            'amount' => $data->amount->getAmount(),
+            'currency' => $data->amount->getCurrency(),
+            'starts_at' => $data->starts,
+            'ends_at' => $data->ends,
+            'trial_ends_at' => $data->trialEnds,
+            'next_billing_at' => $data->nextBilling,
+            'metadata' => $data->metadata,
+        ];
     }
 
     public function toPlanDto(SubscriptionPlan $plan): SubscriptionPlanDTO
