@@ -15,7 +15,8 @@
         <x-entity-usage :entity="$entity" />
     @endforeach
 </div>
-<div class="grid grid-cols-1 gap-6 dashboard-stats-container">
+<div @class(['grid grid-cols-1 gap-6', 'dashboard-stats-container' => $dashboard !== null])>
+    @if ($dashboard !== null)
     <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-8 dark:shadow-gray-900/30 dark:bg-gray-800">
         <div class="p-3">
             <div class="p-3">
@@ -185,6 +186,7 @@
             </div>
         </div>
     </div>
+    @endif
     <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-10 dark:shadow-gray-900/30 dark:bg-gray-800">
         <div class="p-3">
             <div class="p-5">
@@ -230,6 +232,7 @@
 </div>
 @endsection
 
+@if ($dashboard !== null)
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -289,3 +292,4 @@
     });
 </script>
 @endpush
+@endif

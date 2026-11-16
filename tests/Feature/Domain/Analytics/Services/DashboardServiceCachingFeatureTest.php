@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\User\Events\UserDataChanged;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Contact;
@@ -12,6 +11,7 @@ use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Contracts\Events\Dispatcher;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\ReadsDashboard;
 use Tests\TestCase;
 
 /**
@@ -19,12 +19,11 @@ use Tests\TestCase;
  */
 final class DashboardServiceCachingFeatureTest extends TestCase
 {
-    private AnalyticsDashboardService $service;
+    use ReadsDashboard;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->service = app(AnalyticsDashboardService::class);
     }
 
     #[Test]
@@ -32,6 +31,7 @@ final class DashboardServiceCachingFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
@@ -44,9 +44,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         );
 
         // Warm cache
-        $statsInitial = $this->service->getUserStatistics(
+        $statsInitial = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(1, $statsInitial->invoiceCount);
 
         // Create another invoice AFTER cache warmed
@@ -59,9 +59,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         );
 
         // Second invoice should bump count immediately (observer dispatches UserDataChanged internally)
-        $statsAfterSecond = $this->service->getUserStatistics(
+        $statsAfterSecond = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(2, $statsAfterSecond->invoiceCount);
 
         // Third invoice likewise -> immediate 3
@@ -72,9 +72,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
                 'payment_amount' => 5,
             ],
         );
-        $statsAfterThird = $this->service->getUserStatistics(
+        $statsAfterThird = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(3, $statsAfterThird->invoiceCount);
 
         // Manual dispatch is idempotent (no change in counts)
@@ -82,9 +82,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $dispatcher->dispatch(
             new UserDataChanged($user->id, 'invoice'),
         );
-        $statsAfterManual = $this->service->getUserStatistics(
+        $statsAfterManual = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(3, $statsAfterManual->invoiceCount);
     }
 
@@ -93,7 +93,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $userA = $userFactory->create();
+        $userA->assignRole('frontend_user');
         $userB = $userFactory->create();
+        $userB->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contactA = $contactFactory->create(['user_id' => $userA->id]);
         $contactB = $contactFactory->create(['user_id' => $userB->id]);
@@ -107,9 +109,9 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         );
 
         // Warm cache for user A only
-        $statsA1 = $this->service->getUserStatistics(
+        $statsA1 = $this->dashboardOf(
             UserId::fromInt($userA->id),
-        );
+        )->statistics;
         $this->assertSame(1, $statsA1->invoiceCount);
 
         // Add invoice for user B (no cache yet) and second for A (stale cache)
@@ -129,15 +131,15 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         );
 
         // User A was updated -> invoice observer invalidated cache so count now 2
-        $statsA2 = $this->service->getUserStatistics(
+        $statsA2 = $this->dashboardOf(
             UserId::fromInt($userA->id),
-        );
+        )->statistics;
         $this->assertSame(2, $statsA2->invoiceCount);
 
         // User B first fetch (no prior warm) -> should show 1 directly
-        $statsB1 = $this->service->getUserStatistics(
+        $statsB1 = $this->dashboardOf(
             UserId::fromInt($userB->id),
-        );
+        )->statistics;
         $this->assertSame(1, $statsB1->invoiceCount);
 
         // Manual dispatch does not change counts further
@@ -145,15 +147,15 @@ final class DashboardServiceCachingFeatureTest extends TestCase
         $dispatcher->dispatch(
             new UserDataChanged($userA->id, 'invoice'),
         );
-        $statsA3 = $this->service->getUserStatistics(
+        $statsA3 = $this->dashboardOf(
             UserId::fromInt($userA->id),
-        );
+        )->statistics;
         $this->assertSame(2, $statsA3->invoiceCount);
 
         // User B unaffected (still 1)
-        $statsB2 = $this->service->getUserStatistics(
+        $statsB2 = $this->dashboardOf(
             UserId::fromInt($userB->id),
-        );
+        )->statistics;
         $this->assertSame(1, $statsB2->invoiceCount);
     }
 }

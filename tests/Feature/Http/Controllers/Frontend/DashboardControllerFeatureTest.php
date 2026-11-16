@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Enums\Permission;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
@@ -53,6 +55,8 @@ final class DashboardControllerFeatureTest extends TestCase
         $httpResponse = $httpResponse->assertSee('My own business');
         $httpResponse = $httpResponse->assertSee('My contact');
         $httpResponse = $httpResponse->assertDontSee('Private other contact');
+        $httpResponse = $httpResponse->assertSee('npm/chart.js', false);
+        $httpResponse = $httpResponse->assertSee('dashboard-stats-container', false);
         $httpResponse->assertViewHas(
             'dashboard',
             fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
@@ -96,5 +100,31 @@ final class DashboardControllerFeatureTest extends TestCase
         $httpResponse = $httpResponse->assertSee('id="stats-date-from"', false);
         $httpResponse = $httpResponse->assertDontSee('id="stats-contact-filter"', false);
         $httpResponse->assertViewHas('dashboard', fn ($dashboard): bool => $dashboard->contacts === []);
+    }
+
+    #[Test]
+    public function a_user_without_statistics_permission_sees_the_dashboard_without_statistics(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->givePermissionTo(
+            Permission::INVOICE_CREATE,
+            Permission::INVOICE_VIEW,
+            Permission::CONTACT_VIEW,
+        );
+        $contactFactory = Contact::factory();
+        $contactFactory->create(['user_id' => $user->id, 'name' => 'My contact']);
+
+        $httpClient = $this->actingAs($user);
+        $httpResponse = $httpClient->get(
+            route('frontend.dashboard', ['locale' => 'cs']),
+        );
+        $httpResponse = $httpResponse->assertOk();
+        $httpResponse = $httpResponse->assertSee('My contact');
+        $httpResponse = $httpResponse->assertDontSee('id="stats-timerange"', false);
+        $httpResponse = $httpResponse->assertDontSee('id="invoicesChart"', false);
+        $httpResponse = $httpResponse->assertDontSee('npm/chart.js', false);
+        $httpResponse = $httpResponse->assertDontSee('dashboard-stats-container', false);
+        $httpResponse->assertViewHas('dashboard', null);
     }
 }

@@ -7,8 +7,8 @@ namespace App\Domain\Analytics\Services;
 use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
 use App\Domain\Analytics\DTO\CustomerTotalDTO;
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
-use App\Domain\User\ValueObjects\UserId;
 
 final class DashboardService
 {
@@ -17,24 +17,24 @@ final class DashboardService
         private readonly AnalyticsReadRepositoryInterface $analytics,
     ) {}
 
-    public function getUserStatistics(UserId $userId): UserStatisticsDTO
+    public function getUserStatistics(ReadScope $scope): UserStatisticsDTO
     {
         return $this->cacheService->remember(
-            'analytics:user:' . $userId->toInt() . ':stats',
-            fn (): UserStatisticsDTO => $this->analytics->getUserStats($userId),
+            'analytics:user:' . $scope->owner->toInt() . ':stats',
+            fn (): UserStatisticsDTO => $this->analytics->getUserStats($scope),
             600,
-            ['analytics.user.' . $userId->toInt()],
+            ['analytics.user.' . $scope->owner->toInt()],
         );
     }
 
     /** @return list<CustomerTotalDTO> */
-    public function getCustomersWithInvoiceTotals(UserId $userId): array
+    public function getCustomersWithInvoiceTotals(ReadScope $scope): array
     {
         return $this->cacheService->remember(
-            'analytics:user:' . $userId->toInt() . ':customers',
-            fn (): array => $this->analytics->getCustomersWithTotals($userId),
+            'analytics:user:' . $scope->owner->toInt() . ':customers',
+            fn (): array => $this->analytics->getCustomersWithTotals($scope),
             600,
-            ['analytics.user.' . $userId->toInt()],
+            ['analytics.user.' . $scope->owner->toInt()],
         );
     }
 

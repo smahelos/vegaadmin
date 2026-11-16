@@ -4,25 +4,33 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
-use App\Domain\Analytics\Services\DashboardService;
+use App\Application\Analytics\Queries\GetCustomerRevenue;
+use App\Application\Analytics\Queries\GetDashboard;
+use App\Application\Analytics\Queries\GetMonthlyRevenue;
+use App\Domain\Analytics\DTO\CustomerTotalDTO;
+use App\Domain\Analytics\DTO\StatisticsFilter;
+use App\Domain\Analytics\Enums\StatisticsPeriod;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\ValueObjects\UserId;
-use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentApiStatisticsRepository;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class CustomerRevenueTest extends TestCase
 {
+    use RunsUseCases;
+
     #[Test]
     public function groups_archived_contacts_and_one_off_customers_without_losing_or_merging_identities(): void
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $businessFactory = Business::factory();
         $archivedBusinessFactory = $businessFactory->archived();
         $business = $archivedBusinessFactory->create(['user_id' => $user->id]);
@@ -75,12 +83,12 @@ final class CustomerRevenueTest extends TestCase
         }
         $invoiceFactory->create(['issue_date' => '2026-10-20', 'payment_amount' => '9999']);
         $uid = UserId::fromInt($user->id);
-        $repository = app(EloquentApiStatisticsRepository::class);
-        $rows = $repository->customerRevenue(
+        $rows = $this->runAs(
             $uid,
-            new DateTimeImmutable('2026-10-01'),
-            null,
-            [],
+            new GetCustomerRevenue(
+                $uid,
+                $this->since('2026-10-01'),
+            ),
         );
 
         $this->assertCount(6, $rows);
@@ -97,17 +105,24 @@ final class CustomerRevenueTest extends TestCase
             ],
             array_column($rows, 'total'),
         );
-        $filtered = $repository->customerRevenue(
+        $filtered = $this->runAs(
             $uid,
-            new DateTimeImmutable('2026-10-01'),
-            null,
-            [ContactId::fromInt($contact->id)],
+            new GetCustomerRevenue(
+                $uid,
+                $this->since(
+                    '2026-10-01',
+                    [ContactId::fromInt($contact->id)],
+                ),
+            ),
         );
         $this->assertCount(1, $filtered);
         $this->assertSame('30.03', $filtered[0]['total']);
 
-        $dashboard = app(DashboardService::class);
-        $statistics = $dashboard->getUserStatistics($uid);
+        $dashboard = $this->runAs(
+            $uid,
+            new GetDashboard($uid),
+        );
+        $statistics = $dashboard->statistics;
         $this->assertSame(
             '37.95',
             $statistics->totalAmount->getAmount(),
@@ -120,15 +135,20 @@ final class CustomerRevenueTest extends TestCase
             1,
             $statistics->contactCount,
         );
-        $this->assertCount(
-            6,
-            $dashboard->getCustomersWithInvoiceTotals($uid),
+        // The contact filter offers only stored contacts, not the one-off customers
+        $this->assertSame(
+            [$contact->id],
+            array_map(
+                static fn (CustomerTotalDTO $customer): ?int => $customer->contactId?->value,
+                $dashboard->contacts,
+            ),
         );
-        $months = $repository->monthlyRevenue(
+        $months = $this->runAs(
             $uid,
-            new DateTimeImmutable('2026-10-01'),
-            null,
-            [],
+            new GetMonthlyRevenue(
+                $uid,
+                $this->since('2026-10-01'),
+            ),
         );
         $this->assertSame('37.95', $months[0]['total']);
     }
@@ -164,5 +184,16 @@ final class CustomerRevenueTest extends TestCase
             $response->assertOk();
             $response->assertExactJson(['data' => []]);
         }
+    }
+
+    /** @param  list<ContactId>  $contactIds */
+    private function since(string $from, array $contactIds = []): StatisticsFilter
+    {
+        return new StatisticsFilter(
+            StatisticsPeriod::YEAR,
+            new DateTimeImmutable($from),
+            null,
+            $contactIds,
+        );
     }
 }
