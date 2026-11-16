@@ -11,7 +11,6 @@ use App\Application\Party\Commands\CreateContact;
 use App\Application\Party\Commands\RestoreBusiness;
 use App\Application\Party\Commands\RestoreContact;
 use App\Application\Party\Commands\UpdateContact;
-use App\Domain\Analytics\Services\DashboardService;
 use App\Domain\Party\DTO\BusinessWriteData;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Models\Invoice;
@@ -19,12 +18,14 @@ use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
 use Tests\Support\BuildsParties;
+use Tests\Support\ReadsDashboard;
 use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class PartyDashboardInvalidationTest extends TestCase
 {
     use BuildsParties;
+    use ReadsDashboard;
     use RunsUseCases;
 
     #[Test]
@@ -32,11 +33,9 @@ final class PartyDashboardInvalidationTest extends TestCase
     {
         $owner = $this->frontendUser();
         $other = $this->frontendUser();
-        $dashboard = app(DashboardService::class);
         $uid = $this->idOf($owner);
-        $dashboard->getUserStatistics($uid);
-        $dashboard->getCustomersWithInvoiceTotals($uid);
-        $dashboard->getUserStatistics(
+        $this->dashboardOf($uid);
+        $this->dashboardOf(
             $this->idOf($other),
         );
         $invoiceFactory = Invoice::factory();
@@ -66,15 +65,15 @@ final class PartyDashboardInvalidationTest extends TestCase
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->contactCount,
+            $this->dashboardOf($uid)->statistics->contactCount,
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->businessCount,
+            $this->dashboardOf($uid)->statistics->businessCount,
         );
         $this->assertSame(
             'First name',
-            $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
+            $this->dashboardOf($uid)->contacts[0]->customerName,
         );
         $this->runAs(
             $uid,
@@ -89,7 +88,7 @@ final class PartyDashboardInvalidationTest extends TestCase
         );
         $this->assertSame(
             'Renamed contact',
-            $dashboard->getCustomersWithInvoiceTotals($uid)[0]->customerName,
+            $this->dashboardOf($uid)->contacts[0]->customerName,
         );
         $this->runAs(
             $uid,
@@ -105,11 +104,11 @@ final class PartyDashboardInvalidationTest extends TestCase
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->contactCount,
+            $this->dashboardOf($uid)->statistics->contactCount,
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->businessCount,
+            $this->dashboardOf($uid)->statistics->businessCount,
         );
         $this->runAs(
             $uid,
@@ -121,13 +120,13 @@ final class PartyDashboardInvalidationTest extends TestCase
         );
         $this->assertSame(
             1,
-            $dashboard->getUserStatistics($uid)->contactCount,
+            $this->dashboardOf($uid)->statistics->contactCount,
         );
         $this->assertSame(
             0,
-            $dashboard->getUserStatistics(
+            $this->dashboardOf(
                 $this->idOf($other),
-            )->invoiceCount,
+            )->statistics->invoiceCount,
         );
     }
 
@@ -136,8 +135,7 @@ final class PartyDashboardInvalidationTest extends TestCase
     {
         $user = $this->frontendUser();
         $uid = $this->idOf($user);
-        $dashboard = app(DashboardService::class);
-        $dashboard->getUserStatistics($uid);
+        $this->dashboardOf($uid);
         $invoiceFactory = Invoice::factory();
         Invoice::withoutEvents(
             fn () => $invoiceFactory->create(['user_id' => $user->id]),
@@ -164,7 +162,7 @@ final class PartyDashboardInvalidationTest extends TestCase
         $this->assertDatabaseMissing('contacts', ['user_id' => $user->id, 'name' => 'Rolled back']);
         $this->assertSame(
             0,
-            $dashboard->getUserStatistics($uid)->invoiceCount,
+            $this->dashboardOf($uid)->statistics->invoiceCount,
         );
     }
 }

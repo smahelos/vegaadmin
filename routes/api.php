@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Application\Analytics\Queries\GetCustomerRevenue;
+use App\Application\Analytics\Queries\GetInvoiceStatus;
+use App\Application\Analytics\Queries\GetMonthlyRevenue;
+use App\Application\Analytics\Queries\GetPaymentMethods;
+use App\Application\Analytics\Queries\GetRevenueExpenses;
 use App\Application\User\Queries\SearchUsers;
 use App\Http\Controllers\Api\CountryController;
 use App\Http\Controllers\Api\CurrencyController;
@@ -41,17 +46,22 @@ $registrar = Route::middleware(['api.require.frontend', 'refresh.frontend.sessio
 $registrar->name('api.');
 $registrar->group(
     function (): void {
-        // Dashboard charts
+        // Dashboard charts; each route names the Query its action runs: change them together
         $route = Route::get('/statistics/monthly-revenue', [StatisticsController::class, 'monthlyRevenue']);
         $route->name('statistics.monthly-revenue');
+        $route->middleware('allowed:' . GetMonthlyRevenue::class);
         $route = Route::get('/statistics/customer-revenue', [StatisticsController::class, 'customerRevenue']);
         $route->name('statistics.customer-revenue');
+        $route->middleware('allowed:' . GetCustomerRevenue::class);
         $route = Route::get('/statistics/invoice-status', [StatisticsController::class, 'invoiceStatus']);
         $route->name('statistics.invoice-status');
+        $route->middleware('allowed:' . GetInvoiceStatus::class);
         $route = Route::get('/statistics/payment-methods', [StatisticsController::class, 'paymentMethods']);
         $route->name('statistics.payment-methods');
+        $route->middleware('allowed:' . GetPaymentMethods::class);
         $route = Route::get('/statistics/revenue-expenses', [StatisticsController::class, 'revenueExpenses']);
         $route->name('statistics.revenue-expenses');
+        $route->middleware('allowed:' . GetRevenueExpenses::class);
     },
 );
 

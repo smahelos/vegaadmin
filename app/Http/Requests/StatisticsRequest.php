@@ -7,21 +7,12 @@ namespace App\Http\Requests;
 use App\Domain\Analytics\DTO\StatisticsFilter;
 use App\Domain\Analytics\Enums\StatisticsPeriod;
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\Enums\Permission;
-use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 final class StatisticsRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = $this->user('web');
-
-        return $user?->can(Permission::STATISTICS_VIEW) === true;
-    }
-
     /**
      * @return array<string, mixed>
      */
@@ -55,13 +46,6 @@ final class StatisticsRequest extends FormRequest
             'contacts' => __('dashboard.filters.contacts'),
             'contacts.*' => __('dashboard.filters.contacts'),
         ];
-    }
-
-    public function userId(): UserId
-    {
-        return UserId::fromInt(
-            $this->user('web')->id,
-        );
     }
 
     public function filter(): StatisticsFilter

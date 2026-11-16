@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Analytics\Contracts;
 
 use App\Domain\Party\ValueObjects\ContactId;
-use App\Domain\User\ValueObjects\UserId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use DateTimeImmutable;
 
 /**
@@ -20,7 +20,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function monthlyRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
@@ -33,7 +33,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function customerRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
@@ -44,7 +44,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function revenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
@@ -54,7 +54,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function expenses(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
     ): array;
@@ -64,7 +64,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function invoiceStatus(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
@@ -75,7 +75,7 @@ interface ApiStatisticsRepository
      * @return list<array<string, mixed>>
      */
     public function paymentMethods(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,

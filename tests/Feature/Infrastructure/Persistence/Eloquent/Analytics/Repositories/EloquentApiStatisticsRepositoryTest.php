@@ -4,9 +4,17 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 
+use App\Application\Analytics\Queries\GetCustomerRevenue;
+use App\Application\Analytics\Queries\GetInvoiceStatus;
+use App\Application\Analytics\Queries\GetMonthlyRevenue;
+use App\Application\Analytics\Queries\GetPaymentMethods;
+use App\Application\Analytics\Queries\GetRevenueExpenses;
+use App\Application\Shared\UseCase\Contracts\QueryInterface;
+use App\Domain\Analytics\DTO\StatisticsFilter;
+use App\Domain\Analytics\Enums\StatisticsPeriod;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\ValueObjects\UserId;
-use App\Infrastructure\Persistence\Eloquent\Analytics\Repositories\EloquentApiStatisticsRepository;
 use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -16,13 +24,14 @@ use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\Fakes\Shared\FixedClock;
+use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 final class EloquentApiStatisticsRepositoryTest extends TestCase
 {
-    private EloquentApiStatisticsRepository $repository;
+    use RunsUseCases;
 
-    private User $user;
+    private UserId $owner;
 
     private Contact $client;
 
@@ -33,12 +42,14 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         parent::setUp();
 
         // The pending invoice below is due on this day
-        $this->repository = $this->repositoryOn('2026-02-03');
+        $this->today('2026-02-03');
         $userFactory = User::factory();
-        $this->user = $userFactory->create();
+        $user = $userFactory->create();
+        $user->assignRole('frontend_user');
+        $this->owner = UserId::fromInt($user->id);
         $contactFactory = Contact::factory();
-        $this->client = $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Alfa']);
-        $this->otherClient = $contactFactory->create(['user_id' => $this->user->id, 'name' => 'Beta']);
+        $this->client = $contactFactory->create(['user_id' => $user->id, 'name' => 'Alfa']);
+        $this->otherClient = $contactFactory->create(['user_id' => $user->id, 'name' => 'Beta']);
 
         $this->invoice(
             $this->client,
@@ -76,11 +87,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function monthly_revenue_sums_the_users_invoices_in_the_range_by_month(): void
     {
-        $rows = $this->repository->monthlyRevenue(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            new DateTimeImmutable('2026-02-28'),
-            [],
+        $rows = $this->statistics(
+            new GetMonthlyRevenue(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    new DateTimeImmutable('2026-02-28'),
+                    [],
+                ),
+            ),
         );
 
         $this->assertSame(
@@ -103,11 +118,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function client_filter_limits_every_invoice_query(): void
     {
-        $rows = $this->repository->revenue(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            null,
-            [ContactId::fromInt($this->otherClient->id)],
+        $rows = $this->statistics(
+            new GetRevenueExpenses(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    null,
+                    [ContactId::fromInt($this->otherClient->id)],
+                ),
+            ),
         );
 
         $this->assertSame(
@@ -125,11 +144,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function customer_revenue_ranks_customers_by_total(): void
     {
-        $rows = $this->repository->customerRevenue(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            null,
-            [],
+        $rows = $this->statistics(
+            new GetCustomerRevenue(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    null,
+                    [],
+                ),
+            ),
         );
 
         $this->assertSame(
@@ -152,11 +175,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function invoice_status_counts_invoices_per_status(): void
     {
-        $rows = $this->repository->invoiceStatus(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            null,
-            [],
+        $rows = $this->statistics(
+            new GetInvoiceStatus(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    null,
+                    [],
+                ),
+            ),
         );
 
         $counts = array_column(
@@ -175,12 +202,16 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function invoice_status_counts_unpaid_invoices_past_their_due_date_as_overdue(): void
     {
-        $repository = $this->repositoryOn('2026-02-04');
-        $rows = $repository->invoiceStatus(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            null,
-            [],
+        $this->today('2026-02-04');
+        $rows = $this->statistics(
+            new GetInvoiceStatus(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    null,
+                    [],
+                ),
+            ),
         );
 
         $counts = array_column(
@@ -199,11 +230,15 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
     #[Test]
     public function payment_methods_sum_invoices_per_method(): void
     {
-        $rows = $this->repository->paymentMethods(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            null,
-            [],
+        $rows = $this->statistics(
+            new GetPaymentMethods(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    null,
+                    [],
+                ),
+            ),
         );
 
         $this->assertCount(1, $rows);
@@ -218,31 +253,36 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         $expenseFactory = Expense::factory();
         $expenseFactory->create(
             [
-                'user_id' => $this->user->id,
+                'user_id' => $this->owner->toInt(),
                 'expense_date' => '2026-01-03',
                 'amount' => 120,
             ],
         );
         $expenseFactory->create(
             [
-                'user_id' => $this->user->id,
+                'user_id' => $this->owner->toInt(),
                 'expense_date' => '2026-01-28',
                 'amount' => 80,
             ],
         );
         $expenseFactory->create(
             [
-                'user_id' => $this->user->id,
+                'user_id' => $this->owner->toInt(),
                 'expense_date' => '2026-03-01',
                 'amount' => 50,
             ],
         );
         $expenseFactory->create(['expense_date' => '2026-01-10', 'amount' => 999]);
 
-        $rows = $this->repository->expenses(
-            UserId::fromInt($this->user->id),
-            new DateTimeImmutable('2026-01-01'),
-            new DateTimeImmutable('2026-02-28'),
+        $rows = $this->statistics(
+            new GetRevenueExpenses(
+                $this->owner,
+                $this->filter(
+                    new DateTimeImmutable('2026-01-01'),
+                    new DateTimeImmutable('2026-02-28'),
+                    [],
+                ),
+            ),
         );
 
         $this->assertSame(
@@ -253,16 +293,49 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
                     'type' => 'expense',
                 ],
             ],
-            $this->numeric($rows, ['amount']),
+            $this->numeric(
+                array_values(
+                    array_filter(
+                        $rows,
+                        static fn (array $row): bool => $row['type'] === 'expense',
+                    ),
+                ),
+                ['amount'],
+            ),
         );
     }
 
-    private function repositoryOn(string $today): EloquentApiStatisticsRepository
+    private function today(string $date): void
     {
-        return new EloquentApiStatisticsRepository(
+        $application = app();
+        $application->instance(
+            ClockInterface::class,
             new FixedClock(
-                new DateTimeImmutable($today),
+                new DateTimeImmutable($date),
             ),
+        );
+    }
+
+    /**
+     * @param  QueryInterface<list<array<string, mixed>>>  $query
+     * @return list<array<string, mixed>>
+     */
+    private function statistics(QueryInterface $query): array
+    {
+        return $this->runAs($this->owner, $query);
+    }
+
+    /** @param  list<ContactId>  $contactIds */
+    private function filter(
+        DateTimeImmutable $from,
+        ?DateTimeImmutable $to,
+        array $contactIds,
+    ): StatisticsFilter {
+        return new StatisticsFilter(
+            StatisticsPeriod::YEAR,
+            $from,
+            $to,
+            $contactIds,
         );
     }
 

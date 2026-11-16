@@ -79,6 +79,20 @@ final class StatisticsControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function user_without_statistics_permission_gets_403_before_validation(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->givePermissionTo(Permission::API_ACCESS);
+
+        $httpClient = $this->actingAs($user, 'web');
+        $httpResponse = $httpClient->getJson(
+            route('api.statistics.monthly-revenue', ['time_range' => '6month']),
+        );
+        $httpResponse->assertForbidden();
+    }
+
+    #[Test]
     #[DataProvider('routes')]
     public function queries_only_the_statistics_of_the_signed_in_user(string $route): void
     {
@@ -92,7 +106,7 @@ final class StatisticsControllerFeatureTest extends TestCase
 
         $this->assertNotEmpty($this->statistics->calls);
         foreach ($this->statistics->calls as $call) {
-            $this->assertSame($user->id, $call['userId']->toInt());
+            $this->assertSame($user->id, $call['owner']->toInt());
         }
     }
 

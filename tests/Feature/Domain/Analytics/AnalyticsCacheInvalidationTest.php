@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Analytics;
 
-use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
 use App\Domain\Analytics\Services\DashboardService;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\User\ValueObjects\UserId;
@@ -13,10 +12,13 @@ use App\Models\Invoice;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\ReadsDashboard;
 use Tests\TestCase;
 
 final class AnalyticsCacheInvalidationTest extends TestCase
 {
+    use ReadsDashboard;
+
     /** Simple in-memory tagged cache fake for deterministic behavior. */
     private array $store = [];
 
@@ -125,12 +127,16 @@ final class AnalyticsCacheInvalidationTest extends TestCase
     #[Test]
     public function invalidate_user_cache_flushes_and_recomputes_statistics(): void
     {
-        $cache = $this->makeFakeCacheService();
-        $repo = app(AnalyticsReadRepositoryInterface::class);
-        // Instantiate service directly to eliminate container timing side-effects
-        $service = new DashboardService($cache, $repo);
+        $application = app();
+        $application->instance(
+            CacheServiceInterface::class,
+            $this->makeFakeCacheService(),
+        );
+        $service = app(DashboardService::class);
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
+        $owner = UserId::fromInt($user->id);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
@@ -144,22 +150,20 @@ final class AnalyticsCacheInvalidationTest extends TestCase
             ],
         );
         // Warm cache (stats only for isolation)
-        $stats1 = $service->getUserStatistics(
-            UserId::fromInt($user->id),
-        );
+        $stats1 = $this->dashboardOf($owner)->statistics;
         $this->assertEquals(1, $stats1->invoiceCount);
-        // Add new invoice (cached value should remain stale until invalidation)
-        $invoiceFactory->create(
-            [
-                'user_id' => $user->id,
-                'contact_id' => $contact->id,
-                'payment_amount' => 50.00,
-                'issue_date' => $now->subDays(5),
-            ],
+        // Add new invoice without its invalidating event: the cached value stays stale until invalidation
+        Invoice::withoutEvents(
+            fn () => $invoiceFactory->create(
+                [
+                    'user_id' => $user->id,
+                    'contact_id' => $contact->id,
+                    'payment_amount' => 50.00,
+                    'issue_date' => $now->subDays(5),
+                ],
+            ),
         );
-        $statsCached = $service->getUserStatistics(
-            UserId::fromInt($user->id),
-        );
+        $statsCached = $this->dashboardOf($owner)->statistics;
         $this->assertEquals(
             1,
             $statsCached->invoiceCount,
@@ -168,9 +172,7 @@ final class AnalyticsCacheInvalidationTest extends TestCase
 
         // Invalidate & recompute
         $service->invalidateUserCache($user->id);
-        $statsFresh = $service->getUserStatistics(
-            UserId::fromInt($user->id),
-        );
+        $statsFresh = $this->dashboardOf($owner)->statistics;
         $this->assertEquals(
             2,
             $statsFresh->invoiceCount,

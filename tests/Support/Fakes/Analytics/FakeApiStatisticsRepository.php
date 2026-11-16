@@ -6,6 +6,7 @@ namespace Tests\Support\Fakes\Analytics;
 
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
@@ -15,18 +16,18 @@ use DateTimeImmutable;
  */
 final class FakeApiStatisticsRepository implements ApiStatisticsRepository
 {
-    /** @var list<array{method: string, userId: UserId, from: DateTimeImmutable, to: ?DateTimeImmutable, contactIds: list<ContactId>}> */
+    /** @var list<array{method: string, owner: UserId, from: DateTimeImmutable, to: ?DateTimeImmutable, contactIds: list<ContactId>}> */
     public array $calls = [];
 
     public function monthlyRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -40,14 +41,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function customerRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -61,14 +62,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function revenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -89,13 +90,13 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function expenses(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             [],
@@ -109,14 +110,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function invoiceStatus(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -129,14 +130,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function paymentMethods(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $this->record(
             __FUNCTION__,
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -155,14 +156,14 @@ final class FakeApiStatisticsRepository implements ApiStatisticsRepository
      */
     private function record(
         string $method,
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): void {
         $this->calls[] = [
             'method' => $method,
-            'userId' => $userId,
+            'owner' => $scope->owner,
             'from' => $from,
             'to' => $to,
             'contactIds' => $contactIds,

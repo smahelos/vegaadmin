@@ -7,9 +7,9 @@ namespace Tests\Unit\Domain\Analytics\Services;
 use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\User\ValueObjects\UserId;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -74,7 +74,7 @@ final class DashboardServiceTest extends TestCase
         };
         $analytics = new class implements AnalyticsReadRepositoryInterface
         {
-            public function getUserStats(UserId $userId): UserStatisticsDTO
+            public function getUserStats(ReadScope $scope): UserStatisticsDTO
             {
                 return new UserStatisticsDTO(
                     0,
@@ -84,7 +84,7 @@ final class DashboardServiceTest extends TestCase
                 );
             }
 
-            public function getCustomersWithTotals(UserId $userId): array
+            public function getCustomersWithTotals(ReadScope $scope): array
             {
                 return [];
             }

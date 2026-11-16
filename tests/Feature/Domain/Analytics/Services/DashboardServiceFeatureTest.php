@@ -4,39 +4,29 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Domain\Analytics\Services;
 
-use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\Shared\Money\ValueObjects\Money; // updated namespace
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
-use Illuminate\Foundation\Testing\WithFaker;
 use PHPUnit\Framework\Attributes\Test;
+use Tests\Support\ReadsDashboard;
 use Tests\TestCase;
-use Tests\Traits\CreatesFrontendTestEnvironment;
 
 final class DashboardServiceFeatureTest extends TestCase
 {
-    use CreatesFrontendTestEnvironment, WithFaker;
-
-    private AnalyticsDashboardService $service;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->setUpFrontendTestEnvironment();
-        $this->service = app(AnalyticsDashboardService::class);
-    }
+    use ReadsDashboard;
 
     #[Test]
     public function statistics_structure_for_new_user_is_zeroed(): void
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
-        $stats = $this->service->getUserStatistics(
+        $user->assignRole('frontend_user');
+        $stats = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(0, $stats->invoiceCount);
         $this->assertSame(0, $stats->contactCount);
         $this->assertSame(0, $stats->businessCount);
@@ -50,6 +40,7 @@ final class DashboardServiceFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $businessFactory = Business::factory();
@@ -64,9 +55,9 @@ final class DashboardServiceFeatureTest extends TestCase
             ],
         );
 
-        $stats = $this->service->getUserStatistics(
+        $stats = $this->dashboardOf(
             UserId::fromInt($user->id),
-        );
+        )->statistics;
         $this->assertSame(1, $stats->invoiceCount);
         $this->assertSame(1, $stats->contactCount);
         $this->assertSame(1, $stats->businessCount);
@@ -79,6 +70,7 @@ final class DashboardServiceFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
+        $user->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $user->id]);
         $invoiceFactory = Invoice::factory();
@@ -91,9 +83,9 @@ final class DashboardServiceFeatureTest extends TestCase
         );
 
         $customers = collect(
-            $this->service->getCustomersWithInvoiceTotals(
+            $this->dashboardOf(
                 UserId::fromInt($user->id),
-            ),
+            )->contacts,
         );
         $this->assertCount(1, $customers);
         $first = $customers->first();
@@ -107,7 +99,9 @@ final class DashboardServiceFeatureTest extends TestCase
     {
         $userFactory = User::factory();
         $userA = $userFactory->create();
+        $userA->assignRole('frontend_user');
         $userB = $userFactory->create();
+        $userB->assignRole('frontend_user');
         $contactFactory = Contact::factory();
         $contactA = $contactFactory->create(['user_id' => $userA->id]);
         $invoiceFactory = Invoice::factory();
@@ -119,12 +113,12 @@ final class DashboardServiceFeatureTest extends TestCase
             ],
         );
 
-        $statsA = $this->service->getUserStatistics(
+        $statsA = $this->dashboardOf(
             UserId::fromInt($userA->id),
-        );
-        $statsB = $this->service->getUserStatistics(
+        )->statistics;
+        $statsB = $this->dashboardOf(
             UserId::fromInt($userB->id),
-        );
+        )->statistics;
         $this->assertSame(1, $statsA->invoiceCount);
         $this->assertSame(0, $statsB->invoiceCount);
         $this->assertInstanceOf(Money::class, $statsA->totalAmount);

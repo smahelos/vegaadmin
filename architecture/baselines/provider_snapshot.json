@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-14T17:17:39+00:00",
+    "generated_at": "2026-11-16T12:17:48+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -141,10 +141,6 @@
                 {
                     "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsRepository",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Analytics\\Repositories\\EloquentApiStatisticsRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface",
-                    "concrete": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService"
                 }
             ],
             "singleton": []
@@ -423,14 +419,6 @@
         }
     },
     "contracts": {
-        "App\\Application\\Analytics\\Contracts\\ApiStatisticsApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Analytics\\Services\\ApiStatisticsApplicationService",
-                "provider": "App\\Providers\\AnalyticsServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface": {
             "status": "ok",
             "actual": {

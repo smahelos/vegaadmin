@@ -7,8 +7,8 @@ namespace App\Infrastructure\Persistence\Eloquent\Analytics\Repositories;
 use App\Application\Analytics\Contracts\ApiStatisticsRepository;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
-use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Queries\CustomerRevenueQuery;
 use App\Models\Expense;
 use App\Models\Invoice;
@@ -27,13 +27,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     ) {}
 
     public function monthlyRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $query = $this->invoices(
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -59,13 +59,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function customerRevenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $query = $this->invoices(
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -78,13 +78,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function revenue(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $query = $this->invoices(
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -100,12 +100,12 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function expenses(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
     ): array {
         $query = Expense::query();
-        $query->where('expenses.user_id', $userId->toInt());
+        $query->where('expenses.user_id', $scope->owner->toInt());
         $query->where(
             'expenses.expense_date',
             '>=',
@@ -130,13 +130,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function invoiceStatus(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $query = $this->invoices(
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -164,13 +164,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
     }
 
     public function paymentMethods(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): array {
         $query = $this->invoices(
-            $userId,
+            $scope,
             $from,
             $to,
             $contactIds,
@@ -201,13 +201,13 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
      * @return Builder<Invoice>
      */
     private function invoices(
-        UserId $userId,
+        ReadScope $scope,
         DateTimeImmutable $from,
         ?DateTimeImmutable $to,
         array $contactIds,
     ): Builder {
         $query = Invoice::query();
-        $query->where('invoices.user_id', $userId->toInt());
+        $query->where('invoices.user_id', $scope->owner->toInt());
         $query->where(
             'invoices.issue_date',
             '>=',
