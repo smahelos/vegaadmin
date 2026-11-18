@@ -37,6 +37,7 @@ use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
 use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
+use App\Infrastructure\Authorization\Services\GrantStore;
 use App\Infrastructure\Persistence\Eloquent\Shared\Database\EloquentTransactionBoundary;
 use App\Infrastructure\Persistence\Eloquent\Shared\Tax\Repositories\EloquentTaxDtoRepository;
 use App\Infrastructure\Shared\Cache\CacheService;
@@ -193,6 +194,20 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             AuthorizingUseCaseRunnerInterface::class,
             AuthorizingUseCaseRunner::class,
+        );
+
+        // What an actor may, read once per request (D-049)
+        $this->app->scoped(GrantStore::class);
+        // The HTTP kernel binds every request anew, also each request and Livewire call of a test, which run in one
+        // process: emptying the store then starts the request without roles read before it. Emptied, not replaced:
+        // a controller kept on its route from an earlier request still holds this instance. The queue worker
+        // forgets scoped instances between jobs itself.
+        $this->app->rebinding(
+            'request',
+            function (): void {
+                $grants = $this->app->make(GrantStore::class);
+                $grants->clear();
+            },
         );
 
         $this->app->bind(

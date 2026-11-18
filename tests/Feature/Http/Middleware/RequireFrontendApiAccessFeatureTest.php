@@ -18,7 +18,7 @@ class RequireFrontendApiAccessFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireFrontendApiAccess;
+        $this->middleware = $this->app->make(RequireFrontendApiAccess::class);
         PermissionModel::firstOrCreate(
             ['name' => Permission::API_ACCESS->value, 'guard_name' => 'web'],
         );

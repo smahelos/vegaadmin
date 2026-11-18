@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\PermissionCrudController;
 use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
@@ -70,6 +71,26 @@ class AppServiceProvider extends ServiceProvider
                 $useCases = app(AuthorizingUseCaseRunnerInterface::class);
 
                 return $actor !== null && $useCases->allowed($actor, $useCase);
+            },
+        );
+
+        // Any of the permissions, where no use case answers (admin menu, Backpack row buttons)
+        Blade::if(
+            'holds',
+            function (Permission ...$permissions): bool {
+                $currentActor = app(CurrentActor::class);
+                $actor = $currentActor->find();
+                if ($actor === null) {
+                    return false;
+                }
+                $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+                foreach ($permissions as $permission) {
+                    if ($useCases->holds($actor, $permission)) {
+                        return true;
+                    }
+                }
+
+                return false;
             },
         );
 

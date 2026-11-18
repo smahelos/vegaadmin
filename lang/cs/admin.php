@@ -117,8 +117,7 @@ return [
     ],
 
     'auth' => [
-        'no_backpack_role' => 'Váš účet nemá oprávnění pro přístup do administrace. Kontaktujte administrátora.',
-        'no_backpack_access' => 'Nemáte oprávnění pro přístup do administračního panelu.',
+        'no_backpack_access' => 'Váš účet nemá oprávnění pro přístup do administrace. Kontaktujte administrátora.',
     ],
 
     'general' => [

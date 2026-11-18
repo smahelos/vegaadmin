@@ -63,13 +63,12 @@ final class BankAccountCrudController extends CrudController
         );
 
         // Accounts have their own permissions, whichever party owns them (rules/permissions.md)
-        $user = backpack_user();
         $denied = [];
-        if ($user?->can(Permission::BANK_ACCOUNT_VIEW) !== true) {
+        if (!$this->adminHolds(Permission::BANK_ACCOUNT_VIEW)) {
             $denied[] = 'list';
         }
 
-        if ($user?->can(Permission::BANK_ACCOUNT_UPDATE) !== true) {
+        if (!$this->adminHolds(Permission::BANK_ACCOUNT_UPDATE)) {
             $denied[] = 'create';
             $denied[] = 'update';
         }

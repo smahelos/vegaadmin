@@ -24,6 +24,8 @@ use Prologue\Alerts\Facades\Alert;
  */
 trait ConfiguresPartyCrud
 {
+    use ActsAsAdmin;
+
     private const STATUS_ACTIVE = 'active';
 
     private const STATUS_ARCHIVED = 'archived';
@@ -58,18 +60,17 @@ trait ConfiguresPartyCrud
                 Permission::CONTACT_UPDATE,
             ],
         };
-        $user = backpack_user();
         $denied = [];
-        if ($user?->can($view) !== true) {
+        if (!$this->adminHolds($view)) {
             $denied[] = 'list';
             $denied[] = 'show';
         }
 
-        if ($user?->can($create) !== true) {
+        if (!$this->adminHolds($create)) {
             $denied[] = 'create';
         }
 
-        if ($user?->can($update) !== true) {
+        if (!$this->adminHolds($update)) {
             $denied[] = 'update';
         }
 

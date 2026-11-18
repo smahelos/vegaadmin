@@ -2,7 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +17,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireFrontendApiAccess
 {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
+
     /**
      * Handle frontend API access check
      */
@@ -25,10 +32,10 @@ class RequireFrontendApiAccess
             return $this->unauthorized($request);
         }
 
-        $user = $guard->user();
-
-        // Check if user has frontend API access permission
-        if (!$user->checkPermissionTo(Permission::API_ACCESS, 'web')) {
+        $user = Actor::user(
+            UserId::fromInt((int) $guard->id()),
+        );
+        if (!$this->useCases->holds($user, Permission::API_ACCESS)) {
             return $this->forbidden($request);
         }
 

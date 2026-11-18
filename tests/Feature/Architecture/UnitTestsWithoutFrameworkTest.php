@@ -46,6 +46,10 @@ final class UnitTestsWithoutFrameworkTest extends TestCase
                 '',
                 $file->getPathname(),
             );
+            // Fixtures of the Larastan rule tests are only analysed, never run
+            if (str_starts_with($path, 'tests/Unit/Phpstan/Rules/data/')) {
+                continue;
+            }
 
             foreach (self::FORBIDDEN_REFERENCES as $reference => $reason) {
                 if (str_contains($source, $reference)) {

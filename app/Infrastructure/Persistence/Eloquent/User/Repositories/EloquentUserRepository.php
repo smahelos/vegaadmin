@@ -16,6 +16,7 @@ use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\Exceptions\RoleNotFoundException;
 use App\Domain\User\ValueObjects\UserId;
 use App\Domain\User\ValueObjects\UserPassword;
+use App\Infrastructure\Authorization\Services\GrantStore;
 use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentUserMapper;
 use App\Models\Role;
 use App\Models\User;
@@ -27,6 +28,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
 {
     public function __construct(
         private readonly EloquentUserMapper $mapper,
+        private readonly GrantStore $grants,
     ) {}
 
     public function findAccount(ReadScope $scope): ?UserDTO
@@ -142,6 +144,8 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
             throw new RoleNotFoundException($role);
         }
         $user->assignRole($record);
+        // The rest of the request, registration's first business included, works under the new role
+        $this->grants->forget($id);
     }
 
     public function syncRolesAndPermissions(
@@ -155,6 +159,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
         $roles->sync($roleIds);
         $permissions = $user->permissions();
         $permissions->sync($permissionIds);
+        $this->grants->forget($id);
     }
 
     public function recordPlanRoleAssignment(UserId $id, DateTimeImmutable $assigned): void

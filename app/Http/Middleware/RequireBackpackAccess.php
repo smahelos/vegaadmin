@@ -4,17 +4,24 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Middleware to check if user has admin access via roles with 'backpack' guard
+ * Entry to the admin: backpack.access on the backpack guard, held directly or through a role.
  */
 final class RequireBackpackAccess
 {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
+
     /**
      * Handle an incoming request.
      *
@@ -28,32 +35,14 @@ final class RequireBackpackAccess
             return $this->respondToUnauthorizedRequest($request, false);
         }
 
-        $user = backpack_user();
-
-        // Check if user has any role with 'backpack' guard
-        $roles = $user->roles();
-        $roles->where('guard_name', 'backpack');
-        $hasBackpackRole = $roles->exists();
-
-        if (!$hasBackpackRole) {
+        $admin = Actor::admin(
+            UserId::fromInt((int) $auth->id()),
+        );
+        if (!$this->useCases->holds($admin, Permission::BACKPACK_ACCESS)) {
             Log::warning(
-                'User without backpack roles attempted to access admin area',
+                'User without backpack.access attempted to access admin area',
                 [
-                    'user_id' => $user->id,
-                    'path' => $request->path(),
-                ],
-            );
-
-            return $this->respondToUnauthorizedRequest($request, true);
-        }
-
-        // If user has backpack role, they should have access
-        // But let's also verify the permission as additional security layer
-        if (!$user->checkPermissionTo(Permission::BACKPACK_ACCESS, 'backpack')) {
-            Log::warning(
-                'User with backpack role but without backpack.access permission attempted to access admin area',
-                [
-                    'user_id' => $user->id,
+                    'user_id' => $auth->id(),
                     'path' => $request->path(),
                 ],
             );
@@ -95,7 +84,7 @@ final class RequireBackpackAccess
 
             return $redirect->withErrors(
                 [
-                    'email' => __('admin.auth.no_backpack_role'),
+                    'email' => __('admin.auth.no_backpack_access'),
                 ],
             );
         }

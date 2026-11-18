@@ -20,8 +20,6 @@ use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\PermissionDeniedException;
 use App\Domain\User\ValueObjects\UserId;
-use App\Models\User;
-use Illuminate\Contracts\Auth\Factory as AuthFactory;
 use Illuminate\Contracts\Container\Container;
 use LogicException;
 
@@ -33,7 +31,7 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
     public function __construct(
         private readonly Container $container,
         private readonly TransactionBoundaryInterface $transactions,
-        private readonly AuthFactory $auth,
+        private readonly GrantStore $grants,
     ) {}
 
     public function run(Actor $actor, CommandInterface|QueryInterface $useCase): mixed
@@ -71,25 +69,24 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
         if ($access->kind === AccessKind::PUBLIC) {
             return true;
         }
-        $guard = $actor->kind->guard();
-        if ($guard === null || $access->kind === AccessKind::SYSTEM) {
+        if ($access->kind === AccessKind::SYSTEM) {
             return false;
         }
         // Same rule as permits(): only an admin reads every owner's data
         if ($access->kind === AccessKind::ALL_OWNERS && $actor->kind !== ActorKind::ADMIN) {
             return false;
         }
-        $guardDriver = $this->auth->guard($guard);
-        // The signed-in instance remembers its roles, so a page asking many times loads them once
-        $user = $guardDriver->user();
-        if (!$user instanceof User || $user->getKey() !== $actor->user?->toInt()) {
-            return false;
-        }
 
+        // The same grants run() reads, so it answers for the actor it is given, signed in or not (D-049)
+        return $this->actorHoldsAnyPermission($actor, $access);
+    }
+
+    public function holds(Actor $actor, Permission $permission): bool
+    {
         return $this->holdsAnyPermission(
-            $user,
+            $actor->user,
             $actor->kind,
-            $access,
+            [$permission],
         );
     }
 
@@ -98,35 +95,35 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
         return match ($access->kind) {
             AccessKind::PUBLIC => true,
             AccessKind::SYSTEM => $actor->kind === ActorKind::SYSTEM,
-            AccessKind::ALL_OWNERS => $actor->kind === ActorKind::ADMIN && $this->userHoldsAnyPermission($actor, $access),
-            AccessKind::PERMISSION => $this->userHoldsAnyPermission($actor, $access),
+            AccessKind::ALL_OWNERS => $actor->kind === ActorKind::ADMIN && $this->actorHoldsAnyPermission($actor, $access),
+            AccessKind::PERMISSION => $this->actorHoldsAnyPermission($actor, $access),
         };
     }
 
-    private function userHoldsAnyPermission(Actor $actor, Access $access): bool
+    private function actorHoldsAnyPermission(Actor $actor, Access $access): bool
     {
-        if ($actor->user === null) {
-            return false;
-        }
-
         return $this->holdsAnyPermission(
-            User::find($actor->user->toInt()),
+            $actor->user,
             $actor->kind,
-            $access,
+            $access->permissions,
         );
     }
 
+    /**
+     * @param  list<Permission>  $permissions
+     */
     private function holdsAnyPermission(
-        ?User $user,
+        ?UserId $user,
         ActorKind $kind,
-        Access $access,
+        array $permissions,
     ): bool {
         $guard = $kind->guard();
-        if (!$user instanceof User || $guard === null) {
+        if ($user === null || $guard === null) {
             return false;
         }
-        foreach ($access->permissions as $permission) {
-            if ($user->checkPermissionTo($permission->value, $guard)) {
+        $grants = $this->grants->for($user, $guard);
+        foreach ($permissions as $permission) {
+            if ($grants->holds($permission)) {
                 return true;
             }
         }
@@ -158,9 +155,9 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
     private function ownerHoldsPermission(UserId $owner, array $permissions): bool
     {
         return $this->holdsAnyPermission(
-            User::find($owner->toInt()),
+            $owner,
             ActorKind::USER,
-            Access::anyOf(...$permissions),
+            $permissions,
         );
     }
 

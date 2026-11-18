@@ -23,7 +23,7 @@ class RequireBackpackApiAccessFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireBackpackApiAccess;
+        $this->middleware = $this->app->make(RequireBackpackApiAccess::class);
         PermissionModel::firstOrCreate(
             ['name' => Permission::API_ACCESS->value, 'guard_name' => 'backpack'],
         );

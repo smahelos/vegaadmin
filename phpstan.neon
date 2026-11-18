@@ -39,6 +39,7 @@ parameters:
                     - %currentWorkingDirectory%/tests
 
 rules:
+    - Billex\PHPStan\Rules\RolesWrittenByRepositoryRule
     - Billex\PHPStan\Rules\ScopeIssuedByGateRule
     - Billex\PHPStan\Rules\UseCaseResultRule
 

@@ -12,6 +12,8 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 trait GatesCrudOperations
 {
+    use ActsAsAdmin;
+
     /**
      * Denies every operation whose permission the signed-in admin lacks.
      *
@@ -19,10 +21,9 @@ trait GatesCrudOperations
      */
     protected function denyOperationsWithout(array $permissions): void
     {
-        $user = backpack_user();
         $denied = [];
         foreach ($permissions as $operation => $permission) {
-            if ($user?->can($permission) !== true) {
+            if (!$this->adminHolds($permission)) {
                 $denied[] = $operation;
             }
         }

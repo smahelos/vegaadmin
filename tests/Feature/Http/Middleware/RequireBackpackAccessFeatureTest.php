@@ -24,7 +24,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->middleware = new RequireBackpackAccess;
+        $this->middleware = $this->app->make(RequireBackpackAccess::class);
         PermissionModel::firstOrCreate(
             ['name' => Permission::BACKPACK_ACCESS->value, 'guard_name' => 'backpack'],
         );
@@ -123,7 +123,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
     }
 
     #[Test]
-    public function user_without_backpack_role_is_logged_by_id_only(): void
+    public function user_without_backpack_access_is_logged_by_id_only(): void
     {
         $userFactory = User::factory();
         $user = $userFactory->create();
@@ -146,7 +146,7 @@ class RequireBackpackAccessFeatureTest extends TestCase
             [
                 [
                     'warning',
-                    'User without backpack roles attempted to access admin area',
+                    'User without backpack.access attempted to access admin area',
                     ['user_id' => $user->id, 'path' => 'admin/dashboard'],
                 ],
             ],
@@ -155,35 +155,26 @@ class RequireBackpackAccessFeatureTest extends TestCase
     }
 
     #[Test]
-    public function backpack_role_without_access_permission_is_logged_by_id_only(): void
+    public function backpack_access_held_directly_without_a_role_passes(): void
     {
-        Role::firstOrCreate(['name' => 'backend_user', 'guard_name' => 'backpack']);
-        $user = $this->userWithRole('backend_user');
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $user->givePermissionTo(
+            PermissionModel::findByName(Permission::BACKPACK_ACCESS->value, 'backpack'),
+        );
         $this->actingAs($user, 'backpack');
-        $this->collectLogs();
+        $passed = false;
 
         $this->middleware->handle(
-            Request::create(
-                '/admin/dashboard',
-                'GET',
-                [],
-                [],
-                [],
-                ['HTTP_ACCEPT' => 'application/json'],
-            ),
-            fn () => response('OK'),
+            Request::create('/admin/dashboard'),
+            function () use (&$passed) {
+                $passed = true;
+
+                return response('OK');
+            },
         );
 
-        $this->assertSame(
-            [
-                [
-                    'warning',
-                    'User with backpack role but without backpack.access permission attempted to access admin area',
-                    ['user_id' => $user->id, 'path' => 'admin/dashboard'],
-                ],
-            ],
-            $this->logs,
-        );
+        $this->assertTrue($passed);
     }
 
     private function userWithRole(string $role): User

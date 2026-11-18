@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-16T12:17:48+00:00",
+    "generated_at": "2026-11-16T17:19:48+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [

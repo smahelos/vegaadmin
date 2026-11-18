@@ -1,0 +1,107 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Infrastructure\Authorization\Services;
+
+use App\Domain\User\DTO\RoleLimitDTO;
+use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Authorization\Grants;
+use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentRoleLimitMapper;
+use App\Models\RoleLimit;
+use App\Models\User;
+
+/**
+ * The grants read in this request, one per user and guard (D-049). Registered as scoped and emptied when a new
+ * request is bound, so no request sees roles read before it started; the role writer forgets the user it changed.
+ */
+final class GrantStore
+{
+    /** @var array<int, array<string, Grants>> */
+    private array $grants = [];
+
+    public function __construct(
+        private readonly EloquentRoleLimitMapper $limitMapper,
+    ) {}
+
+    public function for(UserId $user, string $guard): Grants
+    {
+        $id = $user->toInt();
+
+        return $this->grants[$id][$guard] ??= $this->load($id, $guard);
+    }
+
+    public function forget(UserId $user): void
+    {
+        unset($this->grants[$user->toInt()]);
+    }
+
+    /**
+     * Called when a new request is bound (SharedServiceProvider). The store is emptied rather than replaced in the
+     * container, because a controller Laravel keeps on its route from an earlier request still holds this instance.
+     */
+    public function clear(): void
+    {
+        $this->grants = [];
+    }
+
+    /**
+     * The same set checkPermissionTo($name, $guard) accepts: held directly or through a role, only on that guard.
+     */
+    private function load(int $id, string $guard): Grants
+    {
+        $query = User::query();
+        $user = $query->find($id);
+        if (!$user instanceof User) {
+            return new Grants([], []);
+        }
+
+        $permissions = [];
+        foreach ($user->getAllPermissions() as $permission) {
+            if ($permission->guard_name === $guard) {
+                $permissions[$permission->name] = $permission->name;
+            }
+        }
+
+        $roles = [];
+        foreach ($user->roles as $role) {
+            if ($role->guard_name === $guard) {
+                $roles[] = $role->id;
+            }
+        }
+
+        return new Grants(
+            array_values($permissions),
+            $this->limits($roles),
+        );
+    }
+
+    /**
+     * @param  list<int>  $roles
+     * @return list<RoleLimitDTO>
+     */
+    private function limits(array $roles): array
+    {
+        if ($roles === []) {
+            return [];
+        }
+
+        $query = RoleLimit::query();
+        $query->select(['role_limits.*', 'roles.name as role_name']);
+        $query->join(
+            'roles',
+            'roles.id',
+            '=',
+            'role_limits.role_id',
+        );
+        $query->whereIn('role_limits.role_id', $roles);
+        $models = $query->get();
+
+        $limits = [];
+        foreach ($models as $model) {
+            $limits[] = $this->limitMapper->toDTO($model);
+        }
+
+        return $limits;
+    }
+}

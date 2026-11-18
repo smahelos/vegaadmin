@@ -117,8 +117,7 @@ return [
     ],
 
     'auth' => [
-        'no_backpack_role' => 'Your account does not have permission to access administration. Contact administrator.',
-        'no_backpack_access' => 'You do not have permission to access the admin panel.',
+        'no_backpack_access' => 'Your account does not have permission to access administration. Contact administrator.',
     ],
 
     'general' => [
