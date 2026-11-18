@@ -37,9 +37,6 @@ interface PageReadRepositoryInterface
      */
     public function getPublishedByCategory(int $categoryId): Collection;
 
-    /** Find page by id (published or not). */
-    public function findAnyById(int $id): ?Page;
-
     /** Get categories that have published pages, eager loading only published ordered pages. */
     public function getCategoriesWithPublishedPages(): Collection;
 

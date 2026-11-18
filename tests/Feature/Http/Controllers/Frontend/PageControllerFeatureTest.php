@@ -74,6 +74,24 @@ final class PageControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function homepage_hides_an_unpublished_price_page(): void
+    {
+        $this->publishedPage(['slug' => ['cs' => 'uvod', 'en' => 'home']]);
+        $pageFactory = Page::factory();
+        $draftFactory = $pageFactory->draft();
+        // The homepage reads the price page by its fixed id
+        $draftFactory->create(['id' => 11]);
+        $response = $this->get(
+            route('home', ['locale' => 'cs']),
+        );
+        $assertionResponse = $response->assertOk();
+        $assertionResponse->assertViewHas(
+            'pricePage',
+            fn (?Page $pricePage): bool => $pricePage === null,
+        );
+    }
+
+    #[Test]
     public function index_displays_published_pages_and_categories(): void
     {
         $page = $this->publishedPage();

@@ -74,7 +74,7 @@ final class PageApplicationService
     // we simply delegate to the model repo, as NO business logic is needed
     public function getPageContentById(int $pageId): ?Page
     {
-        return $this->pages->findAnyById($pageId);
+        return $this->pages->findPublishedById($pageId);
     }
 
     // we simply delegate to the model repo, as NO business logic is needed

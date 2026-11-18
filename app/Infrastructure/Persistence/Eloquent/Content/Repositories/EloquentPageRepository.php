@@ -112,13 +112,6 @@ class EloquentPageRepository implements PageReadRepositoryInterface, PageWriteRe
         return $query->get();
     }
 
-    public function findAnyById(int $id): ?Page
-    {
-        $query = Page::where('id', $id);
-
-        return $query->first();
-    }
-
     public function getCategoriesWithPublishedPages(): Collection
     {
         $query = PageCategory::whereHas('pages', fn ($q) => $q->published());
