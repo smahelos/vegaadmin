@@ -17,7 +17,7 @@ final readonly class Grants
      * @param  list<int>  $roles  ids of the roles on the guard
      */
     public function __construct(
-        private array $permissions,
+        public array $permissions,
         public array $roles,
     ) {}
 

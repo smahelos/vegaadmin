@@ -13,7 +13,7 @@ paths:
 
 - Every PHP file starts with `declare(strict_types=1);`. Without it PHP silently coerces `"12.50"` to `12` — the exact bug class an invoicing app cannot afford.
 - Classes are `final`. Exceptions: abstract base classes, and Eloquent models (Backpack and PermissionManager build on them). A class that needs a test double is a port and gets an interface (`architecture.md`), never a non-final class for mocking.
-- Value objects and data classes are `final readonly class`. What they hold is a public readonly property (`$invoiceId->value`, `$money->amount`, `$account->iban`); there are no getters. What they compute is a method named after the result, without `get` (`$account->formattedIban()`, `$number->year()`); predicates start with `is` (`isZero()`).
+- Value objects and data classes are `final readonly class`. What they hold is a public readonly property (`$invoiceId->value`, `$money->amount`, `$account->iban`); there are no getters. What they compute is a method named after the result, without `get` (`$account->formattedIban()`, `$number->year()`); predicates read as a yes/no question, usually with `is` (`isZero()`), or with the verb of the relation they test (`$grants->holds($permission)`).
 - Dependencies come in through constructor property promotion: `private readonly FooRepositoryInterface $foos`. No assignments in the constructor body, no untyped properties.
 - One class per file; enums live in an `Enums/` directory of their context.
 
