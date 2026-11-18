@@ -13,7 +13,6 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\Facades\Alert;
 
@@ -145,7 +144,8 @@ trait ConfiguresPartyCrud
         $filter->whenActive(
             function (string $value): void {
                 CRUD::addClause(
-                    fn (Builder $query): Builder => $value === self::STATUS_ARCHIVED ? $query->whereNotNull('archived_at') : $query->whereNull('archived_at'),
+                    $value === self::STATUS_ARCHIVED ? 'whereNotNull' : 'whereNull',
+                    'archived_at',
                 );
             },
         );

@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate up to phase 6 and the grants done): the controller rule that replaces the controller baselines, phases 7 and 8 of the permission gate with use cases as Commands and Queries, reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate up to phase 6, the grants and the controller rule done): phases 7 and 8 of the permission gate with use cases as Commands and Queries, reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -39,11 +39,6 @@ Each open step has a section below with its items. An item without a **Status** 
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
 
 ## Step 11: Foundations for the rewrites
-
-### Controller baselines fail on every controller change
-- **Where:** `architecture/baselines/controller_thinness_baseline.json`, `frontend_controller_eloquent_baseline.json` and `api_controller_eloquent_baseline.json` with their commands (`ddd:controller-thinness:baseline`, `ddd:frontend-eloquent:baseline`, `ddd:api-eloquent:baseline`, `ddd:baselines:refresh`), the baseline drift step of `.github/workflows/static-analysis.yml`, `.claude/skills/pre-pr-check/guards.sh`, `ControllerThinnessEnforcementTest`, `FrontendControllersEloquentUsageTest`, `ApiControllersEloquentUsageTest`
-- **Problem:** CI regenerates the baselines and compares them with the committed ones for exact equality, the line count of every controller included, so any change to any controller fails until the baseline is regenerated. Regenerating also accepts a new Eloquent call, the one thing the check is there to catch, and nobody reads the diff. On 2026-11-18 only 8 of 57 controllers call Eloquent statically, all in the admin: `AdminController` (13), `DatabaseDashboardController` (10, and 6 `DB` calls), `ExpenseCrudController` (4), `PageCrudController` (3), `InvoiceCrudController` (2), `StatusCrudController` (2), `ProductCrudController` (1), `SubscriptionCrudController` (1).
-- **Fix (decided 2026-11-18):** one rule that a controller calls neither an Eloquent model nor `DB` (an architecture test or a rule in `phpstan/Rules/`), with an explicit allowlist of the controllers above that may only shrink; then delete the three baselines, their commands and tests, the drift step and its part of `guards.sh`, and update `rules/architecture.md`, `architecture/baselines/README.md` and `pre-pr-check`. Do it before phase 7 of "Permissions are not checked in the use case": phases 7 and 8 rewrite the controllers on the allowlist, which then leave it instead of regenerating a baseline.
 
 ### `ddd:guard` snapshot test fails now and then in parallel runs
 - **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
@@ -499,7 +494,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** raise the level once the whole codebase passes the next one: levels 2–6 while the contexts are converted (step 21), 7–10 (`max`) after that, one level per branch. No baseline file and no ignore comments.
 
 ### Architecture guards are migration scaffolding
-- **Where:** `config/ddd_guard.php` (allowlist for the deleted `app/Services`, scan path `app/Policies`, Bitbucket detection), `ddd:legacy-report`, `architecture/baselines/legacy_report_latest.json` and `provider_snapshot.json` (README still describes a throwaway container); the controller baselines go in step 11 ("Controller baselines fail on every controller change")
+- **Where:** `config/ddd_guard.php` (allowlist for the deleted `app/Services`, scan path `app/Policies`, Bitbucket detection), `ddd:legacy-report`, `architecture/baselines/legacy_report_latest.json` and `provider_snapshot.json` (README still describes a throwaway container)
 - **Fix:** after the conversion, replace with Larastan and architecture tests of the dependency table in `rules/architecture.md`; delete the baselines and their commands.
 
 ## Step 24: Before production

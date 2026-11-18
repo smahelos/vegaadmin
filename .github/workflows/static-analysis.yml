@@ -76,21 +76,6 @@ jobs:
           php artisan ddd:providers:snapshot --diff --format=json > provider_snapshot_diff.json
           grep -q '"errors": \[\]' provider_snapshot_diff.json || { echo '::error::Provider snapshot diff reported errors.'; cat provider_snapshot_diff.json; exit 1; }
 
-      - name: Baseline drift against committed baselines
-        run: |
-          php artisan ddd:controller-thinness:baseline --save
-          php artisan ddd:frontend-eloquent:baseline --save --path=build/metrics
-          php artisan ddd:api-eloquent:baseline --save --path=build/metrics
-          # Compare regenerated baselines with the committed ones, ignoring generation timestamps
-          compare() {
-            php -r '$b=json_decode(file_get_contents($argv[1]),true); $c=json_decode(file_get_contents($argv[2]),true); unset($b["generated_at"],$c["generated_at"],$b["summary"]["timestamp"],$c["summary"]["timestamp"]); if($b!=$c){fwrite(STDERR,"::error::Baseline drift: ".$argv[1]." (regenerate per architecture/baselines/README.md if intended)\n"); exit(1);} echo "No drift: ".$argv[1]."\n";' "$1" "$2"
-          }
-          status=0
-          compare architecture/baselines/controller_thinness_baseline.json storage/app/metrics/controller_thinness_baseline.json || status=1
-          compare architecture/baselines/frontend_controller_eloquent_baseline.json build/metrics/frontend_controller_eloquent_baseline.json || status=1
-          compare architecture/baselines/api_controller_eloquent_baseline.json build/metrics/api_controller_eloquent_baseline.json || status=1
-          exit $status
-
       - name: Upload guard reports
         if: failure()
         uses: actions/upload-artifact@v7
@@ -99,6 +84,3 @@ jobs:
           path: |
             legacy_report_latest.json
             provider_snapshot_diff.json
-            storage/app/metrics/controller_thinness_baseline.json
-            build/metrics/frontend_controller_eloquent_baseline.json
-            build/metrics/api_controller_eloquent_baseline.json

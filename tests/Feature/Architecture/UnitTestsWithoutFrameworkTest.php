@@ -46,8 +46,9 @@ final class UnitTestsWithoutFrameworkTest extends TestCase
                 '',
                 $file->getPathname(),
             );
-            // Fixtures of the Larastan rule tests are only analysed, never run
-            if (str_starts_with($path, 'tests/Unit/Phpstan/Rules/data/')) {
+            // Larastan rule tests run on PHPStan alone: their fixtures are only analysed, and the tests name models and
+            // facades only in the expected messages
+            if (str_starts_with($path, 'tests/Unit/Phpstan/Rules/')) {
                 continue;
             }
 
