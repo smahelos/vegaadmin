@@ -5,6 +5,8 @@ declare(strict_types=1);
 // Application code, which the rule checks; tests are outside its reach
 namespace App\RolesWritten;
 
+use App\Domain\User\Contracts\UserWriteRepositoryInterface;
+use App\Domain\User\ValueObjects\UserId;
 use App\Models\Role;
 use App\Models\User;
 
@@ -29,5 +31,15 @@ final class WritesRoles
     {
         $user->assignRole($role);
         $user?->syncRoles([]);
+    }
+
+    public function uncertain(mixed $entry, UserWriteRepositoryInterface $users): void
+    {
+        $entry->assignRole('admin');
+        $entry->roles();
+        $users->assignRole(
+            UserId::fromInt(1),
+            'admin',
+        );
     }
 }

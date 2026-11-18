@@ -1,0 +1,5 @@
+# Types the vendors leave out; included by phpstan.neon and by the rule tests that decide by these types
+parameters:
+    stubFiles:
+        - stubs/backpack.stub
+        - stubs/permission.stub

@@ -45,3 +45,21 @@ namespace Spatie\Permission\Traits {
         public function permissions(): BelongsToMany;
     }
 }
+
+namespace Spatie\Permission {
+    use Spatie\Permission\Models\Permission;
+    use Spatie\Permission\Models\Role;
+
+    class PermissionRegistrar
+    {
+        /**
+         * @return class-string<Permission>
+         */
+        public function getPermissionClass(): string;
+
+        /**
+         * @return class-string<Role>
+         */
+        public function getRoleClass(): string;
+    }
+}

@@ -2,6 +2,7 @@ includes:
     - vendor/larastan/larastan/extension.neon
     - vendor/tomasvotruba/type-coverage/config/extension.neon
     - vendor/shipmonk/dead-code-detector/rules.neon
+    - phpstan/stubs.neon
 
 parameters:
     level: 2
@@ -16,9 +17,6 @@ parameters:
     excludePaths:
         # Fixtures of the rule tests, which hold the violations on purpose
         - tests/Unit/Phpstan/Rules/data/
-    stubFiles:
-        - phpstan/stubs/backpack.stub
-        - phpstan/stubs/permission.stub
     # Every own property has a native type (.claude/rules/php.md, Types); properties declared by a parent
     # class (Eloquent $fillable, Command $signature, ...) are not counted. Return and parameter types are
     # enforced by PHP_CodeSniffer (phpcs.xml), typed class constants need PHP 8.3.

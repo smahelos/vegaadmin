@@ -21,18 +21,29 @@ final class RolesWrittenByRepositoryRuleTest extends RuleTestCase
         return new RolesWrittenByRepositoryRule;
     }
 
+    /**
+     * The rule decides by the receiver's type, which the project's stubs give, as in the Larastan run.
+     *
+     * @return list<string>
+     */
+    public static function getAdditionalConfigFiles(): array
+    {
+        return [__DIR__ . '/../../../../phpstan/stubs.neon'];
+    }
+
     #[Test]
     public function a_role_written_outside_its_writer_is_reported(): void
     {
         $this->analyse(
             [__DIR__ . '/data/roles-written-outside-the-repository.php'],
             [
-                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 15],
-                ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 16],
-                ['Only ' . PermissionCatalogSync::class . ' calls givePermissionTo() on roles and permissions.', 23],
-                ['Only ' . PermissionCatalogSync::class . ' calls users() on roles and permissions.', 24],
-                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 30],
-                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 31],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 17],
+                ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 18],
+                ['Only ' . PermissionCatalogSync::class . ' calls givePermissionTo() on roles and permissions.', 25],
+                ['Only ' . EloquentUserRepository::class . ' calls users() on roles and permissions.', 26],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 32],
+                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 33],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 38],
             ],
         );
     }
