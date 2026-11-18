@@ -18,7 +18,13 @@ final class RolesWrittenByRepositoryRuleTest extends RuleTestCase
 {
     protected function getRule(): Rule
     {
-        return new RolesWrittenByRepositoryRule;
+        // The fixtures' app/ stands for application code next to the real app/, whose writers are checked too
+        return new RolesWrittenByRepositoryRule(
+            [
+                __DIR__ . '/data/app/',
+                dirname(__DIR__, 4) . '/app/',
+            ],
+        );
     }
 
     /**
@@ -35,16 +41,28 @@ final class RolesWrittenByRepositoryRuleTest extends RuleTestCase
     public function a_role_written_outside_its_writer_is_reported(): void
     {
         $this->analyse(
-            [__DIR__ . '/data/roles-written-outside-the-repository.php'],
+            [__DIR__ . '/data/app/roles-written-outside-the-repository.php'],
             [
-                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 17],
-                ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 18],
-                ['Only ' . PermissionCatalogSync::class . ' calls givePermissionTo() on roles and permissions.', 25],
-                ['Only ' . EloquentUserRepository::class . ' calls users() on roles and permissions.', 26],
-                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 32],
-                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 33],
-                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 38],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 19],
+                ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 20],
+                ['Only ' . PermissionCatalogSync::class . ' calls givePermissionTo() on roles and permissions.', 27],
+                ['Only ' . EloquentUserRepository::class . ' calls users() on roles and permissions.', 28],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 34],
+                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 35],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 44],
+                ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 45],
+                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 46],
+                ['Only ' . EloquentUserRepository::class . ' calls removeRole() on roles and permissions.', 47],
             ],
+        );
+    }
+
+    #[Test]
+    public function code_outside_the_application_directories_writes_roles(): void
+    {
+        $this->analyse(
+            [__DIR__ . '/data/database/roles-written-by-a-seeder.php'],
+            [],
         );
     }
 

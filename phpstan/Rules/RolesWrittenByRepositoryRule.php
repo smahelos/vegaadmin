@@ -11,9 +11,9 @@ use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Identifier;
 use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
-use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
@@ -25,7 +25,9 @@ use Spatie\Permission\Contracts\Role;
  * would leave the rest of the request on the old roles (D-049). The writer follows the table written, not the side
  * of the relation: a user's roles and direct permissions belong to EloquentUserRepository, also through a role's or
  * permission's users(); PermissionCatalogSync may link roles to permissions, which applies from the next request.
- * Only application code is checked; tests, seeders and migrations set roles directly.
+ * A call counts on every receiver that may be a user, role or permission (mixed, Authenticatable, a union), unless
+ * its type declares the method on another class. Only application code is checked, the directories given in
+ * phpstan.neon; tests, seeders and migrations set roles directly.
  *
  * @implements Rule<MethodCall>
  */
@@ -43,11 +45,18 @@ final class RolesWrittenByRepositoryRule implements Rule
         'users',
     ];
 
-    private const RELATIONS = [
-        'permissions',
-        'roles',
-        'users',
+    private const MODELS = [
+        User::class,
+        Role::class,
+        Permission::class,
     ];
+
+    /**
+     * @param  list<string>  $paths  directories of application code, absolute and ending with a slash
+     */
+    public function __construct(
+        private readonly array $paths,
+    ) {}
 
     public function getNodeType(): string
     {
@@ -60,15 +69,12 @@ final class RolesWrittenByRepositoryRule implements Rule
             return [];
         }
         $method = $node->name->toString();
-        $namespace = $scope->getNamespace() ?? '';
-        if (
-            !in_array(
-                $method,
-                self::METHODS,
-                true,
-            )
-            || !str_starts_with($namespace, 'App\\')
-        ) {
+        $listed = in_array(
+            $method,
+            self::METHODS,
+            true,
+        );
+        if (!$listed || !$this->checks($scope->getFile())) {
             return [];
         }
         // A nullable receiver, a nullsafe call's included, writes the roles whenever it is not null
@@ -77,6 +83,7 @@ final class RolesWrittenByRepositoryRule implements Rule
         $writer = $this->writer(
             $receiver,
             $method,
+            $scope,
         );
         if ($writer === null) {
             return [];
@@ -93,42 +100,69 @@ final class RolesWrittenByRepositoryRule implements Rule
         return [$error->build()];
     }
 
-    private function writer(Type $receiver, string $method): ?string
+    private function checks(string $file): bool
     {
-        $user = new ObjectType(User::class);
-        $isUser = $user->isSuperTypeOf($receiver);
-        if ($isUser->yes() || $this->hidesWrite($receiver, $method)) {
-            return EloquentUserRepository::class;
-        }
-        foreach ([Role::class, Permission::class] as $class) {
-            $type = new ObjectType($class);
-            $isModel = $type->isSuperTypeOf($receiver);
-            if (!$isModel->yes()) {
-                continue;
+        foreach ($this->paths as $path) {
+            if (str_starts_with($file, $path)) {
+                return true;
             }
-            // Links users to the role or permission: the user's own grants
-            if ($method === 'users') {
-                return EloquentUserRepository::class;
-            }
-
-            return PermissionCatalogSync::class;
         }
 
-        return null;
+        return false;
     }
 
-    /**
-     * A receiver of unknown type (backpack_user(), an untyped vendor return) may be a user, so a Spatie write method
-     * on it counts; relation names are common to many models, so they count only on a certain receiver.
-     */
-    private function hidesWrite(Type $receiver, string $method): bool
-    {
-        $relation = in_array(
-            $method,
-            self::RELATIONS,
-            true,
-        );
+    private function writer(
+        Type $receiver,
+        string $method,
+        Scope $scope,
+    ): ?string {
+        // The repository port's own assignRole() is declared on the port, not on a role model; mixed declares any
+        $declared = $receiver->hasMethod($method);
+        $object = $receiver->isObject();
+        if ($declared->yes() && $object->yes()) {
+            $reflection = $receiver->getMethod($method, $scope);
+            $declaring = $reflection->getDeclaringClass();
+            if (!$this->isModel($declaring)) {
+                return null;
+            }
+        }
+        // A certain model decides before a possible one: a role typed by its contract may also be some user subclass
+        $possible = null;
+        foreach (self::MODELS as $model) {
+            $type = new ObjectType($model);
+            $isModel = $type->isSuperTypeOf($receiver);
+            if ($isModel->yes()) {
+                return $this->writerOf($model, $method);
+            }
+            if ($isModel->maybe()) {
+                $possible ??= $model;
+            }
+        }
+        if ($possible === null) {
+            return null;
+        }
 
-        return $receiver instanceof MixedType && !$relation;
+        return $this->writerOf($possible, $method);
+    }
+
+    private function isModel(ClassReflection $class): bool
+    {
+        foreach (self::MODELS as $model) {
+            if ($class->is($model)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function writerOf(string $model, string $method): string
+    {
+        // users() links users to a role or permission: the user's own grants
+        if ($model === User::class || $method === 'users') {
+            return EloquentUserRepository::class;
+        }
+
+        return PermissionCatalogSync::class;
     }
 }

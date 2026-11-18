@@ -37,11 +37,21 @@ parameters:
                     - %currentWorkingDirectory%/tests
 
 rules:
-    - Billex\PHPStan\Rules\RolesWrittenByRepositoryRule
     - Billex\PHPStan\Rules\ScopeIssuedByGateRule
     - Billex\PHPStan\Rules\UseCaseResultRule
 
 services:
+    # Application code: tests/ and database/ (seeders, migrations, factories) set roles directly (D-049)
+    -
+        class: Billex\PHPStan\Rules\RolesWrittenByRepositoryRule
+        arguments:
+            paths:
+                - %currentWorkingDirectory%/app/
+                - %currentWorkingDirectory%/bootstrap/
+                - %currentWorkingDirectory%/config/
+                - %currentWorkingDirectory%/routes/
+        tags:
+            - phpstan.rules.rule
     -
         class: Billex\PHPStan\DeadCode\BackpackUsageProvider
         tags:
