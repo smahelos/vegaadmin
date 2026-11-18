@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate up to phase 8a, the grants and the controller rule done): phase 8b of the permission gate with use cases as Commands and Queries, reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate, the grants and the controller rule done): reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -74,12 +74,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. An architecture test checks that every class and path quoted in `docs/` exists, so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-
-### Permissions are not checked in the use case
-- **Where:** `authorize()` of `ClearCacheRequest`, `RunCronTaskRequest` and `DatabaseDashboardRequest`, `PermissionCatalogCoverageTest`, `CacheManagementController`, `CronTaskCrudController::run`, `AdminController::dashboard`
-- **Problem:** the checks are spread over delivery and differ by entry point (`docs/adr/D-048-permission-checks.md`).
-- **Fix (decided 2026-11-09):** per `rules/permissions.md` and `rules/application.md`, one PR per phase through `/convert-to-standard`; `authorize()` goes only in the commit that adds its replacement, and broad catches around use cases are narrowed in the same step. The whole conversion belongs to this step, with Invoice before step 12, so moving invoices stays apart from changing their behaviour. Phases: (1) `Permission` enum and the rename to `<entity>.<action>` without the guard prefix, with a temporary guard parameter on `getUserPermissions` (it would merge the guards after the rename), `PermissionCatalogCoverageTest` no longer deriving the guard from the prefix, and a `name (guard)` label on the role form, the user form and the user list filter; (2) the gate, `Access`, `Actor`, the scopes, the Larastan rules, the `allowed` middleware and `@allowed`, with Product as the pilot; the old `…ForUser` port methods of Party and Product stay only for the unconverted Invoice; (3) Party, with the public company register lookup and its rate limit; (4) User; (5) Invoice, expenses and `Api\InvoiceController`, adding `expense.create` and `expense.update` on `web` and deleting the remaining `…ForUser` port methods; (6) Payment and Analytics; (7) Content and Shared; (8) admin CRUD denied by default, `hasAccessOrFail` first in every overridden `store`/`update`, `system.configure` on the three log screens, the remaining admin requests, `PermissionCatalogCoverageTest` reduced to the enum and the catalog, and the new `System` context, where `CacheManagementController`, `CronTaskCrudController::run` (with "Cron tasks run inside the model") and the admin dashboard (`AdminController::dashboard`, which counts and sums every owner's records straight from the models, behind the admin login only) go through the gate. `DatabaseDashboardController` follows in step 20 with "Database dashboard shows invented metrics" and keeps `DatabaseDashboardRequest` (`system.configure`) until then; its five actions without a route are deleted.
-- **Status:** phases 1–7, 8a and the grants done 2026-11-10 to 2026-11-18 (branches `ls-permission-enum`, `ls-use-case-gate`, `ls-party-gate`, `ls-user-gate`, `ls-invoice-gate`, `ls-invoice-admin-gate`, `ls-payment-gate`, `ls-analytics-gate`, `ls-grants`, `ls-content-shared-gate`, `ls-admin-crud-deny`; `docs/adr/D-049-grants.md`, `docs/prd/PRD_GRANTS.md`): Product, Party, User, Invoice, Expense, Payment and Analytics run only through their Commands and Queries on the frontend, in Livewire, in the API, in the admin store, update and delete and in console commands; the `…ForUser` port methods, `UserPermissionServiceInterface`, `SubscriptionPolicy` and `requirePermission()` are gone; the gate reads what an actor may once per request through `GrantStore`, also for the admin menu, Backpack `setup()`, the admin and API entry middlewares and the cron run button (`holds`, `@holds`); published pages, countries and currencies are read by `final` classes outside the gate, and the public country and currency API is rate limited per user or IP address from `config/billex.php`; every Backpack CRUD screen denies all operations and allows only those whose permission the admin holds (`GatesCrudOperations::allowHeldOperations()`), the three log screens need `system.configure`, and the CRUD form requests have no `authorize()`, since `hasAccessOrFail` refuses a write before validation. Left: phase 8b with the `System` context (cache clearing, running a cron task, the admin dashboard under `statistics.view`, which the `backpack` guard gets), `DatabaseDashboardRequest` reading through the gate's `holds()` until step 20, a Larastan rule against reading permissions outside the gate and `PermissionCatalogCoverageTest` reduced to the enum and the catalog.
 
 ## Step 12: Issued invoices
 
@@ -176,13 +170,8 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** `SUM(invoices.payment_amount)` and `SUM(expenses.amount)` add invoices and expenses in different currencies into one number. The port returns `list<array<string, mixed>>` instead of DTOs, lives in Application without the `Interface` suffix, and the controller returns arrays without a `JsonResource`. A failed request leaves a chart empty with only a console error, in all five charts.
 - **Fix:** sums per currency as `Money` in statistics DTOs, a Domain port `StatisticsReadRepositoryInterface` returning them to the chart Queries, resources for the responses; the charts show one series per currency or convert through ČNB rates (decide with "Currency conversion of invoice items happens in the browser"). A translated empty and error state in `dashboard-statistics.js`.
 
-### Admin dashboard formats revenue by hand
-- **Where:** `resources/views/vendor/backpack/ui/dashboard.blade.php` (monthly revenue card, revenue overview), `$dashboardStats` built for it
-- **Problem:** revenue is a float printed as `€ ` + `number_format(..., 2)` with a `la-euro-sign` icon, whatever the invoices' currencies and the locale; the view also formats and computes values in Blade.
-- **Fix:** the dashboard stats come from an application service as a DTO with `Money` totals per currency, rendered through `MoneyFormatterInterface` by a presenter (`rules/domain.md`, `rules/frontend.md`).
-
 ### Analytics still uses untyped projections
-- **Where:** API chart repositories and `StatisticsController`, `UserActivitySummary`
+- **Where:** API chart repositories and `StatisticsController`
 - **Problem:** these paths predate the current standard: SQL row arrays and ad-hoc JSON, presentation in model accessors and broad catches remain.
 - **Fix:** chart DTOs, domain read ports, presenters and JsonResources. Dashboard reads already use typed ids, DTOs and Money. The inherited CZK aggregate meaning without currency conversion still needs an explicit multi-currency analytics decision.
 
@@ -264,10 +253,10 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 20: System admin screens
 
-### Cron tasks run inside the model
-- **Where:** `app/Models/CronTask.php::simulateRun()`, `app/Http/Controllers/Admin/CronTaskCrudController.php::run()`, `routes/console.php`
-- **Problem:** the model runs the command through the `Artisan` facade, stores the output and reports a failure as `false`; the scheduler reads the model and compares `frequency` with string literals. The commands a task may run are the `ScheduledCommand` enum and its options are validated by `CommandOptions` (2026-11-06), so this is a layering problem, not a security one.
-- **Fix:** a cron task application service that runs the command through a port and throws on failure, the frequency as an enum, the scheduler reading tasks through a repository.
+### Cron task schedule computed in the model
+- **Where:** `app/Models/CronTask.php` (`getCronExpression()`, `getNextRunDate()`), `app/Console/Commands/TestCronExpression.php`, `routes/console.php`
+- **Problem:** the model computes the cron expression from `frequency` compared with string literals, with Czech comments and a broad catch returning `null`; `TestCronExpression` repeats it, and the scheduler builds the same schedule a third time from `CronTaskDTO`. A stored command or frequency that the enums no longer offer stops loading every task, because `ListActiveCronTasks` maps all rows at once.
+- **Fix:** one schedule definition in the System Domain (expression from `CronTaskDTO`), used by the scheduler, the list column and `TestCronExpression`; decide whether an unknown stored command skips only its task.
 
 ### Cron task form ignores `depends`
 - **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (`run_at`, `day_of_week`, `day_of_month`, `custom_expression`)
@@ -297,7 +286,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### Database dashboard shows invented metrics
 - **Where:** `app/Http/Controllers/Admin/DatabaseDashboardController.php` (`generateSampleDataForMetricType()`, cleanup type `sample`, the `sample_metrics` count), `app/Console/Commands/CleanPerformanceMetrics.php`, `resources/views/admin/database/dashboard.blade.php`
 - **Problem:** when no metric of a type is stored, the performance chart shows random values labelled as sample data. The `sample` cleanup and the `sample_metrics` count look for rows marked `metadata.generated`, which nothing writes since the unrouted sample generator was deleted (branch `ls-dead-code`).
-- **Fix:** an empty state instead of random values; delete the `sample` cleanup type, the count and their translations.
+- **Fix:** an empty state instead of random values; delete the `sample` cleanup type, the count and their translations. The dashboard's actions become use cases of the System context, so `DatabaseDashboardRequest` loses its `authorize()`, which asks the gate's `holds()` for `system.configure` until then; its five actions without a route are deleted.
 
 ### Maintenance commands query the database directly
 - **Where:** `DatabaseMonitorCommand`, `DatabaseArchiveCommand`
@@ -311,7 +300,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 21: Conversion to the standard
 
-The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Expense, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23). The application layer is converted to use cases in step 11 ("Permissions are not checked in the use case"); do this step after it.
+The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item below is a gap between that standard and the code; convert one bounded context at a time with `/convert-to-standard`, in the order of their dependencies: Shared, User, Party, Product, Invoice, Expense, Payment, Analytics, Content. A context conversion takes every item of this section that applies to it and the context's own items here, and raises the Larastan level as far as the converted code allows (step 23). The application layer was converted to use cases in step 11 (the permission gate, finished 2026-11-18 in branch `ls-system-gate`).
 
 ### PHP syntax and readability rollout
 - **Where:** project PHP, maintained PHP examples and authored PHP expressions in Blade; enforcement in `phpcs.xml`, `pint.json` and `phpcs/Billex/`.
