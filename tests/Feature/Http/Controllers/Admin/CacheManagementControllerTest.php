@@ -117,6 +117,8 @@ final class CacheManagementControllerTest extends TestCase
         string $message,
     ): void {
         $artisan = Artisan::spy();
+        $expectation = $artisan->allows('call');
+        $expectation->andReturn(0);
 
         $httpClient = $this->actingAs($this->admin(), 'backpack');
         $httpClient = $httpClient->from('/admin/dashboard');

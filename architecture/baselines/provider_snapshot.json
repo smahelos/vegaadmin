@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-18T14:05:54+00:00",
+    "generated_at": "2026-11-18T16:32:27+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -372,6 +372,27 @@
                 {
                     "abstract": "App\\Application\\Product\\Contracts\\ProductFormDataServiceInterface",
                     "concrete": "App\\Infrastructure\\Services\\Product\\ProductFormDataService"
+                }
+            ],
+            "singleton": []
+        },
+        "App\\Providers\\SystemServiceProvider": {
+            "bind": [
+                {
+                    "abstract": "App\\Domain\\System\\Contracts\\CacheClearerInterface",
+                    "concrete": "App\\Infrastructure\\Console\\System\\ArtisanCacheClearer"
+                },
+                {
+                    "abstract": "App\\Domain\\System\\Contracts\\CommandRunnerInterface",
+                    "concrete": "App\\Infrastructure\\Console\\System\\ArtisanCommandRunner"
+                },
+                {
+                    "abstract": "App\\Domain\\System\\Contracts\\CronTaskReadRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\System\\Repositories\\EloquentCronTaskRepository"
+                },
+                {
+                    "abstract": "App\\Domain\\System\\Contracts\\CronTaskWriteRepositoryInterface",
+                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\System\\Repositories\\EloquentCronTaskRepository"
                 }
             ],
             "singleton": []
@@ -992,6 +1013,38 @@
             "actual": {
                 "implementation": "App\\Infrastructure\\Shared\\Translation\\LaravelTranslator",
                 "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\System\\Contracts\\CacheClearerInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Console\\System\\ArtisanCacheClearer",
+                "provider": "App\\Providers\\SystemServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\System\\Contracts\\CommandRunnerInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Console\\System\\ArtisanCommandRunner",
+                "provider": "App\\Providers\\SystemServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\System\\Contracts\\CronTaskReadRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\System\\Repositories\\EloquentCronTaskRepository",
+                "provider": "App\\Providers\\SystemServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\System\\Contracts\\CronTaskWriteRepositoryInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\System\\Repositories\\EloquentCronTaskRepository",
+                "provider": "App\\Providers\\SystemServiceProvider",
                 "method": "bind"
             }
         },

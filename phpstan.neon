@@ -60,7 +60,6 @@ services:
                 - App\Http\Controllers\Admin\BankAccountCrudController
                 - App\Http\Controllers\Admin\BusinessCrudController
                 - App\Http\Controllers\Admin\ContactCrudController
-                - App\Http\Controllers\Admin\CronTaskCrudController
                 - App\Http\Controllers\Admin\DatabaseDashboardController
                 - App\Http\Controllers\Admin\PageCrudController
                 - App\Http\Controllers\Admin\StatusCrudController

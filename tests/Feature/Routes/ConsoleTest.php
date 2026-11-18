@@ -157,6 +157,27 @@ final class ConsoleTest extends TestCase
         $verification->once();
     }
 
+    #[Test]
+    public function stores_the_time_and_output_after_a_run(): void
+    {
+        $taskFactory = CronTask::factory();
+        $activeFactory = $taskFactory->active();
+        $task = $activeFactory->create(['last_run' => null]);
+        $logPath = storage_path("logs/cron-{$task->id}.log");
+        file_put_contents($logPath, 'Done');
+
+        try {
+            $events = $this->scheduledEvents();
+            $events[0]->callAfterCallbacks($this->app);
+        } finally {
+            unlink($logPath);
+        }
+
+        $task->refresh();
+        $this->assertNotNull($task->last_run);
+        $this->assertSame('Done', $task->last_output);
+    }
+
     /**
      * @return list<Event>
      */

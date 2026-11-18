@@ -7,9 +7,6 @@ use App\Models\CronTask;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Queue;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -209,65 +206,6 @@ class CronTaskFeatureTest extends TestCase
 
         $this->assertTrue($nextRunDate1 instanceof Carbon || $nextRunDate1 === null);
         $this->assertTrue($nextRunDate2 instanceof Carbon || $nextRunDate2 === null);
-    }
-
-    #[Test]
-    public function simulate_run_runs_the_command_with_its_options_and_stores_the_run(): void
-    {
-        Mail::fake();
-        Notification::fake();
-        Queue::fake();
-        $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand(
-            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
-            '--days-before=5 --days-after=2',
-        );
-        $task = $commandFactory->create(['last_run' => null]);
-
-        $succeeded = $task->simulateRun();
-
-        $this->assertTrue($succeeded);
-        $task->refresh();
-        $this->assertNotNull($task->last_run);
-        $this->assertStringContainsString('Notifications sent', $task->last_output);
-    }
-
-    #[Test]
-    public function simulate_run_reports_a_command_that_rejects_its_options_as_failed(): void
-    {
-        $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand(
-            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
-            '--days-before=soon',
-        );
-        $task = $commandFactory->create();
-
-        $this->assertFalse(
-            $task->simulateRun(),
-        );
-    }
-
-    #[Test]
-    public function simulate_run_reports_an_unknown_option_as_failed_with_the_error(): void
-    {
-        $cronTaskFactory = CronTask::factory();
-        $commandFactory = $cronTaskFactory->withCommand(
-            ScheduledCommand::CHECK_INVOICE_PAYMENT_STATUS,
-            '--no-such-option',
-        );
-        $task = $commandFactory->create();
-
-        $succeeded = $task->simulateRun();
-
-        $this->assertFalse($succeeded);
-        $task->refresh();
-        $this->assertStringStartsWith(
-            __(
-                'cron_tasks.messages.run_error',
-                ['error' => ''],
-            ),
-            $task->last_output,
-        );
     }
 
     #[Test]

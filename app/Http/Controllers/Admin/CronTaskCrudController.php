@@ -1,12 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\System\Commands\RunCronTask;
+use App\Domain\System\Enums\CronTaskFrequency;
 use App\Domain\System\Enums\ScheduledCommand;
+use App\Domain\System\Exceptions\CronTaskFailedException;
+use App\Domain\System\ValueObjects\CronTaskId;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\CronTaskRequest;
-use App\Http\Requests\Admin\RunCronTaskRequest;
 use App\Models\CronTask;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -18,9 +23,8 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Prologue\Alerts\Facades\Alert;
-use Throwable;
 
-class CronTaskCrudController extends CrudController
+final class CronTaskCrudController extends CrudController
 {
     use CreateOperation;
     use DeleteOperation;
@@ -79,10 +83,10 @@ class CronTaskCrudController extends CrudController
         $column->type('select_from_array');
         $column->options(
             [
-                'daily' => __('cron_tasks.frequencies.daily'),
-                'weekly' => __('cron_tasks.frequencies.weekly'),
-                'monthly' => __('cron_tasks.frequencies.monthly'),
-                'custom' => __('cron_tasks.frequencies.custom'),
+                CronTaskFrequency::DAILY->value => __('cron_tasks.frequencies.daily'),
+                CronTaskFrequency::WEEKLY->value => __('cron_tasks.frequencies.weekly'),
+                CronTaskFrequency::MONTHLY->value => __('cron_tasks.frequencies.monthly'),
+                CronTaskFrequency::CUSTOM->value => __('cron_tasks.frequencies.custom'),
             ],
         );
         $column = CRUD::column('next_run');
@@ -175,10 +179,10 @@ class CronTaskCrudController extends CrudController
         $field->type('select_from_array');
         $field->options(
             [
-                'daily' => __('cron_tasks.frequencies.daily'),
-                'weekly' => __('cron_tasks.frequencies.weekly'),
-                'monthly' => __('cron_tasks.frequencies.monthly'),
-                'custom' => __('cron_tasks.frequencies.custom'),
+                CronTaskFrequency::DAILY->value => __('cron_tasks.frequencies.daily'),
+                CronTaskFrequency::WEEKLY->value => __('cron_tasks.frequencies.weekly'),
+                CronTaskFrequency::MONTHLY->value => __('cron_tasks.frequencies.monthly'),
+                CronTaskFrequency::CUSTOM->value => __('cron_tasks.frequencies.custom'),
             ],
         );
         $field->tab(
@@ -332,27 +336,24 @@ class CronTaskCrudController extends CrudController
         );
     }
 
-    public function run(RunCronTaskRequest $request, int $id): RedirectResponse
+    public function run(int $id): RedirectResponse
     {
-        $task = CronTask::findOrFail($id);
-
         try {
-            // The task stores a failure in last_output and reports it as false; only an Error escapes
-            $succeeded = $task->simulateRun();
-        } catch (Throwable $e) {
-            Log::error('Cron task run failed', [
-                'cronTaskId' => $id,
-                'exception' => $e,
-            ]);
-            $succeeded = false;
-        }
-
-        if ($succeeded) {
+            $this->useCases->run(
+                $this->admin(),
+                new RunCronTask(
+                    CronTaskId::fromInt($id),
+                ),
+            );
             $alerts = Alert::success(
                 __('cron_tasks.messages.task_executed'),
             );
             $alerts->flash();
-        } else {
+        } catch (CronTaskFailedException $e) {
+            Log::error(
+                'Cron task run failed',
+                ['cronTaskId' => $id, 'exception' => $e],
+            );
             $alerts = Alert::error(
                 __('cron_tasks.messages.execution_failed'),
             );
