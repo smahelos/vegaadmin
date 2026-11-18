@@ -13,11 +13,9 @@ use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ExpenseRequest;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Infrastructure\Forms\Expense\ExpenseFormFields;
-use App\Models\Contact;
+use App\Infrastructure\Forms\Party\PartyFormFields;
+use App\Infrastructure\Forms\Shared\StatusFormFields;
 use App\Models\Expense;
-use App\Models\ExpenseCategory;
-use App\Models\Status;
-use App\Models\StatusCategory;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
@@ -188,44 +186,18 @@ final class ExpenseCrudController extends CrudController
             },
         );
 
-        $filter = CRUD::filter('contact_id');
-        $filter->type('select2');
-        $filter->label(
-            __('invoices.fields.contact_id'),
+        CRUD::addFilter(
+            ExpenseFormFields::supplierFilter(),
+            PartyFormFields::contactNames(),
         );
-        $contactNames = Contact::pluck('name', 'id');
-        $filter->values($contactNames->toArray());
-        $filter->whenActive(
-            fn ($value) => CRUD::addClause(
-                'where',
-                'contact_id',
-                $value,
-            ),
+        CRUD::addFilter(
+            ExpenseFormFields::categoryFilter(),
+            ExpenseFormFields::categoryNames(),
         );
-
-        $filter = CRUD::filter('category_id');
-        $filter->type('select2');
-        $filter->label(
-            __('expenses.fields.category_id'),
+        CRUD::addFilter(
+            ExpenseFormFields::statusFilter(),
+            StatusFormFields::names('expense-statuses'),
         );
-        $categoryQuery = ExpenseCategory::where('is_active', 1);
-        $categoryNames = $categoryQuery->pluck('name', 'id');
-        $filter->values($categoryNames->toArray());
-
-        // Get the category ID for 'expense'
-        $statusCategoryQuery = StatusCategory::where('slug', 'expense-statuses');
-        $statusCategory = $statusCategoryQuery->first();
-        $categoryId = $statusCategory?->id;
-
-        $filter = CRUD::filter('status_id');
-        $filter->type('select2');
-        $filter->label(
-            __('expenses.fields.status_id'),
-        );
-        $statusQuery = Status::where('category_id', $categoryId);
-        $statusQuery->where('is_active', 1);
-        $statusNames = $statusQuery->pluck('name', 'id');
-        $filter->values($statusNames->toArray());
     }
 
     /**

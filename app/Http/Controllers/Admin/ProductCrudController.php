@@ -18,6 +18,7 @@ use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\ProductRequest;
 use App\Infrastructure\Forms\User\EntityUsageFormFields;
+use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Product;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -99,21 +100,11 @@ final class ProductCrudController extends CrudController
             },
         );
 
-        $filter = CRUD::filter('user_id');
-        $filter->type('select2');
-        $filter->label(
-            __('products.fields.user_id'),
-        );
-        $userNames = User::pluck('name', 'id');
-        $filter->values($userNames->toArray());
-        $filter->whenActive(
-            function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'user_id',
-                    $value,
-                );
-            },
+        CRUD::addFilter(
+            OwnerFormFields::filter(
+                __('products.fields.user_id'),
+            ),
+            OwnerFormFields::names(),
         );
 
         $column = CRUD::column('user_id');

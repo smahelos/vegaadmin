@@ -8,17 +8,17 @@ use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\Party\PartyFormFields;
+use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Address;
 use App\Models\Business;
 use App\Models\Contact;
-use App\Models\User;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
 use Prologue\Alerts\Facades\Alert;
 
 /**
- * The admin screens businesses and contacts share: access by permission, list columns and filters, the owner and
- * profile fields, and archiving and restoring. Records are written through the application services with the
+ * The admin screens businesses and contacts share: access by permission, list columns and filters, the profile fields,
+ * and archiving and restoring. Records are written through the application services with the
  * record's owner, so the owner's limits and invariants apply; there is no delete.
  */
 trait ConfiguresPartyCrud
@@ -111,24 +111,11 @@ trait ConfiguresPartyCrud
         );
         $column->type('datetime');
 
-        $userQuery = User::query();
-        $userQuery->orderBy('name');
-        $userNames = $userQuery->pluck('name', 'id');
-
-        $filter = CRUD::filter('user_id');
-        $filter->type('select2');
-        $filter->label(
-            __('parties.fields.owner'),
-        );
-        $filter->values($userNames->all());
-        $filter->whenActive(
-            function (string $value): void {
-                CRUD::addClause(
-                    'where',
-                    'user_id',
-                    (int) $value,
-                );
-            },
+        CRUD::addFilter(
+            OwnerFormFields::filter(
+                __('parties.fields.owner'),
+            ),
+            OwnerFormFields::names(),
         );
         $filter = CRUD::filter('status');
         $filter->type('select2');
@@ -165,20 +152,6 @@ trait ConfiguresPartyCrud
             'end',
         );
         CRUD::set('party.entity', $entity);
-    }
-
-    protected function addOwnerField(): void
-    {
-        $field = CRUD::field('user_id');
-        $field->label(
-            __('parties.fields.owner'),
-        );
-        $field->type('select2_from_array');
-        $userQuery = User::query();
-        $userQuery->orderBy('name');
-        $userNames = $userQuery->pluck('name', 'id');
-        $field->options($userNames->all());
-        $field->allows_null(false);
     }
 
     /**

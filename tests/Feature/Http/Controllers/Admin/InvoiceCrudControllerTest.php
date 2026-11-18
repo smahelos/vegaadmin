@@ -14,6 +14,8 @@ use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\RoleLimit;
+use App\Models\Status;
+use App\Models\StatusCategory;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -33,6 +35,26 @@ final class InvoiceCrudControllerTest extends TestCase
         parent::setUp();
         $this->setUpAdminTestEnvironment();
         $this->actingAs($this->adminUser, 'backpack');
+    }
+
+    #[Test]
+    public function the_status_filter_offers_only_invoice_statuses(): void
+    {
+        $statusFactory = Status::factory();
+        $invoiceCategory = StatusCategory::where('slug', 'invoice-statuses');
+        $invoiceStatus = $statusFactory->create(
+            ['category_id' => $invoiceCategory->value('id')],
+        );
+        $expenseCategory = StatusCategory::where('slug', 'expense-statuses');
+        $expenseStatus = $statusFactory->create(
+            ['category_id' => $expenseCategory->value('id')],
+        );
+
+        $response = $this->get('/admin/invoice');
+
+        $response->assertOk();
+        $response->assertSee($invoiceStatus->name);
+        $response->assertDontSee($expenseStatus->name);
     }
 
     #[Test]

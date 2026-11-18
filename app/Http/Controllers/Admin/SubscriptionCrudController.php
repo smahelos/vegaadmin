@@ -13,8 +13,8 @@ use App\Domain\Payment\ValueObjects\SubscriptionId;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Admin\SubscriptionRequest;
+use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Subscription;
-use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
@@ -165,21 +165,11 @@ final class SubscriptionCrudController extends CrudController
                 },
             );
 
-            $filter = CRUD::filter('user_id');
-            $filter->type('select2');
-            $filter->label(
-                __('subscriptions.filters.user_id'),
-            );
-            $userNames = User::pluck('name', 'id');
-            $filter->values($userNames->toArray());
-            $filter->whenActive(
-                function ($value): void {
-                    CRUD::addClause(
-                        'where',
-                        'user_id',
-                        $value,
-                    );
-                },
+            CRUD::addFilter(
+                OwnerFormFields::filter(
+                    __('subscriptions.filters.user_id'),
+                ),
+                OwnerFormFields::names(),
             );
         }
     }
