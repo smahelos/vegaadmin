@@ -218,7 +218,9 @@ final class BusinessCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(BusinessRequest::class);
-        $this->addOwnerField();
+        CRUD::addField(
+            PartyFormFields::owner(),
+        );
         CRUD::addField(
             EntityUsageFormFields::field(LimitedEntity::BUSINESS),
         );

@@ -8,6 +8,7 @@ use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\StatusRequest;
+use App\Infrastructure\Forms\Shared\StatusFormFields;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
@@ -121,25 +122,9 @@ final class StatusCrudController extends CrudController
             ],
         );
 
-        // Add a filter for category
         CRUD::addFilter(
-            [
-                'name' => 'category_id',
-                'type' => 'select2',
-                'label' => __('statuses.filters.category'),
-            ],
-            function () {
-                $categoryNames = StatusCategory::pluck('name', 'id');
-
-                return $categoryNames->toArray();
-            },
-            function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'category_id',
-                    $value,
-                );
-            },
+            StatusFormFields::categoryFilter(),
+            StatusFormFields::categoryNames(),
         );
 
         $column = CRUD::column('color_preview');

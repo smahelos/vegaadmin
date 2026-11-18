@@ -13,6 +13,8 @@ use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
+use App\Infrastructure\Forms\Shared\StatusFormFields;
+use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\Status;
@@ -82,38 +84,16 @@ final class InvoiceCrudController extends CrudController
     protected function setupListOperation(): void
     {
         // Add filters
-        $filter = CRUD::filter('user_id');
-        $filter->type('select2');
-        $filter->label(
-            __('invoices.fields.user_id'),
-        );
-        $userNames = User::pluck('name', 'id');
-        $filter->values($userNames->toArray());
-        $filter->whenActive(
-            function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'user_id',
-                    $value,
-                );
-            },
+        CRUD::addFilter(
+            OwnerFormFields::filter(
+                __('invoices.fields.user_id'),
+            ),
+            OwnerFormFields::names(),
         );
 
-        $filter = CRUD::filter('payment_status_id');
-        $filter->type('select2');
-        $filter->label(
-            __('invoices.fields.status'),
-        );
-        $statusNames = Status::pluck('name', 'id');
-        $filter->values($statusNames->toArray());
-        $filter->whenActive(
-            function ($value): void {
-                CRUD::addClause(
-                    'where',
-                    'payment_status_id',
-                    $value,
-                );
-            },
+        CRUD::addFilter(
+            AdminInvoiceFormFields::statusFilter(),
+            StatusFormFields::names('invoice-statuses'),
         );
 
         CRUD::addFilter(

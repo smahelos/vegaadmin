@@ -63,12 +63,8 @@ services:
                 - App\Http\Controllers\Admin\ContactCrudController
                 - App\Http\Controllers\Admin\CronTaskCrudController
                 - App\Http\Controllers\Admin\DatabaseDashboardController
-                - App\Http\Controllers\Admin\ExpenseCrudController
-                - App\Http\Controllers\Admin\InvoiceCrudController
                 - App\Http\Controllers\Admin\PageCrudController
-                - App\Http\Controllers\Admin\ProductCrudController
                 - App\Http\Controllers\Admin\StatusCrudController
-                - App\Http\Controllers\Admin\SubscriptionCrudController
                 - App\Http\Controllers\Admin\SubscriptionPlanCrudController
                 - App\Http\Controllers\Frontend\SubscriptionController
         tags:

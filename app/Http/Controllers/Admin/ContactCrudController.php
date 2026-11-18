@@ -201,7 +201,9 @@ final class ContactCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ContactRequest::class);
-        $this->addOwnerField();
+        CRUD::addField(
+            PartyFormFields::owner(),
+        );
         CRUD::addField(
             EntityUsageFormFields::field(LimitedEntity::CONTACT),
         );

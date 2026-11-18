@@ -13,6 +13,16 @@ final class AdminInvoiceFormFields
 {
     use InvoiceFormFields;
 
+    /** @return array<string, string> */
+    public static function statusFilter(): array
+    {
+        return [
+            'name' => 'payment_status_id',
+            'type' => 'select2',
+            'label' => __('invoices.fields.status'),
+        ];
+    }
+
     /**
      * @param  array<string, string>  $countries
      * @return list<array<string, mixed>>

@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Feature\Infrastructure\Forms\Shared;
+
+use App\Infrastructure\Forms\Shared\StatusFormFields;
+use App\Models\Status;
+use App\Models\StatusCategory;
+use PHPUnit\Framework\Attributes\Test;
+use Tests\TestCase;
+
+final class StatusFormFieldsTest extends TestCase
+{
+    #[Test]
+    public function names_are_the_statuses_of_one_category_inactive_ones_included(): void
+    {
+        $categoryFactory = StatusCategory::factory();
+        $category = $categoryFactory->create();
+        $statusFactory = Status::factory();
+        $active = $statusFactory->create(['category_id' => $category->id]);
+        $inactive = $statusFactory->create(
+            [
+                'category_id' => $category->id,
+                'is_active' => false,
+            ],
+        );
+        $statusFactory->create();
+
+        $names = StatusFormFields::names($category->slug);
+        ksort($names);
+
+        $this->assertSame(
+            [
+                $active->id => $active->name,
+                $inactive->id => $inactive->name,
+            ],
+            $names,
+        );
+    }
+}

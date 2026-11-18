@@ -16,6 +16,49 @@ use Illuminate\Database\Eloquent\Collection;
 
 final class ExpenseFormFields
 {
+    /** @return array<string, string> */
+    public static function supplierFilter(): array
+    {
+        return [
+            'name' => 'contact_id',
+            'type' => 'select2',
+            'label' => __('expenses.fields.supplier'),
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function categoryFilter(): array
+    {
+        return [
+            'name' => 'category_id',
+            'type' => 'select2',
+            'label' => __('expenses.fields.category_id'),
+        ];
+    }
+
+    /**
+     * Inactive categories included: a filter finds stored expenses, which may hold a category no longer offered.
+     *
+     * @return array<int, string> category name by id
+     */
+    public static function categoryNames(): array
+    {
+        $categoryQuery = ExpenseCategory::query();
+        $names = $categoryQuery->pluck('name', 'id');
+
+        return $names->all();
+    }
+
+    /** @return array<string, string> */
+    public static function statusFilter(): array
+    {
+        return [
+            'name' => 'status_id',
+            'type' => 'select2',
+            'label' => __('expenses.fields.status_id'),
+        ];
+    }
+
     /**
      * @param  array<string, string>  $countries
      * @return list<array<string, mixed>>

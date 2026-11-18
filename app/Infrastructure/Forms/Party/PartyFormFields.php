@@ -4,11 +4,43 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Forms\Party;
 
+use App\Infrastructure\Forms\User\OwnerFormFields;
+use App\Models\Contact;
+
 /**
  * Admin form fields of the party profile and address that businesses and contacts share.
  */
 final class PartyFormFields
 {
+    /** @return array<string, mixed> */
+    public static function owner(): array
+    {
+        return [
+            'name' => 'user_id',
+            'label' => __('parties.fields.owner'),
+            'type' => 'select2_from_array',
+            'options' => OwnerFormFields::names(),
+            'allows_null' => false,
+        ];
+    }
+
+    /**
+     * Contacts of all owners, each with its owner's name, so two owners' contacts of the same name can be told apart.
+     *
+     * @return array<int, string> "contact (owner)" by contact id
+     */
+    public static function contactNames(): array
+    {
+        $contactQuery = Contact::with('user');
+        $contacts = $contactQuery->get();
+        $names = [];
+        foreach ($contacts as $contact) {
+            $names[$contact->id] = $contact->name . ' (' . $contact->user->name . ')';
+        }
+
+        return $names;
+    }
+
     /** @return list<array<string, mixed>> */
     public static function logo(): array
     {
