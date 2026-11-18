@@ -10,6 +10,7 @@ use App\Infrastructure\Authorization\Grants;
 use App\Infrastructure\Persistence\Eloquent\User\Mappers\EloquentRoleLimitMapper;
 use App\Models\RoleLimit;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * The grants read in this request, one per user and guard (D-049). Registered as scoped and emptied when a new
@@ -23,6 +24,9 @@ final class GrantStore
     /** @var array<int, array<string, list<RoleLimitDTO>>> */
     private array $limits = [];
 
+    /** @var array<int, true> users whose role change is not committed yet */
+    private array $uncommitted = [];
+
     public function __construct(
         private readonly EloquentRoleLimitMapper $limitMapper,
     ) {}
@@ -30,6 +34,9 @@ final class GrantStore
     public function for(UserId $user, string $guard): Grants
     {
         $id = $user->toInt();
+        if (isset($this->uncommitted[$id])) {
+            return $this->load($id, $guard);
+        }
 
         return $this->grants[$id][$guard] ??= $this->load($id, $guard);
     }
@@ -42,14 +49,26 @@ final class GrantStore
     public function limits(UserId $user, string $guard): array
     {
         $grants = $this->for($user, $guard);
+        $id = $user->toInt();
+        if (isset($this->uncommitted[$id])) {
+            return $this->loadLimits($grants->roles);
+        }
 
-        return $this->limits[$user->toInt()][$guard] ??= $this->loadLimits($grants->roles);
+        return $this->limits[$id][$guard] ??= $this->loadLimits($grants->roles);
     }
 
     public function forget(UserId $user): void
     {
         $id = $user->toInt();
         unset($this->grants[$id], $this->limits[$id]);
+        // Neither a rollback nor a failed commit reliably reports itself, so roles read before the commit are not
+        // kept: until it commits, each question reads the user's roles again, which then are the stored ones
+        $this->uncommitted[$id] = true;
+        DB::afterCommit(
+            function () use ($id): void {
+                unset($this->uncommitted[$id]);
+            },
+        );
     }
 
     /**
@@ -60,6 +79,7 @@ final class GrantStore
     {
         $this->grants = [];
         $this->limits = [];
+        $this->uncommitted = [];
     }
 
     /**

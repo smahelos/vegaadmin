@@ -54,9 +54,7 @@ use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
 use App\Infrastructure\Shared\Time\IcuDateFormatter;
 use App\Infrastructure\Shared\Translation\LaravelTranslator;
-use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\DatabaseTransactionsManager;
-use Illuminate\Database\Events\TransactionRolledBack;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -72,17 +70,6 @@ class SharedServiceProvider extends ServiceProvider
         $this->registerDomainServices();
         $this->registerInfrastructure();
         $this->registerApplicationServices();
-    }
-
-    public function boot(Dispatcher $events): void
-    {
-        // The role writer forgets the grants before the commit: a rollback must not leave the unsaved roles read
-        $events->listen(
-            TransactionRolledBack::class,
-            function (): void {
-                $this->clearGrants();
-            },
-        );
     }
 
     private function clearGrants(): void

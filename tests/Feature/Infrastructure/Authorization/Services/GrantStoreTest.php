@@ -241,6 +241,46 @@ final class GrantStoreTest extends TestCase
         );
     }
 
+    #[Test]
+    public function grants_read_before_a_role_change_commits_are_not_kept(): void
+    {
+        // A failed commit fires no rollback event, so nothing read before the commit may outlive it
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $actor = Actor::user(
+            $this->idOf($user),
+        );
+
+        DB::transaction(
+            function () use ($useCases, $user, $actor): void {
+                $useCases->run(
+                    Actor::system(),
+                    new AssignRole($user->email, 'frontend_user'),
+                );
+                $this->assertTrue(
+                    $useCases->allowed($actor, CreateProduct::class),
+                );
+
+                $user->removeRole('frontend_user');
+
+                $this->assertFalse(
+                    $useCases->allowed($actor, CreateProduct::class),
+                );
+            },
+        );
+        $this->countGrantReads();
+
+        $this->assertFalse(
+            $useCases->allowed($actor, CreateProduct::class),
+        );
+        $this->assertFalse(
+            $useCases->allowed($actor, CreateProduct::class),
+        );
+        // Kept again once the change committed
+        $this->assertSame(1, $this->grantReads['model_has_roles']);
+    }
+
     private function countGrantReads(): void
     {
         DB::listen(
