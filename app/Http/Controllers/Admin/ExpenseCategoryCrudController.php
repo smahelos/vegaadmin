@@ -51,7 +51,7 @@ final class ExpenseCategoryCrudController extends CrudController
             __('expenses.categories.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::EXPENSE_VIEW,
                 'show' => Permission::EXPENSE_VIEW,

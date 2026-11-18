@@ -39,8 +39,8 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class BankAccountCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
+    use GatesCrudOperations;
     use ListOperation;
     use NarrowsCrudTypes;
     use UpdateOperation;
@@ -63,17 +63,13 @@ final class BankAccountCrudController extends CrudController
         );
 
         // Accounts have their own permissions, whichever party owns them (rules/permissions.md)
-        $denied = [];
-        if (!$this->adminHolds(Permission::BANK_ACCOUNT_VIEW)) {
-            $denied[] = 'list';
-        }
-
-        if (!$this->adminHolds(Permission::BANK_ACCOUNT_UPDATE)) {
-            $denied[] = 'create';
-            $denied[] = 'update';
-        }
-
-        CRUD::denyAccess($denied);
+        $this->allowHeldOperations(
+            [
+                'list' => Permission::BANK_ACCOUNT_VIEW,
+                'create' => Permission::BANK_ACCOUNT_UPDATE,
+                'update' => Permission::BANK_ACCOUNT_UPDATE,
+            ],
+        );
     }
 
     public function store(): RedirectResponse

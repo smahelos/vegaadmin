@@ -62,7 +62,7 @@ final class SubscriptionCrudController extends CrudController
             __('subscriptions.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::SUBSCRIPTION_VIEW,
                 'show' => Permission::SUBSCRIPTION_VIEW,

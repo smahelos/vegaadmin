@@ -23,7 +23,7 @@ use Prologue\Alerts\Facades\Alert;
  */
 trait ConfiguresPartyCrud
 {
-    use ActsAsAdmin;
+    use GatesCrudOperations;
 
     private const STATUS_ACTIVE = 'active';
 
@@ -59,21 +59,14 @@ trait ConfiguresPartyCrud
                 Permission::CONTACT_UPDATE,
             ],
         };
-        $denied = [];
-        if (!$this->adminHolds($view)) {
-            $denied[] = 'list';
-            $denied[] = 'show';
-        }
-
-        if (!$this->adminHolds($create)) {
-            $denied[] = 'create';
-        }
-
-        if (!$this->adminHolds($update)) {
-            $denied[] = 'update';
-        }
-
-        CRUD::denyAccess($denied);
+        $this->allowHeldOperations(
+            [
+                'list' => $view,
+                'show' => $view,
+                'create' => $create,
+                'update' => $update,
+            ],
+        );
     }
 
     protected function setupPartyList(string $entity): void

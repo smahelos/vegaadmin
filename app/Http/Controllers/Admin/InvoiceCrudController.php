@@ -67,7 +67,7 @@ final class InvoiceCrudController extends CrudController
             __('invoices.entity.singular'),
             __('invoices.entity.plural'),
         );
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::INVOICE_VIEW,
                 'show' => Permission::INVOICE_VIEW,

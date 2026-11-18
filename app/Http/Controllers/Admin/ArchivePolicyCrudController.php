@@ -46,7 +46,7 @@ class ArchivePolicyCrudController extends CrudController
             __('admin/database.archive_policies.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::SYSTEM_CONFIGURE,
                 'show' => Permission::SYSTEM_CONFIGURE,

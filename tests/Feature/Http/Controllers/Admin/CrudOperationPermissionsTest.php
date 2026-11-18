@@ -7,6 +7,10 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Enums\Permission;
 use App\Models\Bank;
+use App\Models\BankAccount;
+use App\Models\Business;
+use App\Models\Contact;
+use App\Models\CronTask;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
@@ -44,6 +48,10 @@ final class CrudOperationPermissionsTest extends TestCase
         return [
             'archive policy' => ['archive-policy', Permission::SYSTEM_CONFIGURE],
             'bank' => ['bank', Permission::BANK_VIEW],
+            'bank account' => ['bank-account', Permission::BANK_ACCOUNT_VIEW],
+            'business' => ['business', Permission::BUSINESS_VIEW],
+            'contact' => ['contact', Permission::CONTACT_VIEW],
+            'cron task' => ['cron-task', Permission::CRON_TASK_VIEW],
             'expense' => ['expense', Permission::EXPENSE_VIEW],
             'expense category' => ['expense-category', Permission::EXPENSE_VIEW],
             'invoice' => ['invoice', Permission::INVOICE_VIEW],
@@ -166,6 +174,38 @@ final class CrudOperationPermissionsTest extends TestCase
         ];
     }
 
+    /**
+     * Screens with a create and an update operation, including those that write records with an owner directly.
+     *
+     * @return array<string, array{string, string, class-string<Model>}>
+     */
+    public static function writableScreens(): array
+    {
+        return [
+            ...self::viewOnlyScreens(),
+            'bank account' => [
+                'bank-account',
+                Permission::BANK_ACCOUNT_VIEW,
+                BankAccount::class,
+            ],
+            'business' => [
+                'business',
+                Permission::BUSINESS_VIEW,
+                Business::class,
+            ],
+            'contact' => [
+                'contact',
+                Permission::CONTACT_VIEW,
+                Contact::class,
+            ],
+            'cron task' => [
+                'cron-task',
+                Permission::CRON_TASK_VIEW,
+                CronTask::class,
+            ],
+        ];
+    }
+
     #[Test]
     #[DataProvider('screens')]
     public function the_list_is_denied_without_the_view_permission(string $route): void
@@ -220,6 +260,28 @@ final class CrudOperationPermissionsTest extends TestCase
 
         $response->assertForbidden();
         $this->assertModelExists($record);
+    }
+
+    /**
+     * @param  class-string<Model>  $model
+     */
+    #[Test]
+    #[DataProvider('writableScreens')]
+    public function writing_invalid_data_is_denied_with_the_view_permission_only(
+        string $route,
+        Permission $permission,
+        string $model,
+    ): void {
+        $record = $this->record($model);
+        $user = $this->backendUser([$permission]);
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $storeResponse = $httpClient->post('/admin/' . $route, []);
+        $updateResponse = $httpClient->put('/admin/' . $route . '/' . $record->getKey(), []);
+
+        // The operation is refused before validation, so invalid data never reaches a 422
+        $storeResponse->assertForbidden();
+        $updateResponse->assertForbidden();
     }
 
     #[Test]

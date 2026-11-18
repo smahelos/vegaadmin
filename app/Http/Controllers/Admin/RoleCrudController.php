@@ -26,7 +26,7 @@ final class RoleCrudController extends PackageRoleCrudController
     {
         parent::setup();
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::ROLE_VIEW,
                 'create' => Permission::ROLE_CREATE,

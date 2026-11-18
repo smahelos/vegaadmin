@@ -48,7 +48,7 @@ class BankCrudController extends CrudController
         );
         CRUD::setEntityNameStrings('bank', 'banks');
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::BANK_VIEW,
                 'show' => Permission::BANK_VIEW,

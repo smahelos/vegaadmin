@@ -49,7 +49,7 @@ class SubscriptionPlanFeatureCrudController extends CrudController
             __('subscriptions.features.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW,
                 'show' => Permission::SUBSCRIPTION_PLAN_FEATURE_VIEW,

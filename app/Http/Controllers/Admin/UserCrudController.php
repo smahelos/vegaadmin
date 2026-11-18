@@ -64,7 +64,7 @@ class UserCrudController extends CrudController
             __('users.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::USER_VIEW,
                 'show' => Permission::USER_VIEW,

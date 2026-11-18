@@ -27,7 +27,7 @@ final class PermissionCrudController extends PackagePermissionCrudController
     {
         parent::setup();
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PERMISSION_VIEW,
                 'create' => Permission::PERMISSION_CREATE,

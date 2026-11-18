@@ -53,7 +53,7 @@ final class StatusCrudController extends CrudController
             __('statuses.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::STATUS_VIEW,
                 'show' => Permission::STATUS_VIEW,

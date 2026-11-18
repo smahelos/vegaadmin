@@ -47,7 +47,7 @@ final class TaxCrudController extends CrudController
             __('taxes.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::TAX_VIEW,
                 'show' => Permission::TAX_VIEW,
