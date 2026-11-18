@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Domain\Content\Services;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageService;
+use App\Application\Content\Services\PageApplicationService as PageService;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Collection;

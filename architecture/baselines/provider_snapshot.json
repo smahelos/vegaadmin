@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-16T17:19:48+00:00",
+    "generated_at": "2026-11-18T14:05:54+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -115,14 +115,6 @@
                 {
                     "abstract": "App\\Domain\\Shared\\Tax\\Contracts\\TaxDtoWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Shared\\Tax\\Repositories\\EloquentTaxDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface",
-                    "concrete": "App\\Application\\Shared\\Money\\Services\\CurrencyApplicationService"
-                },
-                {
-                    "abstract": "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface",
-                    "concrete": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService"
                 }
             ],
             "singleton": [
@@ -166,10 +158,6 @@
                 {
                     "abstract": "App\\Domain\\Content\\Contracts\\PageDtoWriteRepositoryInterface",
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Content\\Repositories\\EloquentPageDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface",
-                    "concrete": "App\\Application\\Content\\Services\\PageApplicationService"
                 }
             ],
             "singleton": []
@@ -419,14 +407,6 @@
         }
     },
     "contracts": {
-        "App\\Application\\Content\\Contracts\\PageApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Content\\Services\\PageApplicationService",
-                "provider": "App\\Providers\\ContentServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Content\\Contracts\\PageReadRepositoryInterface": {
             "status": "ok",
             "actual": {
@@ -536,22 +516,6 @@
             "actual": {
                 "implementation": "App\\Infrastructure\\Services\\Product\\ProductFormDataService",
                 "provider": "App\\Providers\\ProductServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Shared\\Geography\\Contracts\\CountryApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Shared\\Geography\\Services\\CountryApplicationService",
-                "provider": "App\\Providers\\SharedServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Shared\\Money\\Contracts\\CurrencyApplicationServiceInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Application\\Shared\\Money\\Services\\CurrencyApplicationService",
-                "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }
         },

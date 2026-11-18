@@ -1,23 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
-use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
+use App\Application\Shared\Money\Services\CurrencyApplicationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class CurrencyController extends Controller
+final class CurrencyController extends Controller
 {
-    protected CurrencyApplicationServiceInterface $currencyAppService;
-
-    /**
-     * Controller constructor
-     */
-    public function __construct(CurrencyApplicationServiceInterface $currencyAppService)
-    {
-        $this->currencyAppService = $currencyAppService;
-    }
+    public function __construct(
+        private readonly CurrencyApplicationService $currencyAppService,
+    ) {}
 
     /**
      * Get list of commonly used currencies

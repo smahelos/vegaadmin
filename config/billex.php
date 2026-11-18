@@ -7,10 +7,11 @@ declare(strict_types=1);
  */
 return [
     // Requests per minute: creation per user on every path, the guest invoice per IP address, the company register
-    // lookup per user or per IP address for a guest
+    // lookup and the public API (countries, currencies, exchange rates) per user or per IP address for a guest
     'rate_limits' => [
         'create' => 30,
         'guest_invoice' => 10,
         'company_registry' => 10,
+        'public_api' => 60,
     ],
 ];

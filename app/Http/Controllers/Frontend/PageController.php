@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
+use App\Application\Content\Services\PageApplicationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class PageController extends Controller
+final class PageController extends Controller
 {
     public function __construct(
-        private PageServiceInterface $pageService,
+        private readonly PageApplicationService $pageService,
     ) {}
 
     /**
@@ -156,11 +158,10 @@ class PageController extends Controller
     /**
      * Show pages for a specific category by ID
      */
-    public function category(string $categoryId, ?string $locale = null): View
+    public function category(string $locale, string $categoryId): View
     {
+        // Set application locale from URL parameter
         $application = app();
-        // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? $application->getLocale();
         $application->setLocale($locale);
 
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);

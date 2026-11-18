@@ -55,11 +55,15 @@ class RouteServiceProvider extends ServiceProvider
     protected function configureRateLimiting(): void
     {
         RateLimiter::for(
-            'api',
-            function (Request $request) {
-                $limit = Limit::perMinute(60);
+            'public_api',
+            function (Request $request): Limit {
+                $limit = Limit::perMinute(
+                    Config::integer('billex.rate_limits.public_api'),
+                );
 
-                return $limit->by($request->user()?->id ?: $request->ip());
+                $user = $request->user();
+
+                return $limit->by((string) ($user?->getAuthIdentifier() ?? $request->ip()));
             },
         );
 
