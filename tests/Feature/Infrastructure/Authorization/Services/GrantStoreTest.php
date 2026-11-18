@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\Support\BuildsBackendUsers;
 use Tests\Support\BuildsParties;
 use Tests\TestCase;
@@ -203,6 +204,38 @@ final class GrantStoreTest extends TestCase
             trim(
                 Blade::render($template),
             ),
+        );
+    }
+
+    #[Test]
+    public function a_role_assigned_in_a_rolled_back_transaction_does_not_apply(): void
+    {
+        $userFactory = User::factory();
+        $user = $userFactory->create();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $actor = Actor::user(
+            $this->idOf($user),
+        );
+
+        try {
+            DB::transaction(
+                function () use ($useCases, $user, $actor): void {
+                    $useCases->run(
+                        Actor::system(),
+                        new AssignRole($user->email, 'frontend_user'),
+                    );
+                    $this->assertTrue(
+                        $useCases->allowed($actor, CreateProduct::class),
+                    );
+
+                    throw new RuntimeException('Rolled back');
+                },
+            );
+        } catch (RuntimeException) {
+        }
+
+        $this->assertFalse(
+            $useCases->allowed($actor, CreateProduct::class),
         );
     }
 
