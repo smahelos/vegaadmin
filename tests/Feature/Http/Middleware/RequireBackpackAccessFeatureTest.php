@@ -155,6 +155,34 @@ class RequireBackpackAccessFeatureTest extends TestCase
     }
 
     #[Test]
+    public function backpack_role_without_backpack_access_is_denied(): void
+    {
+        Role::firstOrCreate(['name' => 'backend_user', 'guard_name' => 'backpack']);
+        $user = $this->userWithRole('backend_user');
+        $this->actingAs($user, 'backpack');
+        $passed = false;
+
+        $response = $this->middleware->handle(
+            Request::create(
+                '/admin/dashboard',
+                'GET',
+                [],
+                [],
+                [],
+                ['HTTP_ACCEPT' => 'application/json'],
+            ),
+            function () use (&$passed) {
+                $passed = true;
+
+                return response('OK');
+            },
+        );
+
+        $this->assertFalse($passed);
+        $this->assertSame(403, $response->getStatusCode());
+    }
+
+    #[Test]
     public function backpack_access_held_directly_without_a_role_passes(): void
     {
         $userFactory = User::factory();
