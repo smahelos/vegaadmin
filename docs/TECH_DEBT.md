@@ -45,6 +45,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
 - **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
 
+### npm audit allows the picomatch advisory
+- **Where:** `.github/audit-ci.jsonc`, `.github/workflows/dependency_audit.yml`
+- **Problem:** `GHSA-fc5q-39xc-vjpf` (ReDoS in `picomatch`) affects every version and has no fix (https://github.com/micromatch/picomatch/issues/234, 2026-11-18). It is reached only through the asset build (`vite`, `tinyglobby`, `flowbite-datepicker`), so the audit allows it rather than failing every branch.
+- **Fix:** once a fixed `picomatch` is released, update `package-lock.json` and remove the advisory from the allowlist; the audit log reports it as not found when it no longer occurs.
+
 ### Subscription factory can generate a time skipped by daylight saving
 - **Where:** `database/factories/SubscriptionFactory.php`; columns `starts_at`, `ends_at`, `trial_ends_at` and `next_billing_at` of `subscriptions`.
 - **Problem:** the factory draws these values with `dateTimeBetween()`, and the columns are `timestamp`, which the database converts through its `SYSTEM` time zone. A draw inside the hour skipped by daylight saving, such as `2027-03-28 02:26:41`, is refused as an invalid value and fails an unrelated test (seen 2026-11-04; the next full run passed).

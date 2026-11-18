@@ -34,4 +34,5 @@ jobs:
         with:
           node-version: '22'
       - name: Audit package-lock.json
-        run: npm audit --audit-level=high --package-lock-only
+        # audit-ci runs npm audit with the allowlist in .github/audit-ci.jsonc
+        run: npx --yes audit-ci@7.1.0 --config .github/audit-ci.jsonc
