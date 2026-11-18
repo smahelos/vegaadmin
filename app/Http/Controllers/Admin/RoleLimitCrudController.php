@@ -80,7 +80,7 @@ final class RoleLimitCrudController extends CrudController
             $column->type('closure');
             $column->function(
                 fn (RoleLimit $entry): string => $this->limitLabel(
-                    $entry->limit($entity),
+                    $entry->{$entity->value},
                 ),
             );
         }

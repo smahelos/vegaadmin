@@ -9,11 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\CallLike;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
 use PHPStan\Analyser\Scope;
@@ -24,8 +22,8 @@ use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\VerbosityLevel;
 
 /**
- * Every call a controller makes to an Eloquent model, its query builder or relation, or DB. A call on a parameter of a
- * closure is not collected: Backpack passes its columns, fields and filters the record or query it loaded itself.
+ * Every call a controller makes to an Eloquent model, its query builder or relation, or DB, also inside a closure Backpack
+ * calls with the record or query it loaded.
  *
  * @implements Collector<CallLike, array{string, string, string, int}>
  */
@@ -86,27 +84,9 @@ final class EloquentCallCollector implements Collector
             return $class->getObjectTypeOrClassStringObjectType();
         }
         // PHPStan visits a nullsafe call as a MethodCall too
-        if ($this->isClosureParameter($node->var, $scope)) {
-            return null;
-        }
         $type = $scope->getType($node->var);
 
         return TypeCombinator::removeNull($type);
-    }
-
-    private function isClosureParameter(Expr $receiver, Scope $scope): bool
-    {
-        $closure = $scope->getAnonymousFunctionReflection();
-        if ($closure === null || !$receiver instanceof Variable || !is_string($receiver->name)) {
-            return false;
-        }
-        foreach ($closure->getParameters() as $parameter) {
-            if ($parameter->getName() === $receiver->name) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private function isEloquent(Type $receiver): bool

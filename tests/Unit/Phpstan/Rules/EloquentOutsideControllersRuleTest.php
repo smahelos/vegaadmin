@@ -51,6 +51,8 @@ final class EloquentOutsideControllersRuleTest extends RuleTestCase
                 [self::LOADS_DATA . ' calls App\Models\Tax::all()' . self::ADVICE, 22],
                 [self::LOADS_DATA . ' calls App\Models\Tax::all()' . self::ADVICE, 24],
                 [self::LOADS_DATA . ' calls App\Models\Tax::count()' . self::ADVICE, 27],
+                [self::LOADS_DATA . ' calls App\Models\Tax::getKey()' . self::ADVICE, 27],
+                [self::LOADS_DATA . ' calls Illuminate\Database\Eloquent\Builder<App\Models\Tax>::whereNull()' . self::ADVICE, 33],
                 [self::LOADS_DATA . ' calls App\Models\Tax::query()' . self::ADVICE, 34],
                 [self::LOADS_NO_DATA . ' calls no Eloquent: remove it from the controllers of this rule in phpstan.neon.', -1],
             ],
