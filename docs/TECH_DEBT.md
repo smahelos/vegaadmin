@@ -463,7 +463,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
-- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard and UELS scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
+- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
 
 ### Alpine is bundled next to Livewire's own
 - **Where:** `resources/js/app.js`, `package.json` (`alpinejs`, `@alpinejs/focus`), `@livewireScripts` in `resources/views/layouts/app.blade.php` and `frontend.blade.php`
