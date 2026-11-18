@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Admin;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Domain\User\Enums\Permission;
 use App\Models\CronTask;
 use App\Models\Permission as PermissionModel;

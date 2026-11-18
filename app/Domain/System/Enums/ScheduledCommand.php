@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Console\Enums;
+namespace App\Domain\System\Enums;
 
 /**
  * The Artisan commands a cron task may run. The value is the command name, stored in `cron_tasks.command`; any

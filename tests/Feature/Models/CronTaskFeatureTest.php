@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Models;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Carbon\Carbon;
 use Carbon\CarbonImmutable;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Routes;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;

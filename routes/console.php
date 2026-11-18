@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\System\Exceptions\InvalidCommandOptionsException;
+use App\Domain\System\ValueObjects\CommandOptions;
 use App\Models\CronTask;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;

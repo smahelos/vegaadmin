@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\System\Enums\ScheduledCommand;
+use App\Domain\System\ValueObjects\CommandOptions;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
 use Cron\CronExpression;

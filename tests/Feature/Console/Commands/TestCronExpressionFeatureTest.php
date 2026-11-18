@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Console\Commands;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;

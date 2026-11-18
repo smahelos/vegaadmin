@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Console\ValueObjects;
+namespace App\Domain\System\ValueObjects;
 
-use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
+use App\Domain\System\Exceptions\InvalidCommandOptionsException;
 
 /**
  * Options of a scheduled command, such as `--days-before=3 --force`. The scheduler hands the command to a shell

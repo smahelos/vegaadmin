@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * The commands of App\Domain\Shared\Console\Enums\ScheduledCommand when this migration was written.
+     * The commands of App\Domain\System\Enums\ScheduledCommand when this migration was written.
      *
      * @var list<string>
      */

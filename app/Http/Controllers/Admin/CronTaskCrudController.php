@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\CronTaskRequest;
 use App\Http\Requests\Admin\RunCronTaskRequest;

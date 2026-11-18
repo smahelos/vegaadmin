@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Console\Exceptions;
+namespace App\Domain\System\Exceptions;
 
 use InvalidArgumentException;
 

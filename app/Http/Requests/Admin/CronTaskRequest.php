@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
-use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\System\Enums\ScheduledCommand;
+use App\Domain\System\Exceptions\InvalidCommandOptionsException;
+use App\Domain\System\ValueObjects\CommandOptions;
 use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
