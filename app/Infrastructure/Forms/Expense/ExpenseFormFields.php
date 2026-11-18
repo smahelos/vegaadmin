@@ -36,10 +36,14 @@ final class ExpenseFormFields
         ];
     }
 
-    /** @return array<int, string> active category name by id */
+    /**
+     * Inactive categories included: a filter finds stored expenses, which may hold a category no longer offered.
+     *
+     * @return array<int, string> category name by id
+     */
     public static function categoryNames(): array
     {
-        $categoryQuery = ExpenseCategory::where('is_active', true);
+        $categoryQuery = ExpenseCategory::query();
         $names = $categoryQuery->pluck('name', 'id');
 
         return $names->all();
