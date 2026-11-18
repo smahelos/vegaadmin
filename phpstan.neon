@@ -52,6 +52,31 @@ services:
                 - %currentWorkingDirectory%/routes/
         tags:
             - phpstan.rules.rule
+    # Controllers that still call Eloquent; one leaves the list when its context is converted (docs/TECH_DEBT.md)
+    -
+        class: Billex\PHPStan\Rules\EloquentOutsideControllersRule
+        arguments:
+            controllers:
+                - App\Http\Controllers\Admin\AdminController
+                - App\Http\Controllers\Admin\BankAccountCrudController
+                - App\Http\Controllers\Admin\BusinessCrudController
+                - App\Http\Controllers\Admin\ContactCrudController
+                - App\Http\Controllers\Admin\CronTaskCrudController
+                - App\Http\Controllers\Admin\DatabaseDashboardController
+                - App\Http\Controllers\Admin\ExpenseCrudController
+                - App\Http\Controllers\Admin\InvoiceCrudController
+                - App\Http\Controllers\Admin\PageCrudController
+                - App\Http\Controllers\Admin\ProductCrudController
+                - App\Http\Controllers\Admin\StatusCrudController
+                - App\Http\Controllers\Admin\SubscriptionCrudController
+                - App\Http\Controllers\Admin\SubscriptionPlanCrudController
+                - App\Http\Controllers\Frontend\SubscriptionController
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Billex\PHPStan\Collectors\EloquentCallCollector
+        tags:
+            - phpstan.collector
     -
         class: Billex\PHPStan\DeadCode\BackpackUsageProvider
         tags:
