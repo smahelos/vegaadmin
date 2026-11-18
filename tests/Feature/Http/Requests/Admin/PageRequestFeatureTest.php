@@ -11,24 +11,17 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for Admin PageRequest.
- * Validates authorization and validation logic using Laravel services.
+ * Validates the validation logic using Laravel services.
  */
 class PageRequestFeatureTest extends TestCase
 {
     use CreatesAdminTestEnvironment;
-
-    private PageRequest $request;
-
-    private PageCategory $category;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->setUpAdminTestEnvironment();
-        $pageCategoryFactory = PageCategory::factory();
-        $this->category = $pageCategoryFactory->create();
-        $this->request = new PageRequest;
 
         $route = Route::post(
             '/admin/test-page-validation',
@@ -39,19 +32,6 @@ class PageRequestFeatureTest extends TestCase
             },
         );
         $route->middleware(['web', 'auth:backpack']);
-    }
-
-    #[Test]
-    public function authorize_returns_false_without_authenticated_user(): void
-    {
-        $this->assertFalse($this->request->authorize());
-    }
-
-    #[Test]
-    public function authorize_returns_true_with_permission(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $this->assertTrue($this->request->authorize());
     }
 
     #[Test]

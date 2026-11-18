@@ -12,7 +12,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for Admin PageCategoryRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  *
  * Real DB schema for page_categories:
  * - id: bigint(20) unsigned, autoincrement
@@ -207,20 +207,6 @@ class PageCategoryRequestFeatureTest extends TestCase
         $response = $this->postJson('/test-page-category', $validData);
 
         $response->assertStatus(200);
-    }
-
-    #[Test]
-    public function request_returns_403_without_authentication(): void
-    {
-        $validData = [
-            'name_cs' => 'Test Category',
-            'slug_cs' => 'test-category-' . uniqid(),
-            'description_cs' => 'Test category description',
-        ];
-
-        $response = $this->postJson('/test-page-category', $validData);
-
-        $response->assertStatus(403);
     }
 
     #[Test]

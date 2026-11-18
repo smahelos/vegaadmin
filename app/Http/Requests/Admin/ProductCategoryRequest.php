@@ -2,25 +2,11 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
 class ProductCategoryRequest extends FormRequest
 {
-    /**
-     * Categories are managed with the product permissions
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PRODUCT_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PRODUCT_UPDATE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */

@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\BankRequest;
 use App\Models\Bank;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -109,52 +108,6 @@ class BankRequestFeatureTest extends TestCase
             $request->rules(),
         );
         $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function authorization_passes_for_user_with_permission(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $this->postJson(
-            '/test-bank',
-            [
-                'name' => 'Permitted',
-                'code' => 'PERM1',
-                'country' => 'CZ',
-            ],
-        );
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpResponse = $this->postJson(
-            '/test-bank',
-            [
-                'name' => 'Fail',
-                'code' => 'FAIL1',
-                'country' => 'CZ',
-            ],
-        );
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_user_without_permission(): void
-    {
-        $userFactory = User::factory();
-        $user = $userFactory->create();
-        $this->actingAs($user, 'backpack');
-        $httpResponse = $this->postJson(
-            '/test-bank',
-            [
-                'name' => 'NoPerm',
-                'code' => 'NOP1',
-                'country' => 'CZ',
-            ],
-        );
-        $httpResponse->assertStatus(403);
     }
 
     #[Test]

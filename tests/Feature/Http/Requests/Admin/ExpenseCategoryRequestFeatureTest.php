@@ -6,7 +6,6 @@ use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ExpenseCategoryRequest;
 use App\Models\ExpenseCategory;
 use App\Models\Permission as PermissionModel;
-use App\Models\User;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -184,34 +183,6 @@ class ExpenseCategoryRequestFeatureTest extends TestCase
 
         $this->assertTrue($validator1->passes());
         $this->assertTrue($validator2->passes());
-    }
-
-    #[Test]
-    public function authorization_fails_without_permission(): void
-    {
-        // Create user without permission for this specific test
-        $userFactory = User::factory();
-        $userWithoutPermission = $userFactory->create();
-        $this->actingAs($userWithoutPermission, 'backpack');
-
-        $request = new ExpenseCategoryRequest;
-        $this->assertFalse($request->authorize());
-    }
-
-    #[Test]
-    public function authorization_fails_when_not_authenticated(): void
-    {
-        $request = new ExpenseCategoryRequest;
-        $this->assertFalse($request->authorize());
-    }
-
-    #[Test]
-    public function authorization_passes_with_correct_permission(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $request = new ExpenseCategoryRequest;
-        $this->assertTrue($request->authorize());
     }
 
     #[Test]

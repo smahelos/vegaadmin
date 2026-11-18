@@ -6,7 +6,6 @@ namespace App\Http\Requests\Admin;
 
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\LimitMode;
-use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,16 +16,6 @@ use Illuminate\Validation\Rule;
  */
 final class RoleLimitRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::ROLE_LIMIT_CREATE) === true;
-        }
-
-        return $user?->can(Permission::ROLE_LIMIT_UPDATE) === true;
-    }
-
     /**
      * @return array<string, list<mixed>>
      */

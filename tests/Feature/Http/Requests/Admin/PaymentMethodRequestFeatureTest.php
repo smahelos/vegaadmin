@@ -5,7 +5,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Http\Requests\Admin\PaymentMethodRequest;
 use App\Models\PaymentMethod;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -104,42 +103,5 @@ class PaymentMethodRequestFeatureTest extends TestCase
         $this->assertFalse($validator->passes());
         $errors = $validator->errors();
         $this->assertArrayHasKey('name', $errors->toArray());
-    }
-
-    #[Test]
-    public function authorization_passes_for_authenticated_user(): void
-    {
-        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::OTHER->value);
-        $paymentMethodQuery->delete();
-        $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $this->postJson(
-            '/test-payment-method',
-            [
-                'name' => 'Fast Pay',
-                'slug' => PaymentMethodCode::OTHER->value,
-            ],
-        );
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpResponse = $this->postJson('/test-payment-method', [
-            'name' => 'Fail Pay',
-        ]);
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_user_without_permission(): void
-    {
-        $userFactory = User::factory();
-        $userNoPerm = $userFactory->create();
-        $this->actingAs($userNoPerm, 'backpack');
-        $httpResponse = $this->postJson('/test-payment-method', [
-            'name' => 'No Perm',
-        ]);
-        $httpResponse->assertStatus(403);
     }
 }

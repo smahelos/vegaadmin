@@ -2,21 +2,10 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
 class BankRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::BANK_CREATE) === true;
-        }
-
-        return $user?->can(Permission::BANK_UPDATE) === true;
-    }
-
     /**
      * Validation rules.
      */
