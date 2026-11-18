@@ -13,6 +13,8 @@ use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\PermissionDeniedException;
 use App\Livewire\Product\ProductList;
 use App\Models\Product;
+use App\Models\Role;
+use App\Models\RoleLimit;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Http\Request;
@@ -143,6 +145,38 @@ final class GrantStoreTest extends TestCase
 
         $component->call('resetFilters');
         $component->assertStatus(403);
+    }
+
+    #[Test]
+    public function a_role_limit_changed_between_two_requests_applies_in_the_second(): void
+    {
+        $user = $this->frontendUser();
+        $this->actingAs($user, 'web');
+        $route = route('frontend.product.store', ['locale' => 'cs']);
+        $first = $this->post(
+            $route,
+            [
+                'name' => 'First',
+                'price' => 10,
+                'currency' => 'CZK',
+            ],
+        );
+        $first->assertSessionMissing('limit_exceeded');
+
+        $role = Role::findByName('frontend_user', 'web');
+        $roleLimitQuery = RoleLimit::where('role_id', $role->id);
+        $roleLimitQuery->update(['products' => 1]);
+
+        $second = $this->post(
+            $route,
+            [
+                'name' => 'Second',
+                'price' => 10,
+                'currency' => 'CZK',
+            ],
+        );
+        $second->assertSessionHas('limit_exceeded', true);
+        $this->assertDatabaseMissing('products', ['name' => 'Second']);
     }
 
     #[Test]
