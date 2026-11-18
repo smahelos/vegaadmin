@@ -52,7 +52,7 @@ No other entity is limited. Admin reference data (taxes, banks, payment methods,
 
 ### 4.3 Changing the plan
 
-- A new plan role applies immediately.
+- A new plan role applies immediately: from the next action of the same request, and in every later request ([PRD: What an actor may, read once per request](PRD_GRANTS.md), 3.3).
 - The quota window restarts at the change: the user gets the full quota of the new plan for the rest of the month, then the calendar month again. This applies to upgrades, downgrades and the return to `frontend_user` at the end of a subscription.
 - Capacity is compared with the current active records under the new limit. A downgrade never deletes, archives or locks existing records; it only blocks creating and restoring above the new capacity.
 
