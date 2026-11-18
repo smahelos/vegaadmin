@@ -15,6 +15,7 @@ use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
 use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
+use PHPStan\Type\TypeCombinator;
 use Spatie\Permission\Contracts\Permission;
 use Spatie\Permission\Contracts\Role;
 
@@ -37,6 +38,7 @@ final class RolesWrittenByRepositoryRule implements Rule
         'roles',
         'syncPermissions',
         'syncRoles',
+        'users',
     ];
 
     public function getNodeType(): string
@@ -61,7 +63,9 @@ final class RolesWrittenByRepositoryRule implements Rule
         ) {
             return [];
         }
-        $receiver = $scope->getType($node->var);
+        // A nullable receiver, a nullsafe call's included, writes the roles whenever it is not null
+        $type = $scope->getType($node->var);
+        $receiver = TypeCombinator::removeNull($type);
         $writer = $this->writer($receiver);
         if ($writer === null) {
             return [];

@@ -21,5 +21,13 @@ final class WritesRoles
     public function role(Role $role): void
     {
         $role->givePermissionTo('contact.view');
+        $users = $role->users();
+        $users->attach(1);
+    }
+
+    public function nullable(?User $user, Role $role): void
+    {
+        $user->assignRole($role);
+        $user?->syncRoles([]);
     }
 }

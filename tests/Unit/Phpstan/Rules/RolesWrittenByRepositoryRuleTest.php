@@ -30,6 +30,9 @@ final class RolesWrittenByRepositoryRuleTest extends RuleTestCase
                 ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 15],
                 ['Only ' . EloquentUserRepository::class . ' calls roles() on roles and permissions.', 16],
                 ['Only ' . PermissionCatalogSync::class . ' calls givePermissionTo() on roles and permissions.', 23],
+                ['Only ' . PermissionCatalogSync::class . ' calls users() on roles and permissions.', 24],
+                ['Only ' . EloquentUserRepository::class . ' calls assignRole() on roles and permissions.', 30],
+                ['Only ' . EloquentUserRepository::class . ' calls syncRoles() on roles and permissions.', 31],
             ],
         );
     }
