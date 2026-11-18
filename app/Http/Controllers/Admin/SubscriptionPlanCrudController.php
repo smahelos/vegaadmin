@@ -316,7 +316,7 @@ class SubscriptionPlanCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('create');
 
-        // Execute the FormRequest authorization and validation logic
+        // Execute the FormRequest validation logic
         $request = $this->validatedRequest(SubscriptionPlanRequest::class);
 
         // Extract features before saving
@@ -353,7 +353,7 @@ class SubscriptionPlanCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('update');
 
-        // Execute the FormRequest authorization and validation logic
+        // Execute the FormRequest validation logic
         $request = $this->validatedRequest(SubscriptionPlanRequest::class);
 
         // Extract features before saving

@@ -34,7 +34,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 class UserCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;

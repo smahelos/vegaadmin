@@ -33,7 +33,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class SubscriptionCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;

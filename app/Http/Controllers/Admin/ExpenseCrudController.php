@@ -35,7 +35,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class ExpenseCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;

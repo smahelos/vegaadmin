@@ -37,7 +37,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class InvoiceCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
