@@ -91,50 +91,6 @@ class UserActivitySummary extends Model
     }
 
     /**
-     * Get activity level as string
-     */
-    public function getActivityLevelAttribute(): string
-    {
-        if ($this->invoices_last_30_days >= 20) {
-            return 'high';
-        } elseif ($this->invoices_last_30_days >= 5) {
-            return 'medium';
-        } elseif ($this->invoices_last_30_days >= 1) {
-            return 'low';
-        } else {
-            return 'inactive';
-        }
-    }
-
-    /**
-     * Get activity level badge class
-     */
-    public function getActivityBadgeClassAttribute(): string
-    {
-        return match ($this->activity_level) {
-            'high' => 'success',
-            'medium' => 'primary',
-            'low' => 'warning',
-            'inactive' => 'secondary',
-            default => 'secondary',
-        };
-    }
-
-    /**
-     * Get formatted activity level text
-     */
-    public function getFormattedActivityLevelAttribute(): string
-    {
-        return match ($this->activity_level) {
-            'high' => __('admin.user_activity.high_activity'),
-            'medium' => __('admin.user_activity.medium_activity'),
-            'low' => __('admin.user_activity.low_activity'),
-            'inactive' => __('admin.user_activity.inactive'),
-            default => __('admin.user_activity.unknown'),
-        };
-    }
-
-    /**
      * Get relationship to User model
      *
      * @return BelongsTo<User, $this>

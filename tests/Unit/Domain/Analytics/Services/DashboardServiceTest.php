@@ -5,11 +5,16 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Analytics\Services;
 
 use App\Domain\Analytics\Contracts\AnalyticsReadRepositoryInterface;
+use App\Domain\Analytics\DTO\PlatformStatisticsDTO;
+use App\Domain\Analytics\DTO\UserActivityStatisticsDTO;
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use DateTimeImmutable;
+use LogicException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -87,6 +92,19 @@ final class DashboardServiceTest extends TestCase
             public function getCustomersWithTotals(ReadScope $scope): array
             {
                 return [];
+            }
+
+            public function getPlatformStatistics(
+                AllOwnersScope $scope,
+                DateTimeImmutable $recentSince,
+                DateTimeImmutable $monthStart,
+            ): PlatformStatisticsDTO {
+                throw new LogicException('Not used by the dashboard service');
+            }
+
+            public function getUserActivity(AllOwnersScope $scope, int $mostActiveLimit): UserActivityStatisticsDTO
+            {
+                throw new LogicException('Not used by the dashboard service');
             }
         };
         $service = new AnalyticsDashboardService($stub, $analytics);
