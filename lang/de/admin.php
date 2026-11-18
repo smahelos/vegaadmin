@@ -118,8 +118,7 @@ return [
     ],
 
     'auth' => [
-        'no_backpack_role' => 'Ihr Konto hat keine Berechtigung für den Zugriff auf die Verwaltung. Bitte kontaktieren Sie den Administrator.',
-        'no_backpack_access' => 'Sie haben keine Berechtigung für den Zugriff auf das Administrationspanel.',
+        'no_backpack_access' => 'Ihr Konto hat keine Berechtigung für den Zugriff auf die Verwaltung. Bitte kontaktieren Sie den Administrator.',
     ],
 
     'general' => [

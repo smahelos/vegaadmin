@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\LimitMode;
 use App\Domain\User\Enums\Permission;
@@ -31,6 +32,12 @@ final class RoleLimitCrudController extends CrudController
     use RoleLimitFormFields;
     use ShowOperation;
     use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     public function setup(): void
     {

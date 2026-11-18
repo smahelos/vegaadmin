@@ -112,7 +112,14 @@ final class PermissionCatalogCoverageTest extends TestCase
         if ($named !== '') {
             return $named;
         }
-        if ($backpackAdapter || preg_match('#/Admin/|^resources/views/(admin|vendor/backpack)/#', $path) === 1) {
+        // RequireBackpackAccess and RequireBackpackApiAccess check as Actor::admin, without naming the guard
+        if (
+            $backpackAdapter
+            || preg_match(
+                '#/Admin/|/RequireBackpack|^resources/views/(admin|vendor/backpack)/#',
+                $path,
+            ) === 1
+        ) {
             return PermissionCatalog::BACKPACK;
         }
         if (

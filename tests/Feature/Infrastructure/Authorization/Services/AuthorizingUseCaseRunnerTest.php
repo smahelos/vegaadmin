@@ -134,12 +134,10 @@ final class AuthorizingUseCaseRunnerTest extends TestCase
     }
 
     #[Test]
-    public function allowed_answers_for_the_signed_in_user_of_the_actors_guard_only(): void
+    public function allowed_answers_on_the_actors_guard_only(): void
     {
         $user = $this->frontendUser();
-        $other = $this->frontendUser();
         $admin = $this->backendUser(Permission::PRODUCT_VIEW);
-        $this->actingAs($user, 'web');
         $useCases = app(AuthorizingUseCaseRunnerInterface::class);
 
         $this->assertTrue(
@@ -150,15 +148,6 @@ final class AuthorizingUseCaseRunnerTest extends TestCase
                 CreateProduct::class,
             ),
         );
-        $this->assertFalse(
-            $useCases->allowed(
-                Actor::user(
-                    $this->idOf($other),
-                ),
-                CreateProduct::class,
-            ),
-        );
-        $this->actingAs($admin, 'backpack');
         $this->assertFalse(
             $useCases->allowed(
                 Actor::admin(

@@ -78,7 +78,7 @@ Registration is an exception: the account, the first business, its address and t
 
 ### 4.6 Changing permissions
 
-A change to a role's or a user's permissions applies from that person's next action, without signing in again.
+A change to a role's or a user's permissions applies from that person's next action, without signing in again. Within one request the permissions are read once ([PRD: What an actor may, read once per request](PRD_GRANTS.md), 3.3).
 
 ### 4.7 API
 

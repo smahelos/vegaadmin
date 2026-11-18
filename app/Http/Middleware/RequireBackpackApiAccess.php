@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -16,6 +19,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireBackpackApiAccess
 {
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
+
     /**
      * Handle backpack API access check
      */
@@ -37,15 +44,14 @@ class RequireBackpackApiAccess
             return $this->unauthorized($request);
         }
 
-        $user = $auth->user();
-
-        // Check if user has backpack API access permission
-        if (!$user->checkPermissionTo(Permission::API_ACCESS, 'backpack')) {
+        $admin = Actor::admin(
+            UserId::fromInt((int) $auth->id()),
+        );
+        if (!$this->useCases->holds($admin, Permission::API_ACCESS)) {
             Log::warning(
                 'Backpack user lacks API access permission',
                 [
-                    'user_id' => $user->id,
-                    'email' => $user->email,
+                    'user_id' => $auth->id(),
                     'path' => $request->path(),
                     'checked_permission' => Permission::API_ACCESS->value,
                     'checked_guard' => 'backpack',

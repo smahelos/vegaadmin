@@ -33,7 +33,9 @@ final class PermissionCatalogSync
                     }
                 }
 
-                $adminRole = $roleClass::firstOrCreate(
+                // query() keeps the role model's type, by which RolesWrittenByRepositoryRule tells a role from a user
+                $roleQuery = $roleClass::query();
+                $adminRole = $roleQuery->firstOrCreate(
                     ['name' => PermissionCatalog::ADMIN_ROLE, 'guard_name' => PermissionCatalog::BACKPACK],
                 );
                 $adminRole->givePermissionTo(
@@ -42,7 +44,8 @@ final class PermissionCatalogSync
 
                 foreach (PermissionCatalog::ROLES as $guard => $roles) {
                     foreach ($roles as $role => $cases) {
-                        $roleModel = $roleClass::firstOrCreate(['name' => $role, 'guard_name' => $guard]);
+                        $roleQuery = $roleClass::query();
+                        $roleModel = $roleQuery->firstOrCreate(['name' => $role, 'guard_name' => $guard]);
                         $roleModel->givePermissionTo(
                             array_map(fn (Permission $case) => $permissions[$guard][$case->value], $cases),
                         );

@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\User\Enums\Permission;
+use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Admin\PermissionCrudController;
 use App\Http\Controllers\Admin\RoleCrudController;
 use App\Http\Controllers\Admin\UserCrudController;
@@ -70,6 +73,30 @@ class AppServiceProvider extends ServiceProvider
                 $useCases = app(AuthorizingUseCaseRunnerInterface::class);
 
                 return $actor !== null && $useCases->allowed($actor, $useCase);
+            },
+        );
+
+        // Any of the admin's permissions, where no use case answers (admin menu, Backpack row buttons). The backpack
+        // guard by name: an admin error page renders the menu without the middleware that switches the default guard
+        Blade::if(
+            'holds',
+            function (Permission ...$permissions): bool {
+                $guard = backpack_auth();
+                $id = $guard->id();
+                if ($id === null) {
+                    return false;
+                }
+                $actor = Actor::admin(
+                    UserId::fromInt((int) $id),
+                );
+                $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+                foreach ($permissions as $permission) {
+                    if ($useCases->holds($actor, $permission)) {
+                        return true;
+                    }
+                }
+
+                return false;
             },
         );
 

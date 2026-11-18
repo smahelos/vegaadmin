@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\SubscriptionPlanFeatureRequest;
 use App\Models\SubscriptionPlanFeature;
@@ -27,6 +28,12 @@ class SubscriptionPlanFeatureCrudController extends CrudController
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object and check user permissions
