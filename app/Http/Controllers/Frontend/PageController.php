@@ -156,11 +156,10 @@ class PageController extends Controller
     /**
      * Show pages for a specific category by ID
      */
-    public function category(string $categoryId, ?string $locale = null): View
+    public function category(string $locale, string $categoryId): View
     {
+        // Set application locale from URL parameter
         $application = app();
-        // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? $application->getLocale();
         $application->setLocale($locale);
 
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);
