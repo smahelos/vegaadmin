@@ -26,7 +26,7 @@ Store agent-created check logs, reports and helper scripts in `dev_docs/ai/tmp/<
    Say which tests ran and why; note the counts and every failing test.
 5. **Architecture guards.** `bash .claude/skills/pre-pr-check/guards.sh` — `ddd:guard`, provider snapshot diff, and drift of the controller-thinness, frontend-Eloquent and API-Eloquent baselines, each compared the way CI compares them.
 6. **Interpret drift.** A baseline drift is either an intended change — the branch adds or removes controller code or bindings on purpose; regenerate per `architecture/baselines/README.md` (provider snapshot: `ddd:providers:snapshot --write`) and include the file in the commit — or an unintended one that needs a code fix. Ask the user which when the diff does not make it obvious.
-7. **Dependency audit.** `docker exec BILLEX-app composer audit --locked` and `npm audit --audit-level=high --package-lock-only` (host) — what `.github/workflows/dependency_audit.yml` runs. A new advisory can fail a branch that changed no dependency; report it with the package and the fixed version.
+7. **Dependency audit.** `docker exec BILLEX-app composer audit --locked` and `npx --yes audit-ci@7.1.0 --config .github/audit-ci.jsonc` (host; `npm audit` at the high level with the allowlist of that file) — what `.github/workflows/dependency_audit.yml` runs. A new advisory can fail a branch that changed no dependency; report it with the package and the fixed version.
 
 ## Report
 
