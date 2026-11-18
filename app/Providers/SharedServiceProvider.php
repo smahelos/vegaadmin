@@ -55,6 +55,7 @@ use App\Infrastructure\Shared\Time\CarbonClock;
 use App\Infrastructure\Shared\Time\IcuDateFormatter;
 use App\Infrastructure\Shared\Translation\LaravelTranslator;
 use Illuminate\Database\DatabaseTransactionsManager;
+use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 
 /**
@@ -65,6 +66,9 @@ use Illuminate\Support\ServiceProvider;
  */
 class SharedServiceProvider extends ServiceProvider
 {
+    /** The request the grant store was last emptied for, held so its object id cannot pass to a later request */
+    private ?Request $grantsRequest = null;
+
     public function register(): void
     {
         $this->registerDomainServices();
@@ -211,10 +215,16 @@ class SharedServiceProvider extends ServiceProvider
         // The HTTP kernel binds every request anew, also each request and Livewire call of a test, which run in one
         // process: emptying the store then starts the request without roles read before it. Emptied, not replaced:
         // a controller kept on its route from an earlier request still holds this instance. The queue worker
-        // forgets scoped instances between jobs itself.
+        // forgets scoped instances between jobs itself. The kernel binds the same request twice, before and after
+        // the global middleware, so only a different request empties the store.
         $this->app->rebinding(
             'request',
             function (): void {
+                $request = $this->app->make('request');
+                if ($request === $this->grantsRequest) {
+                    return;
+                }
+                $this->grantsRequest = $request;
                 $this->clearGrants();
             },
         );

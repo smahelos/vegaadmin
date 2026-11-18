@@ -15,6 +15,7 @@ use App\Livewire\Product\ProductList;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
@@ -142,6 +143,31 @@ final class GrantStoreTest extends TestCase
 
         $component->call('resetFilters');
         $component->assertStatus(403);
+    }
+
+    #[Test]
+    public function the_same_request_bound_again_keeps_the_grants(): void
+    {
+        // The HTTP kernel binds each request twice, before and after the global middleware
+        $user = $this->frontendUser();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $actor = Actor::user(
+            $this->idOf($user),
+        );
+        $app = app();
+        $request = Request::create('/');
+        $app->instance('request', $request);
+        $this->countGrantReads();
+
+        $useCases->holds($actor, Permission::PRODUCT_CREATE);
+        $app->instance('request', $request);
+        $useCases->holds($actor, Permission::PRODUCT_CREATE);
+        $this->assertSame(1, $this->grantReads['model_has_roles']);
+
+        $next = Request::create('/');
+        $app->instance('request', $next);
+        $useCases->holds($actor, Permission::PRODUCT_CREATE);
+        $this->assertSame(2, $this->grantReads['model_has_roles']);
     }
 
     #[Test]
