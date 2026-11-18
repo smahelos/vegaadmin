@@ -20,6 +20,9 @@ final class GrantStore
     /** @var array<int, array<string, Grants>> */
     private array $grants = [];
 
+    /** @var array<int, array<string, list<RoleLimitDTO>>> */
+    private array $limits = [];
+
     public function __construct(
         private readonly EloquentRoleLimitMapper $limitMapper,
     ) {}
@@ -31,9 +34,22 @@ final class GrantStore
         return $this->grants[$id][$guard] ??= $this->load($id, $guard);
     }
 
+    /**
+     * The role_limits rows of the user's roles on the guard, read on the first creation or restore that asks.
+     *
+     * @return list<RoleLimitDTO>
+     */
+    public function limits(UserId $user, string $guard): array
+    {
+        $grants = $this->for($user, $guard);
+
+        return $this->limits[$user->toInt()][$guard] ??= $this->loadLimits($grants->roles);
+    }
+
     public function forget(UserId $user): void
     {
-        unset($this->grants[$user->toInt()]);
+        $id = $user->toInt();
+        unset($this->grants[$id], $this->limits[$id]);
     }
 
     /**
@@ -43,6 +59,7 @@ final class GrantStore
     public function clear(): void
     {
         $this->grants = [];
+        $this->limits = [];
     }
 
     /**
@@ -72,7 +89,7 @@ final class GrantStore
 
         return new Grants(
             array_values($permissions),
-            $this->limits($roles),
+            $roles,
         );
     }
 
@@ -80,7 +97,7 @@ final class GrantStore
      * @param  list<int>  $roles
      * @return list<RoleLimitDTO>
      */
-    private function limits(array $roles): array
+    private function loadLimits(array $roles): array
     {
         if ($roles === []) {
             return [];

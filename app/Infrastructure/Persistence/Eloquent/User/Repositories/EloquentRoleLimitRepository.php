@@ -9,7 +9,7 @@ use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Authorization\Services\GrantStore;
 
 /**
- * The limits come with the request's grants (D-049): read once per request, not under the owner's lock.
+ * The limits of the request's grants (D-049): read once per request, not under the owner's lock.
  */
 final class EloquentRoleLimitRepository implements RoleLimitReadRepositoryInterface
 {
@@ -19,8 +19,6 @@ final class EloquentRoleLimitRepository implements RoleLimitReadRepositoryInterf
 
     public function listForUser(UserId $user): array
     {
-        $grants = $this->grants->for($user, 'web');
-
-        return $grants->limits;
+        return $this->grants->limits($user, 'web');
     }
 }

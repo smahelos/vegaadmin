@@ -83,6 +83,8 @@ final class GrantStoreTest extends TestCase
         $response->assertOk();
         $this->assertSame(1, $this->grantReads['model_has_roles']);
         $this->assertSame(1, $this->grantReads['model_has_permissions']);
+        // Nothing is created, so no limit is read
+        $this->assertSame(0, $this->grantReads['role_limits']);
     }
 
     #[Test]
