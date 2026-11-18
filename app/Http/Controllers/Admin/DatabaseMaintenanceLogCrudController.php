@@ -4,19 +4,25 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\User\Enums\Permission;
 use App\Models\DatabaseMaintenanceLog;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 
-/**
- * Database Maintenance Log CRUD Controller
- */
 final class DatabaseMaintenanceLogCrudController extends CrudController
 {
+    use GatesCrudOperations;
     use ListOperation;
     use ShowOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object
@@ -32,12 +38,12 @@ final class DatabaseMaintenanceLogCrudController extends CrudController
             __('admin/database.maintenance_logs.entity.plural'),
         );
 
-        // Only allow viewing and showing logs, no create/edit/delete
-        CRUD::denyAccess([
-            'create',
-            'update',
-            'delete',
-        ]);
+        $this->allowHeldOperations(
+            [
+                'list' => Permission::SYSTEM_CONFIGURE,
+                'show' => Permission::SYSTEM_CONFIGURE,
+            ],
+        );
     }
 
     /**
