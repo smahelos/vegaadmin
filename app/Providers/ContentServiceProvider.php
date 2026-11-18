@@ -2,10 +2,8 @@
 
 namespace App\Providers;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface;
 use App\Application\Content\Contracts\PageReadRepositoryInterface;
 use App\Application\Content\Contracts\PageWriteRepositoryInterface;
-use App\Application\Content\Services\PageApplicationService;
 use App\Domain\Content\Contracts\PageDtoReadRepositoryInterface;
 use App\Domain\Content\Contracts\PageDtoWriteRepositoryInterface;
 use App\Domain\Content\Contracts\PageServiceInterface;
@@ -25,7 +23,6 @@ class ContentServiceProvider extends ServiceProvider
     {
         $this->registerDomainServices();
         $this->registerInfrastructure();
-        $this->registerApplicationServices();
     }
 
     /**
@@ -63,17 +60,6 @@ class ContentServiceProvider extends ServiceProvider
         $this->app->bind(
             PageDtoWriteRepositoryInterface::class,
             EloquentPageDtoRepository::class,
-        );
-    }
-
-    /**
-     * Application use-case services, presenters and mappers.
-     */
-    private function registerApplicationServices(): void
-    {
-        $this->app->bind(
-            PageApplicationServiceInterface::class,
-            PageApplicationService::class,
         );
     }
 }

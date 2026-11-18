@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Frontend;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
+use App\Application\Content\Services\PageApplicationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
-class PageController extends Controller
+final class PageController extends Controller
 {
     public function __construct(
-        private PageServiceInterface $pageService,
+        private readonly PageApplicationService $pageService,
     ) {}
 
     /**

@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Content\Services;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface;
 use App\Application\Content\Contracts\PageReadRepositoryInterface;
 use App\Domain\Content\Contracts\PageServiceInterface;
 use App\Domain\Content\DTO\PageDTO;
@@ -10,7 +11,7 @@ use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Database\Eloquent\Collection;
 
-class PageApplicationService implements PageApplicationServiceInterface
+final class PageApplicationService
 {
     public function __construct(
         private readonly PageReadRepositoryInterface $pages,
@@ -30,7 +31,6 @@ class PageApplicationService implements PageApplicationServiceInterface
         return $this->pages->findPublishedById($dto->id);
     }
 
-    /** {@inheritDoc} */
     // delegate to domain service and map back to model
     // we use domain service, because it contains the business logic to select propper the homepage
     public function getHomepage(?string $locale = null): ?Page
@@ -47,7 +47,6 @@ class PageApplicationService implements PageApplicationServiceInterface
         return $this->pages->firstPublished();
     }
 
-    /** {@inheritDoc} */
     // delegate to domain service and map back to model
     // we use domain service, because it contains the business logic to select propper page (not just by slug)
     // we save Page slug data as JSON, so searching by slug is not trivial in Eloquent
@@ -59,35 +58,31 @@ class PageApplicationService implements PageApplicationServiceInterface
         return $this->resolvePublishedModelByDto($dto);
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getPagesForNavigation(): Collection
     {
         return $this->pages->getRootNavigationPages();
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
+    /** @return Collection<int, Page> */
     public function getPagesByCategory(int $categoryId): Collection
     {
         return $this->pages->getPublishedByCategory($categoryId);
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getPageContentById(int $pageId): ?Page
     {
         return $this->pages->findAnyById($pageId);
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getCategoriesWithPages(): Collection
     {
         return $this->pages->getCategoriesWithPublishedPages();
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function searchPages(string $keyword, ?string $locale = null): Collection
     {
@@ -99,14 +94,13 @@ class PageApplicationService implements PageApplicationServiceInterface
         return $this->pages->searchPublished($keyword, $locale);
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
+    /** @return array<int, array{name:string,slug:string}> */
     public function getBreadcrumbs(Page $page): array
     {
         return $page->breadcrumbs;
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getRelatedPages(Page $page, int $limit = 5): Collection
     {
@@ -121,14 +115,12 @@ class PageApplicationService implements PageApplicationServiceInterface
         );
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getAllPublishedPages(): Collection
     {
         return $this->pages->getAllPublishedWithCategory();
     }
 
-    /** {@inheritDoc} */
     // we simply delegate to the model repo, as NO business logic is needed
     public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
     {

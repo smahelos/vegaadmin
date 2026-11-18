@@ -1,19 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
-use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
+use App\Application\Shared\Geography\Services\CountryApplicationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 
-class CountryController extends Controller
+final class CountryController extends Controller
 {
-    protected CountryApplicationServiceInterface $countryService;
-
-    public function __construct(CountryApplicationServiceInterface $countryService)
-    {
-        $this->countryService = $countryService;
-    }
+    public function __construct(
+        private readonly CountryApplicationService $countryService,
+    ) {}
 
     /**
      * Get list of countries for select element

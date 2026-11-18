@@ -2,10 +2,6 @@
 
 namespace App\Providers;
 
-use App\Application\Shared\Geography\Contracts\CountryApplicationServiceInterface;
-use App\Application\Shared\Geography\Services\CountryApplicationService;
-use App\Application\Shared\Money\Contracts\CurrencyApplicationServiceInterface;
-use App\Application\Shared\Money\Services\CurrencyApplicationService;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
 use App\Domain\Shared\Config\Contracts\Config;
@@ -73,7 +69,6 @@ class SharedServiceProvider extends ServiceProvider
     {
         $this->registerDomainServices();
         $this->registerInfrastructure();
-        $this->registerApplicationServices();
     }
 
     private function clearGrants(): void
@@ -291,24 +286,5 @@ class SharedServiceProvider extends ServiceProvider
             TaxDtoWriteRepositoryInterface::class,
             EloquentTaxDtoRepository::class,
         );
-    }
-
-    /**
-     * Application use-case services, presenters and mappers.
-     */
-    private function registerApplicationServices(): void
-    {
-        // Money (Currency) application service binding
-        $this->app->bind(
-            CurrencyApplicationServiceInterface::class,
-            CurrencyApplicationService::class,
-        );
-
-        // Geography (Country) application service binding
-        $this->app->bind(
-            CountryApplicationServiceInterface::class,
-            CountryApplicationService::class,
-        );
-
     }
 }

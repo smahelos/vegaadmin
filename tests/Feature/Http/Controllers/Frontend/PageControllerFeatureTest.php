@@ -1,53 +1,49 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Frontend;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
 use App\Models\Page;
 use App\Models\PageCategory;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-/**
- * Feature tests for PageController.
- * Covers homepage, index, show (found, localized redirect, 404), category (by slug & id), search (min length logic), sitemap.
- */
-class PageControllerFeatureTest extends TestCase
+final class PageControllerFeatureTest extends TestCase
 {
     protected function setUp(): void
     {
         parent::setUp();
-        // Nastav výchozí parametr locale pro generování route odkazů ve view (homepage-empty odkazuje na guest invoice route)
+        // The guest invoice link of the empty homepage needs a locale for route()
         URL::defaults(['locale' => 'cs']);
+
+        // The pages read the whole pages table; start without the seeded content pages
+        $pageQuery = Page::query();
+        $pageQuery->delete();
     }
 
-    private function mockPage(array $attrs = []): Page
+    /** @param array<string, mixed> $attributes */
+    private function publishedPage(array $attributes = []): Page
     {
-        $page = new Page;
-        $page->id = $attrs['id'] ?? 1;
-        $page->name = $attrs['name'] ?? ['cs' => 'Stranka', 'en' => 'Page'];
-        $page->slug = $attrs['slug'] ?? ['cs' => 'stranka', 'en' => 'page'];
-        $page->description = $attrs['description'] ?? ['cs' => 'Popis', 'en' => 'Desc'];
-        $page->content = $attrs['content'] ?? ['cs' => 'Obsah', 'en' => 'Content'];
-        $page->meta_title = $attrs['meta_title'] ?? ['cs' => 'MT', 'en' => 'MT'];
-        $page->meta_description = $attrs['meta_description'] ?? ['cs' => 'MD', 'en' => 'MD'];
-        $page->category_id = $attrs['category_id'] ?? 1;
-        $page->published = true;
-        $page->created_at = Carbon::now();
+        $pageFactory = Page::factory();
+        $publishedFactory = $pageFactory->published();
 
-        return $page;
+        return $publishedFactory->create(
+            $attributes + [
+                'name' => ['cs' => 'Stránka', 'en' => 'Page'],
+                'slug' => ['cs' => 'stranka-' . uniqid(), 'en' => 'page-' . uniqid()],
+                'description' => ['cs' => 'Popis', 'en' => 'Description'],
+                'content' => ['cs' => 'Obsah', 'en' => 'Content'],
+                'publishing_end' => null,
+            ],
+        );
     }
 
     #[Test]
     public function homepage_renders_empty_when_no_page(): void
     {
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getHomepage');
-        $expectation->once();
-        $expectation->andReturn(null);
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
@@ -58,120 +54,71 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function homepage_renders_with_page_and_related_sections(): void
     {
-        $page = $this->mockPage(['id' => 10]);
-        $feature = $this->mockPage(
-            ['id' => 11, 'slug' => ['cs' => 'feature', 'en' => 'feature']],
-        );
-        $price = $this->mockPage(['id' => 12]);
-        $mock = $this->mock(PageServiceInterface::class);
-        $expectation = $mock->shouldReceive('getHomepage');
-        $expectation->once();
-        $expectation->andReturn($page);
-        $expectation = $mock->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
-        $expectation = $mock->shouldReceive('getPagesByCategory');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$feature]),
-        );
-        $expectation = $mock->shouldReceive('getPageContentById');
-        $expectation->once();
-        $expectation->andReturn($price);
+        $page = $this->publishedPage(['slug' => ['cs' => 'uvod', 'en' => 'home']]);
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
         $assertionResponse = $response->assertOk();
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.homepage');
-        $assertionResponse->assertViewHasAll(
+        $assertionResponse = $assertionResponse->assertViewHasAll(
             [
-                'page',
                 'navigationPages',
                 'featurePages',
                 'pricePage',
             ],
+        );
+        $assertionResponse->assertViewHas(
+            'page',
+            fn (Page $shown): bool => $shown->is($page),
         );
     }
 
     #[Test]
     public function index_displays_published_pages_and_categories(): void
     {
-        $page = $this->mockPage();
-        $mock = $this->mock(PageServiceInterface::class);
-        $expectation = $mock->shouldReceive('getAllPublishedPages');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
-        $expectation = $mock->shouldReceive('getCategoriesWithPages');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
-        $expectation = $mock->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
+        $page = $this->publishedPage();
         $response = $this->get(
             route('frontend.pages.index', ['locale' => 'cs']),
         );
         $assertionResponse = $response->assertOk();
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.index');
-        $assertionResponse->assertViewHasAll([
-            'pages',
+        $assertionResponse = $assertionResponse->assertViewHasAll([
             'categoriesWithPages',
             'navigationPages',
         ]);
+        $assertionResponse->assertViewHas(
+            'pages',
+            fn (Collection $pages): bool => $pages->contains($page),
+        );
     }
 
     #[Test]
     public function show_displays_page(): void
     {
-        $page = $this->mockPage(['slug' => ['cs' => 'moje-stranka', 'en' => 'my-page']]);
-        $mock = $this->mock(PageServiceInterface::class);
-        $expectation = $mock->shouldReceive('getPageBySlug');
-        $expectation->once();
-        $expectation->andReturn($page);
-        $expectation = $mock->shouldReceive('getBreadcrumbs');
-        $expectation->once();
-        $expectation->andReturn([['name' => 'Root', 'slug' => 'root']]);
-        $expectation = $mock->shouldReceive('getRelatedPages');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
-        $expectation = $mock->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
+        $page = $this->publishedPage(['slug' => ['cs' => 'moje-stranka', 'en' => 'my-page']]);
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'moje-stranka']),
         );
         $assertionResponse = $response->assertOk();
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.show');
-        $assertionResponse->assertViewHasAll(
+        $assertionResponse = $assertionResponse->assertViewHasAll(
             [
-                'page',
                 'breadcrumbs',
                 'relatedPages',
                 'navigationPages',
                 'locale',
             ],
         );
+        $assertionResponse->assertViewHas(
+            'page',
+            fn (Page $shown): bool => $shown->is($page),
+        );
     }
 
     #[Test]
     public function show_redirects_when_slug_not_localized(): void
     {
-        $page = $this->mockPage(['slug' => ['cs' => 'lokalni', 'en' => 'english-slug']]);
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getPageBySlug');
-        $expectation->once();
-        $expectation->andReturn($page);
+        $this->publishedPage(['slug' => ['cs' => 'lokalni', 'en' => 'english-slug']]);
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'english-slug']),
         );
@@ -183,168 +130,115 @@ class PageControllerFeatureTest extends TestCase
     #[Test]
     public function show_returns_404_when_not_found(): void
     {
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getPageBySlug');
-        $expectation->once();
-        $expectation->andReturn(null);
         $response = $this->get(
             route('frontend.pages.show', ['locale' => 'cs', 'slug' => 'neexistuje']),
         );
-        $response->assertStatus(404);
+        $response->assertNotFound();
     }
 
     #[Test]
     public function category_by_slug_displays_pages(): void
     {
-        $category = new PageCategory;
-        $category->id = 5;
-        $category->name = ['cs' => 'Kategorie', 'en' => 'Category'];
-        $category->slug = ['cs' => 'kategorie', 'en' => 'category'];
-        $category->description = ['cs' => 'Popis', 'en' => 'Desc'];
-        $page = $this->mockPage(['category_id' => 5]);
-        // navigation page also needs a category for blade reference
-        $pageCategory = new PageCategory;
-        $pageCategory->id = 6;
-        $pageCategory->name = ['cs' => 'Jina', 'en' => 'Other'];
-        $pageCategory->slug = ['cs' => 'jina', 'en' => 'other'];
-        $page->setRelation('category', $pageCategory);
-        $mock = $this->mock(PageServiceInterface::class);
-        $expectation = $mock->shouldReceive('getCategoryBySlug');
-        $expectation->once();
-        $expectation->andReturn($category);
-        $expectation = $mock->shouldReceive('getPagesByCategory');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
+        $slug = 'kategorie-' . uniqid();
+        $categoryFactory = PageCategory::factory();
+        $category = $categoryFactory->create(
+            [
+                'name' => ['cs' => 'Kategorie', 'en' => 'Category'],
+                'slug' => ['cs' => $slug, 'en' => 'category-' . uniqid()],
+            ],
         );
-        $expectation = $mock->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
+        $page = $this->publishedPage(['category_id' => $category->id]);
         $response = $this->get(
-            route('frontend.pages.category.slug', ['locale' => 'cs', 'slug' => 'kategorie']),
+            route('frontend.pages.category.slug', ['locale' => 'cs', 'slug' => $slug]),
         );
         $assertionResponse = $response->assertOk();
-        $assertionResponse->assertViewIs('frontend.pages.category');
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.category');
+        $assertionResponse->assertViewHas(
+            'pages',
+            fn (Collection $pages): bool => $pages->contains($page),
+        );
     }
 
     #[Test]
     public function category_by_slug_404_when_not_found(): void
     {
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getCategoryBySlug');
-        $expectation->once();
-        $expectation->andReturn(null);
         $response = $this->get(
             route('frontend.pages.category.slug', ['locale' => 'cs', 'slug' => 'nic']),
         );
-        $response->assertStatus(404);
+        $response->assertNotFound();
     }
 
     #[Test]
     public function category_by_id_displays_pages(): void
     {
-        $page = $this->mockPage(['category_id' => 7]);
-        $cat = new PageCategory;
-        $cat->name = ['cs' => 'Kategorie', 'en' => 'Category'];
-        $cat->slug = ['cs' => 'kategorie-7', 'en' => 'category-7'];
-        $page->setRelation('category', $cat);
-        $mock = $this->mock(PageServiceInterface::class);
-        $expectation = $mock->shouldReceive('getPagesByCategory');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
-        $expectation = $mock->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
+        $page = $this->publishedPage();
         $response = $this->get(
-            route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => 7]),
+            route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => $page->category_id]),
         );
         $assertionResponse = $response->assertOk();
-        $assertionResponse->assertViewIs('frontend.pages.category');
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.category');
+        $assertionResponse->assertViewHas(
+            'pages',
+            fn (Collection $pages): bool => $pages->contains($page),
+        );
     }
 
     #[Test]
     public function category_by_id_404_when_empty(): void
     {
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getPagesByCategory');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
+        $categoryFactory = PageCategory::factory();
+        $category = $categoryFactory->create();
         $response = $this->get(
-            route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => 99]),
+            route('frontend.pages.category', ['locale' => 'cs', 'categoryId' => $category->id]),
         );
-        $response->assertStatus(404);
+        $response->assertNotFound();
     }
 
     #[Test]
     public function search_requires_min_length(): void
     {
-        $pageService = $this->mock(PageServiceInterface::class);
-        $expectation = $pageService->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
+        $this->publishedPage(['name' => ['cs' => 'abeceda', 'en' => 'alphabet']]);
         $response = $this->get(
             route('frontend.pages.search', ['locale' => 'cs', 'q' => 'ab']),
         );
         $assertionResponse = $response->assertOk();
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.search');
-        $assertionResponse->assertViewHas('pages', function ($c) {
-            return $c->count() === 0;
-        });
+        $assertionResponse->assertViewHas(
+            'pages',
+            fn (Collection $pages): bool => $pages->isEmpty(),
+        );
     }
 
     #[Test]
     public function search_returns_results_when_long_enough(): void
     {
-        $page = $this->mockPage();
-        $mockService = $this->mock(PageServiceInterface::class);
-        $expectation = $mockService->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
+        $page = $this->publishedPage(
+            ['name' => ['cs' => 'Testování faktur', 'en' => 'Invoice testing']],
         );
-        $expectation = $mockService->shouldReceive('searchPages');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([$page]),
-        );
+        $this->publishedPage();
         $response = $this->get(
-            route('frontend.pages.search', ['locale' => 'cs', 'q' => 'testovani']),
+            route('frontend.pages.search', ['locale' => 'cs', 'q' => 'Testování']),
         );
         $assertionResponse = $response->assertOk();
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.search');
-        $assertionResponse->assertViewHas('pages', function ($c) {
-            return $c->count() === 1;
-        });
+        $assertionResponse->assertViewHas(
+            'pages',
+            fn (Collection $pages): bool => $pages->count() === 1 && $pages->contains($page),
+        );
     }
 
     #[Test]
     public function sitemap_displays_categories_with_pages(): void
     {
-        $mockService = $this->mock(PageServiceInterface::class);
-        $expectation = $mockService->shouldReceive('getCategoriesWithPages');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
-        $expectation = $mockService->shouldReceive('getPagesForNavigation');
-        $expectation->once();
-        $expectation->andReturn(
-            new EloquentCollection([]),
-        );
+        $page = $this->publishedPage();
         $response = $this->get(
             route('frontend.pages.sitemap', ['locale' => 'cs']),
         );
         $assertionResponse = $response->assertOk();
-        $assertionResponse->assertViewIs('frontend.pages.sitemap');
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.sitemap');
+        $assertionResponse->assertViewHas(
+            'categoriesWithPages',
+            fn (Collection $categories): bool => $categories->contains('id', $page->category_id),
+        );
     }
 }

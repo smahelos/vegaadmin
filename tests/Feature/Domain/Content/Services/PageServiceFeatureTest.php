@@ -2,7 +2,7 @@
 
 namespace Tests\Feature\Domain\Content\Services;
 
-use App\Application\Content\Contracts\PageApplicationServiceInterface as PageServiceInterface;
+use App\Application\Content\Services\PageApplicationService;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Illuminate\Support\Collection;
@@ -11,12 +11,12 @@ use Tests\TestCase;
 
 class PageServiceFeatureTest extends TestCase
 {
-    private PageServiceInterface $pageService;
+    private PageApplicationService $pageService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->pageService = app(PageServiceInterface::class);
+        $this->pageService = app(PageApplicationService::class);
 
         // The service reads the whole pages table; start without the seeded content pages
         $pageQuery = Page::query();
