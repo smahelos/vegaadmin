@@ -97,6 +97,7 @@ final class PermissionCatalog
             Permission::PRODUCT_VIEW,
             Permission::ROLE_VIEW,
             Permission::ROLE_LIMIT_VIEW,
+            Permission::STATISTICS_VIEW,
             Permission::STATUS_VIEW,
             Permission::SUBSCRIPTION_VIEW,
             Permission::SUBSCRIPTION_PLAN_VIEW,
