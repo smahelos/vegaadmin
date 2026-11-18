@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Http\Controllers\Admin\Operations\RestrictedDeleteOperation;
 use App\Http\Requests\Admin\PaymentMethodRequest;
@@ -31,6 +32,12 @@ final class PaymentMethodCrudController extends CrudController
     use RestrictedDeleteOperation;
     use ShowOperation;
     use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object

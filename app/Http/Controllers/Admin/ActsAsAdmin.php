@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Admin;
 
 use App\Application\Shared\UseCase\Actor;
-use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 
 /**
- * The signed-in admin as the actor of the use cases an admin controller runs.
+ * The signed-in admin as the actor of the use cases an admin controller runs. The controller injects the gate as
+ * $useCases.
  */
 trait ActsAsAdmin
 {
@@ -32,9 +32,8 @@ trait ActsAsAdmin
         if ($guard->id() === null) {
             return false;
         }
-        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
 
-        return $useCases->holds(
+        return $this->useCases->holds(
             $this->admin(),
             $permission,
         );

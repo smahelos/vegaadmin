@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use Backpack\PermissionManager\app\Http\Controllers\RoleCrudController as PackageRoleCrudController;
 
@@ -14,6 +15,12 @@ use Backpack\PermissionManager\app\Http\Controllers\RoleCrudController as Packag
 final class RoleCrudController extends PackageRoleCrudController
 {
     use GatesCrudOperations;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     public function setup(): void
     {

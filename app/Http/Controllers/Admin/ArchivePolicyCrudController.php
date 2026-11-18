@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\ArchivePolicyRequest;
 use App\Models\ArchivePolicy;
@@ -24,6 +25,12 @@ class ArchivePolicyCrudController extends CrudController
     use ListOperation;
     use ShowOperation;
     use UpdateOperation;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {
+        parent::__construct();
+    }
 
     /**
      * Configure the CrudPanel object
