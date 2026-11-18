@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class PaymentMethodRequest extends FormRequest
+final class PaymentMethodRequest extends FormRequest
 {
     public function rules(): array
     {

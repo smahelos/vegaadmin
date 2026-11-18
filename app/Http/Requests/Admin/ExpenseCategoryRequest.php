@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
-class ExpenseCategoryRequest extends FormRequest
+final class ExpenseCategoryRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.

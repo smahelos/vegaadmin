@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class StatusRequest extends FormRequest
+final class StatusRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request

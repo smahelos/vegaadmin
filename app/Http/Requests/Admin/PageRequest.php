@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 
-class PageRequest extends FormRequest
+final class PageRequest extends FormRequest
 {
     /**
      * Transform multilingual field data from name_locale to name.locale format.

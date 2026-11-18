@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class BankRequest extends FormRequest
+final class BankRequest extends FormRequest
 {
     /**
      * Validation rules.

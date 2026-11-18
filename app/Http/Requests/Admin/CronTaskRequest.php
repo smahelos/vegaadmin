@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Shared\Console\Enums\ScheduledCommand;
@@ -9,7 +11,7 @@ use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class CronTaskRequest extends FormRequest
+final class CronTaskRequest extends FormRequest
 {
     public function rules(): array
     {
