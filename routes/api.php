@@ -66,7 +66,7 @@ $registrar->group(
 );
 
 // Public API endpoints - no authentication required (rate limited)
-$registrar = Route::middleware('throttle:60,1');
+$registrar = Route::middleware('throttle:public_api');
 $registrar->name('api.');
 $registrar->group(
     function (): void {
