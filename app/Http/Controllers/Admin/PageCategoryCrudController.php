@@ -49,7 +49,7 @@ class PageCategoryCrudController extends CrudController
             __('pages.categories.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PAGE_VIEW,
                 'show' => Permission::PAGE_VIEW,

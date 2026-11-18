@@ -2,9 +2,7 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\CronTaskRequest;
-use App\Models\Permission as PermissionModel;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -32,22 +30,6 @@ class CronTaskRequestFeatureTest extends TestCase
             },
         );
         $route->middleware('web');
-    }
-
-    #[Test]
-    public function authorize_returns_false_when_user_not_authenticated(): void
-    {
-        $request = new CronTaskRequest;
-        $this->assertFalse($request->authorize());
-    }
-
-    #[Test]
-    public function authorize_returns_true_when_user_authenticated_with_backpack(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $request = new CronTaskRequest;
-        $this->assertTrue($request->authorize());
     }
 
     #[Test]
@@ -331,23 +313,6 @@ class CronTaskRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function http_request_without_authentication_fails(): void
-    {
-        $this->withoutMiddleware();
-
-        $response = $this->postJson(
-            '/test-cron-task',
-            [
-                'name' => 'Unauthorized Test',
-                'command' => 'db:monitor',
-                'frequency' => 'daily',
-            ],
-        );
-
-        $response->assertStatus(403);
-    }
-
-    #[Test]
     public function custom_frequency_without_expression_asks_for_the_expression(): void
     {
         $this->withoutMiddleware();
@@ -451,39 +416,5 @@ class CronTaskRequestFeatureTest extends TestCase
             [__('cron_tasks.validation.parameters')],
             $errors->get('parameters'),
         );
-    }
-
-    #[Test]
-    public function creating_requires_the_create_permission(): void
-    {
-        $this->withoutMiddleware();
-        $this->regularUser->givePermissionTo(
-            PermissionModel::findByName(Permission::CRON_TASK_UPDATE->value, 'backpack'),
-        );
-
-        $httpClient = $this->actingAs($this->regularUser, 'backpack');
-        $response = $httpClient->postJson(
-            '/test-cron-task',
-            [
-                'name' => 'Monitor',
-                'command' => 'db:monitor',
-                'frequency' => 'daily',
-            ],
-        );
-        $response->assertForbidden();
-
-        $this->regularUser->givePermissionTo(
-            PermissionModel::findByName(Permission::CRON_TASK_CREATE->value, 'backpack'),
-        );
-        $httpClient = $this->actingAs($this->regularUser, 'backpack');
-        $response = $httpClient->postJson(
-            '/test-cron-task',
-            [
-                'name' => 'Monitor',
-                'command' => 'db:monitor',
-                'frequency' => 'daily',
-            ],
-        );
-        $response->assertOk();
     }
 }

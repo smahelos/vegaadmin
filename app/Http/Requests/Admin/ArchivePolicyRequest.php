@@ -1,23 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ArchivePolicyRequest extends FormRequest
+final class ArchivePolicyRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        // Only authenticated backpack users with system configuration permission
-        $user = backpack_user();
-
-        return $user?->can(Permission::SYSTEM_CONFIGURE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */

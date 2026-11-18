@@ -5,18 +5,16 @@ namespace Tests\Feature\Http\Requests\Admin;
 use App\Http\Requests\Admin\StatusRequest;
 use App\Models\Status;
 use App\Models\StatusCategory;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 // alias if needed
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for StatusRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class StatusRequestFeatureTest extends TestCase
 {
@@ -217,47 +215,6 @@ class StatusRequestFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
-    }
-
-    /**
-     * Test authorization passes when user has required permission.
-     */
-    #[Test]
-    public function authorization_passes_with_permission(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $validData = [
-            'name' => 'Test Status',
-            'slug' => 'test-status',
-            'category_id' => $this->statusCategory->id,
-        ];
-
-        $response = $this->postJson('/test-status', $validData);
-
-        $response->assertStatus(200);
-    }
-
-    /**
-     * Test authorization fails when user lacks required permission.
-     */
-    #[Test]
-    public function authorization_fails_without_permission(): void
-    {
-        // Create user without admin permissions
-        $userFactory = User::factory();
-        $unauthorizedUser = $userFactory->create();
-        $this->actingAs($unauthorizedUser, 'backpack');
-
-        $validData = [
-            'name' => 'Test Status',
-            'slug' => 'test-status',
-            'category_id' => $this->statusCategory->id,
-        ];
-
-        $response = $this->postJson('/test-status', $validData);
-
-        $response->assertStatus(403);
     }
 
     /**

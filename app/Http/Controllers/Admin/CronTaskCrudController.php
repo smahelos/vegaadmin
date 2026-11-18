@@ -46,7 +46,7 @@ class CronTaskCrudController extends CrudController
             __('cron_tasks.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::CRON_TASK_VIEW,
                 'show' => Permission::CRON_TASK_VIEW,

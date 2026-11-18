@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\TaxRequest;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -12,7 +11,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for TaxRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class TaxRequestFeatureTest extends TestCase
 {
@@ -196,47 +195,6 @@ class TaxRequestFeatureTest extends TestCase
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
-    }
-
-    /**
-     * Test authorization passes when user is authenticated.
-     */
-    #[Test]
-    public function authorization_passes_when_authenticated(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $this->postJson('/test-tax', [
-            'name' => 'VAT 21%',
-            'rate' => 21,
-        ]);
-        $httpResponse->assertStatus(200);
-    }
-
-    /**
-     * Test authorization fails when user is not authenticated.
-     */
-    #[Test]
-    public function authorization_fails_when_not_authenticated(): void
-    {
-        $httpResponse = $this->postJson('/test-tax', [
-            'name' => 'VAT 21%',
-            'rate' => 21,
-        ]);
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_authenticated_user_without_permission(): void
-    {
-        $userFactory = User::factory();
-        $userNoPerm = $userFactory->create();
-        $this->actingAs($userNoPerm, 'backpack');
-
-        $httpResponse = $this->postJson('/test-tax', [
-            'name' => 'No Perm Tax',
-            'rate' => 5,
-        ]);
-        $httpResponse->assertStatus(403);
     }
 
     /**

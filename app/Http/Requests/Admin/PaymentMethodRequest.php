@@ -1,24 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class PaymentMethodRequest extends FormRequest
+final class PaymentMethodRequest extends FormRequest
 {
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PAYMENT_METHOD_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PAYMENT_METHOD_UPDATE) === true;
-    }
-
     public function rules(): array
     {
         $slugUnique = Rule::unique('payment_methods', 'slug');

@@ -34,7 +34,6 @@ use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -67,7 +66,7 @@ final class ProductCrudController extends CrudController
             __('products.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PRODUCT_VIEW,
                 'show' => Permission::PRODUCT_VIEW,

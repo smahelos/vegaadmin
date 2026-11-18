@@ -35,7 +35,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class ExpenseCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -66,7 +65,7 @@ final class ExpenseCrudController extends CrudController
             __('expenses.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::EXPENSE_VIEW,
                 'show' => Permission::EXPENSE_VIEW,

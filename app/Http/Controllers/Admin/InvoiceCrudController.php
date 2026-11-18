@@ -37,7 +37,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class InvoiceCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -67,7 +66,7 @@ final class InvoiceCrudController extends CrudController
             __('invoices.entity.singular'),
             __('invoices.entity.plural'),
         );
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::INVOICE_VIEW,
                 'show' => Permission::INVOICE_VIEW,

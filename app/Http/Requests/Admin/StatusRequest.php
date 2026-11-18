@@ -1,27 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
-class StatusRequest extends FormRequest
+final class StatusRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::STATUS_CREATE) === true;
-        }
-
-        return $user?->can(Permission::STATUS_UPDATE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request
      */

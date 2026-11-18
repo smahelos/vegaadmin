@@ -45,7 +45,7 @@ final class ProductCategoryCrudController extends CrudController
             __('products.categories.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PRODUCT_VIEW,
                 'show' => Permission::PRODUCT_VIEW,

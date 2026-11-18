@@ -7,6 +7,10 @@ namespace Tests\Feature\Http\Controllers\Admin;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\User\Enums\Permission;
 use App\Models\Bank;
+use App\Models\BankAccount;
+use App\Models\Business;
+use App\Models\Contact;
+use App\Models\CronTask;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\Invoice;
@@ -16,6 +20,7 @@ use App\Models\PaymentMethod;
 use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\ProductCategory;
+use App\Models\RoleLimit;
 use App\Models\Status;
 use App\Models\StatusCategory;
 use App\Models\Subscription;
@@ -25,6 +30,7 @@ use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Spatie\Permission\Models\Role;
@@ -37,19 +43,26 @@ use Tests\TestCase;
 final class CrudOperationPermissionsTest extends TestCase
 {
     /**
-     * @return array<string, array{string, string}>
+     * @return array<string, array{string, Permission}>
      */
     public static function screens(): array
     {
         return [
             'archive policy' => ['archive-policy', Permission::SYSTEM_CONFIGURE],
             'bank' => ['bank', Permission::BANK_VIEW],
+            'bank account' => ['bank-account', Permission::BANK_ACCOUNT_VIEW],
+            'business' => ['business', Permission::BUSINESS_VIEW],
+            'contact' => ['contact', Permission::CONTACT_VIEW],
+            'cron task' => ['cron-task', Permission::CRON_TASK_VIEW],
+            'database maintenance log' => ['database-maintenance-log', Permission::SYSTEM_CONFIGURE],
             'expense' => ['expense', Permission::EXPENSE_VIEW],
             'expense category' => ['expense-category', Permission::EXPENSE_VIEW],
             'invoice' => ['invoice', Permission::INVOICE_VIEW],
+            'mysql optimization log' => ['mysql-optimization-log', Permission::SYSTEM_CONFIGURE],
             'page' => ['page', Permission::PAGE_VIEW],
             'page category' => ['page-category', Permission::PAGE_VIEW],
             'payment method' => ['payment-method', Permission::PAYMENT_METHOD_VIEW],
+            'performance metric' => ['performance-metric', Permission::SYSTEM_CONFIGURE],
             'permission' => ['permission', Permission::PERMISSION_VIEW],
             'product' => ['product', Permission::PRODUCT_VIEW],
             'product category' => ['product-category', Permission::PRODUCT_VIEW],
@@ -68,7 +81,7 @@ final class CrudOperationPermissionsTest extends TestCase
     /**
      * Screens whose view permission allows nothing else, with the model of a record to delete.
      *
-     * @return array<string, array{string, string, class-string<Model>}>
+     * @return array<string, array{string, Permission, class-string<Model>}>
      */
     public static function viewOnlyScreens(): array
     {
@@ -77,6 +90,11 @@ final class CrudOperationPermissionsTest extends TestCase
                 'bank',
                 Permission::BANK_VIEW,
                 Bank::class,
+            ],
+            'cron task' => [
+                'cron-task',
+                Permission::CRON_TASK_VIEW,
+                CronTask::class,
             ],
             'expense' => [
                 'expense',
@@ -128,6 +146,11 @@ final class CrudOperationPermissionsTest extends TestCase
                 Permission::ROLE_VIEW,
                 Role::class,
             ],
+            'role limit' => [
+                'role-limit',
+                Permission::ROLE_LIMIT_VIEW,
+                RoleLimit::class,
+            ],
             'status' => [
                 'status',
                 Permission::STATUS_VIEW,
@@ -162,6 +185,33 @@ final class CrudOperationPermissionsTest extends TestCase
                 'user',
                 Permission::USER_VIEW,
                 User::class,
+            ],
+        ];
+    }
+
+    /**
+     * Screens with a create and an update operation, including those that write records with an owner directly.
+     *
+     * @return array<string, array{string, Permission, class-string<Model>}>
+     */
+    public static function writableScreens(): array
+    {
+        return [
+            ...self::viewOnlyScreens(),
+            'bank account' => [
+                'bank-account',
+                Permission::BANK_ACCOUNT_VIEW,
+                BankAccount::class,
+            ],
+            'business' => [
+                'business',
+                Permission::BUSINESS_VIEW,
+                Business::class,
+            ],
+            'contact' => [
+                'contact',
+                Permission::CONTACT_VIEW,
+                Contact::class,
             ],
         ];
     }
@@ -222,6 +272,109 @@ final class CrudOperationPermissionsTest extends TestCase
         $this->assertModelExists($record);
     }
 
+    /**
+     * @param  class-string<Model>  $model
+     */
+    #[Test]
+    #[DataProvider('writableScreens')]
+    public function writing_invalid_data_is_denied_with_the_view_permission_only(
+        string $route,
+        Permission $permission,
+        string $model,
+    ): void {
+        $record = $this->record($model);
+        $user = $this->backendUser([$permission]);
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $storeResponse = $httpClient->post('/admin/' . $route, []);
+        $updateResponse = $httpClient->put('/admin/' . $route . '/' . $record->getKey(), []);
+
+        // The operation is refused before validation, so invalid data never reaches a 422
+        $storeResponse->assertForbidden();
+        $updateResponse->assertForbidden();
+    }
+
+    /**
+     * @param  class-string<Model>  $model
+     */
+    #[Test]
+    #[DataProvider('writableScreens')]
+    public function the_create_form_opens_with_the_create_permission(
+        string $route,
+        Permission $permission,
+        string $model,
+    ): void {
+        $user = $this->backendUser(
+            [$this->operationPermission($permission, 'create')],
+        );
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->get('/admin/' . $route . '/create');
+
+        $response->assertOk();
+    }
+
+    /**
+     * @param  class-string<Model>  $model
+     */
+    #[Test]
+    #[DataProvider('writableScreens')]
+    public function the_edit_form_opens_with_the_update_permission(
+        string $route,
+        Permission $permission,
+        string $model,
+    ): void {
+        $record = $this->record($model);
+        $user = $this->backendUser(
+            [$this->operationPermission($permission, 'update')],
+        );
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->get('/admin/' . $route . '/' . $record->getKey() . '/edit');
+
+        $response->assertOk();
+    }
+
+    /**
+     * @param  class-string<Model>  $model
+     */
+    #[Test]
+    #[DataProvider('viewOnlyScreens')]
+    public function deleting_opens_with_the_delete_permission(
+        string $route,
+        Permission $permission,
+        string $model,
+    ): void {
+        $record = $this->record($model);
+        $user = $this->backendUser(
+            [$this->operationPermission($permission, 'delete')],
+        );
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->delete('/admin/' . $route . '/' . $record->getKey());
+
+        $response->assertOk();
+        // A query rather than assertModelMissing, which a soft-deleted user or plan feature would fail
+        $recordQuery = $record->newQuery();
+        $this->assertNull(
+            $recordQuery->find($record->getKey()),
+        );
+    }
+
+    #[Test]
+    public function an_operation_the_package_configuration_denies_stays_denied_with_its_permission(): void
+    {
+        config(['backpack.permissionmanager.allow_role_delete' => false]);
+        $record = $this->record(Role::class);
+        $user = $this->backendUser([Permission::ROLE_DELETE]);
+
+        $httpClient = $this->actingAs($user, 'backpack');
+        $response = $httpClient->delete('/admin/role/' . $record->getKey());
+
+        $response->assertForbidden();
+        $this->assertModelExists($record);
+    }
+
     #[Test]
     public function the_archive_policies_open_with_the_system_permission(): void
     {
@@ -253,6 +406,21 @@ final class CrudOperationPermissionsTest extends TestCase
     }
 
     /**
+     * The permission of an operation, named after the screen's view permission (`bank.view` → `bank.create`).
+     */
+    private function operationPermission(Permission $view, string $operation): Permission
+    {
+        // Bank accounts are created under their update permission
+        if ($view === Permission::BANK_ACCOUNT_VIEW && $operation === 'create') {
+            return Permission::BANK_ACCOUNT_UPDATE;
+        }
+
+        return Permission::from(
+            Str::beforeLast($view->value, '.') . '.' . $operation,
+        );
+    }
+
+    /**
      * @param  class-string<Model>  $model
      */
     private function record(string $model): Model
@@ -266,6 +434,16 @@ final class CrudOperationPermissionsTest extends TestCase
         if ($model === Role::class || $model === PermissionModel::class) {
             return $model::create(
                 ['name' => uniqid('screen_'), 'guard_name' => 'web'],
+            );
+        }
+
+        if ($model === RoleLimit::class) {
+            $role = Role::create(
+                ['name' => uniqid('screen_'), 'guard_name' => 'web'],
+            );
+
+            return RoleLimit::create(
+                ['role_id' => $role->getKey()],
             );
         }
 

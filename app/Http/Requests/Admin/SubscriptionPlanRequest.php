@@ -1,11 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 
-class SubscriptionPlanRequest extends FormRequest
+final class SubscriptionPlanRequest extends FormRequest
 {
     /**
      * Prepare the data for validation.
@@ -19,19 +20,6 @@ class SubscriptionPlanRequest extends FormRequest
                 $this->merge(['features' => $features]);
             }
         }
-    }
-
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::SUBSCRIPTION_PLAN_CREATE) === true;
-        }
-
-        return $user?->can(Permission::SUBSCRIPTION_PLAN_UPDATE) === true;
     }
 
     /**

@@ -53,7 +53,7 @@ class PageCrudController extends CrudController
             __('pages.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PAGE_VIEW,
                 'show' => Permission::PAGE_VIEW,
@@ -455,7 +455,7 @@ class PageCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('create');
 
-        // Execute the FormRequest authorization and validation logic
+        // Execute the FormRequest validation logic
         $request = $this->validatedRequest(PageRequest::class);
 
         // PageRequest has already merged the per-locale inputs; only validated input reaches the model
@@ -475,7 +475,7 @@ class PageCrudController extends CrudController
     {
         $this->crud->hasAccessOrFail('update');
 
-        // Execute the FormRequest authorization and validation logic
+        // Execute the FormRequest validation logic
         $request = $this->validatedRequest(PageRequest::class);
 
         // PageRequest has already merged the per-locale inputs; only validated input reaches the model

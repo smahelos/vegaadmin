@@ -34,7 +34,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 class UserCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -64,7 +63,7 @@ class UserCrudController extends CrudController
             __('users.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::USER_VIEW,
                 'show' => Permission::USER_VIEW,

@@ -38,32 +38,6 @@ class SubscriptionPlanFeatureRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function authorize_returns_false_without_authentication(): void
-    {
-        $this->assertFalse($this->request->authorize());
-    }
-
-    #[Test]
-    public function authorize_returns_false_without_permission(): void
-    {
-        $this->actingAs($this->regularUser, 'backpack');
-
-        $this->assertFalse($this->request->authorize());
-    }
-
-    #[Test]
-    public function authorize_returns_true_with_permission(): void
-    {
-        $httpClient = $this->actingAs($this->adminUser, 'backpack');
-        $response = $httpClient->postJson('/test-subscription-plan-feature', [
-            'name' => 'Test Feature',
-            'slug' => 'test-feature',
-        ]);
-
-        $response->assertStatus(200);
-    }
-
-    #[Test]
     public function validation_fails_when_name_is_missing(): void
     {
         $data = [

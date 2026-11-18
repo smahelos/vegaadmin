@@ -38,7 +38,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class BusinessCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;

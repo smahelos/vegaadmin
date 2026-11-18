@@ -36,7 +36,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class ContactCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use ConfiguresPartyCrud;
     use CreateOperation;
     use ListOperation;

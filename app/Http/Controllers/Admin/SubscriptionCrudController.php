@@ -33,7 +33,6 @@ use Prologue\Alerts\Facades\Alert;
  */
 final class SubscriptionCrudController extends CrudController
 {
-    use ActsAsAdmin;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -62,7 +61,7 @@ final class SubscriptionCrudController extends CrudController
             __('subscriptions.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::SUBSCRIPTION_VIEW,
                 'show' => Permission::SUBSCRIPTION_VIEW,

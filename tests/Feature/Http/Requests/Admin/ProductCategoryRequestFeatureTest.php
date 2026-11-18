@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\ProductCategoryRequest;
 use App\Models\ProductCategory;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,7 +12,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for ProductCategoryRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class ProductCategoryRequestFeatureTest extends TestCase
 {
@@ -247,38 +246,6 @@ class ProductCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function authorization_passes_for_authenticated_user(): void
-    {
-        $httpClient = $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $httpClient->postJson('/test-product-category', [
-            'name' => 'Test Category',
-        ]);
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_authenticated_user_without_permission(): void
-    {
-        $userFactory = User::factory();
-        $userNoPerm = $userFactory->create();
-        $this->actingAs($userNoPerm, 'backpack');
-
-        $httpResponse = $this->postJson('/test-product-category', [
-            'name' => 'No Perm Category',
-        ]);
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpResponse = $this->postJson('/test-product-category', [
-            'name' => 'Test Category',
-        ]);
-        $httpResponse->assertStatus(403);
     }
 
     #[Test]

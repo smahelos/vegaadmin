@@ -53,7 +53,7 @@ final class PaymentMethodCrudController extends CrudController
             __('payment_methods.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::PAYMENT_METHOD_VIEW,
                 'show' => Permission::PAYMENT_METHOD_VIEW,

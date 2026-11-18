@@ -3,17 +3,15 @@
 namespace Tests\Feature\Http\Requests\Admin;
 
 use App\Http\Requests\Admin\ArchivePolicyRequest;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
-use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for ArchivePolicyRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class ArchivePolicyRequestFeatureTest extends TestCase
 {
@@ -259,38 +257,6 @@ class ArchivePolicyRequestFeatureTest extends TestCase
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function authorization_passes_for_authenticated_user(): void
-    {
-        // Need a user with can_configure_system permission (adminUser)
-        $httpClient = $this->actingAs($this->adminUser, 'backpack');
-        $httpClient = $httpClient->withoutMiddleware();
-        $httpResponse = $httpClient->postJson(
-            '/test-archive-policy',
-            [
-                'table_name' => 'test_table',
-                'retention_months' => 12,
-                'date_column' => 'created_at',
-            ],
-        );
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpClient = $this->withoutMiddleware();
-        $httpResponse = $httpClient->postJson(
-            '/test-archive-policy',
-            [
-                'table_name' => 'test_table',
-                'retention_months' => 12,
-                'date_column' => 'created_at',
-            ],
-        );
-        $httpResponse->assertStatus(403);
     }
 
     #[Test]

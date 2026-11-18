@@ -2,11 +2,8 @@
 
 namespace Tests\Feature\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\StatusCategoryRequest;
-use App\Models\Permission as PermissionModel;
 use App\Models\StatusCategory;
-use App\Models\User;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Validator;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,7 +12,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for StatusCategoryRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class StatusCategoryRequestFeatureTest extends TestCase
 {
@@ -213,49 +210,6 @@ class StatusCategoryRequestFeatureTest extends TestCase
         $validator = Validator::make($validData, $request->rules());
 
         $this->assertTrue($validator->passes());
-    }
-
-    #[Test]
-    public function authorization_passes_with_required_permission(): void
-    {
-        $httpClient = $this->actingAs($this->adminUser, 'backpack');
-        $httpResponse = $httpClient->postJson('/test-status-category', [
-            'name' => 'Test Category',
-            'slug' => 'test-category',
-        ]);
-        $httpResponse->assertStatus(200);
-    }
-
-    #[Test]
-    public function authorization_fails_without_permission(): void
-    {
-        // Create a user without the required permission
-        $userFactory = User::factory();
-        $userWithoutPermission = $userFactory->create();
-        // Give basic backpack access but not the specific permission (for backpack guard)
-        $permissionQuery = PermissionModel::where('name', Permission::BACKPACK_ACCESS->value);
-        $permissionQuery->where('guard_name', 'backpack');
-        $backpackAccess = $permissionQuery->first();
-        if ($backpackAccess) {
-            $userWithoutPermission->givePermissionTo($backpackAccess);
-        }
-
-        $httpClient = $this->actingAs($userWithoutPermission, 'backpack');
-        $httpResponse = $httpClient->postJson('/test-status-category', [
-            'name' => 'Test Category',
-            'slug' => 'test-category',
-        ]);
-        $httpResponse->assertStatus(403);
-    }
-
-    #[Test]
-    public function authorization_fails_for_unauthenticated_user(): void
-    {
-        $httpResponse = $this->postJson('/test-status-category', [
-            'name' => 'Test Category',
-            'slug' => 'test-category',
-        ]);
-        $httpResponse->assertStatus(403);
     }
 
     #[Test]

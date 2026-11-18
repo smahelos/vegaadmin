@@ -18,7 +18,7 @@ use Tests\Traits\CreatesAdminTestEnvironment;
 
 /**
  * Feature test for Admin ProductRequest class.
- * Tests validation rules, authorization logic, and custom attributes/messages.
+ * Tests validation rules and custom attributes/messages.
  */
 class ProductRequestFeatureTest extends TestCase
 {

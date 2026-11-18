@@ -50,7 +50,7 @@ final class RoleLimitCrudController extends CrudController
             __('role_limits.entity.plural'),
         );
 
-        $this->denyOperationsWithout(
+        $this->allowHeldOperations(
             [
                 'list' => Permission::ROLE_LIMIT_VIEW,
                 'show' => Permission::ROLE_LIMIT_VIEW,

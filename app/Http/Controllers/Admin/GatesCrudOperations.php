@@ -15,19 +15,22 @@ trait GatesCrudOperations
     use ActsAsAdmin;
 
     /**
-     * Denies every operation whose permission the signed-in admin lacks.
+     * Denies every operation, then allows those whose permission the signed-in admin holds, so an operation
+     * missing from the map stays denied. An operation the setup has already denied, such as by a package
+     * configuration, stays denied too.
      *
      * @param  array<string, Permission>  $permissions  permission by Backpack operation
      */
-    protected function denyOperationsWithout(array $permissions): void
+    protected function allowHeldOperations(array $permissions): void
     {
-        $denied = [];
+        $allowed = [];
         foreach ($permissions as $operation => $permission) {
-            if (!$this->adminHolds($permission)) {
-                $denied[] = $operation;
+            if (CRUD::hasAccess($operation) && $this->adminHolds($permission)) {
+                $allowed[] = $operation;
             }
         }
 
-        CRUD::denyAccess($denied);
+        CRUD::denyAllAccess();
+        CRUD::allowAccess($allowed);
     }
 }

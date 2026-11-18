@@ -1,28 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Admin;
 
-use App\Domain\User\Enums\Permission;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Validator;
 
-class PageCategoryRequest extends FormRequest
+final class PageCategoryRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = backpack_user();
-        if ($this->isMethod('POST')) {
-            return $user?->can(Permission::PAGE_CREATE) === true;
-        }
-
-        return $user?->can(Permission::PAGE_UPDATE) === true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      */
@@ -82,21 +70,23 @@ class PageCategoryRequest extends FormRequest
 
         foreach ($locales as $locale) {
             // Multilingual fields come as name_cs, slug_cs etc.
-            $nameValue = $this->input("name_{$locale}", '');
-            $slugValue = $this->input("slug_{$locale}", '');
+            $name = $this->string("name_{$locale}");
+            $nameValue = $name->trim();
+            $slug = $this->string("slug_{$locale}");
+            $slugValue = $slug->trim();
 
             Log::debug(
                 "Checking locale {$locale}",
                 [
-                    'name_value' => $nameValue,
-                    'slug_value' => $slugValue,
-                    'name_empty' => empty(trim($nameValue)),
-                    'slug_empty' => empty(trim($slugValue)),
+                    'name_value' => $nameValue->value(),
+                    'slug_value' => $slugValue->value(),
+                    'name_empty' => $nameValue->isEmpty(),
+                    'slug_empty' => $slugValue->isEmpty(),
                 ],
             );
 
             // If both name and slug are filled for this locale, we have a valid locale
-            if (!empty(trim($nameValue)) && !empty(trim($slugValue))) {
+            if ($nameValue->isNotEmpty() && $slugValue->isNotEmpty()) {
                 $hasValidLocale = true;
                 Log::debug("Found valid locale: {$locale}");
                 break;
