@@ -177,29 +177,27 @@ final class GrantStoreTest extends TestCase
     }
 
     #[Test]
-    public function the_holds_directive_answers_for_the_signed_in_actor(): void
+    public function the_holds_directive_answers_for_the_admin_also_while_the_default_guard_is_web(): void
     {
+        // An admin error page renders the menu before any middleware switched the default guard to backpack
         $template = '@holds(App\Domain\User\Enums\Permission::USER_VIEW, App\Domain\User\Enums\Permission::PRODUCT_CREATE)'
             . ' shown @endholds';
-        $user = $this->frontendUser();
         $admin = $this->backendUser(Permission::USER_VIEW);
         $other = $this->backendUser();
+        $user = $this->frontendUser();
+        $auth = app('auth');
 
-        $this->actingAs($user, 'web');
-        $this->assertSame(
-            'shown',
-            trim(
-                Blade::render($template),
-            ),
-        );
         $this->actingAs($admin, 'backpack');
+        $auth->shouldUse('web');
         $this->assertSame(
             'shown',
             trim(
                 Blade::render($template),
             ),
         );
+        // The frontend user's product.create on web is no admin permission
         $this->actingAs($other, 'backpack');
+        $this->actingAs($user, 'web');
         $this->assertSame(
             '',
             trim(
