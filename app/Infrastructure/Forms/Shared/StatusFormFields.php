@@ -13,14 +13,17 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class StatusFormFields
 {
-    /** @return array<int, string> status name by id */
+    /**
+     * Inactive statuses included: a filter finds stored records, which may hold a status no longer offered for new ones.
+     *
+     * @return array<int, string> status name by id
+     */
     public static function names(string $category): array
     {
         $statusQuery = Status::whereHas(
             'category',
             fn (Builder $query): Builder => $query->where('slug', $category),
         );
-        $statusQuery->where('is_active', true);
         $names = $statusQuery->pluck('name', 'id');
 
         return $names->all();

@@ -13,13 +13,13 @@ use Tests\TestCase;
 final class StatusFormFieldsTest extends TestCase
 {
     #[Test]
-    public function names_are_the_active_statuses_of_one_category(): void
+    public function names_are_the_statuses_of_one_category_inactive_ones_included(): void
     {
         $categoryFactory = StatusCategory::factory();
         $category = $categoryFactory->create();
         $statusFactory = Status::factory();
         $active = $statusFactory->create(['category_id' => $category->id]);
-        $statusFactory->create(
+        $inactive = $statusFactory->create(
             [
                 'category_id' => $category->id,
                 'is_active' => false,
@@ -28,7 +28,14 @@ final class StatusFormFieldsTest extends TestCase
         $statusFactory->create();
 
         $names = StatusFormFields::names($category->slug);
+        ksort($names);
 
-        $this->assertSame([$active->id => $active->name], $names);
+        $this->assertSame(
+            [
+                $active->id => $active->name,
+                $inactive->id => $inactive->name,
+            ],
+            $names,
+        );
     }
 }
