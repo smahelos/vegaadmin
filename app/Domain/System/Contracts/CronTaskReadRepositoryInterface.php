@@ -11,6 +11,6 @@ interface CronTaskReadRepositoryInterface
 {
     public function findById(CronTaskId $id): ?CronTaskDTO;
 
-    /** @return list<CronTaskDTO> */
+    /** @return list<CronTaskDTO> without the tasks whose stored command or frequency the enums no longer offer */
     public function listActive(): array;
 }

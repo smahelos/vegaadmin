@@ -11,6 +11,8 @@ use App\Domain\System\ValueObjects\CronTaskId;
 use App\Infrastructure\Persistence\Eloquent\System\Mappers\EloquentCronTaskMapper;
 use App\Models\CronTask;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\Log;
+use ValueError;
 
 final class EloquentCronTaskRepository implements CronTaskReadRepositoryInterface, CronTaskWriteRepositoryInterface
 {
@@ -26,13 +28,20 @@ final class EloquentCronTaskRepository implements CronTaskReadRepositoryInterfac
         $query = CronTask::where('is_active', true);
         $query->orderBy('id');
         $tasks = $query->get();
-        $dtos = $tasks->map(
-            fn (CronTask $task): CronTaskDTO => EloquentCronTaskMapper::toDTO($task),
-        );
+        $dtos = [];
+        foreach ($tasks as $task) {
+            // A stored command or frequency that the enums no longer offer (ValueError) skips only its task
+            try {
+                $dtos[] = EloquentCronTaskMapper::toDTO($task);
+            } catch (ValueError $e) {
+                Log::error(
+                    'Cron task cannot be read',
+                    ['cronTaskId' => $task->id, 'exception' => $e],
+                );
+            }
+        }
 
-        return array_values(
-            $dtos->all(),
-        );
+        return $dtos;
     }
 
     public function recordRun(

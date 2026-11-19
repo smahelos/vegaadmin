@@ -84,7 +84,10 @@ try {
                 function () use ($task, $logPath, $useCases): void {
                     $output = null;
                     if (file_exists($logPath)) {
-                        $output = file_get_contents($logPath);
+                        $read = file_get_contents($logPath);
+                        if ($read !== false) {
+                            $output = $read;
+                        }
                     }
                     $useCases->run(
                         Actor::system(),
@@ -94,8 +97,7 @@ try {
             );
         }
     }
-} catch (Exception|ValueError $e) {
-    // A stored command or frequency that the enums no longer offer (ValueError) stops loading as well
+} catch (Exception $e) {
     Log::error(
         'Cron task loading failed',
         ['exception' => $e],

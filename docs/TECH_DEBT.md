@@ -255,8 +255,13 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ### Cron task schedule computed in the model
 - **Where:** `app/Models/CronTask.php` (`getCronExpression()`, `getNextRunDate()`), `app/Console/Commands/TestCronExpression.php`, `routes/console.php`
-- **Problem:** the model computes the cron expression from `frequency` compared with string literals, with Czech comments and a broad catch returning `null`; `TestCronExpression` repeats it, and the scheduler builds the same schedule a third time from `CronTaskDTO`. A stored command or frequency that the enums no longer offer stops loading every task, because `ListActiveCronTasks` maps all rows at once.
-- **Fix:** one schedule definition in the System Domain (expression from `CronTaskDTO`), used by the scheduler, the list column and `TestCronExpression`; decide whether an unknown stored command skips only its task.
+- **Problem:** the model computes the cron expression from `frequency` compared with string literals, with Czech comments and a broad catch returning `null`; `TestCronExpression` repeats it, and the scheduler builds the same schedule a third time from `CronTaskDTO`.
+- **Fix:** one schedule definition in the System Domain (expression from `CronTaskDTO`), used by the scheduler, the list column and `TestCronExpression`.
+
+### Cron task output grows without limit
+- **Where:** `routes/console.php` (`appendOutputTo()` and the after-callback), `last_output` of `cron_tasks`
+- **Problem:** each run appends to `storage/logs/cron-{id}.log`, which is never truncated, and the after-callback stores the whole file in `last_output` (`TEXT`, 64 KB). Once the log outgrows the column, MySQL strict mode refuses the update and `last_run` stops changing.
+- **Fix:** store only the output of the last run (`sendOutputTo()`, or the run's own output as `RunCronTask` does), and rotate or drop the cumulative log.
 
 ### Cron task form ignores `depends`
 - **Where:** `app/Http/Controllers/Admin/CronTaskCrudController.php` (`run_at`, `day_of_week`, `day_of_month`, `custom_expression`)
