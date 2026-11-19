@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors and the currency of `Money` done, `ProductPrice` left to "Product prices are not `Money` on the write path"): reliable tests and CI, currencies outside `Money` and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors, the currency of `Money` and the currency lists done, `ProductPrice` left to "Product prices are not `Money` on the write path", the currency of the DTOs to "Data class names and properties"): reliable tests and CI and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -59,11 +59,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `tests/Browser/admin-document-forms.mjs`, `tests/Browser/admin-invoice-items.mjs` (last changed 2026-10-30); no workflow, script or document runs them.
 - **Problem:** both scripts fail on `main` against the development data (seen 2026-11-12): `admin-document-forms.mjs` stops at its layout assertion "invoice-create: owner and business are not on the same row", `admin-invoice-items.mjs` finds no `[name=invoice-products]` input on the invoice page. Since nothing runs them, a change to the admin document forms is not checked in a browser, and a failure says nothing about the branch it runs on.
 - **Fix:** find why each assertion fails (a changed form or a broken page) and fix the form or update the script; then either run the scripts where a change to the admin document forms is checked, or delete what the feature tests already cover.
-
-### Currencies outside `Money` are strings
-- **Where:** `ProductFormFields` (options from `CurrencyServiceInterface::getAllCurrencies()`), `CurrencySelect`, `SubscriptionRequest` and `SubscriptionPlanRequest` (`in:CZK,EUR,USD`); the `currency` properties of `InvoiceDTO`, `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO`
-- **Problem:** `Money` holds a `Currency` since 2026-11-19 and the mappers turn the stored code into the enum with `Currency::from()`. The product form still offers every code the exchange rate API knows, although `ProductInput` accepts only the enum, so most of the options fail validation. The DTOs above keep the code as a string beside or instead of a `Money`, against `rules/architecture.md` (Data classes).
-- **Fix (proposed 2026-11-19):** currency options come from `Currency::cases()`; the subscription requests validate with `Rule::enum(Currency::class)` unless the plans need a narrower list; each DTO carries its amount as `Money` or its currency as `Currency`, converted when its context is converted.
 
 ### Documentation can quote code that no longer exists
 - **Where:** `AGENTS.md`, `.claude/rules/`, `.claude/references/`, `.claude/skills/`, `docs/` (ADRs, PRDs, designs, `TECH_DEBT.md`)
@@ -188,6 +183,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Fix:** `php artisan schema:dump` would save the migrating part (about 6 s of the run) but needs the `mysql` client in `app.dockerfile` and in CI and a new dump after every migration; decided 2026-10-25 to measure again after steps 12 and 13, when the invoice and document migrations are in.
 
 ## Step 18: Payments
+
+### Plan currencies are not checked against the gateway
+- **Where:** `SubscriptionRequest`, `SubscriptionPlanRequest` (`Rule::enum(Currency::class)` limited to CZK, EUR and USD), the currency options of `SubscriptionCrudController` and `SubscriptionPlanCrudController`, `GoPayGateway::getSupportedCurrencies()` (CZK and EUR)
+- **Problem:** the admin can sell a plan in USD, which the gateway does not declare, and nothing checks it before the payment reaches GoPay; the requests and the two admin forms keep the same list in four places (seen 2026-11-19).
+- **Fix:** decide which currencies the plans are sold in (what the GoPay account accepts), keep that list once and validate the plan and subscription currency against the gateway.
 
 ### GoPay is called inside the database transaction
 - **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
@@ -387,7 +387,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** suffixes `DTO`/`Data`/`Payload`/`ResultDTO` mixed; 167 snake_case vs 75 camelCase properties, mixed within one class.
 - **Implemented in step 7:** `PrintableInvoiceDTO`, `PrintableInvoiceItemDTO` and `PartyPrintDTO` exist and are used. Their rename is complete.
 - **Also implemented in step 7:** `QrPaymentDTO` and `InvoiceReminderDTO` replace the remaining payload names and all consumers. QR carries `BankAccount` and emits decimal amounts without floats; reminders use stored names, typed identity and Money, with regressions across all six variants and four locales.
-- **Other conversion work:** `SubscriptionPaymentResultDTO` → `SubscriptionPaymentResult`; replace the untyped `InvoiceMutationPayload` wrapper and the validated array of the guest invoice (`CreateGuestInvoice`, the ad-hoc session keys and JSON of `InvoiceController::storeGuest`, `TemporaryInvoiceStore`, `TemporaryInvoicePrintDataFactory`) with typed data; rename remaining `Enum/` directories to `Enums/`; camelCase properties with `final readonly class`. These general context conversions are not additional acceptance requirements of the entity replacement.
+- **Other conversion work:** `SubscriptionPaymentResultDTO` → `SubscriptionPaymentResult`; replace the untyped `InvoiceMutationPayload` wrapper and the validated array of the guest invoice (`CreateGuestInvoice`, the ad-hoc session keys and JSON of `InvoiceController::storeGuest`, `TemporaryInvoiceStore`, `TemporaryInvoicePrintDataFactory`) with typed data; rename remaining `Enum/` directories to `Enums/`; camelCase properties with `final readonly class`; the `currency` strings of `InvoiceDTO`, `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO` as `Currency` (or with the amount as `Money`), and the `?? 'CZK'` defaults beside them in `ProductCreationValidator`, `SubscriptionPaymentService`, `InvoicePrintDataBuilder`, `GoPayGateway` and `ProductListSelect` deleted. These general context conversions are not additional acceptance requirements of the entity replacement.
 
 ### Business logic in models
 - **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `HasRoles`), `HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` was corrected to use `invoices.user_id` in the business/contact branch; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
