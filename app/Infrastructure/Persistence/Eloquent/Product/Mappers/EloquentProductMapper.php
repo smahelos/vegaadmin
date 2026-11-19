@@ -34,7 +34,7 @@ class EloquentProductMapper
         }
 
         $currency = Currency::from(
-            $model->getAttribute('currency') ?: Currency::CZK->value,
+            $model->getAttribute('currency'),
         );
         $priceRaw = $model->getAttribute('price');
         if ($priceRaw !== null) {

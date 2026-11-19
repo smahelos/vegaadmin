@@ -251,7 +251,7 @@ class Invoice extends Model
     {
         // The decimal cast reads the column as a decimal string, so the amount never passes through a float
         $amount = $this->payment_amount ?? '0';
-        $currency = Currency::from($this->payment_currency ?: Currency::CZK->value);
+        $currency = Currency::from($this->payment_currency);
 
         return Money::fromString($amount, $currency);
     }
@@ -270,7 +270,7 @@ class Invoice extends Model
     private function totals(): InvoiceTotals
     {
         $totals = InvoiceTotals::zero(
-            Currency::from($this->payment_currency ?: Currency::CZK->value),
+            Currency::from($this->payment_currency),
         );
         foreach ($this->invoiceProducts as $line) {
             $currency = Currency::from($line->currency);

@@ -21,6 +21,13 @@ final class SubscriptionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $currency = Rule::enum(Currency::class);
+        $currency->only([
+            Currency::CZK,
+            Currency::EUR,
+            Currency::USD,
+        ]);
+
         return [
             'user_id' => 'required|integer|exists:users,id',
             'subscription_plan_id' => 'required|integer|exists:subscription_plans,id',
@@ -34,7 +41,10 @@ final class SubscriptionRequest extends FormRequest
             'next_billing_at' => 'nullable|date',
             // Only the plain decimals Money reads: `numeric` alone accepts `1e2`, `.50` and `+50`
             'amount' => 'required|numeric|regex:/^\d+(\.\d{1,2})?$/|min:0|max:999999.99',
-            'currency' => 'required|string|in:CZK,EUR,USD',
+            'currency' => [
+                'required',
+                $currency,
+            ],
             'metadata' => 'nullable|string|max:2000',
         ];
     }
