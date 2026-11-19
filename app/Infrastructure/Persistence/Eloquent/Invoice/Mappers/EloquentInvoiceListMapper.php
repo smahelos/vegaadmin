@@ -12,6 +12,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Business;
 use App\Models\Contact;
@@ -32,7 +33,10 @@ final class EloquentInvoiceListMapper
             contactId: $invoice->contact_id === null ? null : ContactId::fromInt($invoice->contact_id),
             number: $invoice->invoice_vs,
             customerName: $invoice->customer_name,
-            amount: Money::fromString((string) $invoice->payment_amount, $invoice->payment_currency),
+            amount: Money::fromString(
+                (string) $invoice->payment_amount,
+                Currency::from($invoice->payment_currency),
+            ),
             dueDate: $dueDate,
             status: InvoiceStatus::tryFrom($invoice->paymentStatus?->slug ?? ''),
             paymentMethod: PaymentMethodCode::tryFrom($invoice->paymentMethod?->slug ?? ''),

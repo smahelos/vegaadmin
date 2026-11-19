@@ -13,6 +13,7 @@ use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use DateMalformedStringException;
@@ -36,7 +37,9 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
 
         $items = [];
         foreach ($invoice->items as $item) {
-            $currency = strtoupper($item['currency'] ?? ($invoice->currency ?? 'CZK'));
+            $currency = Currency::from(
+                $item['currency'] ?? ($invoice->currency ?? Currency::CZK->value),
+            );
             if (($item['price'] ?? null) instanceof Money) {
                 $price = $item['price'];
             } else {

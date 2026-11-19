@@ -48,7 +48,7 @@ final class InvoiceTotalsTest extends TestCase
         $this->assertSame('862.48', $totals->tax->amount);
         $total = $totals->total();
         $this->assertSame('4969.57', $total->amount);
-        $this->assertSame('CZK', $total->currency);
+        $this->assertSame(Currency::CZK, $total->currency);
     }
 
     #[Test]
@@ -58,7 +58,7 @@ final class InvoiceTotalsTest extends TestCase
 
         $total = $totals->total();
         $this->assertSame('0', $total->amount);
-        $this->assertSame('EUR', $total->currency);
+        $this->assertSame(Currency::EUR, $total->currency);
     }
 
     #[Test]
@@ -85,7 +85,10 @@ final class InvoiceTotalsTest extends TestCase
             name: 'Item',
             quantity: $quantity,
             unit: Unit::PIECES,
-            price: Money::fromString($price, $currency),
+            price: Money::fromString(
+                $price,
+                Currency::from($currency),
+            ),
             taxRate: '21',
         );
     }

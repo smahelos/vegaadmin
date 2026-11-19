@@ -21,7 +21,7 @@ final readonly class InvoiceTotals
 
     public static function zero(Currency $currency): self
     {
-        $zero = Money::fromString('0', $currency->value);
+        $zero = Money::fromString('0', $currency);
 
         return new self($zero, $zero);
     }

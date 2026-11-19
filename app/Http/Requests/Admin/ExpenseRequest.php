@@ -118,7 +118,7 @@ final class ExpenseRequest extends FormRequest
     public function toWriteData(): ExpenseWriteData
     {
         $data = $this->validated();
-        $currency = $data['currency'];
+        $currency = Currency::from($data['currency']);
         $uploads = [];
         foreach ($this->file('attachments', []) as $file) {
             $uploads[] = new IncomingFile(

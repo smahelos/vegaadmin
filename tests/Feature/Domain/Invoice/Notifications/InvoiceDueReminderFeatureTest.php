@@ -6,6 +6,7 @@ namespace Tests\Feature\Domain\Invoice\Notifications;
 
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder;
@@ -55,7 +56,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -79,7 +80,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -107,7 +108,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -137,7 +138,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -174,7 +175,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -209,7 +210,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -237,7 +238,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -265,7 +266,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -293,7 +294,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -322,7 +323,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -355,7 +356,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -384,7 +385,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -413,7 +414,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -438,7 +439,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -466,7 +467,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $clientPayload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,
@@ -482,7 +483,7 @@ final class InvoiceDueReminderFeatureTest extends TestCase
         // Test with supplier recipient type
         $supplierPayload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: $this->invoice->invoice_vs,

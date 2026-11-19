@@ -6,6 +6,7 @@ namespace App\Application\Invoice\Services;
 
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 
@@ -41,7 +42,7 @@ final class InvoiceProductWriteDataAssembler
             unit: $unit === null || $unit === '' ? Unit::PIECES : Unit::from((string) $unit),
             price: Money::fromString(
                 $this->decimal($item['price']),
-                (string) $item['currency'],
+                Currency::from((string) $item['currency']),
             ),
             taxRate: $this->decimal($item['tax_rate']),
             productId: $productId === null || $productId === '' ? null : ProductId::fromInt((int) $productId),

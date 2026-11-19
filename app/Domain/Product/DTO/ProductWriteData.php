@@ -39,7 +39,7 @@ class ProductWriteData
         // Case 1: price as Money VO (domain type)
         if (isset($data['price']) && $data['price'] instanceof Money) {
             $normPrice = self::normalizeAmountString($data['price']->amount); // force 2 decimals
-            $normCurrency = $data['price']->currency;
+            $normCurrency = $data['price']->currency->value;
         }
 
         // Case 2: price_money array: ['amount'=>string|float, 'currency'=>string]

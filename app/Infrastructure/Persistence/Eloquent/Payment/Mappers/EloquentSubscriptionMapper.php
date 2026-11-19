@@ -7,6 +7,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Payment\Mappers;
 use App\Domain\Payment\DTO\SubscriptionDTO;
 use App\Domain\Payment\DTO\SubscriptionPlanDTO;
 use App\Domain\Payment\DTO\SubscriptionWriteData;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
@@ -57,7 +58,7 @@ final class EloquentSubscriptionMapper
             'subscription_plan_id' => $data->planId->value,
             'status' => $data->status->value,
             'amount' => $data->amount->amount,
-            'currency' => $data->amount->currency,
+            'currency' => $data->amount->currency->value,
             'starts_at' => $data->starts,
             'ends_at' => $data->ends,
             'trial_ends_at' => $data->trialEnds,
@@ -89,7 +90,7 @@ final class EloquentSubscriptionMapper
             'description' => $plan->getAttribute('description'),
             'amount' => Money::fromString(
                 (string) $plan->getAttribute('price'),
-                $currency,
+                Currency::from($currency),
             ),
             'currency' => $currency,
             'billing_period' => $plan->getAttribute('billing_period'),

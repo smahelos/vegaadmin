@@ -251,12 +251,9 @@ class Invoice extends Model
     {
         // The decimal cast reads the column as a decimal string, so the amount never passes through a float
         $amount = $this->payment_amount ?? '0';
-        $currency = $this->payment_currency ?: 'CZK';
+        $currency = Currency::from($this->payment_currency ?: Currency::CZK->value);
 
-        return Money::fromString(
-            $amount,
-            strtoupper($currency),
-        );
+        return Money::fromString($amount, $currency);
     }
 
     public function getSubtotalMoneyAttribute(): Money
@@ -273,20 +270,19 @@ class Invoice extends Model
     private function totals(): InvoiceTotals
     {
         $totals = InvoiceTotals::zero(
-            Currency::from(
-                strtoupper($this->payment_currency ?: Currency::CZK->value),
-            ),
+            Currency::from($this->payment_currency ?: Currency::CZK->value),
         );
         foreach ($this->invoiceProducts as $line) {
+            $currency = Currency::from($line->currency);
             $price = Money::fromString(
                 (string) $line->price,
-                strtoupper($line->currency),
+                $currency,
             );
             $totals = $totals->withLine(
                 $price->multiplyBy((string) $line->quantity),
                 Money::fromString(
                     (string) $line->tax_amount,
-                    strtoupper($line->currency),
+                    $currency,
                 ),
             );
         }

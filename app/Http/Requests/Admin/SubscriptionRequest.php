@@ -7,6 +7,7 @@ namespace App\Http\Requests\Admin;
 use App\Domain\Payment\DTO\SubscriptionWriteData;
 use App\Domain\Payment\Enums\SubscriptionStatus;
 use App\Domain\Payment\ValueObjects\SubscriptionPlanId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
@@ -73,7 +74,7 @@ final class SubscriptionRequest extends FormRequest
             SubscriptionStatus::from($data['status']),
             Money::fromString(
                 (string) $data['amount'],
-                $data['currency'],
+                Currency::from($data['currency']),
             ),
             self::dateOrNull($data['starts_at'] ?? null),
             self::dateOrNull($data['ends_at'] ?? null),

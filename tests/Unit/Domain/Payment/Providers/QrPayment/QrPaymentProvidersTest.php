@@ -11,6 +11,7 @@ use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -56,7 +57,10 @@ final class QrPaymentProvidersTest extends TestCase
         );
         $payment = new QrPaymentDTO(
             '20260001',
-            Money::fromString('9007199254740993.01', $currency),
+            Money::fromString(
+                '9007199254740993.01',
+                Currency::from($currency),
+            ),
             $account,
             'Stored message',
         );
@@ -95,7 +99,10 @@ final class QrPaymentProvidersTest extends TestCase
             $provider->validatePaymentInfo(
                 new QrPaymentDTO(
                     null,
-                    Money::fromString('10', $currency),
+                    Money::fromString(
+                        '10',
+                        Currency::from($currency),
+                    ),
                     null,
                 ),
             ),
@@ -104,7 +111,10 @@ final class QrPaymentProvidersTest extends TestCase
             $provider->validatePaymentInfo(
                 new QrPaymentDTO(
                     null,
-                    Money::fromString('0', $currency),
+                    Money::fromString(
+                        '0',
+                        Currency::from($currency),
+                    ),
                     $account,
                 ),
             ),
@@ -113,7 +123,10 @@ final class QrPaymentProvidersTest extends TestCase
             $provider->validatePaymentInfo(
                 new QrPaymentDTO(
                     null,
-                    Money::fromString('0.004', $currency),
+                    Money::fromString(
+                        '0.004',
+                        Currency::from($currency),
+                    ),
                     $account,
                 ),
             ),
@@ -122,7 +135,7 @@ final class QrPaymentProvidersTest extends TestCase
             $provider->validatePaymentInfo(
                 new QrPaymentDTO(
                     null,
-                    Money::fromString('10', 'USD'),
+                    Money::fromString('10', Currency::USD),
                     $account,
                 ),
             ),
@@ -131,7 +144,10 @@ final class QrPaymentProvidersTest extends TestCase
             $provider->validatePaymentInfo(
                 new QrPaymentDTO(
                     null,
-                    Money::fromString('0.005', $currency),
+                    Money::fromString(
+                        '0.005',
+                        Currency::from($currency),
+                    ),
                     $account,
                 ),
             ),
@@ -152,7 +168,7 @@ final class QrPaymentProvidersTest extends TestCase
             );
             $payment = new QrPaymentDTO(
                 null,
-                Money::fromString('12', $country === Country::CZ ? 'CZK' : 'EUR'),
+                Money::fromString('12', $country === Country::CZ ? Currency::CZK : Currency::EUR),
                 $account,
             );
             $this->assertStringContainsString(
@@ -182,7 +198,7 @@ final class QrPaymentProvidersTest extends TestCase
     {
         $payment = new QrPaymentDTO(
             null,
-            Money::fromString($amount, 'CZK'),
+            Money::fromString($amount, Currency::CZK),
             null,
         );
         $this->assertSame($expected, $payment->amountDecimal());

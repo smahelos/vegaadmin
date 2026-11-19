@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Product\Mappers;
 
 use App\Domain\Product\DTO\CatalogProductDTO;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Models\Product;
@@ -17,7 +18,10 @@ final class EloquentCatalogProductMapper
         return new CatalogProductDTO(
             id: ProductId::fromInt($product->id),
             name: $product->name,
-            price: Money::fromString((string) $product->price, $product->currency),
+            price: Money::fromString(
+                (string) $product->price,
+                Currency::from($product->currency),
+            ),
             unit: Unit::fromInput($product->unit),
             taxRate: (string) ($product->tax?->rate ?? '0'),
             category: $product->category?->name,

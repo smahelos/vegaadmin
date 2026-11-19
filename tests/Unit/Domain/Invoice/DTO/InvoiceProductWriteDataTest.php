@@ -6,6 +6,7 @@ namespace Tests\Unit\Domain\Invoice\DTO;
 
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use PHPUnit\Framework\Attributes\Test;
@@ -28,7 +29,7 @@ final class InvoiceProductWriteDataTest extends TestCase
         $this->assertSame('47.04', $taxAmount->amount);
         $total = $line->total();
         $this->assertSame('271.05', $total->amount);
-        $this->assertSame('CZK', $total->currency);
+        $this->assertSame(Currency::CZK, $total->currency);
     }
 
     #[Test]
@@ -102,7 +103,7 @@ final class InvoiceProductWriteDataTest extends TestCase
             name: 'Item',
             quantity: $quantity,
             unit: Unit::PIECES,
-            price: Money::fromString($price, 'CZK'),
+            price: Money::fromString($price, Currency::CZK),
             taxRate: $taxRate,
             productId: $productId,
         );

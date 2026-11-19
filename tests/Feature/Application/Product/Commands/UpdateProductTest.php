@@ -11,6 +11,7 @@ use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
 use App\Domain\Product\Exceptions\ProductNotFoundException;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Product;
 use App\Models\User;
@@ -40,7 +41,7 @@ final class UpdateProductTest extends TestCase
             ],
         );
 
-        $expectedPrice = Money::fromString('20.50', 'EUR');
+        $expectedPrice = Money::fromString('20.50', Currency::EUR);
         $this->assertSame('Updated Product', $updated->name);
         $this->assertTrue(
             $expectedPrice->equals($updated->price),

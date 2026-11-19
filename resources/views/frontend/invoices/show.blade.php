@@ -82,7 +82,7 @@
                     <x-detail.item accent="border-gray-300" :label="__('invoices.fields.payment_method')">{{ $invoice->paymentMethod?->translated_name }}</x-detail.item>
                     <x-detail.item accent="border-green-500" :label="__('invoices.fields.payment_amount')">
                         {{ number_format((float)($paymentAmount->amount ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') }}
-                        {{ $paymentAmount->currency ?? ($invoice->payment_currency ?? 'CZK') }}
+                        {{ $paymentAmount->currency->value ?? ($invoice->payment_currency ?? 'CZK') }}
                     </x-detail.item>
                     <x-detail.item :accent="'border-' . $invoice->status_color_class . '-500'" :label="__('invoices.status.invoice_status')">{{ $invoice->payment_status_name }}</x-detail.item>
 
@@ -248,7 +248,7 @@
                                             <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-bold">
                                                 {{ number_format((float)($paymentAmount->amount ??
                                                 ($invoice->payment_amount ?? 0)), 2, ',', ' ') }} {{
-                                                $paymentAmount->currency ?? ($invoice->payment_currency ?? 'CZK') }}
+                                                $paymentAmount->currency->value ?? ($invoice->payment_currency ?? 'CZK') }}
                                             </td>
                                         </tr>
                                     </tfoot>

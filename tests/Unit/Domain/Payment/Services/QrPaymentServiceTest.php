@@ -8,6 +8,7 @@ use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -39,7 +40,7 @@ final class QrPaymentServiceTest extends TestCase
     {
         $payload = new QrPaymentDTO(
             variableSymbol: '20250001',
-            amount: Money::fromString('1234.56', 'CZK'),
+            amount: Money::fromString('1234.56', Currency::CZK),
             account: BankAccount::fromParts(
                 'CZ6508000000192000145399',
                 null,
@@ -70,7 +71,7 @@ final class QrPaymentServiceTest extends TestCase
     {
         $payload = new QrPaymentDTO(
             variableSymbol: '20250002',
-            amount: Money::fromString('250.75', 'EUR'),
+            amount: Money::fromString('250.75', Currency::EUR),
             account: BankAccount::fromParts(
                 'DE44500105175407324931',
                 null,

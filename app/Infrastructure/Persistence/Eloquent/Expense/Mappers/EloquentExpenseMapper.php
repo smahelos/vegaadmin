@@ -39,7 +39,7 @@ final class EloquentExpenseMapper
             'user_id' => $userId->value,
             'expense_date' => $data->expenseDate->format('Y-m-d'),
             'amount' => $data->amount->amount,
-            'currency' => $data->amount->currency,
+            'currency' => $data->amount->currency->value,
             'category_id' => $data->categoryId,
             'payment_method_id' => $data->paymentMethodId,
             'reference_number' => $data->referenceNumber,

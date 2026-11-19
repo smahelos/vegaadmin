@@ -6,6 +6,7 @@ use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Models\Invoice;
@@ -49,7 +50,7 @@ class InvoiceServiceFeatureTest extends TestCase
                     name: 'Consulting',
                     quantity: '1.5',
                     unit: Unit::HOURS,
-                    price: Money::fromString('249.30', 'CZK'),
+                    price: Money::fromString('249.30', Currency::CZK),
                     taxRate: '12',
                     category: 'Service',
                 ),
@@ -57,7 +58,7 @@ class InvoiceServiceFeatureTest extends TestCase
                     name: 'Existing Product',
                     quantity: '3',
                     unit: Unit::PIECES,
-                    price: Money::fromString('74.67', 'CZK'),
+                    price: Money::fromString('74.67', Currency::CZK),
                     taxRate: '21',
                     productId: ProductId::fromInt($product->id),
                 ),

@@ -10,6 +10,7 @@ use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -85,7 +86,10 @@ final class QrPaymentProviderFactoryTest extends TestCase
         }
         $payment = new QrPaymentDTO(
             '20260001',
-            Money::fromString('12.50', $currency),
+            Money::fromString(
+                '12.50',
+                Currency::from($currency),
+            ),
             $account,
         );
         $this->assertInstanceOf(

@@ -9,6 +9,7 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Product\DTO\ProductDTO;
 use App\Domain\Product\DTO\ProductWriteData;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
@@ -40,7 +41,7 @@ final class CreateProductTest extends TestCase
         );
 
         $this->assertSame('123.45', $product->price?->amount);
-        $this->assertSame('CZK', $product->price?->currency);
+        $this->assertSame(Currency::CZK, $product->price->currency);
         $this->assertSame($owner->id, $product->user_id);
     }
 

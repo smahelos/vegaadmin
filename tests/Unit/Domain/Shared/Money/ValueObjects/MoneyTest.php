@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Shared\Money\ValueObjects;
 
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
@@ -15,37 +16,30 @@ final class MoneyTest extends TestCase
     #[Test]
     public function can_create_from_string(): void
     {
-        $m = Money::fromString('0010.5000', 'EUR');
+        $m = Money::fromString('0010.5000', Currency::EUR);
         $this->assertSame('10.5', $m->amount);
-        $this->assertSame('EUR', $m->currency);
-    }
-
-    #[Test]
-    public function invalid_currency_throws(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        Money::fromString('10', 'EURO');
+        $this->assertSame(Currency::EUR, $m->currency);
     }
 
     #[Test]
     public function negative_amount_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromString('-5', 'USD');
+        Money::fromString('-5', Currency::USD);
     }
 
     #[Test]
     public function invalid_string_amount_format_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Money::fromString('10,50', 'USD');
+        Money::fromString('10,50', Currency::USD);
     }
 
     #[Test]
     public function add_two_money_same_currency(): void
     {
-        $a = Money::fromString('10.50', 'EUR');
-        $b = Money::fromString('2.005', 'EUR');
+        $a = Money::fromString('10.50', Currency::EUR);
+        $b = Money::fromString('2.005', Currency::EUR);
         $sum = $a->add($b);
         $this->assertSame('12.505', $sum->amount);
     }
@@ -53,8 +47,8 @@ final class MoneyTest extends TestCase
     #[Test]
     public function subtract_two_money_same_currency(): void
     {
-        $a = Money::fromString('15.750', 'EUR');
-        $b = Money::fromString('0.75', 'EUR');
+        $a = Money::fromString('15.750', Currency::EUR);
+        $b = Money::fromString('0.75', Currency::EUR);
         $diff = $a->subtract($b);
         $this->assertSame('15', $diff->amount);
     }
@@ -62,8 +56,8 @@ final class MoneyTest extends TestCase
     #[Test]
     public function subtract_throws_when_result_negative(): void
     {
-        $a = Money::fromString('1.00', 'USD');
-        $b = Money::fromString('2.00', 'USD');
+        $a = Money::fromString('1.00', Currency::USD);
+        $b = Money::fromString('2.00', Currency::USD);
         $this->expectException(InvalidArgumentException::class);
         $a->subtract($b);
     }
@@ -71,8 +65,8 @@ final class MoneyTest extends TestCase
     #[Test]
     public function currency_mismatch_throws_on_add(): void
     {
-        $a = Money::fromString('5', 'USD');
-        $b = Money::fromString('5', 'EUR');
+        $a = Money::fromString('5', Currency::USD);
+        $b = Money::fromString('5', Currency::EUR);
         $this->expectException(InvalidArgumentException::class);
         $a->add($b);
     }
@@ -80,13 +74,13 @@ final class MoneyTest extends TestCase
     #[Test]
     public function arithmetic_normalizes_trailing_zeros(): void
     {
-        $a = Money::fromString('10.5000', 'CZK');
-        $b = Money::fromString('0.5000', 'CZK');
+        $a = Money::fromString('10.5000', Currency::CZK);
+        $b = Money::fromString('0.5000', Currency::CZK);
         $sum = $a->add($b); // 11.0 -> normalized to 11
         $this->assertSame('11', $sum->amount);
 
         $diff = $sum->subtract(
-            Money::fromString('0.50', 'CZK'),
+            Money::fromString('0.50', Currency::CZK),
         ); // 10.5
         $this->assertSame('10.5', $diff->amount);
     }
@@ -94,9 +88,9 @@ final class MoneyTest extends TestCase
     #[Test]
     public function equals_checks_currency_and_amount(): void
     {
-        $a = Money::fromString('10.50', 'USD');
-        $b = Money::fromString('10.5', 'USD');
-        $c = Money::fromString('10.50', 'EUR');
+        $a = Money::fromString('10.50', Currency::USD);
+        $b = Money::fromString('10.5', Currency::USD);
+        $c = Money::fromString('10.50', Currency::EUR);
         $this->assertTrue(
             $a->equals($b),
         );
@@ -108,7 +102,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_integer_factor(): void
     {
-        $m = Money::fromString('2.05', 'EUR');
+        $m = Money::fromString('2.05', Currency::EUR);
         $result = $m->multiply(3); // 6.15
         $this->assertSame('6.15', $result->amount);
     }
@@ -116,7 +110,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_zero_returns_zero(): void
     {
-        $m = Money::fromString('99.99', 'USD');
+        $m = Money::fromString('99.99', Currency::USD);
         $result = $m->multiply(0);
         $this->assertSame('0', $result->amount);
     }
@@ -124,7 +118,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_negative_factor_throws(): void
     {
-        $m = Money::fromString('1', 'USD');
+        $m = Money::fromString('1', Currency::USD);
         $this->expectException(InvalidArgumentException::class);
         $m->multiply(-1);
     }
@@ -132,7 +126,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_by_positive_integer(): void
     {
-        $m = Money::fromString('10', 'USD');
+        $m = Money::fromString('10', Currency::USD);
         $result = $m->divide(4, 4); // 2.5
         $this->assertSame('2.5', $result->amount);
     }
@@ -140,7 +134,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_with_fraction_extension(): void
     {
-        $m = Money::fromString('1', 'USD');
+        $m = Money::fromString('1', Currency::USD);
         $result = $m->divide(3, 6); // 0.333333
         $this->assertSame('0.333333', $result->amount);
     }
@@ -148,7 +142,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_invalid_divisor_throws(): void
     {
-        $m = Money::fromString('5', 'USD');
+        $m = Money::fromString('5', Currency::USD);
         $this->expectException(InvalidArgumentException::class);
         $m->divide(0);
     }
@@ -156,7 +150,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_invalid_scale_throws(): void
     {
-        $m = Money::fromString('5', 'USD');
+        $m = Money::fromString('5', Currency::USD);
         $this->expectException(InvalidArgumentException::class);
         $m->divide(2, 10); // scale > 8
     }
@@ -166,7 +160,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_half_up_simple(): void
     {
-        $m = Money::fromString('1', 'USD');
+        $m = Money::fromString('1', Currency::USD);
         $r = $m->divideRounding(
             2,
             2,
@@ -178,7 +172,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_half_up_tie_rounds_up(): void
     {
-        $m = Money::fromString('1', 'USD'); // 1 / 8 = 0.125 -> 0.13 HALF_UP
+        $m = Money::fromString('1', Currency::USD); // 1 / 8 = 0.125 -> 0.13 HALF_UP
         $r = $m->divideRounding(
             8,
             2,
@@ -190,7 +184,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_bankers_tie_even_stays(): void
     {
-        $m = Money::fromString('1', 'USD'); // 1 / 8 = 0.125 -> 0.12 BANKERS (2 is even)
+        $m = Money::fromString('1', Currency::USD); // 1 / 8 = 0.125 -> 0.12 BANKERS (2 is even)
         $r = $m->divideRounding(
             8,
             2,
@@ -202,7 +196,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_bankers_tie_odd_rounds_up(): void
     {
-        $m = Money::fromString('135', 'USD'); // 135 / 1000 = 0.135 -> 0.14 (3 odd)
+        $m = Money::fromString('135', Currency::USD); // 135 / 1000 = 0.135 -> 0.14 (3 odd)
         $r = $m->divideRounding(
             1000,
             2,
@@ -214,7 +208,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_scale_zero_half_up_vs_bankers_even(): void
     {
-        $m = Money::fromString('5', 'USD'); // 5 / 2 = 2.5
+        $m = Money::fromString('5', Currency::USD); // 5 / 2 = 2.5
         $halfUp = $m->divideRounding(
             2,
             0,
@@ -232,7 +226,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_scale_zero_bankers_odd_rounds_up(): void
     {
-        $m = Money::fromString('15', 'USD'); // 15 / 2 = 7.5 (7 odd)->8
+        $m = Money::fromString('15', Currency::USD); // 15 / 2 = 7.5 (7 odd)->8
         $bankers = $m->divideRounding(
             2,
             0,
@@ -244,7 +238,7 @@ final class MoneyTest extends TestCase
     #[Test]
     public function divide_rounding_exact_half_with_leading_zeros(): void
     {
-        $m = Money::fromString('1', 'USD'); // 1 / 200 = 0.005 -> HALF_UP 0.01, BANKERS 0
+        $m = Money::fromString('1', Currency::USD); // 1 / 200 = 0.005 -> HALF_UP 0.01, BANKERS 0
         $halfUp = $m->divideRounding(
             200,
             2,
@@ -262,30 +256,30 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_decimal_quantity_keeps_the_cents(): void
     {
-        $money = Money::fromString('249.30', 'CZK');
+        $money = Money::fromString('249.30', Currency::CZK);
         $line = $money->multiplyBy('1.5');
 
         $this->assertSame('373.95', $line->amount);
-        $this->assertSame('CZK', $line->currency);
+        $this->assertSame(Currency::CZK, $line->currency);
     }
 
     #[Test]
     public function multiply_by_tax_share_rounds_half_up_to_cents(): void
     {
         // 0.25 * 0.21 = 0.0525 -> 0.05; 0.10 * 0.21 = 0.021 -> 0.02; 0.50 * 0.21 = 0.105 -> 0.11
-        $money = Money::fromString('0.25', 'CZK');
+        $money = Money::fromString('0.25', Currency::CZK);
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.05',
             $money->amount,
         );
-        $money = Money::fromString('0.10', 'CZK');
+        $money = Money::fromString('0.10', Currency::CZK);
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.02',
             $money->amount,
         );
-        $money = Money::fromString('0.50', 'CZK');
+        $money = Money::fromString('0.50', Currency::CZK);
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.11',
@@ -296,13 +290,13 @@ final class MoneyTest extends TestCase
     #[Test]
     public function multiply_by_zero_is_zero(): void
     {
-        $money = Money::fromString('100', 'EUR');
+        $money = Money::fromString('100', Currency::EUR);
         $money = $money->multiplyBy('0');
         $this->assertSame(
             '0',
             $money->amount,
         );
-        $money = Money::fromString('0', 'EUR');
+        $money = Money::fromString('0', Currency::EUR);
         $money = $money->multiplyBy('1.5');
         $this->assertSame(
             '0',
@@ -322,7 +316,7 @@ final class MoneyTest extends TestCase
             ] as $factor
         ) {
             try {
-                $money = Money::fromString('10', 'CZK');
+                $money = Money::fromString('10', Currency::CZK);
                 $money->multiplyBy($factor);
                 $this->fail('Accepted factor ' . $factor);
             } catch (InvalidArgumentException) {
@@ -334,9 +328,9 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_same_currency_returns_self_amount(): void
     {
-        $m = Money::fromString('10.50', 'EUR');
+        $m = Money::fromString('10.50', Currency::EUR);
         $copy = $m->convertTo(
-            'EUR',
+            Currency::EUR,
             $this->exchangeAt(null),
         );
         $this->assertTrue(
@@ -347,10 +341,10 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_uses_exchange_rate_half_up(): void
     {
-        $m = Money::fromString('10', 'EUR');
+        $m = Money::fromString('10', Currency::EUR);
         $exchange = $this->exchangeAt(1.2345);
         $converted = $m->convertTo(
-            'USD',
+            Currency::USD,
             $exchange,
             2,
             Money::ROUND_HALF_UP,
@@ -361,10 +355,10 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_uses_exchange_rate_bankers(): void
     {
-        $m = Money::fromString('10', 'EUR');
+        $m = Money::fromString('10', Currency::EUR);
         $exchange = $this->exchangeAt(1.2355);
         $converted = $m->convertTo(
-            'USD',
+            Currency::USD,
             $exchange,
             2,
             Money::ROUND_BANKERS,
@@ -376,19 +370,19 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_invalid_rate_throws(): void
     {
-        $m = Money::fromString('5', 'EUR');
+        $m = Money::fromString('5', Currency::EUR);
         $exchange = $this->exchangeAt(null);
         $this->expectException(InvalidArgumentException::class);
-        $m->convertTo('USD', $exchange);
+        $m->convertTo(Currency::USD, $exchange);
     }
 
     #[Test]
     public function convert_scale_zero(): void
     {
-        $m = Money::fromString('2', 'EUR');
+        $m = Money::fromString('2', Currency::EUR);
         $exchange = $this->exchangeAt(1.75);
         $converted = $m->convertTo(
-            'USD',
+            Currency::USD,
             $exchange,
             0,
             Money::ROUND_HALF_UP,
@@ -399,9 +393,9 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_zero_amount_with_rate_below_eight_decimals_returns_zero(): void
     {
-        $m = Money::fromString('0', 'EUR');
+        $m = Money::fromString('0', Currency::EUR);
         $exchange = $this->exchangeAt(0.000000001);
-        $converted = $m->convertTo('USD', $exchange);
+        $converted = $m->convertTo(Currency::USD, $exchange);
         $this->assertSame(
             '0',
             $converted->amount,
@@ -411,10 +405,10 @@ final class MoneyTest extends TestCase
     #[Test]
     public function convert_amount_with_rate_below_eight_decimals_throws(): void
     {
-        $m = Money::fromString('5', 'EUR');
+        $m = Money::fromString('5', Currency::EUR);
         $exchange = $this->exchangeAt(0.000000001);
         $this->expectException(InvalidArgumentException::class);
-        $m->convertTo('USD', $exchange);
+        $m->convertTo(Currency::USD, $exchange);
     }
 
     private function exchangeAt(?float $rate): CurrencyExchangeServiceInterface

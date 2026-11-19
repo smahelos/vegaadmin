@@ -76,7 +76,7 @@ final class MoneyFormatter implements MoneyFormatterInterface
             throw new InvalidArgumentException('Invalid fraction digit configuration');
         }
 
-        $currency = $money->currency;
+        $currency = $money->currency->value;
         $amountStr = $money->amount;
 
         // Determine scale of underlying amount

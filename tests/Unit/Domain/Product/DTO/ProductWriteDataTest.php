@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Product\DTO;
 
 use App\Domain\Product\DTO\ProductWriteData;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -14,7 +15,7 @@ final class ProductWriteDataTest extends TestCase
     #[Test]
     public function accepts_money_vo(): void
     {
-        $money = Money::fromString('199.90', 'CZK');
+        $money = Money::fromString('199.90', Currency::CZK);
         $data = ProductWriteData::fromArray(['price' => $money]);
         $this->assertSame('199.90', $data->price);
         $this->assertSame('CZK', $data->currency);

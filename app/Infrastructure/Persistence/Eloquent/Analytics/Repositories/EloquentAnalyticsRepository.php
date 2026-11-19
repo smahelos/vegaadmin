@@ -10,6 +10,7 @@ use App\Domain\Analytics\DTO\UserActivityStatisticsDTO;
 use App\Domain\Analytics\DTO\UserStatisticsDTO;
 use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Mappers\EloquentAnalyticsMapper;
 use App\Infrastructure\Persistence\Eloquent\Analytics\Queries\CustomerRevenueQuery;
@@ -40,7 +41,7 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
             $businesses,
             Money::fromString(
                 (string) $revenue,
-                'CZK',
+                Currency::CZK,
             ),
         );
     }
@@ -185,7 +186,7 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
         foreach ($rows as $row) {
             $revenue[] = Money::fromString(
                 (string) $row->total,
-                (string) $row->payment_currency,
+                Currency::from((string) $row->payment_currency),
             );
         }
 

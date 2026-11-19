@@ -11,6 +11,7 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
 use App\Models\Business;
@@ -107,7 +108,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertNotNull($qr->payload);
         $this->assertSame('20260001', $qr->payload->variableSymbol);
         $this->assertSame('1210', $qr->payload->amount->amount);
-        $this->assertSame('CZK', $qr->payload->amount->currency);
+        $this->assertSame(Currency::CZK, $qr->payload->amount->currency);
         $this->assertSame('2001234561', $qr->payload->account?->number);
         $this->assertSame('2010', $qr->payload->account?->bankCode);
         $this->assertSame('CZ', $qr->payload->account?->country->value);

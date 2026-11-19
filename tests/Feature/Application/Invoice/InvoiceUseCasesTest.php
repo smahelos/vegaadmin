@@ -36,6 +36,7 @@ use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
 use App\Domain\Shared\Unit\Enums\Unit;
@@ -677,7 +678,7 @@ final class InvoiceUseCasesTest extends TestCase
             'Line',
             '1',
             Unit::PIECES,
-            Money::fromString('10', 'CZK'),
+            Money::fromString('10', Currency::CZK),
             '21',
         );
     }

@@ -8,6 +8,7 @@ use App\Domain\Analytics\DTO\CustomerTotalDTO;
 use App\Domain\Analytics\DTO\UserActivityDTO;
 use App\Domain\Analytics\Enums\ActivityLevel;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\UserActivitySummary;
 use DateTimeImmutable;
@@ -22,7 +23,7 @@ final class EloquentAnalyticsMapper
         return new CustomerTotalDTO(
             $contactId === null ? null : ContactId::fromInt($contactId),
             $name,
-            Money::fromString($total, 'CZK'),
+            Money::fromString($total, Currency::CZK),
         );
     }
 

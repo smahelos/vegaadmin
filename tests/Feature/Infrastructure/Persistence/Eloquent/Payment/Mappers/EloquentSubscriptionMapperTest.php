@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Payment\Mappers;
 
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Payment\Mappers\EloquentSubscriptionMapper;
 use App\Models\Subscription;
@@ -34,7 +35,7 @@ final class EloquentSubscriptionMapperTest extends TestCase
         $this->assertSame('Basic', $dto->subscriptionPlan->name);
         $this->assertTrue(
             $dto->subscriptionPlan->amount->equals(
-                Money::fromString('50.00', 'CZK'),
+                Money::fromString('50.00', Currency::CZK),
             ),
         );
     }

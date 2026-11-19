@@ -11,6 +11,7 @@ use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\BankAccount as StoredBankAccount;
@@ -78,7 +79,10 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payload = $qrPaymentMapper->fromSnapshot(
             '20260001',
-            Money::fromString('1500.50', $currency),
+            Money::fromString(
+                '1500.50',
+                Currency::from($currency),
+            ),
             $snapshot,
             'Saved message',
         );
@@ -159,7 +163,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payload = $qrPaymentMapper->fromSnapshot(
             '20260001',
-            Money::fromString('100', 'CZK'),
+            Money::fromString('100', Currency::CZK),
             null,
             null,
         );
