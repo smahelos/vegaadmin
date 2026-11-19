@@ -175,6 +175,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** these paths predate the current standard: SQL row arrays and ad-hoc JSON, presentation in model accessors and broad catches remain.
 - **Fix:** chart DTOs, domain read ports, presenters and JsonResources. Dashboard reads already use typed ids, DTOs and Money. The inherited CZK aggregate meaning without currency conversion still needs an explicit multi-currency analytics decision.
 
+### Admin dashboard has no charts
+- **Where:** the admin dashboard (`GetAdminDashboard`, `AdminDashboardPresenter`)
+- **Problem:** the admin dashboard shows counts, revenue per currency and user activity only as numbers; the user dashboard has charts, the admin one has none. An idea, not a defect (2026-11-18).
+- **Fix (proposed, low priority):** take it up only together with another change of the admin dashboard or of the charts in this step: charts of the same statistics over time, built on the per-currency statistics DTOs of "Dashboard statistics sum amounts across currencies".
+
 ## Step 17: Test speed
 
 ### Test runs and CI are slower than they need to be
@@ -454,6 +459,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `Frontend\PageController::search()`, route `frontend.pages.search`
 - **Problem:** the action reads `q` straight from the request, so `?q[]=x` passes an array to `strlen()` and answers 500 instead of a validation error. Found 2026-11-18 in the review of phase 7 of step 11.
 - **Fix:** a form request with `q` as a nullable string of limited length (`rules/http.md`, Form requests), with a test of the array input.
+
+### Passwords are checked only on the profile
+- **Where:** `app/Livewire/User/RegistrationForm.php`, `app/Http/Requests/Admin/UserRequest.php`, `UserWriteData::$password`, `EloquentUserMapper::toAttributes()`, `UserPassword`
+- **Problem:** only the profile password change builds `UserPassword`, which refuses the common passwords. Registration checks only `Password::min(8)` and the admin user form has no length rule at all; both pass the plain password through `UserWriteData` to the model's hashed cast, so `password123` is accepted there. Found 2026-11-19 while fixing the 500 of the profile password change.
+- **Fix:** every new password is built through `UserPassword` (registration and the admin user write path as well), which then holds the length rule beside the common list, so all three forms share one rule; its `CommonPasswordException` is already rendered as an error of the `password` field. A test per form.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
