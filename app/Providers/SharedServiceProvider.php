@@ -17,10 +17,8 @@ use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
-use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
-use App\Domain\Shared\Money\Services\CurrencyService;
 use App\Domain\Shared\Money\Services\DeterministicCurrencyExchangeService;
 use App\Domain\Shared\Money\Services\MoneyFormatter;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
@@ -128,11 +126,6 @@ class SharedServiceProvider extends ServiceProvider
                 CurrencyExchangeService::class,
             );
         }
-
-        $this->app->bind(
-            CurrencyServiceInterface::class,
-            CurrencyService::class,
-        );
 
         $this->app->bind(
             MoneyFormatterInterface::class,

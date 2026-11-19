@@ -16,26 +16,6 @@ final class CurrencyController extends Controller
     ) {}
 
     /**
-     * Get list of commonly used currencies
-     */
-    public function getCommonCurrencies(): JsonResponse
-    {
-        $responseFactory = response();
-
-        return $responseFactory->json($this->currencyAppService->getCommonCurrencies());
-    }
-
-    /**
-     * Get complete list of available currencies
-     */
-    public function getAllCurrencies(): JsonResponse
-    {
-        $responseFactory = response();
-
-        return $responseFactory->json($this->currencyAppService->getAllCurrencies());
-    }
-
-    /**
      * Get exchange rate between two currencies
      */
     public function getExchangeRate(Request $request): JsonResponse
