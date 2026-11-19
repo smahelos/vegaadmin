@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate, the grants and the controller rule done): reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants and the controller rule done): reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -65,15 +65,26 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the formatter passes `$money->toFloat()` to the number formatting and to its sign check, its only production use of `toFloat()`. Amounts leave `Money` as a float just before display (`docs/adr/D-046-money-amounts.md`).
 - **Fix:** format from the decimal string, then delete `toFloat()` with its test.
 
+### `Money` holds its currency as a string
+- **Where:** `app/Domain/Shared/Money/ValueObjects/Money.php` (`fromString(string $amount, string $currency)`, `convertTo(string $targetCurrency, …)`), its callers and `MoneyFormatter`
+- **Problem:** `Money` accepts any three letters as a currency and keeps them as a string, although `rules/domain.md` takes currency codes from the `Currency` enum. A code outside the enum passes into amounts, totals and PDFs, and comparisons are string comparisons.
+- **Fix (proposed 2026-11-19):** `Money` holds a `Currency`; the mappers and form requests turn the stored or submitted code into the enum, and an unknown code fails there instead of inside the Domain.
+
 ### Value object accessors
-- **Where:** all 13 classes in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
-- **Problem:** private state read through three naming styles: `getValue()` (46 calls), `toInt()` (`UserId`, `PartyId`; 83 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, …).
+- **Where:** `Money`, `InvoiceNumber`, `InvoiceId`, `PaymentMethodId`, `ProductId`, `ProductName`, `ProductPrice`, `UserId`, `UserPassword` in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
+- **Problem:** private state read through three naming styles: `getValue()` (27 calls), `toInt()` (`UserId`, `ProductId`, …; 78 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, …; 37 calls).
 - **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
+- **Status:** 18 of the 27 value objects are converted (2026-11-19); the classes listed above are left.
+
+### Documentation can quote code that no longer exists
+- **Where:** `AGENTS.md`, `.claude/rules/`, `.claude/references/`, `.claude/skills/`, `docs/` (ADRs, PRDs, designs, `TECH_DEBT.md`)
+- **Problem:** these files quote classes, paths, artisan commands and rule files in backticks, and nothing checks that they still exist. The conversion renames and deletes code all the time (no backward compatibility), so a reference goes stale silently, and an agent that trusts it looks for a missing class or builds on a removed one.
+- **Fix (proposed 2026-11-19):** an architecture test that collects the backtick references of these files (paths under `app/`, `tests/`, `database/`, `routes/`, `config/`, `resources/`, `phpstan/`, `.claude/`, `docs/`, and class names ending in a known suffix such as `Interface`, `Test`, `Rule`, `Exception`) and fails on each one that resolves to no file or class. Struck-through done items and quoted history (commit messages, `Seen` notes) are skipped; a reference that is meant to be gone is written without backticks. It catches renames and deletions, not a rule whose text no longer matches the code.
 
 ### No developer documentation of how the system works
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
-- **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. An architecture test checks that every class and path quoted in `docs/` exists, so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
+- **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. The test of "Documentation can quote code that no longer exists" covers these pages, so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
 
 ## Step 12: Issued invoices
 
