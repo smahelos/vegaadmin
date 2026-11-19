@@ -18,7 +18,7 @@ final class ProductInUseException extends DomainException
         ?Throwable $previous = null,
     ): self {
         return new self(
-            'Product ' . $productId->getValue() . ' is used on invoices and cannot be deleted',
+            'Product ' . $productId->value . ' is used on invoices and cannot be deleted',
             0,
             $previous,
         );

@@ -22,8 +22,8 @@ final class EloquentInvoiceProductMapper
         $total = $data->total();
 
         return [
-            'invoice_id' => $invoiceId->getValue(),
-            'product_id' => $data->productId?->getValue(),
+            'invoice_id' => $invoiceId->value,
+            'product_id' => $data->productId?->value,
             'name' => $data->name,
             'quantity' => $data->quantity,
             'unit' => $data->unit->value,

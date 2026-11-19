@@ -17,7 +17,7 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
     public function findById(InvoiceId $id, AllOwnersScope $scope): ?ReminderInvoiceDTO
     {
         $query = Invoice::query();
-        $invoice = $query->find($id->getValue());
+        $invoice = $query->find($id->value);
 
         return $invoice === null ? null : EloquentReminderInvoiceMapper::toDTO($invoice);
     }

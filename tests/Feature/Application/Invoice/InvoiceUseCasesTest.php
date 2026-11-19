@@ -809,7 +809,7 @@ final class InvoiceUseCasesTest extends TestCase
 
             public function deleteByInvoiceId(InvoiceId $invoiceId): void
             {
-                $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoiceId->getValue());
+                $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoiceId->value);
                 $invoiceProductQuery->delete();
             }
 

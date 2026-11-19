@@ -45,6 +45,6 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoWrit
 
     public function deleteByInvoiceId(InvoiceId $invoiceId): void
     {
-        $this->productRepository->deleteByInvoiceId($invoiceId->getValue());
+        $this->productRepository->deleteByInvoiceId($invoiceId->value);
     }
 }

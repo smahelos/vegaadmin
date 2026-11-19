@@ -1,19 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Payment\ValueObjects;
 
-class PaymentMethodId
-{
-    public function __construct(private readonly int $value)
-    {
-        if ($value <= 0) {
-            throw new \InvalidArgumentException('PaymentMethod ID must be positive integer');
-        }
-    }
+use InvalidArgumentException;
 
-    public function getValue(): int
-    {
-        return $this->value;
+final readonly class PaymentMethodId
+{
+    public function __construct(
+        public int $value,
+    ) {
+        if ($value <= 0) {
+            throw new InvalidArgumentException('PaymentMethod ID must be positive integer');
+        }
     }
 
     public static function fromInt(int $value): self

@@ -43,7 +43,7 @@ final class EloquentCatalogProductRepository implements CatalogProductReadReposi
     {
         $query = Product::query();
         $query->where('user_id', $scope->owner->toInt());
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
 
         return $query->exists();
     }

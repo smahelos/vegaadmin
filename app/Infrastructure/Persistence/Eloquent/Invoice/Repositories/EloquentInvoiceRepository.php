@@ -19,7 +19,7 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         ]);
         $query->where('user_id', $scope->owner->toInt());
 
-        return $query->find($id->getValue());
+        return $query->find($id->value);
     }
 
     public function create(array $data): Invoice

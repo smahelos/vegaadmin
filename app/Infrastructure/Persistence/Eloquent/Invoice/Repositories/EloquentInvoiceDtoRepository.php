@@ -35,7 +35,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         // The mapper reads the lines and the status name
         $query = Invoice::with(['invoiceProducts', 'paymentStatus']);
         $query->where('user_id', $scope->owner->toInt());
-        $model = $query->find($id->getValue());
+        $model = $query->find($id->value);
 
         return $model === null ? null : $this->mapper->toDto($model);
     }
@@ -44,7 +44,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     {
         $query = Invoice::query();
         $query->with('invoiceProducts');
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->toInt());
         $query->lockForUpdate();
 
@@ -87,7 +87,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $attributes['payment_status_id'] = $this->statusId($data->status);
 
         $model = $this->invoiceRepository->updateById(
-            $id->getValue(),
+            $id->value,
             $scope->owner->toInt(),
             $attributes,
         );
@@ -101,7 +101,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         InvoiceTemplate $template,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->toInt());
         $query->update(['template' => $template->value]);
     }
@@ -112,7 +112,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         InvoiceStatus $status,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->toInt());
         $query->update(
             ['payment_status_id' => $this->statusId($status)],
@@ -125,7 +125,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         ContactId $contactId,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->toInt());
         $query->update(['contact_id' => $contactId->value]);
     }

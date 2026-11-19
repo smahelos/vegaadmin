@@ -79,7 +79,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
             $query->whereNotIn(
                 'id',
                 array_map(
-                    fn (ProductId $id): int => $id->getValue(),
+                    fn (ProductId $id): int => $id->value,
                     $search->excluded,
                 ),
             );
@@ -141,7 +141,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
 
     public function isUsedOnInvoices(ProductId $id): bool
     {
-        $query = InvoiceProduct::where('product_id', $id->getValue());
+        $query = InvoiceProduct::where('product_id', $id->value);
 
         return $query->exists();
     }
@@ -167,7 +167,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
     private function ownedQuery(ProductId $id, UserId $owner): Builder
     {
         $query = Product::query();
-        $query->whereKey($id->getValue());
+        $query->whereKey($id->value);
         $query->where('user_id', $owner->toInt());
 
         return $query;
