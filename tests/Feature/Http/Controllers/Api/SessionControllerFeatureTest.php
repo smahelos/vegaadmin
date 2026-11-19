@@ -1,14 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Http\Controllers\Api;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class SessionControllerFeatureTest extends TestCase
+final class SessionControllerFeatureTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function check_auth_returns_unauthenticated_when_not_logged_in(): void
     {
         $resp = $this->getJson(
@@ -18,7 +21,7 @@ class SessionControllerFeatureTest extends TestCase
         $assertionResponse->assertJson(['status' => 'unauthenticated']);
     }
 
-    /** @test */
+    #[Test]
     public function check_auth_returns_authenticated_when_logged_in(): void
     {
         $userFactory = User::factory();
@@ -33,7 +36,7 @@ class SessionControllerFeatureTest extends TestCase
         $assertionResponse->assertJson(['status' => 'authenticated']);
     }
 
-    /** @test */
+    #[Test]
     public function refresh_session_returns_session_refreshed(): void
     {
         $resp = $this->postJson(

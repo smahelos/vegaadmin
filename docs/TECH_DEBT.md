@@ -401,7 +401,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** context exceptions, mapping in `app/Exceptions/ExceptionHandling.php` (`rules/php.md`, Errors). `CreateGuestInvoiceHandler` still catches `Exception` around the QR code, because the QR providers throw untyped exceptions; it narrows with them. The tests that pinned the catch-all responses (`exception_returns_500` and the like) were deleted with the `tests/Unit` clean-up; the conversion tests the mapped responses instead.
 
 ### Tests that pin structure instead of behaviour
-- **Where:** `tests/Feature` only (`tests/Unit` was cleaned up 2026-10-25, branch `ls-unit-tests`): 27 `class_exists`/`method_exists` calls, 23 files using reflection, 24 `$fillable`/`$casts` references (e.g. `tests/Feature/Models/*`); 15 tests named `test_*` or `@test` (PHPUnit 12 drops `@test`)
+- **Where:** `tests/Feature` only (`tests/Unit` was cleaned up 2026-10-25, branch `ls-unit-tests`): 27 `class_exists`/`method_exists` calls, 23 files using reflection, 24 `$fillable`/`$casts` references (e.g. `tests/Feature/Models/*`)
 - **Fix:** delete structural tests and convert the rest with each context (step 21), use `PermissionCatalog` and migrations (`rules/testing.md`). The business/contact branch removes the obsolete Party interface-presence test and permission-schema fallbacks; both shared HTTP fixtures now use the catalog.
 
 ### Translations
