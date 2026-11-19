@@ -72,15 +72,15 @@ final class EloquentInvoiceMapper
     ): array {
         return [
             ...EloquentDocumentPartiesMapper::toAttributes($parties),
-            'invoice_vs' => $data->number->getNumber(),
+            'invoice_vs' => $data->number->value,
             'invoice_ks' => $data->constantSymbol,
             'invoice_ss' => $data->specificSymbol,
             'issue_date' => $data->issueDate->format('Y-m-d'),
             'tax_point_date' => $data->taxPointDate->format('Y-m-d'),
             'due_in' => $data->dueIn,
-            'payment_method_id' => $data->paymentMethodId->getValue(),
+            'payment_method_id' => $data->paymentMethodId->value,
             'payment_currency' => $data->currency->value,
-            'payment_amount' => $total->getAmount(),
+            'payment_amount' => $total->amount,
             'invoice_text' => $data->text,
             'template' => $data->template->value,
         ];

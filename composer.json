@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-intl": "*",
         "backpack/crud": "^7.1",
         "backpack/language-switcher": "^2.1",
         "backpack/permissionmanager": "^7.3",

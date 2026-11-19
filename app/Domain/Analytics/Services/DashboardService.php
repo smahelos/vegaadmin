@@ -20,10 +20,10 @@ final class DashboardService
     public function getUserStatistics(ReadScope $scope): UserStatisticsDTO
     {
         return $this->cacheService->remember(
-            'analytics:user:' . $scope->owner->toInt() . ':stats',
+            'analytics:user:' . $scope->owner->value . ':stats',
             fn (): UserStatisticsDTO => $this->analytics->getUserStats($scope),
             600,
-            ['analytics.user.' . $scope->owner->toInt()],
+            ['analytics.user.' . $scope->owner->value],
         );
     }
 
@@ -31,10 +31,10 @@ final class DashboardService
     public function getCustomersWithInvoiceTotals(ReadScope $scope): array
     {
         return $this->cacheService->remember(
-            'analytics:user:' . $scope->owner->toInt() . ':customers',
+            'analytics:user:' . $scope->owner->value . ':customers',
             fn (): array => $this->analytics->getCustomersWithTotals($scope),
             600,
-            ['analytics.user.' . $scope->owner->toInt()],
+            ['analytics.user.' . $scope->owner->value],
         );
     }
 

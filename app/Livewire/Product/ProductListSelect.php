@@ -147,7 +147,7 @@ final class ProductListSelect extends Component
             productData: [
                 'id' => $product->id,
                 'name' => $product->name,
-                'price' => $product->price?->getAmount() ?? '0',
+                'price' => $product->price?->amount ?? '0',
                 'tax_rate' => $product->tax['rate'] ?? null,
                 'unit' => $product->unit->value,
                 'currency' => $product->currency ?? 'CZK',

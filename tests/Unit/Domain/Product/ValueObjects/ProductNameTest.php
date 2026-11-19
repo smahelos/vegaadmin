@@ -12,18 +12,17 @@ use PHPUnit\Framework\TestCase;
 final class ProductNameTest extends TestCase
 {
     #[Test]
-    public function trims_and_string_cast(): void
+    public function trims_the_name(): void
     {
         $name = new ProductName('  Test Product  ');
-        $this->assertSame('Test Product', (string) $name);
-        $this->assertSame('Test Product', (string) $name);
+        $this->assertSame('Test Product', $name->value);
     }
 
     #[Test]
     public function from_string_factory(): void
     {
         $name = ProductName::fromString('Another Product');
-        $this->assertEquals('Another Product', (string) $name);
+        $this->assertEquals('Another Product', $name->value);
     }
 
     #[Test]
@@ -47,6 +46,6 @@ final class ProductNameTest extends TestCase
     {
         $max = str_repeat('a', 255);
         $name = new ProductName($max);
-        $this->assertEquals($max, (string) $name);
+        $this->assertEquals($max, $name->value);
     }
 }

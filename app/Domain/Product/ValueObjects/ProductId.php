@@ -1,31 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Product\ValueObjects;
 
 use InvalidArgumentException;
 
-/**
- * Product ID Value Object.
- * Ensures type safety and validation for product identifiers.
- */
-final class ProductId
+final readonly class ProductId
 {
     public function __construct(
-        private readonly int $value,
+        public int $value,
     ) {
         if ($value <= 0) {
             throw new InvalidArgumentException('Product ID must be a positive integer.');
         }
-    }
-
-    public function getValue(): int
-    {
-        return $this->value;
-    }
-
-    public function __toString(): string
-    {
-        return (string) $this->value;
     }
 
     public static function fromInt(int $value): self

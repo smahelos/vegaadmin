@@ -481,7 +481,7 @@ final class BusinessUseCasesTest extends TestCase
         ) {
             Event::assertDispatched(
                 $event,
-                fn (PartyEvent $published): bool => $published->userId->toInt() === $user->id,
+                fn (PartyEvent $published): bool => $published->userId->value === $user->id,
             );
         }
         // Set on creation, dropped with the last active business, set again on its restore

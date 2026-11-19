@@ -35,7 +35,7 @@ final class PartyRecords
         UserId $userId,
         bool $forUpdate,
     ): int {
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
         $query->whereNull('archived_at');
         if ($forUpdate) {
             // The owner lock serializes activations; a locking read also sees commits after an earlier snapshot.
@@ -57,7 +57,7 @@ final class PartyRecords
         int $limit,
     ): array {
         $query->with('address');
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
         $query->whereNull('archived_at');
         $query->orderByDesc('created_at');
         $query->orderByDesc('id');
@@ -112,7 +112,7 @@ final class PartyRecords
         PartyProfile $profile,
     ): Builder {
         $query->with('address');
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
         $query->where(
             function (Builder $match) use ($profile): void {
                 $match->where('name', $profile->name);
@@ -150,7 +150,7 @@ final class PartyRecords
         PageRequest $page,
     ): LengthAwarePaginator {
         $query->with('address');
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
 
         if ($search->archived) {
             $query->whereNotNull('archived_at');

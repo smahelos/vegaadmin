@@ -22,7 +22,7 @@ trait ThrottlesCreation
     protected function creationThrottled(): ?string
     {
         $userId = $this->userId();
-        $key = 'create:' . $userId->toInt();
+        $key = 'create:' . $userId->value;
         if (
             RateLimiter::tooManyAttempts(
                 $key,

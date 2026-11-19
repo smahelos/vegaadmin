@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\User\Contracts\LimitedEntityCounterInterface;
 use App\Domain\User\Contracts\Locale;
 use App\Domain\User\Contracts\LocaleServiceInterface;
@@ -10,7 +9,6 @@ use App\Domain\User\Contracts\RoleLimitReadRepositoryInterface;
 use App\Domain\User\Contracts\UserReadRepositoryInterface;
 use App\Domain\User\Contracts\UserWriteRepositoryInterface;
 use App\Domain\User\Services\LocaleService;
-use App\Domain\User\ValueObjects\UserPassword;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentLimitedEntityCounter;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentRoleLimitRepository;
 use App\Infrastructure\Persistence\Eloquent\User\Repositories\EloquentUserRepository;
@@ -72,17 +70,5 @@ class UserServiceProvider extends ServiceProvider
             UserWriteRepositoryInterface::class,
             EloquentUserRepository::class,
         );
-    }
-
-    public function boot(): void
-    {
-        // Configure default hasher for UserPassword VO
-        try {
-            /** @var HashInterface $hasher */
-            $hasher = $this->app->make(HashInterface::class);
-            UserPassword::setHasher($hasher);
-        } catch (\Throwable $e) {
-            // During some console contexts this may fail; VO will throw if used without hasher.
-        }
     }
 }

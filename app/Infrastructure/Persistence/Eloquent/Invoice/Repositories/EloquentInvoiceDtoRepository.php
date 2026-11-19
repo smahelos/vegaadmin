@@ -34,8 +34,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     {
         // The mapper reads the lines and the status name
         $query = Invoice::with(['invoiceProducts', 'paymentStatus']);
-        $query->where('user_id', $scope->owner->toInt());
-        $model = $query->find($id->getValue());
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->find($id->value);
 
         return $model === null ? null : $this->mapper->toDto($model);
     }
@@ -44,8 +44,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     {
         $query = Invoice::query();
         $query->with('invoiceProducts');
-        $query->whereKey($id->getValue());
-        $query->where('user_id', $scope->owner->toInt());
+        $query->whereKey($id->value);
+        $query->where('user_id', $scope->owner->value);
         $query->lockForUpdate();
 
         $model = $query->first();
@@ -64,7 +64,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             $parties,
             $total,
         );
-        $attributes['user_id'] = $scope->owner->toInt();
+        $attributes['user_id'] = $scope->owner->value;
         $attributes['payment_status_id'] = $this->statusId($data->status);
 
         $model = $this->invoiceRepository->create($attributes);
@@ -87,8 +87,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $attributes['payment_status_id'] = $this->statusId($data->status);
 
         $model = $this->invoiceRepository->updateById(
-            $id->getValue(),
-            $scope->owner->toInt(),
+            $id->value,
+            $scope->owner->value,
             $attributes,
         );
 
@@ -101,8 +101,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         InvoiceTemplate $template,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
-        $query->where('user_id', $scope->owner->toInt());
+        $query->whereKey($id->value);
+        $query->where('user_id', $scope->owner->value);
         $query->update(['template' => $template->value]);
     }
 
@@ -112,8 +112,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         InvoiceStatus $status,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
-        $query->where('user_id', $scope->owner->toInt());
+        $query->whereKey($id->value);
+        $query->where('user_id', $scope->owner->value);
         $query->update(
             ['payment_status_id' => $this->statusId($status)],
         );
@@ -125,8 +125,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         ContactId $contactId,
     ): void {
         $query = Invoice::query();
-        $query->whereKey($id->getValue());
-        $query->where('user_id', $scope->owner->toInt());
+        $query->whereKey($id->value);
+        $query->where('user_id', $scope->owner->value);
         $query->update(['contact_id' => $contactId->value]);
     }
 
@@ -135,18 +135,18 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         // Highest sequence among numbers in the standard format; sorting the strings would put
         // 20259999 after 202510000, and non-standard numbers must not affect the sequence
         $last = null;
-        foreach ($this->invoiceRepository->findInvoiceNumbersForYear($scope->owner->toInt(), $year) as $number) {
+        foreach ($this->invoiceRepository->findInvoiceNumbersForYear($scope->owner->value, $year) as $number) {
             try {
                 $candidate = new InvoiceNumber($number);
             } catch (InvalidArgumentException) {
                 continue;
             }
-            if ($candidate->getYear() === $year && ($last === null || $candidate->isGreaterThan($last))) {
+            if ($candidate->year() === $year && ($last === null || $candidate->isGreaterThan($last))) {
                 $last = $candidate;
             }
         }
 
-        return $last?->getNumber();
+        return $last?->value;
     }
 
     /** The statuses row an invoice status is stored as; the reference data contain one for every case. */

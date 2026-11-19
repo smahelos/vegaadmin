@@ -19,10 +19,10 @@ final class CatalogProductResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'product_id' => $this->product->id->getValue(),
+            'product_id' => $this->product->id->value,
             'name' => $this->product->name,
-            'price' => $this->product->price->getAmount(),
-            'currency' => $this->product->price->getCurrency(),
+            'price' => $this->product->price->amount,
+            'currency' => $this->product->price->currency,
             'unit' => $this->product->unit->value,
             'tax_rate' => $this->product->taxRate,
             'category' => $this->product->category,

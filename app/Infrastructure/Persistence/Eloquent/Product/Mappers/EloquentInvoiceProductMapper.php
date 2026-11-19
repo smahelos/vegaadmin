@@ -22,18 +22,18 @@ final class EloquentInvoiceProductMapper
         $total = $data->total();
 
         return [
-            'invoice_id' => $invoiceId->getValue(),
-            'product_id' => $data->productId?->getValue(),
+            'invoice_id' => $invoiceId->value,
+            'product_id' => $data->productId?->value,
             'name' => $data->name,
             'quantity' => $data->quantity,
             'unit' => $data->unit->value,
             'category' => $data->category,
             'description' => $data->description,
-            'price' => $data->price->getAmount(),
-            'currency' => $data->price->getCurrency(),
+            'price' => $data->price->amount,
+            'currency' => $data->price->currency,
             'tax_rate' => $data->taxRate,
-            'tax_amount' => $taxAmount->getAmount(),
-            'total_price' => $total->getAmount(),
+            'tax_amount' => $taxAmount->amount,
+            'total_price' => $total->amount,
             'is_custom_product' => $data->isCustomProduct(),
         ];
     }

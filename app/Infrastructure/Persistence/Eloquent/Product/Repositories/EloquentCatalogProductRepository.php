@@ -19,7 +19,7 @@ final class EloquentCatalogProductRepository implements CatalogProductReadReposi
         string $search,
     ): array {
         $query = Product::query();
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $query->where('currency', $currency->value);
         $query->where('is_active', true);
         $query->where(
@@ -42,8 +42,8 @@ final class EloquentCatalogProductRepository implements CatalogProductReadReposi
     public function isOwnedBy(ProductId $id, ReadScope $scope): bool
     {
         $query = Product::query();
-        $query->where('user_id', $scope->owner->toInt());
-        $query->whereKey($id->getValue());
+        $query->where('user_id', $scope->owner->value);
+        $query->whereKey($id->value);
 
         return $query->exists();
     }

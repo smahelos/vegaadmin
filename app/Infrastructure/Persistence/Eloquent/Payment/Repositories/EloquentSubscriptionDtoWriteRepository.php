@@ -38,7 +38,7 @@ final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWri
     public function create(WriteScope $scope, SubscriptionWriteData $data): SubscriptionDTO
     {
         $subscription = new Subscription;
-        $subscription->user_id = $scope->owner->toInt();
+        $subscription->user_id = $scope->owner->value;
         $subscription->fill(
             $this->mapper->toAttributes($data),
         );
@@ -82,7 +82,7 @@ final class EloquentSubscriptionDtoWriteRepository implements SubscriptionDtoWri
     private function owned(SubscriptionId $id, WriteScope $scope): Subscription
     {
         $subscriptionQuery = Subscription::query();
-        $subscriptionQuery->where('user_id', $scope->owner->toInt());
+        $subscriptionQuery->where('user_id', $scope->owner->value);
 
         return $subscriptionQuery->find($id->value)
             ?? throw new SubscriptionNotFoundException($id->value);

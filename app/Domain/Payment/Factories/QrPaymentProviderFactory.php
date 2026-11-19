@@ -100,7 +100,7 @@ final class QrPaymentProviderFactory
             return self::createProvider($country);
         }
 
-        return self::createProvider($payload->amount->getCurrency() === 'EUR' ? 'EU' : 'CZ');
+        return self::createProvider($payload->amount->currency === 'EUR' ? 'EU' : 'CZ');
     }
 
     /**

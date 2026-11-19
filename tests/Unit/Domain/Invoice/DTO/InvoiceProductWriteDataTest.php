@@ -23,12 +23,12 @@ final class InvoiceProductWriteDataTest extends TestCase
         );
 
         $base = $line->base();
-        $this->assertSame('224.01', $base->getAmount());
+        $this->assertSame('224.01', $base->amount);
         $taxAmount = $line->taxAmount();
-        $this->assertSame('47.04', $taxAmount->getAmount());
+        $this->assertSame('47.04', $taxAmount->amount);
         $total = $line->total();
-        $this->assertSame('271.05', $total->getAmount());
-        $this->assertSame('CZK', $total->getCurrency());
+        $this->assertSame('271.05', $total->amount);
+        $this->assertSame('CZK', $total->currency);
     }
 
     #[Test]
@@ -41,11 +41,11 @@ final class InvoiceProductWriteDataTest extends TestCase
         );
 
         $base = $line->base();
-        $this->assertSame('373.95', $base->getAmount());
+        $this->assertSame('373.95', $base->amount);
         $taxAmount = $line->taxAmount();
-        $this->assertSame('44.87', $taxAmount->getAmount());
+        $this->assertSame('44.87', $taxAmount->amount);
         $total = $line->total();
-        $this->assertSame('418.82', $total->getAmount());
+        $this->assertSame('418.82', $total->amount);
     }
 
     #[Test]
@@ -59,9 +59,9 @@ final class InvoiceProductWriteDataTest extends TestCase
         );
 
         $base = $line->base();
-        $this->assertSame('0.33', $base->getAmount());
+        $this->assertSame('0.33', $base->amount);
         $taxAmount = $line->taxAmount();
-        $this->assertSame('0.07', $taxAmount->getAmount());
+        $this->assertSame('0.07', $taxAmount->amount);
     }
 
     #[Test]
@@ -74,9 +74,9 @@ final class InvoiceProductWriteDataTest extends TestCase
         );
 
         $taxAmount = $line->taxAmount();
-        $this->assertSame('0', $taxAmount->getAmount());
+        $this->assertSame('0', $taxAmount->amount);
         $total = $line->total();
-        $this->assertSame('200', $total->getAmount());
+        $this->assertSame('200', $total->amount);
     }
 
     #[Test]

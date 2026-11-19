@@ -1,17 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Shared\Money\Services;
 
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
+use IntlException;
 use InvalidArgumentException;
+use NumberFormatter;
+use RuntimeException;
 
 /**
- * Locale-aware Money formatter.
- * Uses PHP intl NumberFormatter if available; falls back to manual formatting otherwise.
+ * Locale-aware Money formatter on top of the intl NumberFormatter.
  */
-class MoneyFormatter implements MoneyFormatterInterface
+final class MoneyFormatter implements MoneyFormatterInterface
 {
     public function __construct(
         private readonly Locale $locale,
@@ -54,13 +58,9 @@ class MoneyFormatter implements MoneyFormatterInterface
     }
 
     /**
-     * Internal formatting logic.
-     * Rules (per požadavek):
-     *  - Zachovat lokální oddělovače (decimal + thousand) dle locale.
-     *  - Vždy prefixovat měnu PŘED číslo.
-     *  - Pokud je k dispozici krátký jednoznakový symbol (€, $, £, ¥), použít symbol bez mezery: "€48,00".
-     *  - V ostatních případech použít kód (CZK, USD, ...) + mezera: "CZK 48,00".
-     *  - Metoda formatWithCode() vždy použije kód (před číslem) bez ohledu na dostupnost symbolu.
+     * Number in the separators of the locale, preceded by the currency: a one-character symbol
+     * without a space ("€48,00"), otherwise the code and a space ("CZK 48,00"); formatWithCode()
+     * always uses the code.
      */
     private function formatInternal(
         Money $money,
@@ -76,8 +76,8 @@ class MoneyFormatter implements MoneyFormatterInterface
             throw new InvalidArgumentException('Invalid fraction digit configuration');
         }
 
-        $currency = strtoupper($money->getCurrency());
-        $amountStr = $money->getAmount();
+        $currency = $money->currency;
+        $amountStr = $money->amount;
 
         // Determine scale of underlying amount
         $scale = 0;
@@ -96,9 +96,8 @@ class MoneyFormatter implements MoneyFormatterInterface
             max($scale, $min),
         );
 
-        // Format numeric part locale-aware (WITHOUT currency) using intl if possible
         $numberFormatted = $this->formatNumberPortion(
-            $money->toFloat(),
+            $money,
             $locale,
             $displayMax,
         );
@@ -116,50 +115,52 @@ class MoneyFormatter implements MoneyFormatterInterface
             }
         }
 
-        // Handle sign
-        $sign = '';
-        if ($money->toFloat() < 0) {
-            $sign = '-';
-            // strip any leading minus from numeric part just in case
-            $numberFormatted = ltrim($numberFormatted, '-');
-        }
-
         // Build final string
         if ($useSymbol) {
             // Symbol directly before amount without space: €1 234,56
-            return $sign . $currencyToken . $numberFormatted;
+            return $currencyToken . $numberFormatted;
         }
 
         // Code with space: CZK 1 234,56
-        return $sign . $currencyToken . ' ' . $numberFormatted;
+        return $currencyToken . ' ' . $numberFormatted;
     }
 
     /**
-     * Format just the numeric portion with locale separators.
+     * The amount rounded half up to the fraction digits, with the separators of the locale.
      */
     private function formatNumberPortion(
-        float $value,
+        Money $money,
         string $locale,
         int $fractionDigits,
     ): string {
-        if (class_exists(\NumberFormatter::class)) {
-            $nf = new \NumberFormatter($locale, \NumberFormatter::DECIMAL);
-            $nf->setAttribute(\NumberFormatter::FRACTION_DIGITS, $fractionDigits);
-            $formatted = $nf->format($value);
-            if ($formatted !== false) {
-                return $formatted;
-            }
-        }
-        // Fallback simple rules
-        $decimalSep = str_starts_with($locale, 'cs') ? ',' : '.';
-        $thousandSep = str_starts_with($locale, 'cs') ? ' ' : ',';
-
-        return number_format(
-            $value,
-            $fractionDigits,
-            $decimalSep,
-            $thousandSep,
+        $rounded = $money->divideRounding(1, $fractionDigits);
+        $parts = explode(
+            '.',
+            $rounded->amount,
+            2,
         );
+        $formatter = new NumberFormatter($locale, NumberFormatter::DECIMAL);
+        $formatter->setAttribute(NumberFormatter::FRACTION_DIGITS, 0);
+        // Amount columns are decimal(18, 2); a larger amount must not be clamped to PHP_INT_MAX
+        $integerPart = filter_var($parts[0], FILTER_VALIDATE_INT);
+        if ($integerPart === false) {
+            throw new InvalidArgumentException('Amount too large to format: ' . $money->amount);
+        }
+        $integer = $formatter->format($integerPart);
+        if ($integer === false) {
+            throw new RuntimeException('Number formatting failed for locale ' . $locale);
+        }
+        if ($fractionDigits === 0) {
+            return $integer;
+        }
+        $fraction = str_pad(
+            $parts[1] ?? '',
+            $fractionDigits,
+            '0',
+            STR_PAD_RIGHT,
+        );
+
+        return $integer . $formatter->getSymbol(NumberFormatter::DECIMAL_SEPARATOR_SYMBOL) . $fraction;
     }
 
     /**
@@ -167,17 +168,14 @@ class MoneyFormatter implements MoneyFormatterInterface
      */
     private function getIntlCurrencySymbol(string $currency, string $locale): ?string
     {
-        if (!class_exists(\NumberFormatter::class)) {
-            return null;
-        }
         try {
-            $formatter = new \NumberFormatter($locale . '@currency=' . $currency, \NumberFormatter::CURRENCY);
+            $formatter = new NumberFormatter($locale . '@currency=' . $currency, NumberFormatter::CURRENCY);
             // format a dummy value to force internal symbol resolution
             $formatter->formatCurrency(1, $currency);
-            $symbol = $formatter->getSymbol(\NumberFormatter::CURRENCY_SYMBOL);
+            $symbol = $formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL);
 
             return $symbol ?: null;
-        } catch (\Throwable $e) {
+        } catch (IntlException) {
             return null;
         }
     }

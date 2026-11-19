@@ -38,7 +38,7 @@ class EloquentPaymentMethodDtoRepository implements PaymentMethodDtoReadReposito
 
     public function findById(PaymentMethodId $id): ?PaymentMethodDTO
     {
-        $paymentMethod = $this->paymentMethodRepository->findById($id->getValue());
+        $paymentMethod = $this->paymentMethodRepository->findById($id->value);
 
         return $paymentMethod ? $this->mapper->toDto($paymentMethod) : null;
     }

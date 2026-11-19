@@ -21,10 +21,10 @@ final class InvoiceTotalsResource extends JsonResource
         $total = $this->totals->total();
 
         return [
-            'subtotal' => $this->totals->subtotal->getAmount(),
-            'tax' => $this->totals->tax->getAmount(),
-            'total' => $total->getAmount(),
-            'currency' => $this->totals->subtotal->getCurrency(),
+            'subtotal' => $this->totals->subtotal->amount,
+            'tax' => $this->totals->tax->amount,
+            'total' => $total->amount,
+            'currency' => $this->totals->subtotal->currency,
         ];
     }
 }

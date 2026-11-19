@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Product\ValueObjects;
 
 use InvalidArgumentException;
 
-class ProductName
+final readonly class ProductName
 {
-    private string $value;
+    public string $value;
 
     /**
-     * Constructor
-     *
      * @throws InvalidArgumentException
      */
     public function __construct(string $value)
@@ -28,17 +28,6 @@ class ProductName
         $this->value = $value;
     }
 
-    /**
-     * Convert to string
-     */
-    public function __toString(): string
-    {
-        return $this->value;
-    }
-
-    /**
-     * Create from string
-     */
     public static function fromString(string $value): self
     {
         return new self($value);

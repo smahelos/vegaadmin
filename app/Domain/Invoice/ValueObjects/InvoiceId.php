@@ -6,10 +6,6 @@ namespace App\Domain\Invoice\ValueObjects;
 
 use InvalidArgumentException;
 
-/**
- * Invoice ID Value Object.
- * Ensures type safety and validation for invoice identifiers.
- */
 final readonly class InvoiceId
 {
     public function __construct(
@@ -23,15 +19,5 @@ final readonly class InvoiceId
     public static function fromInt(int $value): self
     {
         return new self($value);
-    }
-
-    public function getValue(): int
-    {
-        return $this->value;
-    }
-
-    public function __toString(): string
-    {
-        return (string) $this->value;
     }
 }

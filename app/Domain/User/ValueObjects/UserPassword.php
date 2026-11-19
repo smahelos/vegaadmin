@@ -1,59 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\ValueObjects;
 
 use App\Domain\Shared\Hash\Contracts\HashInterface;
 use InvalidArgumentException;
 
 /**
- * User Password Value Object
- *
- * Handles password validation, hashing and security requirements
+ * A password that passed the password rules, held only as its hash.
  */
-class UserPassword
+final readonly class UserPassword
 {
-    private string $hashedPassword;
+    private function __construct(
+        public string $hash,
+    ) {}
 
-    /**
-     * Default hasher instance for factories when none provided.
-     * Set by Infrastructure/Application during bootstrapping.
-     */
-    private static ?HashInterface $defaultHasher = null;
-
-    /**
-     * Private constructor to enforce factory methods
-     */
-    private function __construct(string $hashedPassword)
-    {
-        $this->hashedPassword = $hashedPassword;
-    }
-
-    /**
-     * Configure default hasher to be used by factory methods.
-     */
-    public static function setHasher(HashInterface $hasher): void
-    {
-        self::$defaultHasher = $hasher;
-    }
-
-    /**
-     * Create from plain text password
-     */
-    public static function fromPlainText(string $plainPassword, ?HashInterface $hasher = null): self
+    public static function fromPlainText(string $plainPassword, HashInterface $hasher): self
     {
         self::validatePlainPassword($plainPassword);
-        $hasher = $hasher ?? self::$defaultHasher;
-        if (!$hasher) {
-            throw new InvalidArgumentException('Hash service is not configured');
-        }
-        $hashedPassword = $hasher->hash($plainPassword);
 
-        return new self($hashedPassword);
+        return new self(
+            $hasher->hash($plainPassword),
+        );
     }
 
-    /**
-     * Validate plain text password requirements
-     */
     private static function validatePlainPassword(string $password): void
     {
         if (empty($password)) {
@@ -80,13 +51,5 @@ class UserPassword
         ) {
             throw new InvalidArgumentException('Password is too common and weak');
         }
-    }
-
-    /**
-     * Convert to string (returns hashed value)
-     */
-    public function __toString(): string
-    {
-        return $this->hashedPassword;
     }
 }

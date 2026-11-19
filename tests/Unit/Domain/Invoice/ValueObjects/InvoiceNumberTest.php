@@ -16,9 +16,9 @@ final class InvoiceNumberTest extends TestCase
     {
         $invoiceNumber = new InvoiceNumber('20250001');
 
-        $this->assertEquals('20250001', $invoiceNumber->getNumber());
-        $this->assertEquals(2025, $invoiceNumber->getYear());
-        $this->assertEquals(1, $invoiceNumber->getSequence());
+        $this->assertEquals('20250001', $invoiceNumber->value);
+        $this->assertEquals(2025, $invoiceNumber->year());
+        $this->assertEquals(1, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -26,9 +26,9 @@ final class InvoiceNumberTest extends TestCase
     {
         $invoiceNumber = InvoiceNumber::fromYearAndSequence(2025, 123);
 
-        $this->assertEquals('20250123', $invoiceNumber->getNumber());
-        $this->assertEquals(2025, $invoiceNumber->getYear());
-        $this->assertEquals(123, $invoiceNumber->getSequence());
+        $this->assertEquals('20250123', $invoiceNumber->value);
+        $this->assertEquals(2025, $invoiceNumber->year());
+        $this->assertEquals(123, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -37,8 +37,8 @@ final class InvoiceNumberTest extends TestCase
         $currentYear = (int) date('Y');
         $invoiceNumber = InvoiceNumber::generateNext($currentYear . '0005');
 
-        $this->assertEquals($currentYear, $invoiceNumber->getYear());
-        $this->assertEquals(6, $invoiceNumber->getSequence());
+        $this->assertEquals($currentYear, $invoiceNumber->year());
+        $this->assertEquals(6, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -47,8 +47,8 @@ final class InvoiceNumberTest extends TestCase
         $currentYear = (int) date('Y');
         $invoiceNumber = InvoiceNumber::generateNext(($currentYear - 1) . '0005');
 
-        $this->assertEquals($currentYear, $invoiceNumber->getYear());
-        $this->assertEquals(1, $invoiceNumber->getSequence());
+        $this->assertEquals($currentYear, $invoiceNumber->year());
+        $this->assertEquals(1, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -58,9 +58,9 @@ final class InvoiceNumberTest extends TestCase
 
         $this->assertEquals(
             (int) date('Y'),
-            $invoiceNumber->getYear(),
+            $invoiceNumber->year(),
         );
-        $this->assertEquals(1, $invoiceNumber->getSequence());
+        $this->assertEquals(1, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -79,14 +79,6 @@ final class InvoiceNumberTest extends TestCase
         $this->assertFalse(
             $number1->isGreaterThan($number2),
         );
-    }
-
-    #[Test]
-    public function converts_to_string(): void
-    {
-        $invoiceNumber = new InvoiceNumber('20250123');
-
-        $this->assertEquals('20250123', (string) $invoiceNumber);
     }
 
     #[Test]
@@ -140,8 +132,8 @@ final class InvoiceNumberTest extends TestCase
         $currentYear = (int) date('Y');
         $invoiceNumber = InvoiceNumber::generateNext($currentYear . '9999');
 
-        $this->assertSame($currentYear . '10000', $invoiceNumber->getNumber());
-        $this->assertSame(10000, $invoiceNumber->getSequence());
+        $this->assertSame($currentYear . '10000', $invoiceNumber->value);
+        $this->assertSame(10000, $invoiceNumber->sequence());
     }
 
     #[Test]
@@ -149,7 +141,7 @@ final class InvoiceNumberTest extends TestCase
     {
         $longer = new InvoiceNumber('202510000');
 
-        $this->assertSame(2025, $longer->getYear());
+        $this->assertSame(2025, $longer->year());
         $this->assertTrue(
             $longer->isGreaterThan(
                 new InvoiceNumber('20259999'),

@@ -14,6 +14,6 @@ final class ProductNotFoundException extends DomainException
 {
     public function __construct(ProductId $id)
     {
-        parent::__construct("Product {$id->getValue()} not found");
+        parent::__construct("Product {$id->value} not found");
     }
 }

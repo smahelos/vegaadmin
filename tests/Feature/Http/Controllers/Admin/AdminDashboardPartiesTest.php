@@ -104,7 +104,7 @@ final class AdminDashboardPartiesTest extends TestCase
     private function sums(array $revenue): array
     {
         return array_map(
-            fn (Money $amount): string => $amount->getCurrency() . ' ' . $amount->getAmount(),
+            fn (Money $amount): string => $amount->currency . ' ' . $amount->amount,
             $revenue,
         );
     }

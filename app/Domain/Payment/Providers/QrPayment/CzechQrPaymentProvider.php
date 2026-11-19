@@ -14,7 +14,7 @@ final class CzechQrPaymentProvider implements QrPaymentProviderInterface
     public function validatePaymentInfo(QrPaymentDTO $payload): bool
     {
         return in_array(
-            $payload->amount->getCurrency(),
+            $payload->amount->currency,
             self::SUPPORTED_CURRENCIES,
             true,
         )
@@ -28,7 +28,7 @@ final class CzechQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = 'SPD*1.0';
         $qrParts[] = 'ACC:' . $payload->account?->iban;
         $qrParts[] = 'AM:' . $payload->amountDecimal();
-        $qrParts[] = 'CC:' . $payload->amount->getCurrency();
+        $qrParts[] = 'CC:' . $payload->amount->currency;
 
         if (!empty($payload->variableSymbol)) {
             $qrParts[] = 'X-VS:' . $payload->variableSymbol;

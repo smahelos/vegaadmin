@@ -53,7 +53,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
         PageRequest $page,
     ): PaginatedResult {
         $query = Product::query();
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $query->with(self::RELATIONS);
         if ($search->term !== null && $search->term !== '') {
             $term = '%' . $search->term . '%';
@@ -79,7 +79,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
             $query->whereNotIn(
                 'id',
                 array_map(
-                    fn (ProductId $id): int => $id->getValue(),
+                    fn (ProductId $id): int => $id->value,
                     $search->excluded,
                 ),
             );
@@ -110,7 +110,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
 
     public function getUserProductCount(UserId $userId): int
     {
-        $query = Product::where('user_id', $userId->toInt());
+        $query = Product::where('user_id', $userId->value);
 
         return $query->count();
     }
@@ -118,7 +118,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
     public function create(WriteScope $scope, ProductWriteData $writeData): ProductDTO
     {
         $attributes = $writeData->toArray();
-        $attributes['user_id'] = $scope->owner->toInt();
+        $attributes['user_id'] = $scope->owner->value;
         $product = Product::create($attributes);
 
         return $this->mapper->toDto($product);
@@ -141,7 +141,7 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
 
     public function isUsedOnInvoices(ProductId $id): bool
     {
-        $query = InvoiceProduct::where('product_id', $id->getValue());
+        $query = InvoiceProduct::where('product_id', $id->value);
 
         return $query->exists();
     }
@@ -167,8 +167,8 @@ final class EloquentProductDtoRepository implements ProductDtoReadRepositoryInte
     private function ownedQuery(ProductId $id, UserId $owner): Builder
     {
         $query = Product::query();
-        $query->whereKey($id->getValue());
-        $query->where('user_id', $owner->toInt());
+        $query->whereKey($id->value);
+        $query->where('user_id', $owner->value);
 
         return $query;
     }

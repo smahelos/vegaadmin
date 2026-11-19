@@ -62,7 +62,7 @@ final class DashboardControllerFeatureTest extends TestCase
             fn ($dashboard): bool => $dashboard->statistics->invoiceCount === 1
             && $dashboard->statistics->businessCount === 1
             && $dashboard->statistics->contactCount === 1
-            && $dashboard->statistics->totalAmount->getAmount() === '123.45',
+            && $dashboard->statistics->totalAmount->amount === '123.45',
         );
     }
 

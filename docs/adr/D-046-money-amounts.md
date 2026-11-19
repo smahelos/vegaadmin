@@ -31,4 +31,5 @@ Amounts do not need a float to reach `Money`: a `decimal` column with Eloquent's
 
 - A rounding decision is always visible in the code that makes it. `fromString()` accepts `12.349` as it is, so the code that needs 2 decimals must limit or round them.
 - Tests and fakes build amounts from strings.
-- Known gaps remain, each in `docs/TECH_DEBT.md`: "Product prices are not `Money` on the write path" and "`MoneyFormatter` formats through a float". The non-negative invariant also awaits a decision for corrective documents ("Issued invoices can be changed and deleted").
+- `MoneyFormatter` formats the decimal string and rounds it half up through `Money::divideRounding()`, so no amount passes through a float on its way to display.
+- Known gaps remain, each in `docs/TECH_DEBT.md`: "Product prices are not `Money` on the write path". The non-negative invariant also awaits a decision for corrective documents ("Issued invoices can be changed and deleted").

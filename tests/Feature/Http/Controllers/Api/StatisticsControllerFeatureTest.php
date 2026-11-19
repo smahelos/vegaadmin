@@ -106,7 +106,7 @@ final class StatisticsControllerFeatureTest extends TestCase
 
         $this->assertNotEmpty($this->statistics->calls);
         foreach ($this->statistics->calls as $call) {
-            $this->assertSame($user->id, $call['owner']->toInt());
+            $this->assertSame($user->id, $call['owner']->value);
         }
     }
 

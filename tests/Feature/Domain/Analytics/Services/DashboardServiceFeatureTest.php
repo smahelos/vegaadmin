@@ -31,8 +31,7 @@ final class DashboardServiceFeatureTest extends TestCase
         $this->assertSame(0, $stats->contactCount);
         $this->assertSame(0, $stats->businessCount);
         $this->assertInstanceOf(Money::class, $stats->totalAmount);
-        $this->assertSame('0', $stats->totalAmount->getAmount());
-        $this->assertSame(0.0, $stats->totalAmount->toFloat());
+        $this->assertSame('0', $stats->totalAmount->amount);
     }
 
     #[Test]
@@ -62,7 +61,7 @@ final class DashboardServiceFeatureTest extends TestCase
         $this->assertSame(1, $stats->contactCount);
         $this->assertSame(1, $stats->businessCount);
         $this->assertInstanceOf(Money::class, $stats->totalAmount);
-        $this->assertSame(123.45, $stats->totalAmount->toFloat());
+        $this->assertSame('123.45', $stats->totalAmount->amount);
     }
 
     #[Test]
@@ -91,7 +90,7 @@ final class DashboardServiceFeatureTest extends TestCase
         $first = $customers->first();
         $this->assertSame($contact->id, $first->contactId->value);
         $this->assertInstanceOf(Money::class, $first->totalAmount);
-        $this->assertSame(55.0, $first->totalAmount->toFloat());
+        $this->assertSame('55', $first->totalAmount->amount);
     }
 
     #[Test]

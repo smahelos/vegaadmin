@@ -19,7 +19,7 @@ final class InvalidateOwnerDashboard
 
     public function handle(PartyEvent $event): void
     {
-        $userId = $event->userId->toInt();
+        $userId = $event->userId->value;
 
         $this->dashboard->invalidateUserCache($userId);
     }

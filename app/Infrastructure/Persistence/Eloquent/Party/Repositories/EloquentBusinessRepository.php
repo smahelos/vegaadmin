@@ -78,7 +78,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     public function findDefaultId(ReadScope $scope): ?BusinessId
     {
         $query = User::query();
-        $query->whereKey($scope->owner->toInt());
+        $query->whereKey($scope->owner->value);
         $id = $query->value('default_business_id');
 
         return $id === null ? null : BusinessId::fromInt($id);
@@ -127,7 +127,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     public function create(WriteScope $scope, BusinessWriteData $data): BusinessDTO
     {
         $business = $this->records->save(
-            new Business(['user_id' => $scope->owner->toInt()]),
+            new Business(['user_id' => $scope->owner->value]),
             EloquentBusinessMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -169,7 +169,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     public function setDefault(WriteScope $scope, ?BusinessId $id): void
     {
         $query = User::query();
-        $query->whereKey($scope->owner->toInt());
+        $query->whereKey($scope->owner->value);
         $query->update(['default_business_id' => $id?->value]);
     }
 
@@ -180,7 +180,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     {
         $query = Business::query();
         $query->whereKey($id->value);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
 
         return $query;
     }
@@ -192,7 +192,7 @@ final class EloquentBusinessRepository implements BusinessReadRepositoryInterfac
     {
         $query = Business::query();
         $query->with('address');
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
 
         return $query;
     }

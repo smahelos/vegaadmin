@@ -125,7 +125,7 @@ final class CustomerRevenueTest extends TestCase
         $statistics = $dashboard->statistics;
         $this->assertSame(
             '37.95',
-            $statistics->totalAmount->getAmount(),
+            $statistics->totalAmount->amount,
         );
         $this->assertSame(
             1,

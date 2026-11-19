@@ -10,11 +10,12 @@ use Tests\TestCase;
 
 class UserPasswordTest extends TestCase
 {
+    private HashInterface $hasher;
+
     protected function setUp(): void
     {
         parent::setUp();
-        // Configure a simple hash service for the VO to use in tests
-        $hasher = new class implements HashInterface
+        $this->hasher = new class implements HashInterface
         {
             public function hash(string $value): string
             {
@@ -39,17 +40,16 @@ class UserPasswordTest extends TestCase
                 );
             }
         };
-        UserPassword::setHasher($hasher);
     }
 
     #[Test]
-    public function converts_to_string(): void
+    public function holds_a_hash_of_the_plain_password(): void
     {
-        $password = UserPassword::fromPlainText('ValidPassword123');
-        $hashString = (string) $password;
+        $password = UserPassword::fromPlainText('ValidPassword123', $this->hasher);
 
-        $this->assertIsString($hashString);
-        $this->assertNotEmpty($hashString);
+        $this->assertTrue(
+            password_verify('ValidPassword123', $password->hash),
+        );
     }
 
     #[Test]
@@ -57,7 +57,7 @@ class UserPasswordTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
 
-        UserPassword::fromPlainText('');
+        UserPassword::fromPlainText('', $this->hasher);
     }
 
     #[Test]
@@ -65,7 +65,7 @@ class UserPasswordTest extends TestCase
     {
         // Current implementation does NOT throw for short passwords; only common weak passwords are rejected.
         // Keep test as behavioral assertion: short password should still produce a hash (discouraged but allowed here).
-        $pwd = UserPassword::fromPlainText('Ab1');
+        $pwd = UserPassword::fromPlainText('Ab1', $this->hasher);
         $this->assertInstanceOf(UserPassword::class, $pwd);
     }
 
@@ -74,7 +74,7 @@ class UserPasswordTest extends TestCase
     {
         // Current implementation does NOT enforce max length; assert object is still created.
         $tooLongPassword = str_repeat('A', 256) . '1a';
-        $pwd = UserPassword::fromPlainText($tooLongPassword);
+        $pwd = UserPassword::fromPlainText($tooLongPassword, $this->hasher);
         $this->assertInstanceOf(UserPassword::class, $pwd);
     }
 
@@ -82,7 +82,7 @@ class UserPasswordTest extends TestCase
     public function throws_exception_for_missing_lowercase(): void
     {
         // Lowercase requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('UPPERCASE123');
+        $pwd = UserPassword::fromPlainText('UPPERCASE123', $this->hasher);
         $this->assertInstanceOf(UserPassword::class, $pwd);
     }
 
@@ -90,7 +90,7 @@ class UserPasswordTest extends TestCase
     public function throws_exception_for_missing_uppercase(): void
     {
         // Uppercase requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('lowercase123');
+        $pwd = UserPassword::fromPlainText('lowercase123', $this->hasher);
         $this->assertInstanceOf(UserPassword::class, $pwd);
     }
 
@@ -98,7 +98,7 @@ class UserPasswordTest extends TestCase
     public function throws_exception_for_missing_digit(): void
     {
         // Digit requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('NoDigitsHere');
+        $pwd = UserPassword::fromPlainText('NoDigitsHere', $this->hasher);
         $this->assertInstanceOf(UserPassword::class, $pwd);
     }
 
@@ -113,7 +113,7 @@ class UserPasswordTest extends TestCase
 
         foreach ($weakPasswords as $weakPassword) {
             $this->expectException(InvalidArgumentException::class);
-            UserPassword::fromPlainText($weakPassword);
+            UserPassword::fromPlainText($weakPassword, $this->hasher);
         }
     }
 }

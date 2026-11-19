@@ -56,8 +56,8 @@ final class EloquentSubscriptionMapper
         return [
             'subscription_plan_id' => $data->planId->value,
             'status' => $data->status->value,
-            'amount' => $data->amount->getAmount(),
-            'currency' => $data->amount->getCurrency(),
+            'amount' => $data->amount->amount,
+            'currency' => $data->amount->currency,
             'starts_at' => $data->starts,
             'ends_at' => $data->ends,
             'trial_ends_at' => $data->trialEnds,
