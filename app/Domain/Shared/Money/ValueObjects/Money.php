@@ -1,36 +1,28 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Shared\Money\ValueObjects;
 
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
 use InvalidArgumentException;
 
 /**
- * Money value object.
- * Immutable representation of a non-negative monetary amount with currency code.
+ * A non-negative amount as a canonical decimal string (no exponent, no trailing zeros)
+ * with an uppercase ISO 4217 currency code.
  */
-class Money
+final readonly class Money
 {
-    /** @var string ISO 4217 uppercase currency code */
-    private string $currency;
-
-    /** @var string Canonical string decimal representation (no scientific, trimmed zeros) */
-    private string $amount;
-
     /** Rounding strategy: standard half up (5 rounds up). */
     public const ROUND_HALF_UP = 'HALF_UP';
 
     /** Rounding strategy: bankers (half to even). */
     public const ROUND_BANKERS = 'BANKERS';
 
-    /**
-     * Private constructor to enforce factory usage.
-     */
-    private function __construct(string $amount, string $currency)
-    {
-        $this->currency = strtoupper($currency);
-        $this->amount = $amount; // normalized
-    }
+    private function __construct(
+        public string $amount,
+        public string $currency,
+    ) {}
 
     /**
      * Create Money from string decimal amount (up to 8 fractional digits).
@@ -49,24 +41,8 @@ class Money
 
         return new self(
             self::normalizeStringAmount($amount),
-            $currency,
+            strtoupper($currency),
         );
-    }
-
-    /**
-     * Summary of getAmount
-     */
-    public function getAmount(): string
-    {
-        return $this->amount;
-    }
-
-    /**
-     * Summary of getCurrency
-     */
-    public function getCurrency(): string
-    {
-        return $this->currency;
     }
 
     /**

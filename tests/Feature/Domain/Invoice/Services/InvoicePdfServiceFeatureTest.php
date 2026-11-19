@@ -106,8 +106,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         );
         $this->assertNotNull($qr->payload);
         $this->assertSame('20260001', $qr->payload->variableSymbol);
-        $this->assertSame('1210', $qr->payload->amount->getAmount());
-        $this->assertSame('CZK', $qr->payload->amount->getCurrency());
+        $this->assertSame('1210', $qr->payload->amount->amount);
+        $this->assertSame('CZK', $qr->payload->amount->currency);
         $this->assertSame('2001234561', $qr->payload->account?->number);
         $this->assertSame('2010', $qr->payload->account?->bankCode);
         $this->assertSame('CZ', $qr->payload->account?->country->value);
@@ -230,9 +230,9 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 ]],
             ],
         );
-        $this->assertSame('250', $print->subtotal->getAmount());
-        $this->assertSame('52.5', $print->totalTax->getAmount());
-        $this->assertSame('302.5', $print->totalAmount->getAmount());
+        $this->assertSame('250', $print->subtotal->amount);
+        $this->assertSame('52.5', $print->totalTax->amount);
+        $this->assertSame('302.5', $print->totalAmount->amount);
         $html = $this->renderPdfHtml($print, $template);
         $this->assertStringContainsString('Guest service', $html);
         $dom = new DOMDocument;

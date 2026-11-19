@@ -80,7 +80,7 @@ final class EloquentInvoiceMapper
             'due_in' => $data->dueIn,
             'payment_method_id' => $data->paymentMethodId->getValue(),
             'payment_currency' => $data->currency->value,
-            'payment_amount' => $total->getAmount(),
+            'payment_amount' => $total->amount,
             'invoice_text' => $data->text,
             'template' => $data->template->value,
         ];

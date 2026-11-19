@@ -16,8 +16,8 @@ final class MoneyTest extends TestCase
     public function can_create_from_string(): void
     {
         $m = Money::fromString('0010.5000', 'EUR');
-        $this->assertSame('10.5', $m->getAmount());
-        $this->assertSame('EUR', $m->getCurrency());
+        $this->assertSame('10.5', $m->amount);
+        $this->assertSame('EUR', $m->currency);
     }
 
     #[Test]
@@ -54,7 +54,7 @@ final class MoneyTest extends TestCase
         $a = Money::fromString('10.50', 'EUR');
         $b = Money::fromString('2.005', 'EUR');
         $sum = $a->add($b);
-        $this->assertSame('12.505', $sum->getAmount());
+        $this->assertSame('12.505', $sum->amount);
     }
 
     #[Test]
@@ -63,7 +63,7 @@ final class MoneyTest extends TestCase
         $a = Money::fromString('15.750', 'EUR');
         $b = Money::fromString('0.75', 'EUR');
         $diff = $a->subtract($b);
-        $this->assertSame('15', $diff->getAmount());
+        $this->assertSame('15', $diff->amount);
     }
 
     #[Test]
@@ -90,12 +90,12 @@ final class MoneyTest extends TestCase
         $a = Money::fromString('10.5000', 'CZK');
         $b = Money::fromString('0.5000', 'CZK');
         $sum = $a->add($b); // 11.0 -> normalized to 11
-        $this->assertSame('11', $sum->getAmount());
+        $this->assertSame('11', $sum->amount);
 
         $diff = $sum->subtract(
             Money::fromString('0.50', 'CZK'),
         ); // 10.5
-        $this->assertSame('10.5', $diff->getAmount());
+        $this->assertSame('10.5', $diff->amount);
     }
 
     #[Test]
@@ -117,7 +117,7 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('2.05', 'EUR');
         $result = $m->multiply(3); // 6.15
-        $this->assertSame('6.15', $result->getAmount());
+        $this->assertSame('6.15', $result->amount);
     }
 
     #[Test]
@@ -125,7 +125,7 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('99.99', 'USD');
         $result = $m->multiply(0);
-        $this->assertSame('0', $result->getAmount());
+        $this->assertSame('0', $result->amount);
     }
 
     #[Test]
@@ -141,7 +141,7 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('10', 'USD');
         $result = $m->divide(4, 4); // 2.5
-        $this->assertSame('2.5', $result->getAmount());
+        $this->assertSame('2.5', $result->amount);
     }
 
     #[Test]
@@ -149,7 +149,7 @@ final class MoneyTest extends TestCase
     {
         $m = Money::fromString('1', 'USD');
         $result = $m->divide(3, 6); // 0.333333
-        $this->assertSame('0.333333', $result->getAmount());
+        $this->assertSame('0.333333', $result->amount);
     }
 
     #[Test]
@@ -179,7 +179,7 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_HALF_UP,
         ); // 0.50 -> normalized 0.5
-        $this->assertSame('0.5', $r->getAmount());
+        $this->assertSame('0.5', $r->amount);
     }
 
     #[Test]
@@ -191,7 +191,7 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_HALF_UP,
         );
-        $this->assertSame('0.13', $r->getAmount());
+        $this->assertSame('0.13', $r->amount);
     }
 
     #[Test]
@@ -203,7 +203,7 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_BANKERS,
         );
-        $this->assertSame('0.12', $r->getAmount());
+        $this->assertSame('0.12', $r->amount);
     }
 
     #[Test]
@@ -215,7 +215,7 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_BANKERS,
         );
-        $this->assertSame('0.14', $r->getAmount());
+        $this->assertSame('0.14', $r->amount);
     }
 
     #[Test]
@@ -232,8 +232,8 @@ final class MoneyTest extends TestCase
             0,
             Money::ROUND_BANKERS,
         ); // 2 even -> 2
-        $this->assertSame('3', $halfUp->getAmount());
-        $this->assertSame('2', $bankers->getAmount());
+        $this->assertSame('3', $halfUp->amount);
+        $this->assertSame('2', $bankers->amount);
     }
 
     #[Test]
@@ -245,7 +245,7 @@ final class MoneyTest extends TestCase
             0,
             Money::ROUND_BANKERS,
         );
-        $this->assertSame('8', $bankers->getAmount());
+        $this->assertSame('8', $bankers->amount);
     }
 
     #[Test]
@@ -262,8 +262,8 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_BANKERS,
         );
-        $this->assertSame('0.01', $halfUp->getAmount());
-        $this->assertSame('0', $bankers->getAmount());
+        $this->assertSame('0.01', $halfUp->amount);
+        $this->assertSame('0', $bankers->amount);
     }
 
     #[Test]
@@ -272,8 +272,8 @@ final class MoneyTest extends TestCase
         $money = Money::fromString('249.30', 'CZK');
         $line = $money->multiplyBy('1.5');
 
-        $this->assertSame('373.95', $line->getAmount());
-        $this->assertSame('CZK', $line->getCurrency());
+        $this->assertSame('373.95', $line->amount);
+        $this->assertSame('CZK', $line->currency);
     }
 
     #[Test]
@@ -284,19 +284,19 @@ final class MoneyTest extends TestCase
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.05',
-            $money->getAmount(),
+            $money->amount,
         );
         $money = Money::fromString('0.10', 'CZK');
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.02',
-            $money->getAmount(),
+            $money->amount,
         );
         $money = Money::fromString('0.50', 'CZK');
         $money = $money->multiplyBy('0.21');
         $this->assertSame(
             '0.11',
-            $money->getAmount(),
+            $money->amount,
         );
     }
 
@@ -307,13 +307,13 @@ final class MoneyTest extends TestCase
         $money = $money->multiplyBy('0');
         $this->assertSame(
             '0',
-            $money->getAmount(),
+            $money->amount,
         );
         $money = Money::fromString('0', 'EUR');
         $money = $money->multiplyBy('1.5');
         $this->assertSame(
             '0',
-            $money->getAmount(),
+            $money->amount,
         );
     }
 
@@ -362,7 +362,7 @@ final class MoneyTest extends TestCase
             2,
             Money::ROUND_HALF_UP,
         );
-        $this->assertSame('12.35', $converted->getAmount()); // 10 * 1.2345 = 12.345 -> 12.35
+        $this->assertSame('12.35', $converted->amount); // 10 * 1.2345 = 12.345 -> 12.35
     }
 
     #[Test]
@@ -377,7 +377,7 @@ final class MoneyTest extends TestCase
             Money::ROUND_BANKERS,
         );
         // 12.355 bankers -> 12.36 because previous kept digit is 5 (odd)
-        $this->assertSame('12.36', $converted->getAmount());
+        $this->assertSame('12.36', $converted->amount);
     }
 
     #[Test]
@@ -400,7 +400,7 @@ final class MoneyTest extends TestCase
             0,
             Money::ROUND_HALF_UP,
         );
-        $this->assertSame('4', $converted->getAmount());
+        $this->assertSame('4', $converted->amount);
     }
 
     #[Test]
@@ -411,7 +411,7 @@ final class MoneyTest extends TestCase
         $converted = $m->convertTo('USD', $exchange);
         $this->assertSame(
             '0',
-            $converted->getAmount(),
+            $converted->amount,
         );
     }
 

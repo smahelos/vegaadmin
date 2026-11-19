@@ -85,7 +85,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $this->assertSame($country, $payload->account?->country->value);
         $this->assertSame($iban, $payload->account?->iban);
         $this->assertSame($snapshot->account, $payload->account);
-        $this->assertSame('1500.5', $payload->amount->getAmount());
+        $this->assertSame('1500.5', $payload->amount->amount);
         $this->assertNotNull(
             (new QrPaymentService($renderer))->generateQrCodeBase64($payload),
         );

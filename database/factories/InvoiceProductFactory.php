@@ -54,15 +54,15 @@ class InvoiceProductFactory extends Factory
             'product_id' => Product::factory(),
             'name' => $line->name,
             'quantity' => $line->quantity,
-            'price' => $line->price->getAmount(),
-            'currency' => $line->price->getCurrency(),
+            'price' => $line->price->amount,
+            'currency' => $line->price->currency,
             'unit' => $line->unit->value,
             'category' => $optional->word(),
             'description' => $optional->sentence(),
             'is_custom_product' => $this->faker->boolean(20), // 20% chance of being custom
             'tax_rate' => $line->taxRate,
-            'tax_amount' => $taxAmount->getAmount(),
-            'total_price' => $total->getAmount(),
+            'tax_amount' => $taxAmount->amount,
+            'total_price' => $total->amount,
         ];
     }
 }

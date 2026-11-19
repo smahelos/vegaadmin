@@ -48,7 +48,7 @@ final class CreateGuestInvoiceHandler
             $this->products->fromValidated($data['invoice-products']),
         );
         $total = $totals->total();
-        $data['payment_amount'] = $total->getAmount();
+        $data['payment_amount'] = $total->amount;
 
         $token = $this->store->store($data);
 

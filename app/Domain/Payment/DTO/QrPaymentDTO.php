@@ -24,7 +24,7 @@ final readonly class QrPaymentDTO
             2,
             Money::ROUND_HALF_UP,
         );
-        $rounded = $money->getAmount();
+        $rounded = $money->amount;
         $parts = explode(
             '.',
             $rounded,

@@ -267,8 +267,8 @@ class InvoiceFeatureTest extends TestCase
         );
 
         $money = $invoice->payment_amount_money; // Money VO
-        $this->assertEquals('1234.56', $money->getAmount());
-        $this->assertEquals('EUR', $money->getCurrency());
+        $this->assertEquals('1234.56', $money->amount);
+        $this->assertEquals('EUR', $money->currency);
     }
 
     #[Test]
@@ -286,7 +286,7 @@ class InvoiceFeatureTest extends TestCase
         $invoice->refresh();
         $money = $invoice->payment_amount_money;
         $this->assertSame('9007199254740993.01', $invoice->payment_amount);
-        $this->assertSame('9007199254740993.01', $money->getAmount());
+        $this->assertSame('9007199254740993.01', $money->amount);
     }
 
     #[Test]
@@ -317,8 +317,8 @@ class InvoiceFeatureTest extends TestCase
         );
 
         $money = $invoice->subtotal_money; // Money VO
-        $this->assertEquals('350', $money->getAmount());
-        $this->assertEquals('CZK', $money->getCurrency());
+        $this->assertEquals('350', $money->amount);
+        $this->assertEquals('CZK', $money->currency);
     }
 
     #[Test]
@@ -365,8 +365,8 @@ class InvoiceFeatureTest extends TestCase
         );
 
         $money = $invoice->total_tax_money;
-        $this->assertEquals('33', $money->getAmount());
-        $this->assertEquals('USD', $money->getCurrency());
+        $this->assertEquals('33', $money->amount);
+        $this->assertEquals('USD', $money->currency);
     }
 
     private function invoiceDueDaysAgo(InvoiceStatus $status, int $days): Invoice

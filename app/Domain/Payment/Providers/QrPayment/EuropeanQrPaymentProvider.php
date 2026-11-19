@@ -14,7 +14,7 @@ final class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
     public function validatePaymentInfo(QrPaymentDTO $payload): bool
     {
         return in_array(
-            $payload->amount->getCurrency(),
+            $payload->amount->currency,
             self::SUPPORTED_CURRENCIES,
             true,
         )

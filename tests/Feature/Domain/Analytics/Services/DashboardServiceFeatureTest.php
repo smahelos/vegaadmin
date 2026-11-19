@@ -31,7 +31,7 @@ final class DashboardServiceFeatureTest extends TestCase
         $this->assertSame(0, $stats->contactCount);
         $this->assertSame(0, $stats->businessCount);
         $this->assertInstanceOf(Money::class, $stats->totalAmount);
-        $this->assertSame('0', $stats->totalAmount->getAmount());
+        $this->assertSame('0', $stats->totalAmount->amount);
         $this->assertSame(0.0, $stats->totalAmount->toFloat());
     }
 

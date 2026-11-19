@@ -40,13 +40,13 @@ class DeterministicExchangeFeatureTest extends TestCase
             'USD',
             app(CurrencyExchangeServiceInterface::class),
         );
-        $this->assertSame('125', $usd->getAmount());
+        $this->assertSame('125', $usd->amount);
 
         $czk = $usd->convertTo(
             'CZK',
             app(CurrencyExchangeServiceInterface::class),
         ); // CZK/USD = 20 / 1.0 = 20 -> 125 *20 = 2500
-        $this->assertSame('2500', $czk->getAmount());
+        $this->assertSame('2500', $czk->amount);
     }
 
     #[Test]

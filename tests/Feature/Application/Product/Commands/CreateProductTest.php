@@ -39,8 +39,8 @@ final class CreateProductTest extends TestCase
             ],
         );
 
-        $this->assertSame('123.45', $product->price?->getAmount());
-        $this->assertSame('CZK', $product->price?->getCurrency());
+        $this->assertSame('123.45', $product->price?->amount);
+        $this->assertSame('CZK', $product->price?->currency);
         $this->assertSame($owner->id, $product->user_id);
     }
 
