@@ -34,7 +34,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function findAccount(ReadScope $scope): ?UserDTO
     {
         $query = User::query();
-        $user = $query->find($scope->owner->toInt());
+        $user = $query->find($scope->owner->value);
 
         return $user === null ? null : $this->mapper->toDto($user);
     }
@@ -101,7 +101,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function updateAccount(WriteScope $scope, UserWriteData $data): void
     {
         $query = User::query();
-        $user = $query->findOrFail($scope->owner->toInt());
+        $user = $query->findOrFail($scope->owner->value);
         $user->update(
             $this->mapper->toAttributes($data),
         );
@@ -110,7 +110,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function changePassword(WriteScope $scope, UserPassword $password): void
     {
         $query = User::query();
-        $query->whereKey($scope->owner->toInt());
+        $query->whereKey($scope->owner->value);
         // Already hashed by UserPassword; the model's hashed cast stores a hash as it is
         $query->update(['password' => (string) $password]);
     }
@@ -118,7 +118,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function lockForUpdate(UserId $id): void
     {
         $query = User::query();
-        $query->whereKey($id->toInt());
+        $query->whereKey($id->value);
         $query->lockForUpdate();
         $query->firstOrFail();
     }
@@ -126,7 +126,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function planRoleAssignedAt(UserId $id): ?DateTimeImmutable
     {
         $query = User::query();
-        $user = $query->findOrFail($id->toInt());
+        $user = $query->findOrFail($id->value);
 
         return $user->getAttribute('plan_role_assigned_at');
     }
@@ -134,7 +134,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function assignRole(UserId $id, string $role): void
     {
         $query = User::query();
-        $user = $query->findOrFail($id->toInt());
+        $user = $query->findOrFail($id->value);
         // By the role itself, not its name: a name alone resolves in the user's default guard only
         $roleQuery = Role::query();
         $roleQuery->where('name', $role);
@@ -154,7 +154,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
         array $permissionIds,
     ): void {
         $query = User::query();
-        $user = $query->findOrFail($id->toInt());
+        $user = $query->findOrFail($id->value);
         $roles = $user->roles();
         $roles->sync($roleIds);
         $permissions = $user->permissions();
@@ -165,7 +165,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
     public function recordPlanRoleAssignment(UserId $id, DateTimeImmutable $assigned): void
     {
         $query = User::query();
-        $query->whereKey($id->toInt());
+        $query->whereKey($id->value);
         $query->update(['plan_role_assigned_at' => $assigned]);
     }
 }

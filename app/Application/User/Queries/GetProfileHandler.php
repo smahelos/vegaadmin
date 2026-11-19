@@ -21,6 +21,6 @@ final class GetProfileHandler
     public function handle(GetProfile $query, ReadScope $scope): UserDTO
     {
         return $this->users->findAccount($scope)
-            ?? throw new UserNotFoundException((string) $scope->owner->toInt());
+            ?? throw new UserNotFoundException((string) $scope->owner->value);
     }
 }

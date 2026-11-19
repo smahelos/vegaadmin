@@ -253,21 +253,21 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         $expenseFactory = Expense::factory();
         $expenseFactory->create(
             [
-                'user_id' => $this->owner->toInt(),
+                'user_id' => $this->owner->value,
                 'expense_date' => '2026-01-03',
                 'amount' => 120,
             ],
         );
         $expenseFactory->create(
             [
-                'user_id' => $this->owner->toInt(),
+                'user_id' => $this->owner->value,
                 'expense_date' => '2026-01-28',
                 'amount' => 80,
             ],
         );
         $expenseFactory->create(
             [
-                'user_id' => $this->owner->toInt(),
+                'user_id' => $this->owner->value,
                 'expense_date' => '2026-03-01',
                 'amount' => 50,
             ],

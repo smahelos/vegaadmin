@@ -25,7 +25,7 @@ final class ProductService
     {
         $validatedData = $this->validator->validateForCreation(
             $writeData->toArray(),
-            $scope->owner->toInt(),
+            $scope->owner->value,
         );
 
         // The owner's first product is their default one

@@ -105,7 +105,7 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         ?DateTimeImmutable $to,
     ): array {
         $query = Expense::query();
-        $query->where('expenses.user_id', $scope->owner->toInt());
+        $query->where('expenses.user_id', $scope->owner->value);
         $query->where(
             'expenses.expense_date',
             '>=',
@@ -207,7 +207,7 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
         array $contactIds,
     ): Builder {
         $query = Invoice::query();
-        $query->where('invoices.user_id', $scope->owner->toInt());
+        $query->where('invoices.user_id', $scope->owner->value);
         $query->where(
             'invoices.issue_date',
             '>=',

@@ -33,7 +33,7 @@ final class GrantStore
 
     public function for(UserId $user, string $guard): Grants
     {
-        $id = $user->toInt();
+        $id = $user->value;
         if (isset($this->uncommitted[$id])) {
             return $this->load($id, $guard);
         }
@@ -49,7 +49,7 @@ final class GrantStore
     public function limits(UserId $user, string $guard): array
     {
         $grants = $this->for($user, $guard);
-        $id = $user->toInt();
+        $id = $user->value;
         if (isset($this->uncommitted[$id])) {
             return $this->loadLimits($grants->roles);
         }
@@ -59,7 +59,7 @@ final class GrantStore
 
     public function forget(UserId $user): void
     {
-        $id = $user->toInt();
+        $id = $user->value;
         unset($this->grants[$id], $this->limits[$id]);
         // Neither a rollback nor a failed commit reliably reports itself, so roles read before the commit are not
         // kept: until it commits, each question reads the user's roles again, which then are the stored ones

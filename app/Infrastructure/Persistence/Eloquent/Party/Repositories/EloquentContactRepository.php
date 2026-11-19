@@ -91,7 +91,7 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
     public function create(WriteScope $scope, ContactWriteData $data): ContactDTO
     {
         $contact = $this->records->save(
-            new Contact(['user_id' => $scope->owner->toInt()]),
+            new Contact(['user_id' => $scope->owner->value]),
             EloquentContactMapper::toAttributes($data),
             $data->profile->address,
         );
@@ -137,7 +137,7 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
     {
         $query = Contact::query();
         $query->whereKey($id->value);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
 
         return $query;
     }
@@ -149,7 +149,7 @@ final class EloquentContactRepository implements ContactReadRepositoryInterface,
     {
         $query = Contact::query();
         $query->with('address');
-        $query->where('user_id', $userId->toInt());
+        $query->where('user_id', $userId->value);
 
         return $query;
     }

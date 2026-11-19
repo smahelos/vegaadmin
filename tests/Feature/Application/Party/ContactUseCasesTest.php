@@ -361,7 +361,7 @@ final class ContactUseCasesTest extends TestCase
 
         Event::assertDispatched(
             ContactCreated::class,
-            fn (ContactCreated $event): bool => $event->userId->toInt() === $user->id,
+            fn (ContactCreated $event): bool => $event->userId->value === $user->id,
         );
     }
 

@@ -19,7 +19,7 @@ final class AmbiguousPlanRoleException extends DomainException
     public function __construct(UserId $user, array $roles)
     {
         parent::__construct(
-            "User {$user->toInt()} holds several plan roles: " . implode(', ', $roles),
+            "User {$user->value} holds several plan roles: " . implode(', ', $roles),
         );
     }
 }

@@ -17,7 +17,7 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
             'paymentMethod',
             'paymentStatus',
         ]);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
 
         return $query->find($id->value);
     }

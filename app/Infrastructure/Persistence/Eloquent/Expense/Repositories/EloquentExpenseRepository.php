@@ -21,7 +21,7 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
     {
         $query = Expense::query();
         $query->whereKey($id->value);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $expense = $query->first();
 
         return $expense === null ? null : EloquentExpenseMapper::toDTO($expense);
@@ -54,7 +54,7 @@ final class EloquentExpenseRepository implements ExpenseReadRepositoryInterface,
     ): ExpenseDTO {
         $query = Expense::query();
         $query->whereKey($id->value);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $expense = $query->firstOrFail();
         $expense->fill(
             EloquentExpenseMapper::toAttributes(

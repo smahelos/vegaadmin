@@ -139,7 +139,7 @@ final class AuthorizingUseCaseRunner implements AuthorizingUseCaseRunnerInterfac
         $owner = $useCase->owner;
         $allowed = match ($actor->kind) {
             // A user reaches only their own data; delivery passes the signed-in user as the owner
-            ActorKind::USER => $owner->toInt() === $actor->user?->toInt(),
+            ActorKind::USER => $owner->value === $actor->user?->value,
             ActorKind::ADMIN => !$access->withOwner || $this->ownerHoldsPermission($owner, $access->permissions),
             // Without a user the owner would come from input; no owned use case is public or system yet
             ActorKind::ANONYMOUS, ActorKind::SYSTEM => false,

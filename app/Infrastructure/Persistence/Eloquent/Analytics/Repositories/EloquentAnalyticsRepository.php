@@ -25,13 +25,13 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
 {
     public function getUserStats(ReadScope $scope): UserStatisticsDTO
     {
-        $query = Invoice::where('user_id', $scope->owner->toInt());
+        $query = Invoice::where('user_id', $scope->owner->value);
         $invoices = $query->count();
-        $query = Contact::where('user_id', $scope->owner->toInt());
+        $query = Contact::where('user_id', $scope->owner->value);
         $contacts = $query->count();
-        $query = Business::where('user_id', $scope->owner->toInt());
+        $query = Business::where('user_id', $scope->owner->value);
         $businesses = $query->count();
-        $query = Invoice::where('user_id', $scope->owner->toInt());
+        $query = Invoice::where('user_id', $scope->owner->value);
         $revenue = $query->sum('payment_amount');
 
         return new UserStatisticsDTO(
@@ -47,7 +47,7 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
 
     public function getCustomersWithTotals(ReadScope $scope): array
     {
-        $query = Invoice::where('invoices.user_id', $scope->owner->toInt());
+        $query = Invoice::where('invoices.user_id', $scope->owner->value);
         $query = CustomerRevenueQuery::group($query);
         $query->orderByDesc('total');
         $baseQuery = $query->toBase();
@@ -62,7 +62,7 @@ final class EloquentAnalyticsRepository implements AnalyticsReadRepositoryInterf
         $customers = $customers->all();
 
         // The dashboard filter also offers contacts that do not yet have invoices.
-        $query = Contact::where('user_id', $scope->owner->toInt());
+        $query = Contact::where('user_id', $scope->owner->value);
         $contactIds = $rows->pluck('contact_id');
         $contactIds = $contactIds->filter();
         $query->whereNotIn(

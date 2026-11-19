@@ -24,7 +24,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
     ): PaginatedResult {
         $query = Invoice::query();
         $query->with(['paymentMethod', 'paymentStatus']);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         if ($search->term !== '') {
             $query->where(
                 static function (Builder $query) use ($search): void {
@@ -104,7 +104,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
     public function businessFilters(ReadScope $scope): array
     {
         $query = Business::query();
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $query->orderBy('name');
         $query->orderBy('id');
         $businesses = $query->get([
@@ -122,7 +122,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
     public function contactFilters(ReadScope $scope): array
     {
         $query = Contact::query();
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $query->orderBy('name');
         $query->orderBy('id');
         $contacts = $query->get([

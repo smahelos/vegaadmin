@@ -36,7 +36,7 @@ final class EloquentExpenseMapper
     ): array {
         return [
             ...EloquentDocumentPartiesMapper::toAttributes($parties),
-            'user_id' => $userId->toInt(),
+            'user_id' => $userId->value,
             'expense_date' => $data->expenseDate->format('Y-m-d'),
             'amount' => $data->amount->amount,
             'currency' => $data->amount->currency,

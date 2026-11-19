@@ -28,7 +28,7 @@ final class EloquentSubscriptionDtoReadRepository implements SubscriptionDtoRead
     public function findActive(ReadScope $scope): ?SubscriptionDTO
     {
         $subscriptionQuery = Subscription::with('subscriptionPlan');
-        $subscriptionQuery->where('user_id', $scope->owner->toInt());
+        $subscriptionQuery->where('user_id', $scope->owner->value);
         $subscriptionQuery->where('status', SubscriptionStatus::ACTIVE->value);
         $subscription = $subscriptionQuery->first();
 

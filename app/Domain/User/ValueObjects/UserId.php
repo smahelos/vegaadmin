@@ -1,23 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\User\ValueObjects;
 
-class UserId
+use InvalidArgumentException;
+
+final readonly class UserId
 {
-    public function __construct(private readonly int $value)
-    {
+    public function __construct(
+        public int $value,
+    ) {
         if ($value <= 0) {
-            throw new \InvalidArgumentException('User ID must be positive integer');
+            throw new InvalidArgumentException('User ID must be positive integer');
         }
     }
 
     public static function fromInt(int $value): self
     {
         return new self($value);
-    }
-
-    public function toInt(): int
-    {
-        return $this->value;
     }
 }

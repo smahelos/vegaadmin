@@ -81,7 +81,7 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
                 "{$entity->value} have a monthly quota, not a capacity",
             ),
         };
-        $query->where('user_id', $owner->toInt());
+        $query->where('user_id', $owner->value);
 
         // Products cannot be archived yet (TECH_DEBT step 12), so every product takes a place
         if ($entity !== LimitedEntity::PRODUCT) {
@@ -110,7 +110,7 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
         $storedZone = new DateTimeZone(
             config('app.timezone'),
         );
-        $query->where('user_id', $owner->toInt());
+        $query->where('user_id', $owner->value);
         $query->where(
             'created_at',
             '>=',

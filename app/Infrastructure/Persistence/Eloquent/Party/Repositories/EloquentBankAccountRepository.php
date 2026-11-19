@@ -52,7 +52,7 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
     public function findDefaultIdForOwner(ReadScope $scope, AccountOwner $owner): ?BankAccountId
     {
         $query = $this->ownerQuery($owner);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $id = $query->value('default_bank_account_id');
 
         return $id === null ? null : BankAccountId::fromInt($id);
@@ -64,7 +64,7 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
         BankAccountWriteData $data,
     ): BankAccountDTO {
         $ownerQuery = $this->ownerQuery($owner);
-        $ownerQuery->where('user_id', $scope->owner->toInt());
+        $ownerQuery->where('user_id', $scope->owner->value);
         // Exactly one id is set, so the owner is looked up once
         if ($owner->businessId !== null && !$ownerQuery->exists()) {
             throw new BusinessNotFoundException($owner->businessId);
@@ -117,7 +117,7 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
         ?BankAccountId $id,
     ): void {
         $query = $this->ownerQuery($owner);
-        $query->where('user_id', $scope->owner->toInt());
+        $query->where('user_id', $scope->owner->value);
         $query->update(['default_bank_account_id' => $id?->value]);
     }
 
@@ -133,11 +133,11 @@ final class EloquentBankAccountRepository implements BankAccountReadRepositoryIn
             function (Builder $owner) use ($userId): void {
                 $owner->whereHas(
                     'business',
-                    fn (Builder $business) => $business->where('user_id', $userId->toInt()),
+                    fn (Builder $business) => $business->where('user_id', $userId->value),
                 );
                 $owner->orWhereHas(
                     'contact',
-                    fn (Builder $contact) => $contact->where('user_id', $userId->toInt()),
+                    fn (Builder $contact) => $contact->where('user_id', $userId->value),
                 );
             },
         );
