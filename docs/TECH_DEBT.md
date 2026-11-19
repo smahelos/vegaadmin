@@ -455,6 +455,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** the action reads `q` straight from the request, so `?q[]=x` passes an array to `strlen()` and answers 500 instead of a validation error. Found 2026-11-18 in the review of phase 7 of step 11.
 - **Fix:** a form request with `q` as a nullable string of limited length (`rules/http.md`, Form requests), with a test of the array input.
 
+### A common password ends with a 500
+- **Where:** `PasswordUpdateRequest`, `ChangePasswordHandler`, `UserPassword::fromPlainText()`, `app/Exceptions/ExceptionHandling.php`
+- **Problem:** the request checks only the length, so `password123` passes; `UserPassword` then refuses it as too common with an `InvalidArgumentException` that nothing maps, and the profile password change answers 500 instead of a validation error. Found 2026-11-19 in the review of the value object accessors (step 11).
+- **Fix:** a User exception for a common password, rendered by `ExceptionHandling` as an error of the `password` field (like `DuplicateCompanyNumberException`), with its message in all four locales and an HTTP test.
+
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
 - **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
