@@ -1,119 +1,79 @@
 <?php
 
-namespace Tests\Feature\Domain\User\ValueObjects;
+declare(strict_types=1);
 
-use App\Domain\Shared\Hash\Contracts\HashInterface;
+namespace Tests\Unit\Domain\User\ValueObjects;
+
 use App\Domain\User\ValueObjects\UserPassword;
 use InvalidArgumentException;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use Tests\TestCase;
+use PHPUnit\Framework\TestCase;
+use Tests\Support\Fakes\Shared\PrefixHash;
 
-class UserPasswordTest extends TestCase
+final class UserPasswordTest extends TestCase
 {
-    private HashInterface $hasher;
-
-    protected function setUp(): void
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function unrestrictedPasswords(): array
     {
-        parent::setUp();
-        $this->hasher = new class implements HashInterface
-        {
-            public function hash(string $value): string
-            {
-                return password_hash(
-                    $value,
-                    PASSWORD_BCRYPT,
-                    ['cost' => 4],
-                );
-            }
+        return [
+            'short' => ['Ab1'],
+            'long' => [str_repeat('A', 256) . '1a'],
+            'no lowercase' => ['UPPERCASE123'],
+            'no uppercase' => ['lowercase123'],
+            'no digit' => ['NoDigitsHere'],
+        ];
+    }
 
-            public function verify(string $value, string $hash): bool
-            {
-                return password_verify($value, $hash);
-            }
-
-            public function needsRehash(string $hash): bool
-            {
-                return password_needs_rehash(
-                    $hash,
-                    PASSWORD_BCRYPT,
-                    ['cost' => 4],
-                );
-            }
-        };
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function commonPasswords(): array
+    {
+        return [
+            'password123' => ['Password123'],
+            'admin123' => ['Admin123'],
+            'test123' => ['Test123'],
+        ];
     }
 
     #[Test]
-    public function holds_a_hash_of_the_plain_password(): void
+    #[DataProvider('unrestrictedPasswords')]
+    public function holds_the_hash_of_the_plain_password(string $plainPassword): void
     {
-        $password = UserPassword::fromPlainText('ValidPassword123', $this->hasher);
+        $password = UserPassword::fromPlainText(
+            $plainPassword,
+            new PrefixHash,
+        );
 
-        $this->assertTrue(
-            password_verify('ValidPassword123', $password->hash),
+        $this->assertSame(
+            'hash:' . $plainPassword,
+            $password->hash,
         );
     }
 
     #[Test]
-    public function throws_exception_for_empty_plain_password(): void
+    public function rejects_an_empty_password(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        UserPassword::fromPlainText('', $this->hasher);
+        UserPassword::fromPlainText(
+            '',
+            new PrefixHash,
+        );
     }
 
     #[Test]
-    public function throws_exception_for_too_short_password(): void
+    #[DataProvider('commonPasswords')]
+    public function rejects_a_common_password_in_any_letter_case(string $plainPassword): void
     {
-        // Current implementation does NOT throw for short passwords; only common weak passwords are rejected.
-        // Keep test as behavioral assertion: short password should still produce a hash (discouraged but allowed here).
-        $pwd = UserPassword::fromPlainText('Ab1', $this->hasher);
-        $this->assertInstanceOf(UserPassword::class, $pwd);
-    }
+        $this->expectException(InvalidArgumentException::class);
 
-    #[Test]
-    public function throws_exception_for_too_long_password(): void
-    {
-        // Current implementation does NOT enforce max length; assert object is still created.
-        $tooLongPassword = str_repeat('A', 256) . '1a';
-        $pwd = UserPassword::fromPlainText($tooLongPassword, $this->hasher);
-        $this->assertInstanceOf(UserPassword::class, $pwd);
-    }
-
-    #[Test]
-    public function throws_exception_for_missing_lowercase(): void
-    {
-        // Lowercase requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('UPPERCASE123', $this->hasher);
-        $this->assertInstanceOf(UserPassword::class, $pwd);
-    }
-
-    #[Test]
-    public function throws_exception_for_missing_uppercase(): void
-    {
-        // Uppercase requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('lowercase123', $this->hasher);
-        $this->assertInstanceOf(UserPassword::class, $pwd);
-    }
-
-    #[Test]
-    public function throws_exception_for_missing_digit(): void
-    {
-        // Digit requirement not enforced in current implementation
-        $pwd = UserPassword::fromPlainText('NoDigitsHere', $this->hasher);
-        $this->assertInstanceOf(UserPassword::class, $pwd);
-    }
-
-    #[Test]
-    public function throws_exception_for_weak_common_passwords(): void
-    {
-        $weakPasswords = [
-            'Password123',
-            'Admin123',
-            'Test123',
-        ];
-
-        foreach ($weakPasswords as $weakPassword) {
-            $this->expectException(InvalidArgumentException::class);
-            UserPassword::fromPlainText($weakPassword, $this->hasher);
-        }
+        UserPassword::fromPlainText(
+            $plainPassword,
+            new PrefixHash,
+        );
     }
 }
