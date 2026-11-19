@@ -10,7 +10,6 @@ use App\Application\User\Commands\ChangePassword;
 use App\Application\User\Commands\UpdateProfile;
 use App\Application\User\Queries\GetProfile;
 use App\Domain\User\ValueObjects\UserId;
-use App\Domain\User\ValueObjects\UserPassword;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PasswordUpdateRequest;
 use App\Http\Requests\UserRequest;
@@ -73,9 +72,7 @@ final class ProfileController extends Controller
             Actor::user($owner),
             new ChangePassword(
                 $owner,
-                UserPassword::fromPlainText(
-                    (string) $request->string('password'),
-                ),
+                (string) $request->string('password'),
             ),
         );
 

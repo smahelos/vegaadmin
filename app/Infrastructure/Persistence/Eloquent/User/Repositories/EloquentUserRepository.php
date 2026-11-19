@@ -112,7 +112,7 @@ final class EloquentUserRepository implements UserReadRepositoryInterface, UserW
         $query = User::query();
         $query->whereKey($scope->owner->value);
         // Already hashed by UserPassword; the model's hashed cast stores a hash as it is
-        $query->update(['password' => (string) $password]);
+        $query->update(['password' => $password->hash]);
     }
 
     public function lockForUpdate(UserId $id): void

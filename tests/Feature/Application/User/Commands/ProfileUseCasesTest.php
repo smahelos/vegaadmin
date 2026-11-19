@@ -11,7 +11,6 @@ use App\Application\User\Commands\UpdateProfile;
 use App\Application\User\Queries\GetProfile;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\Exceptions\PermissionDeniedException;
-use App\Domain\User\ValueObjects\UserPassword;
 use Illuminate\Support\Facades\Hash;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsBackendUsers;
@@ -59,7 +58,7 @@ final class ProfileUseCasesTest extends TestCase
             $this->idOf($user),
             new ChangePassword(
                 $this->idOf($user),
-                UserPassword::fromPlainText('Another-Secret-9'),
+                'Another-Secret-9',
             ),
         );
 

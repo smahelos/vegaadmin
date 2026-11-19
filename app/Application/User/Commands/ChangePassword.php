@@ -9,16 +9,17 @@ use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\OwnedUseCase;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
-use App\Domain\User\ValueObjects\UserPassword;
 
 /**
+ * The new password in plain text; the handler hashes it once the gate has let the command through.
+ *
  * @implements CommandInterface<null>
  */
 final readonly class ChangePassword extends OwnedUseCase implements CommandInterface
 {
     public function __construct(
         UserId $owner,
-        public UserPassword $password,
+        public string $password,
     ) {
         parent::__construct($owner);
     }

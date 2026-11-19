@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants and the controller rule done): reliable tests and CI, `Money` formatting, value object accessors and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting and the value object accessors done, `ProductPrice` left to "Product prices are not `Money` on the write path"): reliable tests and CI, the currency of `Money` and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -64,12 +64,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `app/Domain/Shared/Money/ValueObjects/Money.php` (`fromString(string $amount, string $currency)`, `convertTo(string $targetCurrency, …)`), its callers and `MoneyFormatter`
 - **Problem:** `Money` accepts any three letters as a currency and keeps them as a string, although `rules/domain.md` takes currency codes from the `Currency` enum. A code outside the enum passes into amounts, totals and PDFs, and comparisons are string comparisons.
 - **Fix (proposed 2026-11-19):** `Money` holds a `Currency`; the mappers and form requests turn the stored or submitted code into the enum, and an unknown code fails there instead of inside the Domain.
-
-### Value object accessors
-- **Where:** `Money`, `InvoiceNumber`, `InvoiceId`, `PaymentMethodId`, `ProductId`, `ProductName`, `ProductPrice`, `UserId`, `UserPassword` in `app/Domain/*/ValueObjects` and `app/Domain/Shared/*/ValueObjects`
-- **Problem:** private state read through three naming styles: `getValue()` (27 calls), `toInt()` (`UserId`, `ProductId`, …; 78 calls), `get<Part>()` (`Money::getAmount()`, `InvoiceNumber::getNumber()`, …; 37 calls).
-- **Fix (decided 2026-10-20):** `final readonly class` with public readonly properties for held state (`->value`, `->amount`, `->iban`), computed values as methods without `get` (`formattedIban()`, `year()`), per `rules/php.md`.
-- **Status:** 18 of the 27 value objects are converted (2026-11-19); the classes listed above are left.
 
 ### Documentation can quote code that no longer exists
 - **Where:** `AGENTS.md`, `.claude/rules/`, `.claude/references/`, `.claude/skills/`, `docs/` (ADRs, PRDs, designs, `TECH_DEBT.md`)
@@ -442,7 +436,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Product prices are not `Money` on the write path
 - **Where:** `app/Domain/Product/DTO/ProductWriteData.php`, `app/Domain/Product/Validation/ProductCreationValidator.php`, `app/Domain/Product/ValueObjects/ProductPrice.php`, `app/Http/Requests/ProductRequest.php`
 - **Problem:** `ProductDTO::$price` is `Money`, but `ProductWriteData::$price` is `string|float|null`, the validator casts it to `float` and `ProductPrice` holds a `float`. `fromArray` also accepts `price_money` and `amount`, which only its tests send. A price `12.349` passes `required|numeric` and is stored truncated as `12.34`, while the float `12.345` is rounded to `12.35`.
-- **Fix:** `ProductWriteData::$price` as `?Money`, built at the boundary from one input shape; the validator and `ProductPrice` without floats; the requests limit the decimal places.
+- **Fix:** `ProductWriteData::$price` as `?Money`, built at the boundary from one input shape; the validator checks the price through `Money` and `ProductPrice` is deleted with its test; the requests limit the decimal places.
 
 ## Step 22: Frontend, API and routes
 
