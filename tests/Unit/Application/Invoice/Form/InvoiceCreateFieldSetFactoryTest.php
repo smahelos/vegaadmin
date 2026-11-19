@@ -14,10 +14,7 @@ final class InvoiceCreateFieldSetFactoryTest extends TestCase
     public function it_builds_field_set_from_trait_output(): void
     {
         $factory = new InvoiceCreateFieldSetFactory;
-        $set = $factory->build(
-            paymentMethods: ['3' => 'bank_transfer'],
-            currencies: ['CZK' => 'CZK'],
-        );
+        $set = $factory->build(['3' => 'bank_transfer']);
 
         $fields = $set->toArray();
         $this->assertGreaterThan(

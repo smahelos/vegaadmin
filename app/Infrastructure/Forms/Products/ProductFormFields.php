@@ -2,10 +2,9 @@
 
 namespace App\Infrastructure\Forms\Products;
 
-use App\Domain\Shared\Money\Contracts\CurrencyServiceInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\ProductCategory;
 use App\Models\Tax;
-use Illuminate\Support\Facades\App;
 
 trait ProductFormFields
 {
@@ -14,18 +13,11 @@ trait ProductFormFields
      */
     protected function getProductFields(array $productCategories = [], array $taxRates = []): array
     {
-        // Get currency codes from CurrencyService
-        $currencyService = App::make(CurrencyServiceInterface::class);
-        $currencies = $currencyService->getAllCurrencies();
-
-        // Default currencies if not provided
-        if (empty($currencies)) {
-            $currencies = [
-                'CZK' => 'CZK',
-                'EUR' => 'EUR',
-                'USD' => 'USD',
-            ];
-        }
+        $currencies = array_column(
+            Currency::cases(),
+            'value',
+            'value',
+        );
 
         return [
             [

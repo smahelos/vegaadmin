@@ -3,6 +3,7 @@
 namespace Tests\Feature\Traits;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use App\Models\PaymentMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,10 +20,14 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $paymentMethod = $paymentMethodQuery->firstOrFail();
         $paymentMethods = [$paymentMethod->id => $paymentMethod->name];
-        $currencies = ['EUR' => 'EUR', 'USD' => 'USD'];
+        $currencies = array_column(
+            Currency::cases(),
+            'value',
+            'value',
+        );
 
         // Act
-        $result = $this->getInvoiceFields($paymentMethods, $currencies);
+        $result = $this->getInvoiceFields($paymentMethods);
 
         // Assert
         $this->assertIsArray($result);
@@ -210,14 +215,11 @@ class InvoiceFormFieldsFeatureTest extends TestCase
     public function get_invoice_fields_maintains_consistency_across_calls(): void
     {
         // Arrange
-        $testData = [
-            [1 => 'Cash'],
-            ['EUR' => 'EUR'],
-        ];
+        $paymentMethods = [1 => 'Cash'];
 
         // Act
-        $result1 = $this->getInvoiceFields(...$testData);
-        $result2 = $this->getInvoiceFields(...$testData);
+        $result1 = $this->getInvoiceFields($paymentMethods);
+        $result2 = $this->getInvoiceFields($paymentMethods);
 
         // Assert
         $this->assertEquals($result1, $result2);

@@ -6,6 +6,7 @@ use App\Application\Shared\Form\DTO\FieldDTO;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Application\Shared\Form\Enum\FieldType;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields; // Temporarily reuse trait logic Phase 1
 
 /**
@@ -20,14 +21,9 @@ class InvoiceCreateFieldSetFactory
     /**
      * Build FieldSetDTO from legacy trait output.
      */
-    public function build(
-        array $paymentMethods,
-        array $currencies = [],
-    ): FieldSetDTO {
-        $raw = $this->getInvoiceFields(
-            $paymentMethods,
-            $currencies,
-        );
+    public function build(array $paymentMethods): FieldSetDTO
+    {
+        $raw = $this->getInvoiceFields($paymentMethods);
         $fields = [];
         foreach ($raw as $item) {
             $fields[] = new FieldDTO(
@@ -55,21 +51,18 @@ class InvoiceCreateFieldSetFactory
      * "A facade root has not been set.". In that case, provide a minimal fallback field
      * definition sufficient for unit tests. In normal app runtime, delegate to the trait.
      */
-    protected function getInvoiceFields(
-        array $paymentMethods = [],
-        array $currencies = [],
-    ): array {
+    protected function getInvoiceFields(array $paymentMethods = []): array
+    {
         try {
             // Attempt to call the original trait implementation (requires Laravel container)
-            return $this->traitGetInvoiceFields(
-                $paymentMethods,
-                $currencies,
-            );
+            return $this->traitGetInvoiceFields($paymentMethods);
         } catch (\Throwable $e) {
             // Minimal fallback for non-Laravel context (plain PHPUnit)
-            if (empty($currencies)) {
-                $currencies = ['CZK' => 'CZK'];
-            }
+            $currencies = array_column(
+                Currency::cases(),
+                'value',
+                'value',
+            );
 
             return [
                 [

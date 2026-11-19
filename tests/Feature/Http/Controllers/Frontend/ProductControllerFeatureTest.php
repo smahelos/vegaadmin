@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Enums\Permission;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
@@ -69,6 +70,29 @@ class ProductControllerFeatureTest extends TestCase
         $response->assertStatus(200);
         $response->assertViewIs('frontend.products.create');
         $response->assertViewHas('fields');
+    }
+
+    #[Test]
+    public function create_offers_only_the_currencies_a_product_accepts(): void
+    {
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.product.create', ['locale' => 'cs']),
+        );
+
+        $fields = collect(
+            $response->viewData('fields'),
+        );
+        $currencyField = $fields->firstWhere('name', 'currency');
+        $this->assertSame(
+            array_column(
+                Currency::cases(),
+                'value',
+                'value',
+            ),
+            $currencyField['options'],
+        );
     }
 
     #[Test]
