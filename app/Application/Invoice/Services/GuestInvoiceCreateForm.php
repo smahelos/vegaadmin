@@ -33,7 +33,7 @@ final class GuestInvoiceCreateForm
             [
                 'paymentMethods' => $paymentMethods,
                 'taxRates' => $this->taxes->getDphRatesForDropdown(),
-                'suggestedNumber' => $number->getNumber(),
+                'suggestedNumber' => $number->value,
                 'invoiceProducts' => [],
                 'userLoggedIn' => false,
             ],

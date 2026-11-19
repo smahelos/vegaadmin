@@ -144,7 +144,7 @@ trait BuildsInvoiceInput
             random_int(1, 999999),
         );
 
-        return $number->getNumber();
+        return $number->value;
     }
 
     /**

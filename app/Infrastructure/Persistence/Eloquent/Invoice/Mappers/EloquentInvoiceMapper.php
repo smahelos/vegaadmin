@@ -72,7 +72,7 @@ final class EloquentInvoiceMapper
     ): array {
         return [
             ...EloquentDocumentPartiesMapper::toAttributes($parties),
-            'invoice_vs' => $data->number->getNumber(),
+            'invoice_vs' => $data->number->value,
             'invoice_ks' => $data->constantSymbol,
             'invoice_ss' => $data->specificSymbol,
             'issue_date' => $data->issueDate->format('Y-m-d'),

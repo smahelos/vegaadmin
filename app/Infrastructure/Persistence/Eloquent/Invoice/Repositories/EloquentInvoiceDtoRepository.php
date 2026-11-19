@@ -141,12 +141,12 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             } catch (InvalidArgumentException) {
                 continue;
             }
-            if ($candidate->getYear() === $year && ($last === null || $candidate->isGreaterThan($last))) {
+            if ($candidate->year() === $year && ($last === null || $candidate->isGreaterThan($last))) {
                 $last = $candidate;
             }
         }
 
-        return $last?->getNumber();
+        return $last?->value;
     }
 
     /** The statuses row an invoice status is stored as; the reference data contain one for every case. */

@@ -91,7 +91,7 @@ final class InvoiceService implements InvoiceServiceInterface
 
         $number = InvoiceNumber::generateNext($lastInvoiceNumber);
 
-        return $number->getNumber();
+        return $number->value;
     }
 
     /**
