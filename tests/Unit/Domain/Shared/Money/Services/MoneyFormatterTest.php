@@ -164,10 +164,16 @@ final class MoneyFormatterTest extends TestCase
             '€0.00000001',
         ];
         yield 'rounds a half up' => [
-            '2.675',
+            '0.125',
             2,
             2,
-            '€2.68',
+            '€0.13',
+        ];
+        yield 'keeps every digit of a long amount' => [
+            '254751707.34370909',
+            0,
+            8,
+            '€254,751,707.34370909',
         ];
     }
 
@@ -203,5 +209,15 @@ final class MoneyFormatterTest extends TestCase
             5,
             2,
         ); // min > max
+    }
+
+    #[Test]
+    public function refuses_an_amount_beyond_the_integer_range(): void
+    {
+        $money = Money::fromString('99999999999999999999.5', 'EUR');
+
+        $this->expectException(InvalidArgumentException::class);
+
+        $this->formatter->format($money, 'en');
     }
 }

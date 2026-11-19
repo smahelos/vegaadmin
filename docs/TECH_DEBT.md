@@ -60,11 +60,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** both scripts fail on `main` against the development data (seen 2026-11-12): `admin-document-forms.mjs` stops at its layout assertion "invoice-create: owner and business are not on the same row", `admin-invoice-items.mjs` finds no `[name=invoice-products]` input on the invoice page. Since nothing runs them, a change to the admin document forms is not checked in a browser, and a failure says nothing about the branch it runs on.
 - **Fix:** find why each assertion fails (a changed form or a broken page) and fix the form or update the script; then either run the scripts where a change to the admin document forms is checked, or delete what the feature tests already cover.
 
-### `MoneyFormatter` formats through a float
-- **Where:** `app/Domain/Shared/Money/Services/MoneyFormatter.php`, `Money::toFloat()`
-- **Problem:** the formatter passes `$money->toFloat()` to the number formatting and to its sign check, its only production use of `toFloat()`. Amounts leave `Money` as a float just before display (`docs/adr/D-046-money-amounts.md`).
-- **Fix:** format from the decimal string, then delete `toFloat()` with its test.
-
 ### `Money` holds its currency as a string
 - **Where:** `app/Domain/Shared/Money/ValueObjects/Money.php` (`fromString(string $amount, string $currency)`, `convertTo(string $targetCurrency, …)`), its callers and `MoneyFormatter`
 - **Problem:** `Money` accepts any three letters as a currency and keeps them as a string, although `rules/domain.md` takes currency codes from the `Currency` enum. A code outside the enum passes into amounts, totals and PDFs, and comparisons are string comparisons.
@@ -421,7 +416,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** `__()` on the remaining calls; drop `messages()` that repeat `lang/*/validation.php`; move the dashboard and user activity texts to `lang/*/admin/dashboard.php` (or their entity files); pass the app name and year to the email texts as parameters; delete unreferenced keys file by file. Convert with `/convert-to-standard` context by context.
 
 ### Comments
-- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php` and `app/Domain/Shared/Money/Services/MoneyFormatter.php`), the commented-out invoice lookup with a Czech `TODO` in `InvoiceFrontendActionsApplicationService::orchestrate()`, `TODO`s without an item here
+- **Where:** history and migration notes ("Wave 2", "Phase 1", "legacy compatibility", "Removed …"), Czech comments (including `bootstrap/app.php`), the commented-out invoice lookup with a Czech `TODO` in `InvoiceFrontendActionsApplicationService::orchestrate()`, `TODO`s without an item here
 - **Fix:** per `rules/php.md` (Comments, Readability), with each affected context's conversion: English explanations of non-obvious reasons, remove commented-out code and unused timing/counters.
 
 ### Move cache invalidation from observers to domain event handlers

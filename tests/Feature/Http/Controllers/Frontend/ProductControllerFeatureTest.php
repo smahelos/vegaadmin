@@ -212,6 +212,27 @@ class ProductControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function edit_fills_the_price_with_the_stored_decimal(): void
+    {
+        $this->actingAs($this->user, 'web');
+
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'price' => '1234.50',
+            ],
+        );
+
+        $response = $this->get(
+            route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]),
+        );
+
+        $response->assertStatus(200);
+        $response->assertSee('value="1234.5"', false);
+    }
+
+    #[Test]
     public function show_requires_authentication(): void
     {
         $productFactory = Product::factory();

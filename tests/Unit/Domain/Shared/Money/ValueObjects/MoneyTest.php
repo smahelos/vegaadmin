@@ -21,13 +21,6 @@ final class MoneyTest extends TestCase
     }
 
     #[Test]
-    public function to_float_is_lossy_but_consistent(): void
-    {
-        $m = Money::fromString('10.50', 'CZK');
-        $this->assertSame(10.50, $m->toFloat());
-    }
-
-    #[Test]
     public function invalid_currency_throws(): void
     {
         $this->expectException(InvalidArgumentException::class);

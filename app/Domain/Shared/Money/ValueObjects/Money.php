@@ -46,14 +46,6 @@ final readonly class Money
     }
 
     /**
-     * Summary of toFloat
-     */
-    public function toFloat(): float
-    {
-        return (float) $this->amount;
-    }
-
-    /**
      * Summary of __toString
      */
     public function __toString(): string

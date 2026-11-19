@@ -68,7 +68,7 @@ final class CacheInvalidationFeatureTest extends TestCase
         )->statistics;
         $this->assertSame(1, $statsFirst->invoiceCount);
         $this->assertInstanceOf(Money::class, $statsFirst->totalAmount);
-        $this->assertSame(100.0, $statsFirst->totalAmount->toFloat());
+        $this->assertSame('100', $statsFirst->totalAmount->amount);
 
         Invoice::withoutEvents(
             function () use ($user, $contact): void {
@@ -95,7 +95,7 @@ final class CacheInvalidationFeatureTest extends TestCase
             UserId::fromInt($user->id),
         )->statistics;
         $this->assertSame(2, $statsAfter->invoiceCount);
-        $this->assertSame(300.0, $statsAfter->totalAmount->toFloat());
+        $this->assertSame('300', $statsAfter->totalAmount->amount);
     }
 
     #[Test]
@@ -199,7 +199,7 @@ final class CacheInvalidationFeatureTest extends TestCase
             UserId::fromInt($user->id),
         )->statistics;
         $this->assertSame(2, $after->invoiceCount);
-        $this->assertSame(30.0, $after->totalAmount->toFloat());
+        $this->assertSame('30', $after->totalAmount->amount);
     }
 
     #[Test]
@@ -236,6 +236,6 @@ final class CacheInvalidationFeatureTest extends TestCase
             UserId::fromInt($user->id),
         )->statistics;
         $this->assertSame(2, $stats->invoiceCount);
-        $this->assertSame(12.0, $stats->totalAmount->toFloat());
+        $this->assertSame('12', $stats->totalAmount->amount);
     }
 }
