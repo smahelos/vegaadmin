@@ -9,6 +9,7 @@ use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
+use App\Domain\Shared\Money\Enums\Currency;
 use InvalidArgumentException;
 
 final class QrPaymentProviderFactory
@@ -100,7 +101,7 @@ final class QrPaymentProviderFactory
             return self::createProvider($country);
         }
 
-        return self::createProvider($payload->amount->currency === 'EUR' ? 'EU' : 'CZ');
+        return self::createProvider($payload->amount->currency === Currency::EUR ? 'EU' : 'CZ');
     }
 
     /**

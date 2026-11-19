@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\Exceptions\ContactNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Contact;
 use App\Models\ExpenseCategory;
@@ -56,12 +57,12 @@ final class ExpenseUseCasesTest extends TestCase
             ),
             null,
             new DateTimeImmutable('2026-01-15'),
-            Money::fromString('123.45', 'CZK'),
+            Money::fromString('123.45', Currency::CZK),
             $expenseCategory->id,
             null,
             null,
             null,
-            Money::fromString('0.00', 'CZK'),
+            Money::fromString('0.00', Currency::CZK),
             false,
             null,
         );

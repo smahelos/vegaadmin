@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Persistence\Eloquent\Product\Mappers;
 
 use App\Domain\Product\DTO\ProductDTO;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Models\Product;
 
@@ -32,12 +33,14 @@ class EloquentProductMapper
             $category = null;
         }
 
-        $currency = $model->getAttribute('currency') ?: 'CZK';
+        $currency = Currency::from(
+            $model->getAttribute('currency') ?: Currency::CZK->value,
+        );
         $priceRaw = $model->getAttribute('price');
         if ($priceRaw !== null) {
             $priceMoney = Money::fromString(
                 (string) $priceRaw,
-                strtoupper($currency),
+                $currency,
             );
         } else {
             $priceMoney = null;

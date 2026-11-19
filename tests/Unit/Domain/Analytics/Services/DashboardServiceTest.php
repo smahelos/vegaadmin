@@ -12,6 +12,7 @@ use App\Domain\Analytics\Services\DashboardService as AnalyticsDashboardService;
 use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Cache\Contracts\CacheServiceInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use DateTimeImmutable;
 use LogicException;
@@ -85,7 +86,7 @@ final class DashboardServiceTest extends TestCase
                     0,
                     0,
                     0,
-                    Money::fromString('0', 'CZK'),
+                    Money::fromString('0', Currency::CZK),
                 );
             }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Domain\Shared\Money\Services;
 
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\Services\MoneyFormatter;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
@@ -107,7 +108,10 @@ final class MoneyFormatterTest extends TestCase
         string $formatted,
         string $withCode,
     ): void {
-        $money = Money::fromString($amount, $currency);
+        $money = Money::fromString(
+            $amount,
+            Currency::from($currency),
+        );
 
         $this->assertSame(
             $formatted,
@@ -122,7 +126,7 @@ final class MoneyFormatterTest extends TestCase
     #[Test]
     public function formats_in_the_current_locale_when_none_is_given(): void
     {
-        $money = Money::fromString('1234.5', 'CZK');
+        $money = Money::fromString('1234.5', Currency::CZK);
 
         $this->assertSame(
             'Kč1' . self::NBSP . '234,50',
@@ -185,7 +189,7 @@ final class MoneyFormatterTest extends TestCase
         int $maxFraction,
         string $formatted,
     ): void {
-        $money = Money::fromString($amount, 'EUR');
+        $money = Money::fromString($amount, Currency::EUR);
 
         $this->assertSame(
             $formatted,
@@ -202,7 +206,7 @@ final class MoneyFormatterTest extends TestCase
     public function invalid_fraction_constraints_throw(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $m = Money::fromString('1', 'USD');
+        $m = Money::fromString('1', Currency::USD);
         $this->formatter->format(
             $m,
             'en_US',
@@ -214,7 +218,7 @@ final class MoneyFormatterTest extends TestCase
     #[Test]
     public function refuses_an_amount_beyond_the_integer_range(): void
     {
-        $money = Money::fromString('99999999999999999999.5', 'EUR');
+        $money = Money::fromString('99999999999999999999.5', Currency::EUR);
 
         $this->expectException(InvalidArgumentException::class);
 

@@ -30,7 +30,7 @@ final class EloquentInvoiceMapperTest extends TestCase
         $attributes = $mapper->toAttributes(
             $this->writeData(),
             $this->parties(),
-            Money::fromString('9007199254740993.01', 'CZK'),
+            Money::fromString('9007199254740993.01', Currency::CZK),
         );
 
         $this->assertSame('9007199254740993.01', $attributes['payment_amount']);
@@ -44,7 +44,7 @@ final class EloquentInvoiceMapperTest extends TestCase
         $attributes = $mapper->toAttributes(
             $this->writeData(),
             $this->parties(),
-            Money::fromString('121', 'EUR'),
+            Money::fromString('121', Currency::EUR),
         );
 
         $this->assertSame('20260042', $attributes['invoice_vs']);

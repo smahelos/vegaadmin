@@ -4,6 +4,7 @@ namespace Tests\Feature\Models;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
@@ -262,13 +263,13 @@ class InvoiceFeatureTest extends TestCase
         $invoice = $invoiceFactory->create(
             [
                 'payment_amount' => 1234.56,
-                'payment_currency' => 'eur',
+                'payment_currency' => Currency::EUR->value,
             ],
         );
 
         $money = $invoice->payment_amount_money; // Money VO
         $this->assertEquals('1234.56', $money->amount);
-        $this->assertEquals('EUR', $money->currency);
+        $this->assertSame(Currency::EUR, $money->currency);
     }
 
     #[Test]
@@ -294,7 +295,7 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create([
-            'payment_currency' => 'czk',
+            'payment_currency' => Currency::CZK->value,
         ]);
 
         // Two products: (100 * 2) + (50 * 3) = 350.00
@@ -318,7 +319,7 @@ class InvoiceFeatureTest extends TestCase
 
         $money = $invoice->subtotal_money; // Money VO
         $this->assertEquals('350', $money->amount);
-        $this->assertEquals('CZK', $money->currency);
+        $this->assertSame(Currency::CZK, $money->currency);
     }
 
     #[Test]
@@ -326,7 +327,7 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create([
-            'payment_currency' => 'usd',
+            'payment_currency' => Currency::USD->value,
         ]);
 
         // The stored tax of each line is summed as it is
@@ -366,7 +367,7 @@ class InvoiceFeatureTest extends TestCase
 
         $money = $invoice->total_tax_money;
         $this->assertEquals('33', $money->amount);
-        $this->assertEquals('USD', $money->currency);
+        $this->assertSame(Currency::USD, $money->currency);
     }
 
     private function invoiceDueDaysAgo(InvoiceStatus $status, int $days): Invoice

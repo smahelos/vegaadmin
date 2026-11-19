@@ -8,6 +8,7 @@ use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Notifications\DTO\InvoiceReminderDTO;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Infrastructure\Notifications\Invoice\Messages\InvoiceDueReminder as InfraDue;
@@ -31,7 +32,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
         );
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: 'INV-1001',
@@ -86,7 +87,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
         );
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: 'INV-1002',
@@ -137,7 +138,7 @@ final class LaravelInvoiceReminderNotifierTest extends TestCase
         );
         $payload = new InvoiceReminderDTO(
             invoiceId: InvoiceId::fromInt(1),
-            total: Money::fromString('100', 'CZK'),
+            total: Money::fromString('100', Currency::CZK),
             supplierName: 'Saved supplier',
             customerName: 'Saved customer',
             invoiceNumber: 'INV-1003',

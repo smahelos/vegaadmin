@@ -22,7 +22,7 @@ final class CatalogProductResource extends JsonResource
             'product_id' => $this->product->id->value,
             'name' => $this->product->name,
             'price' => $this->product->price->amount,
-            'currency' => $this->product->price->currency,
+            'currency' => $this->product->price->currency->value,
             'unit' => $this->product->unit->value,
             'tax_rate' => $this->product->taxRate,
             'category' => $this->product->category,

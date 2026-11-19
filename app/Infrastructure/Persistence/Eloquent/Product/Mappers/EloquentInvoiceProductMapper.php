@@ -30,7 +30,7 @@ final class EloquentInvoiceProductMapper
             'category' => $data->category,
             'description' => $data->description,
             'price' => $data->price->amount,
-            'currency' => $data->price->currency,
+            'currency' => $data->price->currency->value,
             'tax_rate' => $data->taxRate,
             'tax_amount' => $taxAmount->amount,
             'total_price' => $total->amount,

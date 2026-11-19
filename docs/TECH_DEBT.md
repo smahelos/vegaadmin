@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting and the value object accessors done, `ProductPrice` left to "Product prices are not `Money` on the write path"): reliable tests and CI, the currency of `Money` and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors and the currency of `Money` done, `ProductPrice` left to "Product prices are not `Money` on the write path"): reliable tests and CI, currencies outside `Money` and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -60,10 +60,10 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** both scripts fail on `main` against the development data (seen 2026-11-12): `admin-document-forms.mjs` stops at its layout assertion "invoice-create: owner and business are not on the same row", `admin-invoice-items.mjs` finds no `[name=invoice-products]` input on the invoice page. Since nothing runs them, a change to the admin document forms is not checked in a browser, and a failure says nothing about the branch it runs on.
 - **Fix:** find why each assertion fails (a changed form or a broken page) and fix the form or update the script; then either run the scripts where a change to the admin document forms is checked, or delete what the feature tests already cover.
 
-### `Money` holds its currency as a string
-- **Where:** `app/Domain/Shared/Money/ValueObjects/Money.php` (`fromString(string $amount, string $currency)`, `convertTo(string $targetCurrency, …)`), its callers and `MoneyFormatter`
-- **Problem:** `Money` accepts any three letters as a currency and keeps them as a string, although `rules/domain.md` takes currency codes from the `Currency` enum. A code outside the enum passes into amounts, totals and PDFs, and comparisons are string comparisons.
-- **Fix (proposed 2026-11-19):** `Money` holds a `Currency`; the mappers and form requests turn the stored or submitted code into the enum, and an unknown code fails there instead of inside the Domain.
+### Currencies outside `Money` are strings
+- **Where:** `ProductFormFields` (options from `CurrencyServiceInterface::getAllCurrencies()`), `CurrencySelect`, `SubscriptionRequest` and `SubscriptionPlanRequest` (`in:CZK,EUR,USD`); the `currency` properties of `InvoiceDTO`, `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO`
+- **Problem:** `Money` holds a `Currency` since 2026-11-19 and the mappers turn the stored code into the enum with `Currency::from()`. The product form still offers every code the exchange rate API knows, although `ProductInput` accepts only the enum, so most of the options fail validation. The DTOs above keep the code as a string beside or instead of a `Money`, against `rules/architecture.md` (Data classes).
+- **Fix (proposed 2026-11-19):** currency options come from `Currency::cases()`; the subscription requests validate with `Rule::enum(Currency::class)` unless the plans need a narrower list; each DTO carries its amount as `Money` or its currency as `Currency`, converted when its context is converted.
 
 ### Documentation can quote code that no longer exists
 - **Where:** `AGENTS.md`, `.claude/rules/`, `.claude/references/`, `.claude/skills/`, `docs/` (ADRs, PRDs, designs, `TECH_DEBT.md`)

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Domain\Shared\Money\ValueObjects;
 
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use InvalidArgumentException;
 
 /**
  * A non-negative amount as a canonical decimal string (no exponent, no trailing zeros)
- * with an uppercase ISO 4217 currency code.
+ * in a currency.
  */
 final readonly class Money
 {
@@ -21,27 +22,25 @@ final readonly class Money
 
     private function __construct(
         public string $amount,
-        public string $currency,
+        public Currency $currency,
     ) {}
 
     /**
      * Create Money from string decimal amount (up to 8 fractional digits).
      *
      * @param  string  $amount  Non-negative amount
-     * @param  string  $currency  ISO 4217 currency code
      *
-     * @throws InvalidArgumentException if currency is invalid or amount is negative
+     * @throws InvalidArgumentException if the amount is not a non-negative decimal
      */
-    public static function fromString(string $amount, string $currency): self
+    public static function fromString(string $amount, Currency $currency): self
     {
-        self::assertCurrency($currency);
         if (!preg_match('/^\d+\.?\d{0,8}$/', $amount)) {
             throw new InvalidArgumentException('Invalid money amount format: ' . $amount);
         }
 
         return new self(
             self::normalizeStringAmount($amount),
-            strtoupper($currency),
+            $currency,
         );
     }
 
@@ -50,7 +49,7 @@ final readonly class Money
      */
     public function __toString(): string
     {
-        return $this->amount . ' ' . $this->currency;
+        return $this->amount . ' ' . $this->currency->value;
     }
 
     /** Add another Money of the same currency.
@@ -414,7 +413,7 @@ final readonly class Money
     {
         if ($this->currency !== $other->currency) {
             throw new InvalidArgumentException(
-                'Currency mismatch: ' . $this->currency . ' vs ' . $other->currency,
+                'Currency mismatch: ' . $this->currency->value . ' vs ' . $other->currency->value,
             );
         }
     }
@@ -630,19 +629,6 @@ final readonly class Money
         return ltrim($out, '0') === '' ? '0' : ltrim($out, '0');
     }
 
-    /** Validate ISO currency code (A-Z, length 3). */
-    private static function assertCurrency(string $currency): void
-    {
-        if (
-            !preg_match(
-                '/^[A-Z]{3}$/',
-                strtoupper($currency),
-            )
-        ) {
-            throw new InvalidArgumentException('Invalid ISO currency code: ' . $currency);
-        }
-    }
-
     /** Normalize decimal string (strip leading/trailing zeros as appropriate). */
     private static function normalizeStringAmount(string $amount): string
     {
@@ -665,16 +651,14 @@ final readonly class Money
 
     /** Convert to another currency using exchange service. */
     public function convertTo(
-        string $targetCurrency,
+        Currency $targetCurrency,
         CurrencyExchangeServiceInterface $exchange,
         int $scale = 2,
         string $strategy = self::ROUND_HALF_UP,
     ): self {
-        $targetCurrency = strtoupper($targetCurrency);
         if ($targetCurrency === $this->currency) {
-            return new self($this->amount, $this->currency);
+            return $this;
         }
-        self::assertCurrency($targetCurrency);
         if ($scale < 0 || $scale > 8) {
             throw new InvalidArgumentException('Scale must be between 0 and 8');
         }
@@ -687,7 +671,10 @@ final readonly class Money
         ) {
             throw new InvalidArgumentException('Invalid rounding strategy: ' . $strategy);
         }
-        $rate = $exchange->getExchangeRate($this->currency, $targetCurrency);
+        $rate = $exchange->getExchangeRate(
+            $this->currency->value,
+            $targetCurrency->value,
+        );
         if ($rate === null || $rate <= 0) {
             throw new InvalidArgumentException('Unable to obtain valid exchange rate for conversion');
         }

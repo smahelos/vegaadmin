@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\PaymentMethod;
@@ -33,6 +34,7 @@ class ExpenseFactory extends Factory
     public function definition(): array
     {
         $optional = $this->faker->optional();
+        $currency = $this->faker->randomElement(Currency::cases());
 
         return [
             'user_id' => User::factory(),
@@ -44,7 +46,7 @@ class ExpenseFactory extends Factory
                 10,
                 10000,
             ),
-            'currency' => $this->faker->currencyCode(),
+            'currency' => $currency->value,
             'payment_method_id' => function (): int {
                 $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
 

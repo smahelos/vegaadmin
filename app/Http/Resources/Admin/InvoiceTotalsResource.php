@@ -24,7 +24,7 @@ final class InvoiceTotalsResource extends JsonResource
             'subtotal' => $this->totals->subtotal->amount,
             'tax' => $this->totals->tax->amount,
             'total' => $total->amount,
-            'currency' => $this->totals->subtotal->currency,
+            'currency' => $this->totals->subtotal->currency->value,
         ];
     }
 }

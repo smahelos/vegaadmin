@@ -6,10 +6,11 @@ namespace App\Domain\Payment\Providers\QrPayment;
 
 use App\Domain\Payment\Contracts\QrPaymentProviderInterface;
 use App\Domain\Payment\DTO\QrPaymentDTO;
+use App\Domain\Shared\Money\Enums\Currency;
 
 final class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
 {
-    private const SUPPORTED_CURRENCIES = ['EUR'];
+    private const SUPPORTED_CURRENCIES = [Currency::EUR];
 
     public function validatePaymentInfo(QrPaymentDTO $payload): bool
     {
@@ -32,7 +33,7 @@ final class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = '';
         $qrParts[] = '';
         $qrParts[] = $payload->account?->iban;
-        $qrParts[] = 'EUR' . $payload->amountDecimal();
+        $qrParts[] = $payload->amount->currency->value . $payload->amountDecimal();
         $qrParts[] = '';
         $qrParts[] = $payload->variableSymbol ?? '';
         $qrParts[] = substr(

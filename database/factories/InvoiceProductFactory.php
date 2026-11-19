@@ -36,7 +36,7 @@ class InvoiceProductFactory extends Factory
                     10,
                     1000,
                 ),
-                Currency::CZK->value,
+                Currency::CZK,
             ),
             taxRate: $this->faker->randomElement([
                 '0',
@@ -55,7 +55,7 @@ class InvoiceProductFactory extends Factory
             'name' => $line->name,
             'quantity' => $line->quantity,
             'price' => $line->price->amount,
-            'currency' => $line->price->currency,
+            'currency' => $line->price->currency->value,
             'unit' => $line->unit->value,
             'category' => $optional->word(),
             'description' => $optional->sentence(),

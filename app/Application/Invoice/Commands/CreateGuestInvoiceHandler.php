@@ -12,7 +12,6 @@ use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\Contracts\Locale;
 use Exception;
 
@@ -57,7 +56,7 @@ final class CreateGuestInvoiceHandler
             if ($command->account !== null) {
                 $qrPayload = $this->qrPaymentMapper->fromSnapshot(
                     $data['invoice_vs'] ?? null,
-                    Money::fromString($data['payment_amount'], $data['payment_currency']),
+                    $total,
                     $command->account,
                     $data['invoice_text'] ?? null,
                 );

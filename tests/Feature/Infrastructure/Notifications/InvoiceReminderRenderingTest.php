@@ -10,6 +10,7 @@ use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use App\Models\Business;
@@ -83,7 +84,7 @@ final class InvoiceReminderRenderingTest extends TestCase
             $moneyFormatter = app(MoneyFormatterInterface::class);
             $this->assertStringContainsString(
                 $moneyFormatter->formatWithCode(
-                    Money::fromString('1234.56', 'EUR'),
+                    Money::fromString('1234.56', Currency::EUR),
                     $locale,
                 ),
                 html_entity_decode($html),

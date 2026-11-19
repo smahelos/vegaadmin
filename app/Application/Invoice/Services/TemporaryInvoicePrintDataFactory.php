@@ -29,7 +29,9 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
 
     public function fromArray(array $invoiceData): PrintableInvoiceDTO
     {
-        $currency = strtoupper((string) ($invoiceData['payment_currency'] ?? 'CZK'));
+        $currency = Currency::from(
+            (string) ($invoiceData['payment_currency'] ?? Currency::CZK->value),
+        );
         $issue = $this->toImmutable($invoiceData['issue_date'] ?? null);
         $dueDate = null;
         if ($issue && isset($invoiceData['due_in'])) {
@@ -48,10 +50,7 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             ),
             $products,
         );
-        $totals = InvoiceTotals::fromProducts(
-            Currency::from($currency),
-            $products,
-        );
+        $totals = InvoiceTotals::fromProducts($currency, $products);
 
         /** @var DocumentPartyDTO $supplier */
         $supplier = $invoiceData['supplier'];
@@ -67,7 +66,7 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             issueDate: $issue,
             taxPointDate: $this->toImmutable($invoiceData['tax_point_date'] ?? null),
             dueDate: $dueDate,
-            currency: $currency,
+            currency: $currency->value,
             template: $invoiceData['template'] ?? 'default',
             items: $items,
             subtotal: $totals->subtotal,
