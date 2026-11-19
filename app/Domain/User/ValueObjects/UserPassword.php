@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Domain\User\ValueObjects;
 
 use App\Domain\Shared\Hash\Contracts\HashInterface;
+use App\Domain\User\Exceptions\CommonPasswordException;
 use InvalidArgumentException;
 
 /**
@@ -27,7 +28,7 @@ final readonly class UserPassword
 
     private static function validatePlainPassword(string $password): void
     {
-        if (empty($password)) {
+        if ($password === '') {
             throw new InvalidArgumentException('Password cannot be empty');
         }
 
@@ -49,7 +50,7 @@ final readonly class UserPassword
                 $weakPasswords,
             )
         ) {
-            throw new InvalidArgumentException('Password is too common and weak');
+            throw new CommonPasswordException;
         }
     }
 }

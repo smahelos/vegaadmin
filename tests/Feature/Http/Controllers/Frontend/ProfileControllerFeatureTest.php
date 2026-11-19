@@ -131,6 +131,29 @@ class ProfileControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function update_password_refuses_a_common_password(): void
+    {
+        $this->actingAs($this->user, 'web');
+        $this->user->password = Hash::make('Correct123');
+        $this->user->save();
+        $originalHash = $this->user->password;
+
+        $payload = [
+            'current_password' => 'Correct123',
+            'password' => 'Password123',
+            'password_confirmation' => 'Password123',
+        ];
+        $response = $this->put(
+            route('frontend.profile.update.password', ['locale' => 'cs']),
+            $payload,
+        );
+        $response->assertSessionHasErrors(
+            ['password' => __('users.validation.password_common')],
+        );
+        $this->assertSame($originalHash, $this->user->fresh()->password);
+    }
+
+    #[Test]
     public function profile_update_does_not_change_the_password(): void
     {
         $this->actingAs($this->user, 'web');

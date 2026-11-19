@@ -79,4 +79,7 @@ return [
         'have_account' => 'Already have an account?',
         'login_prompt' => 'Log in',
     ],
+    'validation' => [
+        'password_common' => 'This password is too common, please choose another one.',
+    ],
 ];

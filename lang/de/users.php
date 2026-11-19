@@ -79,4 +79,7 @@ return [
         'have_account' => 'Sie haben bereits ein Konto?',
         'login_prompt' => 'Melden Sie sich an',
     ],
+    'validation' => [
+        'password_common' => 'Dieses Passwort ist zu verbreitet. Bitte wählen Sie ein anderes.',
+    ],
 ];
