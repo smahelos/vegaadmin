@@ -175,6 +175,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** these paths predate the current standard: SQL row arrays and ad-hoc JSON, presentation in model accessors and broad catches remain.
 - **Fix:** chart DTOs, domain read ports, presenters and JsonResources. Dashboard reads already use typed ids, DTOs and Money. The inherited CZK aggregate meaning without currency conversion still needs an explicit multi-currency analytics decision.
 
+### Admin dashboard has no charts
+- **Where:** the admin dashboard (`GetAdminDashboard`, `AdminDashboardPresenter`)
+- **Problem:** the admin dashboard shows counts, revenue per currency and user activity only as numbers; the user dashboard has charts, the admin one has none. An idea, not a defect (2026-11-18).
+- **Fix (proposed, low priority):** take it up only together with another change of the admin dashboard or of the charts in this step: charts of the same statistics over time, built on the per-currency statistics DTOs of "Dashboard statistics sum amounts across currencies".
+
 ## Step 17: Test speed
 
 ### Test runs and CI are slower than they need to be
@@ -391,6 +396,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Domain/*/Validation/`
 - **Fix:** one rule set per entity in form requests, business validation in value objects (`rules/http.md`).
+
+### Passwords are checked only on the profile
+- **Where:** `app/Livewire/User/RegistrationForm.php`, `app/Http/Requests/Admin/UserRequest.php`, `app/Http/Requests/PasswordUpdateRequest.php`, `UserWriteData::$password`, `EloquentUserMapper::toAttributes()`, `UserPassword`
+- **Problem:** only the profile password change builds `UserPassword`, which refuses the common passwords. Registration checks only `Password::min(8)` and the admin user form has no length rule at all; both pass the plain password through `UserWriteData` to the model's hashed cast, so `password123` is accepted there. Found 2026-11-19 while fixing the 500 of the profile password change.
+- **Fix:** every new password is built through `UserPassword` (registration and the admin user write path as well), which gets the length rule beside the common list (today it checks only the empty string and the common list), so all three forms share one rule; its `CommonPasswordException` is already rendered as an error of the `password` field. `Password::min(8)` leaves the registration and `PasswordUpdateRequest`, so the length has one source. A test per form.
 
 ### Directory layout
 - **Where:** `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Application/Content/Services/`, `app/Application/Shared/Geography/Services/` and `app/Application/Shared/Money/Services/` (`PageApplicationService`, `CountryApplicationService`, `CurrencyApplicationService`, readers outside the gate), `app/Application/Party/Services/` (`CompanyRegistryApplicationService`, a reader outside the gate; `PartyLogoApplicationService`, logo files that delivery stores before the Command, like the product image below), `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `Str`, `Config`, `DomainEvent`
