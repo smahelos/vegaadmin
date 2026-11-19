@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Domain\User\ValueObjects;
 
+use App\Domain\User\Exceptions\CommonPasswordException;
 use App\Domain\User\ValueObjects\UserPassword;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -24,6 +25,7 @@ final class UserPasswordTest extends TestCase
             'no lowercase' => ['UPPERCASE123'],
             'no uppercase' => ['lowercase123'],
             'no digit' => ['NoDigitsHere'],
+            'zero' => ['0'],
         ];
     }
 
@@ -69,7 +71,7 @@ final class UserPasswordTest extends TestCase
     #[DataProvider('commonPasswords')]
     public function rejects_a_common_password_in_any_letter_case(string $plainPassword): void
     {
-        $this->expectException(InvalidArgumentException::class);
+        $this->expectException(CommonPasswordException::class);
 
         UserPassword::fromPlainText(
             $plainPassword,

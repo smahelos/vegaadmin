@@ -79,4 +79,7 @@ return [
         'have_account' => 'Již máte účet?',
         'login_prompt' => 'Přihlaste se',
     ],
+    'validation' => [
+        'password_common' => 'Toto heslo je příliš běžné, zvolte jiné.',
+    ],
 ];
