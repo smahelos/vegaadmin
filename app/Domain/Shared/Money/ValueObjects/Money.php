@@ -657,7 +657,7 @@ final readonly class Money
         string $strategy = self::ROUND_HALF_UP,
     ): self {
         if ($targetCurrency === $this->currency) {
-            return new self($this->amount, $this->currency);
+            return $this;
         }
         if ($scale < 0 || $scale > 8) {
             throw new InvalidArgumentException('Scale must be between 0 and 8');
