@@ -41,6 +41,16 @@ rules:
     - Billex\PHPStan\Rules\UseCaseResultRule
 
 services:
+    # Only the gate reads permissions and roles (rules/permissions.md)
+    -
+        class: Billex\PHPStan\Rules\PermissionsReadByGateRule
+        arguments:
+            paths:
+                - %currentWorkingDirectory%/app/
+                - %currentWorkingDirectory%/bootstrap/
+                - %currentWorkingDirectory%/config/
+                - %currentWorkingDirectory%/routes/
+            gate: %currentWorkingDirectory%/app/Infrastructure/Authorization/
     # Application code: tests/ and database/ (seeders, migrations, factories) set roles directly (D-049)
     -
         class: Billex\PHPStan\Rules\RolesWrittenByRepositoryRule
@@ -57,11 +67,9 @@ services:
         class: Billex\PHPStan\Rules\EloquentOutsideControllersRule
         arguments:
             controllers:
-                - App\Http\Controllers\Admin\AdminController
                 - App\Http\Controllers\Admin\BankAccountCrudController
                 - App\Http\Controllers\Admin\BusinessCrudController
                 - App\Http\Controllers\Admin\ContactCrudController
-                - App\Http\Controllers\Admin\CronTaskCrudController
                 - App\Http\Controllers\Admin\DatabaseDashboardController
                 - App\Http\Controllers\Admin\PageCrudController
                 - App\Http\Controllers\Admin\StatusCrudController

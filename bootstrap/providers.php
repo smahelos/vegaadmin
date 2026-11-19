@@ -12,6 +12,7 @@ use App\Providers\PaymentServiceProvider;
 use App\Providers\ProductServiceProvider;
 use App\Providers\RouteServiceProvider;
 use App\Providers\SharedServiceProvider;
+use App\Providers\SystemServiceProvider;
 use App\Providers\ThirdPartyServiceProvider;
 use App\Providers\UIServiceProvider;
 use App\Providers\UserServiceProvider;
@@ -32,6 +33,7 @@ return [
     PartyServiceProvider::class,
     PaymentServiceProvider::class,
     ProductServiceProvider::class,
+    SystemServiceProvider::class,
     UserServiceProvider::class,
 
     UIServiceProvider::class,               // Presentation layer (UI, Blade, Locale)

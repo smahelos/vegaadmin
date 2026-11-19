@@ -22,6 +22,7 @@ use App\Domain\Payment\Exceptions\SubscriptionNotFoundException;
 use App\Domain\Payment\Exceptions\SubscriptionPlanNotFoundException;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\Exceptions\ProductNotFoundException;
+use App\Domain\System\Exceptions\CronTaskNotFoundException;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\Exceptions\PermissionDeniedException;
@@ -82,7 +83,7 @@ class ExceptionHandling
             },
         );
 
-        // Another user's invoice, business, contact, account or product is answered like a missing one
+        // Another user's record is answered like a missing one; a cron task has no owner and is only missing
         foreach (
             [
                 InvoiceNotFoundException::class,
@@ -93,6 +94,7 @@ class ExceptionHandling
                 ProductNotFoundException::class,
                 SubscriptionNotFoundException::class,
                 SubscriptionPlanNotFoundException::class,
+                CronTaskNotFoundException::class,
             ] as $notFound
         ) {
             $exceptions->map(

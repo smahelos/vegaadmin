@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\System\ValueObjects\CommandOptions;
 use App\Models\CronTask;
 use Carbon\Carbon;
 use Cron\CronExpression as CronParser;

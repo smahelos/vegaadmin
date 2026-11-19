@@ -4,85 +4,88 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\System\Commands\ClearCache;
+use App\Domain\System\Enums\CacheKind;
+use App\Domain\System\Exceptions\CacheClearFailedException;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\ClearCacheRequest;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 use Prologue\Alerts\Facades\Alert;
-use Throwable;
 
 final class CacheManagementController extends Controller
 {
-    public function clearCache(ClearCacheRequest $request): RedirectResponse
+    use ActsAsAdmin;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
+
+    public function clearCache(): RedirectResponse
     {
         return $this->clear(
-            ['cache:clear'],
+            [CacheKind::APPLICATION],
             __('admin.cache.cache_cleared_success'),
             __('admin.cache.cache_cleared_error'),
         );
     }
 
-    public function clearConfig(ClearCacheRequest $request): RedirectResponse
+    public function clearConfig(): RedirectResponse
     {
         return $this->clear(
-            ['config:clear'],
+            [CacheKind::CONFIG],
             __('admin.cache.config_cleared_success'),
             __('admin.cache.config_cleared_error'),
         );
     }
 
-    public function clearViews(ClearCacheRequest $request): RedirectResponse
+    public function clearViews(): RedirectResponse
     {
         return $this->clear(
-            ['view:clear'],
+            [CacheKind::VIEWS],
             __('admin.cache.views_cleared_success'),
             __('admin.cache.views_cleared_error'),
         );
     }
 
-    public function clearRoutes(ClearCacheRequest $request): RedirectResponse
+    public function clearRoutes(): RedirectResponse
     {
         return $this->clear(
-            ['route:clear'],
+            [CacheKind::ROUTES],
             __('admin.cache.routes_cleared_success'),
             __('admin.cache.routes_cleared_error'),
         );
     }
 
-    public function clearAll(ClearCacheRequest $request): RedirectResponse
+    public function clearAll(): RedirectResponse
     {
         return $this->clear(
-            [
-                'cache:clear',
-                'config:clear',
-                'view:clear',
-                'route:clear',
-            ],
+            CacheKind::cases(),
             __('admin.cache.all_cleared_success'),
             __('admin.cache.all_cleared_error'),
         );
     }
 
     /**
-     * @param  list<string>  $commands
+     * @param  list<CacheKind>  $caches
      */
     private function clear(
-        array $commands,
+        array $caches,
         string $successMessage,
         string $errorMessage,
     ): RedirectResponse {
         try {
-            foreach ($commands as $command) {
-                Artisan::call($command);
-            }
+            $this->useCases->run(
+                $this->admin(),
+                new ClearCache($caches),
+            );
             $alerts = Alert::success($successMessage);
             $alerts->flash();
-        } catch (Throwable $e) {
-            Log::error('Clearing cache failed', [
-                'commands' => $commands,
-                'exception' => $e,
-            ]);
+        } catch (CacheClearFailedException $e) {
+            Log::error(
+                'Clearing cache failed',
+                ['caches' => $caches, 'exception' => $e],
+            );
             $alerts = Alert::error($errorMessage);
             $alerts->flash();
         }

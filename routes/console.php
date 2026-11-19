@@ -2,9 +2,13 @@
 
 declare(strict_types=1);
 
-use App\Domain\Shared\Console\Exceptions\InvalidCommandOptionsException;
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
-use App\Models\CronTask;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Application\System\Commands\RecordCronTaskRun;
+use App\Application\System\Queries\ListActiveCronTasks;
+use App\Domain\System\Enums\CronTaskFrequency;
+use App\Domain\System\Exceptions\InvalidCommandOptionsException;
+use App\Domain\System\ValueObjects\CommandOptions;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
@@ -14,18 +18,20 @@ use Illuminate\Support\Facades\Schema;
 // Every scheduled command, the invoice reminders included, is a cron task managed in the Backpack admin
 try {
     if (Schema::hasTable('cron_tasks')) {
-        $query = CronTask::where('is_active', true);
-        $cronTasks = $query->get();
+        $useCases = app(AuthorizingUseCaseRunnerInterface::class);
+        $cronTasks = $useCases->run(
+            Actor::system(),
+            new ListActiveCronTasks,
+        );
 
         foreach ($cronTasks as $task) {
-            // A command outside ScheduledCommand (ValueError of the cast) or invalid options skip only this task
+            // Invalid options skip only this task
             try {
-                $command = $task->command;
-                $options = CommandOptions::fromString($task->parameters ?? '');
-            } catch (InvalidCommandOptionsException|ValueError $e) {
+                $options = CommandOptions::fromString($task->parameters);
+            } catch (InvalidCommandOptionsException $e) {
                 Log::error(
                     'Cron task cannot be scheduled',
-                    ['cronTaskId' => $task->id, 'exception' => $e],
+                    ['cronTaskId' => $task->id->value, 'exception' => $e],
                 );
 
                 continue;
@@ -33,59 +39,60 @@ try {
 
             // The options are validated, so passing them unescaped to the shell is safe
             $event = Schedule::command(
-                $command->value,
+                $task->command->value,
                 $options->options,
             );
 
-            if ($task->frequency === 'custom' && $task->custom_expression) {
-                $event->cron($task->custom_expression);
-            } else {
-                switch ($task->frequency) {
-                    case 'daily':
-                        if ($task->run_at) {
-                            $time = $task->run_at->format('H:i');
-                            $event->dailyAt($time);
-                        } else {
-                            $event->daily();
-                        }
-                        break;
-                    case 'weekly':
-                        if ($task->day_of_week !== null && $task->run_at) {
-                            $time = $task->run_at->format('H:i');
-                            $event->weeklyOn($task->day_of_week, $time);
-                        } else {
-                            $event->weekly();
-                        }
-                        break;
-                    case 'monthly':
-                        if ($task->day_of_month !== null && $task->run_at) {
-                            $time = $task->run_at->format('H:i');
-                            $event->monthlyOn($task->day_of_month, $time);
-                        } else {
-                            $event->monthly();
-                        }
-                        break;
-                    default:
+            $time = $task->runAt?->format('H:i');
+            switch ($task->frequency) {
+                case CronTaskFrequency::CUSTOM:
+                    if ($task->customExpression !== null && $task->customExpression !== '') {
+                        $event->cron($task->customExpression);
+                    } else {
                         $event->daily();
-                }
+                    }
+                    break;
+                case CronTaskFrequency::DAILY:
+                    if ($time !== null) {
+                        $event->dailyAt($time);
+                    } else {
+                        $event->daily();
+                    }
+                    break;
+                case CronTaskFrequency::WEEKLY:
+                    if ($task->dayOfWeek !== null && $time !== null) {
+                        $event->weeklyOn($task->dayOfWeek, $time);
+                    } else {
+                        $event->weekly();
+                    }
+                    break;
+                case CronTaskFrequency::MONTHLY:
+                    if ($task->dayOfMonth !== null && $time !== null) {
+                        $event->monthlyOn($task->dayOfMonth, $time);
+                    } else {
+                        $event->monthly();
+                    }
+                    break;
             }
 
             // Each task writes its output to its own log
-            $event->appendOutputTo(
-                storage_path("logs/cron-{$task->id}.log"),
-            );
+            $logPath = storage_path("logs/cron-{$task->id->value}.log");
+            $event->appendOutputTo($logPath);
 
             // Store the time of the last run and its output
             $event->after(
-                function () use ($task): void {
-                    $task->last_run = now();
-                    $logPath = storage_path("logs/cron-{$task->id}.log");
+                function () use ($task, $logPath, $useCases): void {
+                    $output = null;
                     if (file_exists($logPath)) {
-                        $task->last_output = file_get_contents($logPath);
-                    } else {
-                        $task->last_output = null;
+                        $read = file_get_contents($logPath);
+                        if ($read !== false) {
+                            $output = $read;
+                        }
                     }
-                    $task->save();
+                    $useCases->run(
+                        Actor::system(),
+                        new RecordCronTaskRun($task->id, $output),
+                    );
                 },
             );
         }

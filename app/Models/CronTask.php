@@ -2,15 +2,12 @@
 
 namespace App\Models;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
-use App\Domain\Shared\Console\ValueObjects\CommandOptions;
+use App\Domain\System\Enums\ScheduledCommand;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\Carbon;
 use Cron\CronExpression;
-use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Artisan;
 
 class CronTask extends Model
 {
@@ -84,49 +81,6 @@ class CronTask extends Model
             \Log::error('Neplatný CRON výraz: ' . $e->getMessage());
 
             return null;
-        }
-    }
-
-    /**
-     * Runs the command now and stores the time and output of the run. A failed or throwing command returns false
-     * with the error in last_output.
-     */
-    public function simulateRun(): bool
-    {
-        try {
-            $startTime = microtime(true);
-
-            $options = CommandOptions::fromString($this->parameters ?? '');
-            $exitCode = Artisan::call(
-                $this->command->value,
-                $options->input(),
-            );
-
-            $executionTime = round(
-                microtime(true) - $startTime,
-                2,
-            );
-
-            $this->last_run = now();
-            $this->last_output = __(
-                'cron_tasks.messages.run_output',
-                [
-                    'output' => Artisan::output(),
-                    'seconds' => $executionTime,
-                ],
-            );
-            $this->save();
-
-            return $exitCode === Command::SUCCESS;
-        } catch (\Exception $e) {
-            $this->last_run = now();
-            $this->last_output = __(
-                'cron_tasks.messages.run_error',
-                ['error' => $e->getMessage()],
-            );
-            $this->save();
-
-            return false;
         }
     }
 }

@@ -58,10 +58,8 @@ return [
         'total_invoices' => 'Celkom faktúr',
         'total_contacts' => 'Aktívne kontakty',
         'total_businesses' => 'Aktívne firmy',
-        'total_products' => 'Celkom produktov',
         'total_users' => 'Celkom užívateľov',
         'active_subscriptions' => 'Aktívne predplatné',
-        'monthly_revenue' => 'Mesačné tržby',
         'quick_actions' => 'Rýchle akcie',
         'create_invoice' => 'Vytvoriť faktúru',
         'add_business' => 'Nová firma',
@@ -95,11 +93,12 @@ return [
         'last_invoice' => 'Posledná faktúra',
         'never' => 'Nikdy',
         'no_user_activity_data' => 'Žiadne dáta o aktivitách užívateľov',
-        'high_activity' => 'Vysoká aktivita',
-        'medium_activity' => 'Stredná aktivita',
-        'low_activity' => 'Nízka aktivita',
-        'inactive' => 'Neaktívny',
-        'unknown' => 'Neznámy',
+        'levels' => [
+            'high' => 'Vysoká aktivita',
+            'medium' => 'Stredná aktivita',
+            'low' => 'Nízka aktivita',
+            'inactive' => 'Neaktívny',
+        ],
     ],
 
     'system' => [

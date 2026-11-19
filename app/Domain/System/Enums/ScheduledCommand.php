@@ -2,11 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Domain\Shared\Console\Enums;
+namespace App\Domain\System\Enums;
 
 /**
  * The Artisan commands a cron task may run. The value is the command name, stored in `cron_tasks.command`; any
- * other command, including those of Laravel and the packages, cannot be scheduled from the admin.
+ * other command, including those of Laravel and the packages, cannot be scheduled from the admin. Removing or renaming a
+ * case needs a migration that updates or deletes its rows, because the admin cannot read a row the enum does not offer.
  */
 enum ScheduledCommand: string
 {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Routes;
 
-use App\Domain\Shared\Console\Enums\ScheduledCommand;
+use App\Domain\System\Enums\ScheduledCommand;
 use App\Models\CronTask;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
@@ -155,6 +155,73 @@ final class ConsoleTest extends TestCase
                 && $context['cronTaskId'] === $task->id,
         );
         $verification->once();
+    }
+
+    /**
+     * @return array<string, array{string, string}>
+     */
+    public static function valuesTheEnumsNoLongerOffer(): array
+    {
+        return [
+            'command' => [
+                'command',
+                'invoices:removed',
+            ],
+            'frequency' => [
+                'frequency',
+                'hourly',
+            ],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('valuesTheEnumsNoLongerOffer')]
+    public function skips_only_a_task_whose_stored_value_the_enums_no_longer_offer(
+        string $column,
+        string $value,
+    ): void {
+        $taskFactory = CronTask::factory();
+        $activeFactory = $taskFactory->active();
+        $commandFactory = $activeFactory->withCommand(ScheduledCommand::MONITOR_DATABASE);
+        $task = $commandFactory->create();
+        // The enum cast refuses the value, so it is stored past the model
+        $query = CronTask::whereKey($task->id);
+        $query->update([$column => $value]);
+        $commandFactory = $activeFactory->withCommand(ScheduledCommand::CHECK_DATABASE_HEALTH);
+        $commandFactory->create();
+        $log = Log::spy();
+
+        $events = $this->scheduledEvents();
+
+        $this->assertCount(1, $events);
+        $this->assertStringEndsWith("'artisan' db:health-check", $events[0]->command);
+        $verification = $log->shouldHaveReceived('error');
+        $verification = $verification->withArgs(
+            fn (string $message, array $context): bool => $message === 'Cron task cannot be read'
+                && $context['cronTaskId'] === $task->id,
+        );
+        $verification->once();
+    }
+
+    #[Test]
+    public function stores_the_time_and_output_after_a_run(): void
+    {
+        $taskFactory = CronTask::factory();
+        $activeFactory = $taskFactory->active();
+        $task = $activeFactory->create(['last_run' => null]);
+        $logPath = storage_path("logs/cron-{$task->id}.log");
+        file_put_contents($logPath, 'Done');
+
+        try {
+            $events = $this->scheduledEvents();
+            $events[0]->callAfterCallbacks($this->app);
+        } finally {
+            unlink($logPath);
+        }
+
+        $task->refresh();
+        $this->assertNotNull($task->last_run);
+        $this->assertSame('Done', $task->last_output);
     }
 
     /**

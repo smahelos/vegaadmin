@@ -18,7 +18,7 @@ Naming and where checks belong: `rules/permissions.md`. Entity limits (`role_lim
    - renaming or removing → `up()` only renames or deletes the permission explicitly and then calls `forgetCachedPermissions()`, without the sync: a pure rename creates nothing and the sync would grant back every catalog default a role had revoked (renaming keeps existing grants; for removal, check with the user who holds it now); `down()` restores the old name. Splitting one permission into several is the adding path followed by the removal, as in `database/migrations/2026_11_08_000001_finish_splitting_permissions_by_operation.php`.
 4. **Use it.** In the `access()` of the Command or Query, or in the Backpack `setup()` — whichever owns the check (`rules/permissions.md`). Remove every use of a removed permission together with its enum case (`grep -rn "Permission::<CASE>" app routes resources tests`).
 5. **Verify.**
-   - `docker exec BILLEX-app php artisan test tests/Feature/Architecture/PermissionCatalogCoverageTest.php` — the enum and the catalog list the same permissions.
+   - `docker exec BILLEX-app php artisan test tests/Feature/Architecture/PermissionCatalogCoverageTest.php` — the enum and the catalog list the same permissions, and no code writes a permission name as a string.
    - the migration on the local database — ask the user before running `docker exec BILLEX-app php artisan migrate`; then the HTTP tests of the routes the permission guards: a user without it gets 403, a user with it passes.
 
 Done when the enum, catalog, migration, checks and tests all name the same permission and the tests above pass.

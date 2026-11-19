@@ -58,10 +58,8 @@ return [
         'total_invoices' => 'Gesamtzahl der Rechnungen',
         'total_contacts' => 'Aktive Kontakte',
         'total_businesses' => 'Aktive Unternehmen',
-        'total_products' => 'Gesamtzahl der Produkte',
         'total_users' => 'Gesamtzahl der Benutzer',
         'active_subscriptions' => 'Aktive Abonnements',
-        'monthly_revenue' => 'Monatlicher Umsatz',
         'quick_actions' => 'Schnellaktionen',
         'create_invoice' => 'Rechnung erstellen',
         'add_business' => 'Neues Unternehmen',
@@ -95,11 +93,12 @@ return [
         'last_invoice' => 'Letzte Rechnung',
         'never' => 'Nie',
         'no_user_activity_data' => 'Keine Daten zur Benutzeraktivität',
-        'high_activity' => 'Hohe Aktivität',
-        'medium_activity' => 'Mittlere Aktivität',
-        'low_activity' => 'Niedrige Aktivität',
-        'inactive' => 'Inaktiv',
-        'unknown' => 'Unbekannt',
+        'levels' => [
+            'high' => 'Hohe Aktivität',
+            'medium' => 'Mittlere Aktivität',
+            'low' => 'Niedrige Aktivität',
+            'inactive' => 'Inaktiv',
+        ],
     ],
 
     'system' => [

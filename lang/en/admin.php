@@ -57,10 +57,8 @@ return [
         'total_invoices' => 'Total Invoices',
         'total_contacts' => 'Active contacts',
         'total_businesses' => 'Active businesses',
-        'total_products' => 'Total Products',
         'total_users' => 'Total Users',
         'active_subscriptions' => 'Active Subscriptions',
-        'monthly_revenue' => 'Monthly Revenue',
         'quick_actions' => 'Quick Actions',
         'create_invoice' => 'Create Invoice',
         'add_business' => 'New business',
@@ -94,11 +92,12 @@ return [
         'last_invoice' => 'Last Invoice',
         'never' => 'Never',
         'no_user_activity_data' => 'No User Activity Data',
-        'high_activity' => 'High Activity',
-        'medium_activity' => 'Medium Activity',
-        'low_activity' => 'Low Activity',
-        'inactive' => 'Inactive',
-        'unknown' => 'Unknown',
+        'levels' => [
+            'high' => 'High Activity',
+            'medium' => 'Medium Activity',
+            'low' => 'Low Activity',
+            'inactive' => 'Inactive',
+        ],
     ],
 
     'system' => [
