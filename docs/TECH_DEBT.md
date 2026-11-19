@@ -397,6 +397,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Domain/*/Validation/`
 - **Fix:** one rule set per entity in form requests, business validation in value objects (`rules/http.md`).
 
+### Passwords are checked only on the profile
+- **Where:** `app/Livewire/User/RegistrationForm.php`, `app/Http/Requests/Admin/UserRequest.php`, `UserWriteData::$password`, `EloquentUserMapper::toAttributes()`, `UserPassword`
+- **Problem:** only the profile password change builds `UserPassword`, which refuses the common passwords. Registration checks only `Password::min(8)` and the admin user form has no length rule at all; both pass the plain password through `UserWriteData` to the model's hashed cast, so `password123` is accepted there. Found 2026-11-19 while fixing the 500 of the profile password change.
+- **Fix:** every new password is built through `UserPassword` (registration and the admin user write path as well), which then holds the length rule beside the common list, so all three forms share one rule; its `CommonPasswordException` is already rendered as an error of the `password` field. `Password::min(8)` leaves the registration, so the length has one source. A test per form.
+
 ### Directory layout
 - **Where:** `app/Infrastructure/Services/`, `app/Infrastructure/Providers/Payment/` (→ `Gateways/Payment/`), `app/Infrastructure/Forms/Products/` (→ `Product/`), `app/Application/Invoice/Services/Specialized/`, `app/Application/Content/Services/`, `app/Application/Shared/Geography/Services/` and `app/Application/Shared/Money/Services/` (`PageApplicationService`, `CountryApplicationService`, `CurrencyApplicationService`, readers outside the gate), `app/Application/Party/Services/` (`CompanyRegistryApplicationService`, a reader outside the gate; `PartyLogoApplicationService`, logo files that delivery stores before the Command, like the product image below), `app/Domain/Payment/Providers/QrPayment/`; contracts without the `Interface` suffix: `Locale`, `BankDtoRepository`, `ApiStatisticsRepository`, `Str`, `Config`, `DomainEvent`
 - **Fix:** per `rules/architecture.md` (Directory layout, Ports and interfaces); framework wrappers in `Domain/Shared` that are not ports (`Str`, `Config`, `Console`) are removed.
@@ -459,11 +464,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `Frontend\PageController::search()`, route `frontend.pages.search`
 - **Problem:** the action reads `q` straight from the request, so `?q[]=x` passes an array to `strlen()` and answers 500 instead of a validation error. Found 2026-11-18 in the review of phase 7 of step 11.
 - **Fix:** a form request with `q` as a nullable string of limited length (`rules/http.md`, Form requests), with a test of the array input.
-
-### Passwords are checked only on the profile
-- **Where:** `app/Livewire/User/RegistrationForm.php`, `app/Http/Requests/Admin/UserRequest.php`, `UserWriteData::$password`, `EloquentUserMapper::toAttributes()`, `UserPassword`
-- **Problem:** only the profile password change builds `UserPassword`, which refuses the common passwords. Registration checks only `Password::min(8)` and the admin user form has no length rule at all; both pass the plain password through `UserWriteData` to the model's hashed cast, so `password123` is accepted there. Found 2026-11-19 while fixing the 500 of the profile password change.
-- **Fix:** every new password is built through `UserPassword` (registration and the admin user write path as well), which then holds the length rule beside the common list, so all three forms share one rule; its `CommonPasswordException` is already rendered as an error of the `password` field. A test per form.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
