@@ -1,37 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tests\Feature\Console;
 
 use Illuminate\Support\Facades\File;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class DddGuardCommandTest extends TestCase
+final class DddGuardCommandTest extends TestCase
 {
-    private string $processId;
+    private string $directory;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->processId = (string) getmypid();
+        // Outside the repository: the guard of a parallel test process scans the repository
+        $this->directory = sys_get_temp_dir() . '/billex-ddd-guard-' . uniqid('', true);
+        File::makeDirectory($this->directory);
+    }
+
+    protected function tearDown(): void
+    {
+        File::deleteDirectory($this->directory);
+        parent::tearDown();
     }
 
     #[Test]
-    public function guard_passes_on_baseline_allowlist(): void
+    public function guard_passes_on_current_code(): void
     {
-        $allow = config('ddd_guard.forbidden_paths')[0]['allowed_files'];
-        $servicesPath = base_path('app/Services');
-        if (is_dir($servicesPath)) {
-            foreach (File::files($servicesPath) as $file) {
-                $base = $file->getFilename();
-                $this->assertContains(
-                    $base,
-                    $allow,
-                    'Baseline contains an unallowlisted legacy file: ' . $base,
-                );
-            }
-        }
-
         $command = $this->pendingCommand('ddd:guard');
         $command->expectsOutput('No DDD guard violations detected.');
         $command->assertExitCode(0);
@@ -39,63 +36,127 @@ class DddGuardCommandTest extends TestCase
     }
 
     #[Test]
-    public function guard_detects_new_legacy_service_file(): void
+    public function guard_reports_new_file_in_frozen_directory(): void
     {
-        // Use process-specific directory to avoid conflicts in parallel test execution
-        $servicesPath = base_path("app/Services_{$this->processId}");
-        if (!is_dir($servicesPath)) {
-            File::makeDirectory(
-                $servicesPath,
-                0755,
-                true,
-            );
-        }
-        $tempFile = $servicesPath . '/TemporaryNewService.php';
-        File::put(
-            $tempFile,
-            "<?php\nnamespace App\\Services;\nclass TemporaryNewService {}\n",
+        File::put($this->directory . '/NewService.php', "<?php\n");
+
+        $report = $this->runGuard(
+            ['ddd_guard.forbidden_paths' => [$this->rule('no_new_files')]],
+            [],
+            1,
         );
 
-        // Temporarily override config to use our process-specific path
-        $originalConfig = config('ddd_guard.forbidden_paths');
-        $originalDiPaths = config('ddd_guard.di_scan_paths');
+        $this->assertSame('new_file', $report['violations'][0]['type']);
+    }
 
-        $collection = collect($originalConfig);
-        $mapped = $collection->map(
-            function ($path) use ($servicesPath) {
-                if (isset($path['path']) && $path['path'] === base_path('app/Services')) {
-                    $path['path'] = $servicesPath;
-                }
-
-                return $path;
-            },
+    #[Test]
+    public function guard_reports_existing_forbidden_directory(): void
+    {
+        $report = $this->runGuard(
+            ['ddd_guard.forbidden_paths' => [$this->rule('must_not_exist')]],
+            [],
+            1,
         );
-        $modifiedConfig = $mapped->toArray();
 
-        // Disable DI scanning to avoid conflicts with process-specific Controllers folders
+        $this->assertSame('forbidden_directory', $report['violations'][0]['type']);
+    }
+
+    #[Test]
+    public function di_scan_reports_violation_for_concrete_service_with_interface(): void
+    {
+        $this->writeControllerImporting('App\Domain\User\Services\LocaleService');
+
+        $report = $this->runGuard(
+            [],
+            ['--di' => true],
+            1,
+        );
+
+        $this->assertSame('di_concrete_import', $report['violations'][0]['type']);
+    }
+
+    #[Test]
+    public function di_scan_reports_advisory_for_concrete_service_without_interface(): void
+    {
+        $this->writeControllerImporting('App\Domain\User\Services\UnboundService');
+
+        $report = $this->runGuard(
+            [],
+            ['--di' => true],
+            0,
+        );
+
+        $this->assertSame([], $report['violations']);
+        $this->assertSame('di_missing_interface', $report['advisories'][0]['type']);
+    }
+
+    #[Test]
+    public function di_scan_fails_on_advisory_when_fail_on_advisory_enabled(): void
+    {
+        $this->writeControllerImporting('App\Domain\User\Services\UnboundService');
+
+        $report = $this->runGuard(
+            [],
+            ['--di' => true, '--fail-on-advisory' => true],
+            1,
+        );
+
+        $this->assertSame([], $report['violations']);
+        $this->assertSame('di_missing_interface', $report['advisories'][0]['type']);
+    }
+
+    /**
+     * Runs the guard with only the given rules, over the test's own directory.
+     *
+     * @param  array<string, mixed>  $config
+     * @param  array<string, bool>  $options
+     * @return array{violations: list<array{type: string}>, advisories: list<array{type: string}>}
+     */
+    private function runGuard(
+        array $config,
+        array $options,
+        int $exitCode,
+    ): array {
+        $reportPath = $this->directory . '/report.json';
         config(
             [
-                'ddd_guard.forbidden_paths' => $modifiedConfig,
-                'ddd_guard.di_enabled' => false,
+                'ddd_guard.forbidden_paths' => [],
+                'ddd_guard.forbidden_patterns' => [],
+                'ddd_guard.di_scan_paths' => [$this->directory],
+                'ddd_guard.json_report_path' => $reportPath,
+                ...$config,
             ],
         );
 
-        try {
-            $command = $this->pendingCommand('ddd:guard');
-            $command->expectsOutput('DDD guard violations:');
-            $command->assertExitCode(1);
-            $command->run();
-        } finally {
-            // Restore original config
-            config(
-                [
-                    'ddd_guard.forbidden_paths' => $originalConfig,
-                    'ddd_guard.di_scan_paths' => $originalDiPaths,
-                    'ddd_guard.di_enabled' => true,
-                ],
-            );
-            File::delete($tempFile);
-            File::deleteDirectory($servicesPath);
-        }
+        $command = $this->pendingCommand('ddd:guard', ['--format' => 'json', ...$options]);
+        $command->assertExitCode($exitCode);
+        $command->run();
+
+        return json_decode(
+            File::get($reportPath),
+            true,
+            flags: JSON_THROW_ON_ERROR,
+        );
+    }
+
+    /**
+     * @return array{path: string, allowed_files: list<string>, allowed_directories: list<string>, mode: string}
+     */
+    private function rule(string $mode): array
+    {
+        return [
+            'path' => $this->directory,
+            'allowed_files' => [],
+            'allowed_directories' => [],
+            'mode' => $mode,
+        ];
+    }
+
+    private function writeControllerImporting(string $serviceClass): void
+    {
+        File::put(
+            $this->directory . '/TempController.php',
+            "<?php\nnamespace App\\Http\\Controllers\\Temp;\n\nuse {$serviceClass};\n\nclass TempController {}\n",
+        );
     }
 }

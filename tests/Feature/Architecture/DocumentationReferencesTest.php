@@ -397,7 +397,7 @@ final class DocumentationReferencesTest extends TestCase
      */
     private function files(string $directory): array
     {
-        // Git's inventory, not a walk of the disk: ddd:guard tests create and delete directories in app/ meanwhile
+        // Git's inventory, not a walk of the disk: ignored files are not part of the project
         $git = new Process(
             [
                 'git',
