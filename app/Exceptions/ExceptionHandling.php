@@ -32,6 +32,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
 use Prologue\Alerts\Facades\Alert;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
@@ -65,13 +66,12 @@ class ExceptionHandling
                 $message = self::limitMessage($e);
 
                 if ($request->expectsJson()) {
-                    $application = app();
                     $responseFactory = response();
 
                     return $responseFactory->json(
                         [
                             'message' => $message,
-                            'plans_url' => route('subscriptions.index', ['locale' => $application->getLocale()]),
+                            'plans_url' => route('subscriptions.index', ['locale' => App::getLocale()]),
                         ],
                         403,
                     );
@@ -211,10 +211,9 @@ class ExceptionHandling
 
                     // Let guests be redirected to the correct localized login page
                     $redirector = redirect();
-                    $application = app();
 
                     return $redirector->guest(
-                        route('frontend.login', ['locale' => $application->getLocale()]),
+                        route('frontend.login', ['locale' => App::getLocale()]),
                     );
                 }
 

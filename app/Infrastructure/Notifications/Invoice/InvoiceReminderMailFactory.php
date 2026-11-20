@@ -9,6 +9,7 @@ use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\App;
 
 final class InvoiceReminderMailFactory
 {
@@ -23,8 +24,7 @@ final class InvoiceReminderMailFactory
         ?string $locale,
         string $fallbackName,
     ): MailMessage {
-        $application = app();
-        $locale ??= $payload->locale ?? $application->getLocale();
+        $locale ??= $payload->locale ?? App::getLocale();
         $customer = $payload->recipientType === 'customer';
         $view = match ($type) {
             InvoiceReminderType::UPCOMING_DUE => $customer ? 'emails.invoices.reminders.upcoming_due_customer' : 'emails.invoices.reminders.upcoming_due_supplier',

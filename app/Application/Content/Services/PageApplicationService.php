@@ -84,13 +84,8 @@ final class PageApplicationService
     }
 
     // we simply delegate to the model repo, as NO business logic is needed
-    public function searchPages(string $keyword, ?string $locale = null): Collection
+    public function searchPages(string $keyword, string $locale): Collection
     {
-        if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
-        }
-
         return $this->pages->searchPublished($keyword, $locale);
     }
 
@@ -122,13 +117,8 @@ final class PageApplicationService
     }
 
     // we simply delegate to the model repo, as NO business logic is needed
-    public function getCategoryBySlug(string $slug, ?string $locale = null): ?PageCategory
+    public function getCategoryBySlug(string $slug, string $locale): ?PageCategory
     {
-        if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
-        }
-
         return $this->pages->findCategoryBySlug($slug, $locale);
     }
 }

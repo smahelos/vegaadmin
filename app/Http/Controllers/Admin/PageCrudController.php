@@ -17,6 +17,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 
 /**
  * Class PageCrudController
@@ -78,8 +79,7 @@ class PageCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
             },
@@ -92,8 +92,7 @@ class PageCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
             },
@@ -107,8 +106,7 @@ class PageCrudController extends CrudController
         $column->function(
             function ($entry) {
                 if ($entry->category) {
-                    $application = app();
-                    $currentLocale = $application->getLocale();
+                    $currentLocale = App::getLocale();
 
                     return $entry->category->getName($currentLocale) ?? $entry->category->getName('cs') ?? __('general.placeholders.not_available');
                 }
@@ -125,8 +123,7 @@ class PageCrudController extends CrudController
         $column->function(
             function ($entry) {
                 if ($entry->parent) {
-                    $application = app();
-                    $currentLocale = $application->getLocale();
+                    $currentLocale = App::getLocale();
 
                     return $entry->parent->getName($currentLocale) ?? $entry->parent->getName('cs') ?? __('general.placeholders.not_available');
                 }
@@ -181,8 +178,7 @@ class PageCrudController extends CrudController
         $pageCategories = PageCategory::all();
         $categoryNames = $pageCategories->mapWithKeys(
             function ($category) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
                 $name = $category->getName($currentLocale) ?? $category->getName('cs') ?? __('general.placeholders.not_available');
 
                 return [$category->id => $name];
@@ -235,8 +231,7 @@ class PageCrudController extends CrudController
         );
 
         // Category and parent
-        $application = app();
-        $currentLocale = $application->getLocale();
+        $currentLocale = App::getLocale();
 
         $pageCategories = PageCategory::all();
         $categoryNames = $pageCategories->mapWithKeys(
@@ -396,8 +391,7 @@ class PageCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
             },
@@ -410,8 +404,7 @@ class PageCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
                 $content = $entry->getContent($currentLocale) ?? $entry->getContent('cs') ?? '';
 
                 return \Str::limit(
@@ -428,8 +421,7 @@ class PageCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getMetaTitle($currentLocale) ?? $entry->getMetaTitle('cs') ?? '';
             },

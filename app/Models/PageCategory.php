@@ -6,6 +6,7 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Str;
 
 class PageCategory extends Model
@@ -74,8 +75,7 @@ class PageCategory extends Model
     public function getName(?string $locale = null): ?string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
 
         if (!is_array($this->name)) {
@@ -109,8 +109,7 @@ class PageCategory extends Model
     public function getSlug(?string $locale = null): ?string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
 
         if (!is_array($this->slug)) {
@@ -144,8 +143,7 @@ class PageCategory extends Model
     public function getDescription(?string $locale = null): ?string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
 
         if (!is_array($this->description)) {

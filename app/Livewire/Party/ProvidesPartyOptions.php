@@ -7,6 +7,7 @@ namespace App\Livewire\Party;
 use App\Application\Payment\Services\BankApplicationService;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\Shared\Geography\Enums\Country;
+use Illuminate\Support\Facades\App;
 
 /**
  * Options of the country and bank selects of party and bank account forms.
@@ -19,9 +20,8 @@ trait ProvidesPartyOptions
     protected function countryOptions(): array
     {
         $presenter = app(CountryOptionsPresenter::class);
-        $application = app();
 
-        return $presenter->options($application->getLocale());
+        return $presenter->options(App::getLocale());
     }
 
     /**

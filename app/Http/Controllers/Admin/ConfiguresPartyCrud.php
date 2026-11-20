@@ -14,6 +14,7 @@ use App\Models\Business;
 use App\Models\Contact;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -152,9 +153,8 @@ trait ConfiguresPartyCrud
      */
     protected function addProfileFields(?Address $address = null): void
     {
-        $application = app();
         $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options($application->getLocale());
+        $countries = $presenter->options(App::getLocale());
 
         CRUD::addFields(
             PartyFormFields::profile(

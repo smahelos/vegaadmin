@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -33,10 +34,9 @@ class RedirectIfAuthenticated
                 // For frontend guard or without specified guard
                 if ($guard === 'web' || $guard === null) {
                     // Prioritize redirection to dashboard if exists
-                    $application = app();
                     $redirector = redirect();
 
-                    return $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
+                    return $redirector->route('frontend.dashboard', ['locale' => App::getLocale()]);
                 }
             }
         }

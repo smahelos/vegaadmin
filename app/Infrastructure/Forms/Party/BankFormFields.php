@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Forms\Party;
 
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use Illuminate\Support\Facades\App;
 
 trait BankFormFields
 {
@@ -12,8 +13,7 @@ trait BankFormFields
     protected function getBankFields(): array
     {
         $presenter = app(CountryOptionsPresenter::class);
-        $application = app();
-        $countries = $presenter->options($application->getLocale());
+        $countries = $presenter->options(App::getLocale());
 
         return [
             [

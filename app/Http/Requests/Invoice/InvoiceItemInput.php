@@ -8,6 +8,7 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
 use Closure;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 
@@ -160,15 +161,13 @@ final class InvoiceItemInput
      */
     private static function formattedRates(array $rates): string
     {
-        $application = app();
-
         return implode(
             ', ',
             array_map(
                 fn (string $rate): string => (string) Number::percentage(
                     (float) $rate,
                     maxPrecision: 2,
-                    locale: $application->getLocale(),
+                    locale: App::getLocale(),
                 ),
                 $rates,
             ),

@@ -28,6 +28,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -317,9 +318,8 @@ final class InvoiceCrudController extends CrudController
     private function setupForm(bool $create): void
     {
         CRUD::setValidation(InvoiceRequest::class);
-        $application = app();
         $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options($application->getLocale());
+        $countries = $presenter->options(App::getLocale());
         CRUD::addFields(
             (new AdminInvoiceFormFields)->fields(
                 $countries,
