@@ -187,7 +187,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ### Plan currencies are not checked against the gateway
 - **Where:** `SubscriptionRequest`, `SubscriptionPlanRequest` (`Rule::enum(Currency::class)` limited to CZK, EUR and USD), the currency options of `SubscriptionCrudController` and `SubscriptionPlanCrudController`, `GoPayGateway::getSupportedCurrencies()` (CZK and EUR)
 - **Problem:** the admin can sell a plan in USD, which the gateway does not declare, and nothing checks it before the payment reaches GoPay; the requests and the two admin forms keep the same list in four places (seen 2026-11-19).
-- **Fix:** decide which currencies the plans are sold in (what the GoPay account accepts), keep that list once and validate the plan and subscription currency against the gateway.
+- **Fix:** decide which currencies the plans are sold in (what the GoPay account accepts) and keep that list once, in the gateway: `PaymentGatewayInterface::getSupportedCurrencies()` returns `list<Currency>`, the two requests validate the plan and subscription currency against it and the admin forms take their options from it.
 
 ### GoPay is called inside the database transaction
 - **Where:** `app/Domain/Payment/Services/SubscriptionPaymentService.php::processSubscriptionPayment()`
@@ -377,6 +377,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `App\Models` in 10 Application files and 29 of 57 controllers (2026-11-18); `Illuminate\Http` in 1 Application file; facades/helpers in Application files (e.g. `Cache` in `TemporaryInvoiceStore`, whose tests have to boot Laravel); `config()` in `app/Domain/Shared/File/Config/FileUploadConfig.php`; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`; `app/Application/Invoice/Form/InvoiceCreateFieldSetFactory.php` builds the invoice form from the Infrastructure trait `InvoiceFormFields`, which translates its labels with `__()`
 - **Fix:** per `rules/architecture.md` (dependency table).
 
+### Dependencies taken from the container
+- **Where:** 34 `app(Foo::class)` and `App::make()` calls outside `app/Providers` (2026-11-20): the admin controllers `InvoiceCrudController`, `ExpenseCrudController`, `BankAccountCrudController` and the trait `ConfiguresPartyCrud`, the form definitions in `app/Infrastructure/Forms` (traits and static classes, e.g. `BankFormFields`), the form requests `InvoiceRequest` (frontend and admin) and `InvoiceItemInput`, the Livewire traits `ProvidesPartyOptions` and `ActsForUser`, the observers in `app/Infrastructure/Persistence/Eloquent/*/Observers`, `LaravelFileUploadService`, the model traits `HasFileUploads` and `HasPreferredLocale`, the invoice reminder notifications
+- **Problem:** a dependency taken from the container inside a method is not in the signature: the class can be created without it, a test has to boot the container instead of passing a fake, and neither Larastan nor the reader sees what the class needs. `rules/php.md` asks for constructor injection, but nothing stops a new `app()` in Infrastructure or delivery.
+- **Fix:** decided 2026-11-20: a rule in `rules/php.md` that a dependency is in the signature — constructor injection where the container builds the object (controllers including Backpack, as `ProductCrudController` does, Blade components, observers), method injection where the framework calls the method through the container (form request `rules()` and `after()`, Livewire `boot()` and actions); only `app/Providers` works with the container. A Larastan rule in `phpstan/Rules/` reports `app(…)`, `resolve()` and `App::make()` outside `app/Providers`, with a list in `phpstan.neon` that only shrinks, like `EloquentOutsideControllersRule`. Form definitions become `final` classes injected into their controllers. Models and notifications get no container: their logic moves out ("Business logic in models"), and a notification receives prepared data from its handler or job.
+
 ### Interfaces without a port
 - **Where:** 11 of 12 `*ServiceInterface` contracts in Domain and Application have a single implementation; 1 test file mocks them (2026-11-18)
 - **Fix:** delete the interfaces and their bindings, make the services `final`, rewrite the mocking tests to run the real service with fakes at the ports; refresh the provider snapshot.
@@ -432,6 +437,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `resources/views/frontend/invoices/show.blade.php`
 - **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.
 - **Fix:** an invoice detail presenter using `MoneyFormatterInterface`, like `app/Application/Analytics/Presenters/*`.
+
+### Currency options are built in every form
+- **Where:** `InvoiceFormFields`, `ProductFormFields`, `ExpenseFormFields`, `AdminInvoiceItemFields`, `ProductCrudController`, `CurrencySelect`
+- **Problem:** each builds its currency options from `Currency::cases()`. The label is the code today; translated names or an order (most used first) would have to change in six places, which can drift apart as the product form and its validation did before the currency lists were removed (seen 2026-11-20).
+- **Fix:** a `CurrencyOptionsPresenter` in `app/Application/Shared/Money/Presenters`, like `CountryOptionsPresenter`, introduced with the first translated or ordered currency names and after "Dependencies taken from the container", so that the form definitions receive it by injection. Plan and subscription currencies come from the gateway ("Plan currencies are not checked against the gateway").
 
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
