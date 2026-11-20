@@ -137,10 +137,10 @@ final class DocumentationReferencesTest extends TestCase
         $markdown = <<<'MD'
             Existing: `app/Models`, `rules/php.md`, `phpstan.neon`, `php.md`, `EntityLimit`, `InvoiceStatus::PAID->value`,
             `Admin\InvoiceCrudController`, `App\Models`, `Illuminate\Testing\PendingCommand`, `DateTimeImmutable`,
-            `app/Domain/<Context>`, [policy](DOCUMENTATION.md), [web](https://example.com).
+            `app/Domain/<Context>`, `public/build/gone.js`, [policy](DOCUMENTATION.md), [web](https://example.com).
 
-            Missing: `app/Gone.php`, `rules/gone.md`, `gone.neon`, `GoneService`, `QRGoneService`, `Admin\GoneController`,
-            `PendingCommand`, [gone](gone.md).
+            Missing: `app/Gone.php`, `vendor/gone.php`, `rules/gone.md`, `gone.neon`, `GoneService`, `QRGoneService`, `Admin\GoneController`,
+            `PendingCommand`, [gone](gone.md), [empty]().
 
             ~~Struck `StruckGoneService`~~
 
@@ -152,6 +152,7 @@ final class DocumentationReferencesTest extends TestCase
         $this->assertSame(
             [
                 'docs/example.md:5 `app/Gone.php`',
+                'docs/example.md:5 `vendor/gone.php`',
                 'docs/example.md:5 `rules/gone.md`',
                 'docs/example.md:5 `gone.neon`',
                 'docs/example.md:5 `GoneService`',
@@ -159,6 +160,7 @@ final class DocumentationReferencesTest extends TestCase
                 'docs/example.md:5 `Admin\GoneController`',
                 'docs/example.md:5 `PendingCommand`',
                 'docs/example.md:5 (gone.md)',
+                'docs/example.md:5 ()',
             ],
             $this->missingReferences('docs/example.md', $markdown),
         );
@@ -233,11 +235,11 @@ final class DocumentationReferencesTest extends TestCase
                 $quote,
             );
 
+            $path = rtrim($path, '.:');
+
             return file_exists(
-                base_path(
-                    rtrim($path, '.:'),
-                ),
-            );
+                base_path($path),
+            ) || $this->isLocal($path);
         }
 
         if (preg_match(self::FILE_NAME_PATTERN, $quote) === 1) {
@@ -245,7 +247,7 @@ final class DocumentationReferencesTest extends TestCase
                 base_path($quote),
             ) || file_exists(
                 base_path('.claude/rules/' . $quote),
-            );
+            ) || $this->isLocal($quote);
         }
 
         if (
@@ -271,6 +273,7 @@ final class DocumentationReferencesTest extends TestCase
         return true;
     }
 
+    // Without autoloading: a global short name passes only as a PHP built-in, which is always loaded
     private function isBuiltIn(string $name): bool
     {
         return class_exists($name, false) || interface_exists($name, false);
@@ -328,7 +331,10 @@ final class DocumentationReferencesTest extends TestCase
             return true;
         }
 
-        $path = strtok($url, '#');
+        $path = strtok($url, '#?');
+        if ($path === false) {
+            return false;
+        }
 
         return file_exists(
             base_path(
@@ -412,5 +418,26 @@ final class DocumentationReferencesTest extends TestCase
                 explode("\0", $git->getOutput()),
             ),
         );
+    }
+
+    // A file Git ignores is local (`.mcp.json`, `public/build`) and missing in CI; vendor/ is installed there
+    private function isLocal(string $path): bool
+    {
+        if (str_starts_with($path, 'vendor/')) {
+            return false;
+        }
+
+        $git = new Process(
+            [
+                'git',
+                'check-ignore',
+                '-q',
+                '--',
+                $path,
+            ],
+            base_path(),
+        );
+
+        return $git->run() === 0;
     }
 }
