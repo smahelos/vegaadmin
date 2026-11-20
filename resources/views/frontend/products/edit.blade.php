@@ -64,7 +64,7 @@
 
                         @elseif ($field['name'] === 'currency')
                         <!-- Product Currency -->
-                        <div class="mb-5 md:col-span-2">
+                        <div class="mb-5 md:col-span-3">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
                                 id="{{ $field['name'] }}" valueField="id"
                                 :selected="old($field['name'], $product->currency ?? '')"
@@ -75,7 +75,7 @@
 
                         @elseif (in_array($field['name'], $leftColumnFields))
                         <div
-                            class="mb-5 @if($field['name'] === 'price')md:col-span-4 @elseif($field['name'] === 'currency')md:col-span-2 @else md:col-span-3 @endif ">
+                            class="mb-5 md:col-span-3">
                             <label for="{{ $field['name'] }}"
                                 class="block text-base font-medium text-gray-900 dark:text-white mb-2 h-6">
                                 {{ $field['label'] }}
