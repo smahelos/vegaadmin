@@ -76,7 +76,7 @@ Mistakes here cost money or data — flag every non-obvious decision:
 
 ## Shared workflows
 
-Both agents use the same workflow sources below. Read the relevant `SKILL.md` before the corresponding operation and follow its scope and authorization boundaries. These repository workflows are usable by reading their files even when a tool does not list them in its native skill picker; do not create agent-specific copies.
+Both agents use the same workflow sources below. Read the relevant `.claude/skills/<name>/SKILL.md` before the corresponding operation and follow its scope and authorization boundaries. These repository workflows are usable by reading their files even when a tool does not list them in its native skill picker; do not create agent-specific copies.
 
 | Workflow | When to read it |
 |---|---|

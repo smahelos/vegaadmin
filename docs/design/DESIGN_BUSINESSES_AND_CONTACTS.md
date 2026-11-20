@@ -73,17 +73,17 @@ The generated unique key, the CHECK with restricting foreign keys and the compos
 
 ### Capacity limits (Q8, Q9, Q10)
 
-No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. The limits are the `businesses` and `contacts` values of the owner's plan role ([D-047](../adr/D-047-entity-limits.md), which replaced the `limit_active_*` permissions and the UELS dashboard on 2026-11-06). The owner's limit applies in the admin too, without bypass: no permission lifts it. The old `limit_yearly_{clients,suppliers}_basic`, the party `UsageRecordingHandler`, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
+No counter. Creating or restoring a business or contact locks the owner (`SELECT … FROM users WHERE id = ? FOR UPDATE`), counts the active rows through a current locking read and inserts or restores in the same transaction (`rules/permissions.md`). The count must see commits after any earlier consistent-read snapshot in that transaction; first-business default decisions use the same current read. The limits are the `businesses` and `contacts` values of the owner's plan role ([D-047](../adr/D-047-entity-limits.md), which replaced the `limit_active_*` permissions and the UELS dashboard on 2026-11-06). The owner's limit applies in the admin too, without bypass: no permission lifts it. The old `limit_yearly_{clients,suppliers}_basic`, the party UsageRecordingHandler, their `entity_limit_usage` rows and the client/supplier `_unlimited` permissions disappear.
 
 ### Events (Q26)
 
-`BusinessCreated`, `BusinessUpdated`, `BusinessArchived`, `BusinessRestored`, the same four for `Contact`, and `DefaultBusinessChanged`, published by the Party Command handlers. A Laravel listener invalidates the owner's dashboard cache after the commit. `ClientObserver`, `SupplierObserver` and the party `UsageRecordingHandler` go away.
+`BusinessCreated`, `BusinessUpdated`, `BusinessArchived`, `BusinessRestored`, the same four for `Contact`, and `DefaultBusinessChanged`, published by the Party Command handlers. A Laravel listener invalidates the owner's dashboard cache after the commit. ClientObserver, SupplierObserver and the party UsageRecordingHandler go away.
 
 ## 3. Application (Q4, Q14)
 
 - Every action is a Command or Query in `app/Application/Party` that runs through the gate (`rules/permissions.md`): `CreateBusiness`, `UpdateBusiness`, `ArchiveBusiness`, `RestoreBusiness`, `SetDefaultBusiness`, the same create/update/archive/restore for contacts and bank accounts, `SetDefaultBankAccount`; the Queries `GetBusiness`, `GetContact` (with `…ForEdit` for the edit forms), `ListBusinesses`, `ListContacts`, `ListActiveBusinesses`, `ListLatestBusinesses`, `ListLatestContacts`, `FindDefaultBusiness`, `FindBusinessDuplicates`, `FindContactDuplicates`, `ListBankAccounts`, `FindDefaultBankAccount`, `GetBankAccountForEdit`. Creating and restoring businesses and contacts apply the shared capacity check. The bank account use cases serve either owner through `AccountOwner` and check `bank_account.view` / `bank_account.update`; accounts consume no additional capacity, while their default/archive operations use the same owner lock for serialization.
 - Ports: `Business`, `Contact` and `BankAccount` read and write repositories. They take the scope the gate issued: business/contact `search` takes `PartySearch` and `PageRequest` for active or archived lists; `listLatestActive` serves the latest widgets. `BusinessReadRepositoryInterface::listActive` supplies business selections; `findById` also finds archived records. `findByIdForUser` stays for Invoice until it runs through the gate. No physical delete.
-- Deleted with their pairs: `InvoicePartyService`, `PartyApplicationService`, `PartyAuthorizationService`, `PartyInputValidationService`, `PartyCreationValidator`, `PartyDtoFactory`, the `*ArrayMapper` classes and the Application `Client*` / `Supplier*` repositories.
+- Deleted with their pairs: InvoicePartyService, PartyApplicationService, PartyAuthorizationService, PartyInputValidationService, PartyCreationValidator, PartyDtoFactory, the `*ArrayMapper` classes and the Application `Client*` / `Supplier*` repositories.
 - `DocumentPartyDTO` is shared by prefix (`supplier_`, `customer_`); `PartyPrintDTO` is built from it. `DocumentParties` holds both parties and their source references, with `DocumentAccountDTO` carrying the validated `BankAccount`. Step 12 adds issue-time locking of the complete document and stored PDFs on top of these independent copies.
 - `QrPaymentDTO` carries the stored `BankAccount` and Money through to the CZ/SK/EU providers; decimal amounts are rounded through Money without float conversion. `InvoiceReminderDTO` carries stored names, typed invoice identity and Money to the shared locale-aware mail factory; recipient addresses are selected from the stored document emails by the reminder application service.
 
@@ -91,11 +91,11 @@ No counter. Creating or restoring a business or contact locks the owner (`SELECT
 
 ### Registration (Q20, Q21)
 
-A Livewire component: login details plus business details (prefilled from the login, independent of it). A bank account is optional; when filled it becomes the first default. The shared Livewire form object `PartyDetailsForm` (fields, validation, ARES action) serves `RegistrationForm`, `BusinessForm`, `ContactForm` and `DocumentPartyPicker`. `/api/ares-lookup`, `AresLookupController` and `ares-lookup.js` go away.
+A Livewire component: login details plus business details (prefilled from the login, independent of it). A bank account is optional; when filled it becomes the first default. The shared Livewire form object `PartyDetailsForm` (fields, validation, ARES action) serves `RegistrationForm`, `BusinessForm`, `ContactForm` and `DocumentPartyPicker`. `/api/ares-lookup`, AresLookupController and ares-lookup.js go away.
 
 ### Frontend screens (Q22)
 
-`Route::resource('businesses' | 'contacts')` with `index`, `create`, `show`, `edit` only; names `frontend.businesses.index` and so on. Livewire `Party/BusinessForm`, `ContactForm`, `BusinessList`, `ContactList` (active and archived), `BankAccounts`; archive, restore and default selection are Livewire actions. `InvoiceListBySupplier` and `InvoiceListByClient` are replaced by `InvoiceList` with independent or combined `business_id` / `contact_id` filters, alongside search and status. Filter options include owned archived parties for history, foreign/unknown IDs return 404, and changes reset pagination.
+`Route::resource('businesses' | 'contacts')` with `index`, `create`, `show`, `edit` only; names `frontend.businesses.index` and so on. Livewire `Party/BusinessForm`, `ContactForm`, `BusinessList`, `ContactList` (active and archived), `BankAccounts`; archive, restore and default selection are Livewire actions. InvoiceListBySupplier and InvoiceListByClient are replaced by `InvoiceList` with independent or combined `business_id` / `contact_id` filters, alongside search and status. Filter options include owned archived parties for history, foreign/unknown IDs return 404, and changes reset pagination.
 
 `PartyListLatest` shows five active owned records ordered by `created_at DESC, id DESC`, with a View all link and no pagination or COUNT query. Paginated lists use the common `Paginates::paginator` conversion and pagination view.
 
@@ -109,7 +109,7 @@ A Livewire component: login details plus business details (prefilled from the lo
 - "Save to contacts" on the invoice detail, for an invoice without `contact_id`: one transaction with the capacity lock creates the contact and its address from `customer_*` and sets `contact_id`; the document data stay. A Czech IČO match offers "Link to the existing contact", which sets `contact_id` only. Requires `contact.create` and `invoice.update`. Step 7 offers it on every invoice without a contact; once step 12 introduces issuing, only on new invoices and drafts, because an issued invoice changes nothing, not even `contact_id`.
 - Payment reminders read the stored `supplier_email` / `customer_email`; an empty address skips the reminder. Sending a document by email does not exist yet (TECH_DEBT "Invoices cannot be sent by email").
 - Guest invoice: `DocumentPartyPicker` in guest mode, every party and the account one-off, no selections and no saving to contacts; `TemporaryInvoiceStore` keeps the `DocumentPartyDTO` shape and the print reads it like a stored invoice.
-- Removed: `client-form-data.js`, `supplier-form-data.js`, `bank-fields.js`, `/api/client*`, `/api/supplier*`, `/api/admin/client*`, `/api/admin/supplier*`.
+- Removed: client-form-data.js, supplier-form-data.js, bank-fields.js, `/api/client*`, `/api/supplier*`, `/api/admin/client*`, `/api/admin/supplier*`.
 
 ### Admin (Q25, Q35, Q36, Q45)
 
@@ -133,8 +133,8 @@ Customer revenue groups by `contact_id` (name from the contact, archived ones in
 ## 5. Translations (Q39, Q40)
 
 - `lang/*/parties.php`: the shared profile, address and bank account fields (`parties.fields.*`, `parties.bank_accounts.*`), hints, placeholders and validation.
-- `businesses.php` and `contacts.php`: `entity`, `titles`, `actions`, `messages`, `filters` and their own fields (logo, contact person, default).
-- `invoices.php` and `expenses.php`: only the role headings (supplier, customer) and document messages. `clients.php` and `suppliers.php` go away.
+- `lang/cs/businesses.php` and `lang/cs/contacts.php`: `entity`, `titles`, `actions`, `messages`, `filters` and their own fields (logo, contact person, default).
+- `lang/cs/invoices.php` and `lang/cs/expenses.php`: only the role headings (supplier, customer) and document messages. clients.php and suppliers.php go away.
 
 | Key | cs | sk | de | en |
 |---|---|---|---|---|
@@ -149,7 +149,7 @@ The company number has a hint that a foreign company enters the number from its 
 
 - `ReferenceDataSeeder`: the two capacity limits assigned to `frontend_user` and `frontend_user_plus`; the `clients` / `suppliers` archive policies are deleted and none is added for businesses or contacts (they are erased only with the account, step 24).
 - `DevelopmentDataSeeder`, per frontend account: two active businesses (the default with a Czech account and a second EUR IBAN account) and one archived; today's six contacts (one Austrian), one without a company number, one archived, two expense suppliers with an account; invoices mostly with a contact and two with a one-off customer; expenses with a contact supplier and one-off. Everything within the 10 / 16 limits.
-- Factories `BusinessFactory`, `ContactFactory`, `AddressFactory`, `BankAccountFactory` replace the old pairs; `ClientFactory` and `SupplierFactory` are deleted. Business and Contact factories expose `archived()`; bank-account fixtures set `archived_at` through factory state. Addresses have no archive state in this version.
+- Factories `BusinessFactory`, `ContactFactory`, `AddressFactory`, `BankAccountFactory` replace the old pairs; ClientFactory and SupplierFactory are deleted. Business and Contact factories expose `archived()`; bank-account fixtures set `archived_at` through factory state. Addresses have no archive state in this version.
 
 ## 7. Tests (Q41, Q42)
 

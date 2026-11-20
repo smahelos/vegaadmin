@@ -26,7 +26,7 @@ Only Infrastructure touches Eloquent (`architecture.md`). Shape of a repository 
 ## Eloquent models
 
 - A model is a persistence mapping: explicit `$fillable` (never `$guarded`), casts in `casts()`, relations with return types and `::class` targets (`belongsTo(Contact::class)`).
-- No business logic, logging, totals, or formatting in models — no accessors that compute domain values. Only traits the model actually needs (`CrudTrait` for admin-managed models, `HasRoles` only on `User`).
+- No business logic, logging, totals, or formatting in models — no accessors that compute domain values. Only traits the model actually needs (`Backpack\CRUD\app\Models\Traits\CrudTrait` for admin-managed models, `Spatie\Permission\Traits\HasRoles` only on `User`).
 
 ## SQL
 
