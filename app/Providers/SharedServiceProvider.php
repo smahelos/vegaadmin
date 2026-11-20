@@ -17,6 +17,7 @@ use App\Domain\Shared\Hash\Contracts\HashInterface;
 use App\Domain\Shared\Http\Contracts\HttpClientInterface;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Contracts\CurrencyExchangeServiceInterface;
+use App\Domain\Shared\Money\Contracts\CurrencyNamesInterface;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
 use App\Domain\Shared\Money\Services\DeterministicCurrencyExchangeService;
@@ -43,6 +44,7 @@ use App\Infrastructure\Shared\Geography\IntlCountryNames;
 use App\Infrastructure\Shared\Hash\LaravelHash;
 use App\Infrastructure\Shared\Http\Services\HttpClientService;
 use App\Infrastructure\Shared\Log\LaravelLogger;
+use App\Infrastructure\Shared\Money\IntlCurrencyNames;
 use App\Infrastructure\Shared\Session\LaravelSessionStore;
 use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
@@ -225,6 +227,11 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             CountryNamesInterface::class,
             IntlCountryNames::class,
+        );
+
+        $this->app->bind(
+            CurrencyNamesInterface::class,
+            IntlCurrencyNames::class,
         );
 
         // Logging adapter for Domain

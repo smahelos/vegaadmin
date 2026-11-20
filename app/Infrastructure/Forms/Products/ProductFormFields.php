@@ -2,7 +2,6 @@
 
 namespace App\Infrastructure\Forms\Products;
 
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\ProductCategory;
 use App\Models\Tax;
 
@@ -10,15 +9,14 @@ trait ProductFormFields
 {
     /**
      * Get product form field definitions
+     *
+     * @param  array<string, string>  $currencies  currency labels by code
      */
-    protected function getProductFields(array $productCategories = [], array $taxRates = []): array
-    {
-        $currencies = array_column(
-            Currency::cases(),
-            'value',
-            'value',
-        );
-
+    protected function getProductFields(
+        array $currencies,
+        array $productCategories = [],
+        array $taxRates = [],
+    ): array {
         return [
             [
                 'name' => 'name',

@@ -10,6 +10,7 @@ use App\Application\Product\Commands\UpdateProduct;
 use App\Application\Product\Contracts\ProductFormDataServiceInterface;
 use App\Application\Product\Queries\GetProduct;
 use App\Application\Product\Queries\GetProductForEdit;
+use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Product\ValueObjects\ProductId;
@@ -29,6 +30,7 @@ final class ProductController extends Controller
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly ProductFormDataServiceInterface $formData,
+        private readonly CurrencyOptionsPresenter $currencies,
     ) {}
 
     /**
@@ -51,7 +53,11 @@ final class ProductController extends Controller
             [
                 'productCategories' => $formData['product_categories'],
                 'taxRates' => $formData['tax_rates'],
-                'fields' => $this->getProductFields($formData['product_categories'], $formData['tax_rates']),
+                'fields' => $this->getProductFields(
+                    $this->currencies->options(App::getLocale()),
+                    $formData['product_categories'],
+                    $formData['tax_rates'],
+                ),
             ],
         );
     }
@@ -105,7 +111,11 @@ final class ProductController extends Controller
                 'product' => $product,
                 'productCategories' => $formData['product_categories'],
                 'taxRates' => $formData['tax_rates'],
-                'fields' => $this->getProductFields($formData['product_categories'], $formData['tax_rates']),
+                'fields' => $this->getProductFields(
+                    $this->currencies->options(App::getLocale()),
+                    $formData['product_categories'],
+                    $formData['tax_rates'],
+                ),
             ],
         );
     }

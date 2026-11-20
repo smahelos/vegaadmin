@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Admin;
 use App\Application\Expense\Commands\CreateExpense;
 use App\Application\Expense\Commands\UpdateExpense;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Expense\ValueObjects\ExpenseId;
 use App\Domain\User\Enums\Permission;
@@ -47,6 +48,7 @@ final class ExpenseCrudController extends CrudController
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly CountryOptionsPresenter $countries,
+        private readonly CurrencyOptionsPresenter $currencies,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
@@ -213,6 +215,7 @@ final class ExpenseCrudController extends CrudController
         CRUD::addFields(
             ExpenseFormFields::fields(
                 $countries,
+                $this->currencies->options(App::getLocale()),
                 CRUD::getCurrentOperation() === 'update' ? CRUD::getCurrentEntry() : null,
             ),
         );

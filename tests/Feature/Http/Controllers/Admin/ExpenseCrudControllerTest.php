@@ -84,6 +84,18 @@ final class ExpenseCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function create_form_names_the_currencies(): void
+    {
+        $httpResponse = $this->get('/admin/expense/create');
+
+        $httpResponse = $httpResponse->assertOk();
+        $this->assertMatchesRegularExpression(
+            '/<option value="CZK"[^>]*>CZK – \\p{L}/u',
+            (string) $httpResponse->getContent(),
+        );
+    }
+
+    #[Test]
     public function creates_an_expense_with_the_business_as_customer_and_a_one_off_supplier(): void
     {
         [$business] = $this->issuerOf($this->adminUser);

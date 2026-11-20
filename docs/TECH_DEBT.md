@@ -439,11 +439,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.
 - **Fix:** an invoice detail presenter using `MoneyFormatterInterface`, like `app/Application/Analytics/Presenters/*`.
 
-### Currency options are built in every form
-- **Where:** `InvoiceFormFields`, `ProductFormFields`, `ExpenseFormFields`, `AdminInvoiceItemFields`, `ProductCrudController`, `CurrencySelect`
-- **Problem:** each builds its currency options from `Currency::cases()`. The label is the code today; translated names or an order (most used first) would have to change in six places, which can drift apart as the product form and its validation did before the currency lists were removed (seen 2026-11-20).
-- **Fix:** a `CurrencyOptionsPresenter` in `app/Application/Shared/Money/Presenters`, like `CountryOptionsPresenter`, introduced with the first translated or ordered currency names; controllers and Livewire components get it injected and pass the options to the form definitions, as they do with the countries. Plan and subscription currencies come from the gateway ("Plan currencies are not checked against the gateway").
-
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.

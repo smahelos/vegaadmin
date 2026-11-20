@@ -3,7 +3,6 @@
 namespace App\Infrastructure\Forms\Invoice;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\PaymentMethod;
 
 trait InvoiceFormFields
@@ -15,12 +14,6 @@ trait InvoiceFormFields
      */
     protected function getInvoiceFields(array $paymentMethods = []): array
     {
-        $currencies = array_column(
-            Currency::cases(),
-            'value',
-            'value',
-        );
-
         $statuses = [];
         foreach (InvoiceStatus::cases() as $status) {
             $statuses[$status->value] = __('statuses.statuses.' . $status->value);
@@ -123,8 +116,8 @@ trait InvoiceFormFields
             [
                 'name' => 'payment_currency',
                 'label' => __('invoices.fields.payment_currency'),
+                // The admin form sets the options; the frontend renders <x-currency-select>
                 'type' => 'select_from_array',
-                'options' => $currencies,
                 'hint' => __('invoices.hints.payment_currency'),
                 'placeholder' => __('invoices.placeholders.select_currency'),
                 'required' => true,

@@ -89,9 +89,12 @@ class ProductControllerFeatureTest extends TestCase
             array_column(
                 Currency::cases(),
                 'value',
-                'value',
             ),
-            $currencyField['options'],
+            array_keys($currencyField['options']),
+        );
+        $this->assertSame(
+            'CZK – česká koruna',
+            $currencyField['options']['CZK'],
         );
     }
 

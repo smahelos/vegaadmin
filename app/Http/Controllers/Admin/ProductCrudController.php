@@ -8,10 +8,10 @@ use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\DeleteProduct;
 use App\Application\Product\Commands\UpdateProduct;
 use App\Application\Product\Contracts\ProductFormDataServiceInterface;
+use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Product\Exceptions\ProductInUseException;
 use App\Domain\Product\ValueObjects\ProductId;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Enums\Permission;
@@ -30,6 +30,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 final class ProductCrudController extends CrudController
@@ -46,6 +47,7 @@ final class ProductCrudController extends CrudController
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly ProductFormDataServiceInterface $formData,
         private readonly TaxServiceInterface $taxesService,
+        private readonly CurrencyOptionsPresenter $currencies,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
@@ -198,14 +200,13 @@ final class ProductCrudController extends CrudController
         );
         $field->attributes(['step' => '0.01']);
 
-        $currencyCodes = array_column(Currency::cases(), 'value');
         $field = CRUD::field('currency');
         $field->type('select_from_array');
         $field->label(
             __('products.fields.currency'),
         );
         $field->options(
-            array_combine($currencyCodes, $currencyCodes),
+            $this->currencies->options(App::getLocale()),
         );
         $field->allows_null(false);
 
