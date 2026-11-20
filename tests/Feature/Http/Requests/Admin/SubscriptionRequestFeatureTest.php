@@ -28,6 +28,23 @@ class SubscriptionRequestFeatureTest extends TestCase
     }
 
     #[Test]
+    public function validation_fails_for_a_currency_plans_are_not_sold_in(): void
+    {
+        $data = [
+            'user_id' => 1,
+            'status' => 'active',
+            'amount' => 99.99,
+            'currency' => 'GBP',
+        ];
+
+        $validator = Validator::make($data, $this->request->rules());
+
+        $this->assertTrue($validator->fails());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('currency', $errors->toArray());
+    }
+
+    #[Test]
     public function validation_fails_when_subscription_plan_id_is_missing(): void
     {
         $data = [

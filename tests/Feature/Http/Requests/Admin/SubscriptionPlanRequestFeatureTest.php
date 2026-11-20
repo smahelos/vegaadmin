@@ -81,6 +81,25 @@ class SubscriptionPlanRequestFeatureTest extends TestCase
     }
 
     #[Test]
+    public function validation_fails_for_a_currency_plans_are_not_sold_in(): void
+    {
+        $data = [
+            'name' => 'Test Plan',
+            'price' => 99.99,
+            'currency' => 'GBP',
+            'billing_period' => 'monthly',
+            'billing_interval' => 1,
+            'trial_days' => 14,
+        ];
+
+        $validator = Validator::make($data, $this->request->rules());
+
+        $this->assertTrue($validator->fails());
+        $errors = $validator->errors();
+        $this->assertArrayHasKey('currency', $errors->toArray());
+    }
+
+    #[Test]
     public function validation_fails_when_currency_is_invalid(): void
     {
         $data = [

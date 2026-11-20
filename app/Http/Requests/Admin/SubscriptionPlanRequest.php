@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Shared\Money\Enums\Currency;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 final class SubscriptionPlanRequest extends FormRequest
 {
@@ -27,11 +29,21 @@ final class SubscriptionPlanRequest extends FormRequest
      */
     public function rules(): array
     {
+        $currency = Rule::enum(Currency::class);
+        $currency->only([
+            Currency::CZK,
+            Currency::EUR,
+            Currency::USD,
+        ]);
+
         return [
             'name' => 'required|string|min:2|max:255',
             'description' => 'nullable|string|max:1000',
             'price' => 'required|numeric|min:0|max:999999.99',
-            'currency' => 'required|string|in:CZK,EUR,USD',
+            'currency' => [
+                'required',
+                $currency,
+            ],
             'billing_period' => 'required|string|in:monthly,yearly',
             'billing_interval' => 'required|integer|min:1|max:12',
             'features' => 'sometimes|array',

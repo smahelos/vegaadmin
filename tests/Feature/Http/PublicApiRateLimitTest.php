@@ -20,7 +20,7 @@ final class PublicApiRateLimitTest extends TestCase
     public function the_public_api_is_limited_per_ip_address(): void
     {
         $first = $this->get('/api/countries');
-        $second = $this->get('/api/currencies/all');
+        $second = $this->get('/api/countries');
         $otherAddress = $this->get(
             '/api/countries',
             ['REMOTE_ADDR' => '10.0.0.2'],

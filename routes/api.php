@@ -75,10 +75,6 @@ $registrar->group(
         $route->name('countries');
         $route = Route::get('/countries/{code}', [CountryController::class, 'getCountry']);
         $route->name('country');
-        $route = Route::get('/currencies/common', [CurrencyController::class, 'getCommonCurrencies']);
-        $route->name('currencies.common');
-        $route = Route::get('/currencies/all', [CurrencyController::class, 'getAllCurrencies']);
-        $route->name('currencies.all');
         $route = Route::get('/currencies/exchange-rate', [CurrencyController::class, 'getExchangeRate']);
         $route->name('exchange-rate');
         $route = Route::get('/currencies/convert', [CurrencyController::class, 'convertCurrency']);

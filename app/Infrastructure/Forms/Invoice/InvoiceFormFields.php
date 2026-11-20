@@ -3,6 +3,7 @@
 namespace App\Infrastructure\Forms\Invoice;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\PaymentMethod;
 
 trait InvoiceFormFields
@@ -11,20 +12,14 @@ trait InvoiceFormFields
      * Get invoice form field definitions; the parties come from the party picker
      *
      * @param  array  $paymentMethods  Payment method options for dropdowns
-     * @param  array  $currencies  Currency options for dropdowns
      */
-    protected function getInvoiceFields(
-        array $paymentMethods = [],
-        array $currencies = [],
-    ): array {
-        // Default currencies if not provided
-        if (empty($currencies)) {
-            $currencies = [
-                'CZK' => 'CZK',
-                'EUR' => 'EUR',
-                'USD' => 'USD',
-            ];
-        }
+    protected function getInvoiceFields(array $paymentMethods = []): array
+    {
+        $currencies = array_column(
+            Currency::cases(),
+            'value',
+            'value',
+        );
 
         $statuses = [];
         foreach (InvoiceStatus::cases() as $status) {

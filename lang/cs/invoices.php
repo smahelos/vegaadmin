@@ -82,7 +82,7 @@ return [
         'payment_method' => '',
         'due_in' => '',
         'payment_amount' => '',
-        'payment_currency' => 'měna',
+        'payment_currency' => '',
         'status' => '',
         'invoice_text' => '',
         'invoice_logo' => 'Nahrajte logo pro fakturu (JPEG, PNG, GIF, SVG, max. 2MB)',
