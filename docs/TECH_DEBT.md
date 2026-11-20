@@ -40,11 +40,6 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 11: Foundations for the rewrites
 
-### `ddd:guard` snapshot test fails now and then in parallel runs
-- **Where:** `tests/Feature/Console/DddGuardDiJsonSnapshotTest.php`
-- **Problem:** in `php artisan test --parallel` the `Artisan::call('ddd:guard', …)` call occasionally throws (seen 2026-10-22); the test passes alone and in the next full runs.
-- **Fix:** find what the command shares with other parallel processes (scanned files, cache, output buffer) and isolate it, or drop the test together with the guards (Architecture guards are migration scaffolding).
-
 ### npm audit allows the picomatch advisory
 - **Where:** `.github/audit-ci.jsonc`, `.github/workflows/dependency_audit.yml`
 - **Problem:** `GHSA-fc5q-39xc-vjpf` (ReDoS in `picomatch`) affects every version and has no fix (https://github.com/micromatch/picomatch/issues/234, 2026-11-18). It is reached only through the asset build (`vite`, `tinyglobby`, `flowbite-datepicker`), so the audit allows it rather than failing every branch.
