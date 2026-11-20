@@ -23,7 +23,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors, the currency of `Money`, the currency lists, the documentation reference test and the `ddd:guard` tests in parallel runs done, `ProductPrice` left to "Product prices are not `Money` on the write path", the currency of the DTOs to "Data class names and properties"): reliable tests and CI and the developer documentation of the contexts, which every later step uses.
+11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors, the currency of `Money`, the currency lists, the documentation reference test, the `ddd:guard` tests in parallel runs and the picomatch audit exception done, `ProductPrice` left to "Product prices are not `Money` on the write path", the currency of the DTOs to "Data class names and properties"): reliable tests and CI and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -39,11 +39,6 @@ Each open step has a section below with its items. An item without a **Status** 
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
 
 ## Step 11: Foundations for the rewrites
-
-### npm audit allows the picomatch advisory
-- **Where:** `.github/audit-ci.jsonc`, `.github/workflows/dependency_audit.yml`
-- **Problem:** `GHSA-fc5q-39xc-vjpf` (ReDoS in `picomatch`) affects every version and has no fix (https://github.com/micromatch/picomatch/issues/234, 2026-11-18). It is reached only through the asset build (`vite`, `tinyglobby`, `flowbite-datepicker`), so the audit allows it rather than failing every branch.
-- **Fix:** once a fixed `picomatch` is released, update `package-lock.json` and remove the advisory from the allowlist; the audit log reports it as not found when it no longer occurs.
 
 ### Admin browser scripts fail against the current forms
 - **Where:** `tests/Browser/admin-document-forms.mjs`, `tests/Browser/admin-invoice-items.mjs` (last changed 2026-10-30); no workflow, script or document runs them.
