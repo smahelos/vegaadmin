@@ -51,9 +51,10 @@ Start from the step the user names; otherwise from step 1. Store logs and report
    - Claude runs Codex: `node "$(ls -d ~/.claude/plugins/cache/openai-codex/codex/*/ | sort -V | tail -1)scripts/codex-companion.mjs" review --wait --base main --scope branch` (no Docker; it runs no tests).
    - Codex runs Claude: `claude -p --allowedTools "Read,Grep,Glob,Bash(git diff:*),Bash(git log:*),Bash(git show:*)" "Review every commit of the current branch against main (git diff main...HEAD) by the Code Review Rules in AGENTS.md. Change no files. List findings most severe first, each with file:line, the input or state that triggers it and the proposed fix. Answer NO FINDINGS when there are none."`
 
-   Handle findings as in step 2, then run the checks for the fixes and commit them by the templates.
+   When the review cannot run (plugin or CLI missing, an error), stop and tell the user; the branch does not go out unreviewed. Handle findings as in step 2, then run the checks for the fixes and commit them by the templates.
 6. **Push and pull request.**
    - Push: `git -c credential.helper='!gh auth git-credential' push -u origin <branch>`.
-   - Open: `gh pr create --base main --title "<title of the main commit>" --body-file dev_docs/ai/tmp/ship-<branch>/pr.md`.
+   - Write the body by the template to `dev_docs/ai/tmp/ship-<branch>/pr.md`.
+   - Open: `gh pr create --base main --title "<title of the main commit>" --body-file dev_docs/ai/tmp/ship-<branch>/pr.md`. When the branch already has an open pull request (`gh pr view`), the push updates it: add the new commits and decisions to its body instead.
    - Prefix the title with the number it received: `gh api -X PATCH repos/smahelos/vegaadmin/pulls/<number> -f title="#<number> - <title>"` (`gh pr edit` fails on Projects classic; a body change goes the same way with `-F body=@<file>`).
 7. **CI and bot review.** Wait for CI with `gh pr checks <number> --watch`. Read the review bot's comments in `gh api repos/smahelos/vegaadmin/issues/<number>/comments` and inline in `gh api repos/smahelos/vegaadmin/pulls/<number>/comments`. Report the CI result and each finding with a proposed next step; the merge is the user's call. When local checks left a point for CI to confirm, tick it in the body once CI confirms it.
