@@ -1,11 +1,7 @@
 {
   "$schema": "https://github.com/IBM/audit-ci/raw/main/docs/schema.json",
   "high": true,
-  "allowlist": [
-    // picomatch ReDoS: every version is affected, no fix released (https://github.com/micromatch/picomatch/issues/234).
-    // Reached only through the asset build (vite, tinyglobby, flowbite-datepicker); remove once a fixed version is out
-    "GHSA-fc5q-39xc-vjpf"
-  ],
+  "allowlist": [],
   // Prints an allowlisted advisory that no longer occurs, so a stale entry shows in the log
   "show-not-found": true,
   "report-type": "summary",
