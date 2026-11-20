@@ -83,6 +83,7 @@ Both agents use the same workflow sources below. Read the relevant `.claude/skil
 | [pre-pr-check](.claude/skills/pre-pr-check/SKILL.md) | Before proposing or making a commit, opening/updating a PR, or reporting branch readiness; choose checks appropriate to the change |
 | [add-permission](.claude/skills/add-permission/SKILL.md) | When adding, renaming or removing checked permissions or changing a role's default permissions |
 | [add-translation](.claude/skills/add-translation/SKILL.md) | When adding or rewording user-facing text in any of the four locales |
+| [ship](.claude/skills/ship/SKILL.md) | Only when the user runs `/ship` or asks to ship the branch: documentation, review, checks, commits, second-agent review, push, PR and CI |
 | [convert-to-standard](.claude/skills/convert-to-standard/SKILL.md) | Only when the user explicitly requests that conversion and identifies its scope |
 
 ## Code Review Rules
