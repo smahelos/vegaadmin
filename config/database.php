@@ -70,6 +70,8 @@ return [
             'prefix_indexes' => true,
             'strict' => true,
             'engine' => null,
+            // The app writes UTC; a session in the server's zone refuses or shifts times around DST changes
+            'timezone' => '+00:00',
             'options' => $mysqlOptions,
         ],
 
