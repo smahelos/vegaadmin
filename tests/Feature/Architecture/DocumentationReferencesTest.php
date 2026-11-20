@@ -16,6 +16,7 @@ use League\CommonMark\Node\Block\AbstractBlock;
 use League\CommonMark\Node\Node;
 use League\CommonMark\Parser\MarkdownParser;
 use PHPUnit\Framework\Attributes\Test;
+use Symfony\Component\Process\Process;
 use Tests\TestCase;
 
 /**
@@ -390,17 +391,26 @@ final class DocumentationReferencesTest extends TestCase
      */
     private function files(string $directory): array
     {
-        $files = [];
+        // Git's inventory, not a walk of the disk: ddd:guard tests create and delete directories in app/ meanwhile
+        $git = new Process(
+            [
+                'git',
+                'ls-files',
+                '-z',
+                '--cached',
+                '--others',
+                '--exclude-standard',
+                '--',
+                $directory,
+            ],
+            base_path(),
+        );
+        $git->mustRun();
 
-        foreach (
-            File::allFiles(
-                base_path($directory),
-                true,
-            ) as $file
-        ) {
-            $files[] = $directory . '/' . $file->getRelativePathname();
-        }
-
-        return $files;
+        return array_values(
+            array_filter(
+                explode("\0", $git->getOutput()),
+            ),
+        );
     }
 }
