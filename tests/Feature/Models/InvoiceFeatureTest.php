@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
+use ValueError;
 
 class InvoiceFeatureTest extends TestCase
 {
@@ -288,6 +289,16 @@ class InvoiceFeatureTest extends TestCase
         $money = $invoice->payment_amount_money;
         $this->assertSame('9007199254740993.01', $invoice->payment_amount);
         $this->assertSame('9007199254740993.01', $money->amount);
+    }
+
+    #[Test]
+    public function payment_amount_money_refuses_an_empty_currency_instead_of_assuming_czk(): void
+    {
+        $invoice = new Invoice;
+        $invoice->payment_currency = '';
+
+        $this->expectException(ValueError::class);
+        $invoice->payment_amount_money;
     }
 
     #[Test]
