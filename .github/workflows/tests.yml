@@ -38,6 +38,8 @@ jobs:
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
           MYSQL_DATABASE: invoice_testing
+          # The server zone of the local container, which has summer time: `DatabaseTest` checks the UTC session against it
+          TZ: Europe/Prague
         ports:
           - 3306:3306
         options: >-

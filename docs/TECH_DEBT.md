@@ -40,6 +40,11 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ## Step 11: Foundations for the rewrites
 
+### `ddd:guard` tests fail now and then in parallel runs
+- **Where:** `tests/Feature/Console/DddGuardCommandTest.php`, `DddGuardRootTraitsRuleTest.php`, `DI/DddGuardDiAdvisoryTest.php`
+- **Problem:** these tests create and delete temporary directories inside `app/` (`app/Services_<pid>`, `app/Traits_<pid>`, `app/Http/Controllers/Temp_<pid>`) while `ddd:guard` in another process of `php artisan test --parallel` scans `app/`. A directory that disappears mid-scan makes that run throw (seen 2026-10-22 in the deleted JSON shape test).
+- **Fix:** let the guard scan a root the test gives it, so each test works in its own temporary directory outside `app/`, or delete these tests with the guards (step 23, "Architecture guards are migration scaffolding").
+
 ### npm audit allows the picomatch advisory
 - **Where:** `.github/audit-ci.jsonc`, `.github/workflows/dependency_audit.yml`
 - **Problem:** `GHSA-fc5q-39xc-vjpf` (ReDoS in `picomatch`) affects every version and has no fix (https://github.com/micromatch/picomatch/issues/234, 2026-11-18). It is reached only through the asset build (`vite`, `tinyglobby`, `flowbite-datepicker`), so the audit allows it rather than failing every branch.
