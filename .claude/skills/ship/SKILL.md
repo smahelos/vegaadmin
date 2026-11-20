@@ -14,7 +14,7 @@ Start from the step the user names; otherwise from step 1. Store logs and report
 
 ## Decisions
 
-Stop and ask the user when a finding or a failure needs a decision: the fix changes behaviour, scope, a public contract or the architecture, the correct fix needs a rule change, two fixes are both correct, you would leave a finding that is more than a nit, or a finding you fixed comes back. Present the cause, the correct fix by the rules and the architecture, and every option with its pros and cons (`AskUserQuestion` when the agent has it), then continue from the same step with the answer. Fix everything else without asking.
+Stop and ask the user when a finding or a failure needs a decision: the fix changes behaviour, scope, a public contract or the architecture, the correct fix needs a rule change, two fixes are both correct, you would leave a finding that is more than a nit, or a finding you fixed comes back. Present the cause, the correct fix by the rules and the architecture, and every option with its pros and cons (through the AskUserQuestion tool when the agent has it), then continue from the same step with the answer. Fix everything else without asking.
 
 ## Templates
 
