@@ -13,7 +13,7 @@ All types share most of their data: parties, number, dates, currency, totals, pa
 1. **One document table** per direction holds what every type has, with a `type` column backed by an enum. Lists, filters, sorting and statistics read this table only.
 2. **A type-specific table** (class table inheritance: primary key = foreign key to the document) holds the fields only one type has. It exists only when a field qualifies by the criteria below.
 3. **Shared VAT lines**: one table of VAT lines by rate (base, rate, VAT amount) for every document type, issued and received. A non-payer's document has no VAT lines, only its total.
-4. **One Domain class per type** (`Invoice`, `CorrectiveDocument`, `ReceivedInvoice`, `Receipt`, …) with its own invariants, built by the mapper from the common row and its type-specific row. The storage layout stays an Infrastructure detail.
+4. **One Domain class per type** (`Invoice`, CorrectiveDocument, ReceivedInvoice, Receipt, …) with its own invariants, built by the mapper from the common row and its type-specific row. The storage layout stays an Infrastructure detail.
 5. **The user decides every type-specific table and column.** Each one is proposed with its fields, the criteria it meets and a recommendation; none is added without that decision.
 
 ### Where a field goes

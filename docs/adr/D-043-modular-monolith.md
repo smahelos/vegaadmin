@@ -46,5 +46,5 @@ A message broker is introduced with the first satellite, not before. RabbitMQ is
 ## Consequences
 
 - The work in `docs/TECH_DEBT.md` keeps the door open for satellites: events delivered after the commit (later an outbox), ports instead of framework and model dependencies outside Infrastructure, a party and item snapshot in issued invoices, no SQL joins across contexts in Analytics.
-- Jobs are written against Laravel Queue and domain events go through the `EventPublisher` port, so changing the queue backend or publishing to a broker touches only Infrastructure.
+- Jobs are written against Laravel Queue and domain events go through the `EventPublisherInterface` port, so changing the queue backend or publishing to a broker touches only Infrastructure.
 - Revisit this decision when a satellite candidate meets the three conditions above, or when an outside party needs to subscribe to Billex events.

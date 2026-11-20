@@ -38,13 +38,13 @@ Everything else — handlers, pure domain services, presenters, assemblers — i
 |---|---|---|
 | Read model of an entity, returned by a repository | `<Entity>DTO` | `InvoiceDTO`, `ContactDTO` |
 | Input for creating or updating an entity | `<Entity>WriteData` | `InvoiceWriteData` |
-| Read-only projection for one purpose (print, statistics, form, external format) | `<Purpose><Entity>DTO` | `PrintableInvoiceDTO`, `MonthlyStatDTO`, `QrPaymentDTO` |
-| Outcome of an application operation (status, messages, created id) | `<Operation>Result` | `InvoiceActionResult`, `RefundResult` |
+| Read-only projection for one purpose (print, statistics, form, external format) | `<Purpose><Entity>DTO` | `PrintableInvoiceDTO`, `QrPaymentDTO` |
+| Outcome of an application operation (status, messages, created id) | `<Operation>Result` | `CreateGuestInvoiceResult`, `InvoiceRemindersResult` |
 | Declaration and input of a use case (`application.md`) | `<Verb><Entity>`, no suffix | `CreateContact`, `GetContact` |
 | Generic building block shared across contexts | concept name, no suffix | `PageRequest`, `PaginatedResult`, `Recipient` |
 
-- `Data` is reserved for write input: anything only read is a `DTO`. One suffix per class (`RefundResult`, not `RefundResultDTO`).
-- A data class never wraps an untyped request array (`array $validated`); the form request's validated input is turned into a `WriteData` by the delivery layer or an assembler.
+- `Data` is reserved for write input: anything only read is a `DTO`. One suffix per class (`CreateGuestInvoiceResult`, not CreateGuestInvoiceResultDTO).
+- A data class never wraps an untyped request array (`array $validated`); the form request's validated input is turned into a `<Entity>WriteData` by the delivery layer or an assembler.
 - DTOs carry typed values: `Money` for amounts, `DateTimeImmutable` for dates, enums for statuses, `<Entity>Id` value objects for identifiers.
 
 ## Persistence path
@@ -63,7 +63,7 @@ Repositories are Domain ports: `app/Domain/<Context>/Contracts/<Entity>{Read,Wri
 - Where a reaction runs follows from its effect (`LaravelEventPublisher`), so nothing is lost or left behind between the commit and the reaction:
   - a write to the Billex database (an audit record) is a domain handler; it runs inside the use case's transaction and commits or rolls back with it;
   - an effect outside the database that can be rebuilt (cache invalidation) is a Laravel listener; it runs after the commit and not at all on a rollback, and its failure is logged without failing the committed use case. If the process dies between the commit and the listener, the cache stays stale until its TTL expires, so every cache entry has one;
-  - work that must not be lost (mail, external calls) is a queued job on the `database` connection, dispatched by the use case or a domain handler: the job row is stored in the same transaction and the worker runs it after the commit. A listener of a domain event is never queued (`ShouldQueue`) and dispatches no jobs: it runs after the commit, so its job would be lost if the process died in between.
+  - work that must not be lost (mail, external calls) is a queued job on the `database` connection, dispatched by the use case or a domain handler: the job row is stored in the same transaction and the worker runs it after the commit. A listener of a domain event is never queued (`Illuminate\Contracts\Queue\ShouldQueue`) and dispatches no jobs: it runs after the commit, so its job would be lost if the process died in between.
 - Eloquent observers carry no business logic or cache invalidation; that belongs in event handlers (conversion tracked in `docs/TECH_DEBT.md`).
 - Only events that are actually published exist; an event without a publisher is deleted.
 

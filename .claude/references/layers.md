@@ -1,6 +1,6 @@
 # Layers — target shape by example
 
-One slice of the Party context (creating and reading a contact), written the way every layer should look. Rules behind it: `rules/architecture.md`, `rules/application.md`, `rules/permissions.md`, `rules/php.md`. The names illustrate the Business/Contact model of step 7: `ContactId`, `ContactDTO`, `ContactWriteData`, the repository ports, `EloquentContactRepository`, `EloquentContactMapper`, the `Contact` model, `CreateContact`, `CreateContactHandler`, `GetContact`, `GetContactHandler`, `StoreContactRequest`, `EntityType`, `EntityLimitExceededException`, `ContactNotFoundException` (`docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`). The address, the shared party profile and the duplicate check are left out to keep the slice short.
+One slice of the Party context (creating and reading a contact), written the way every layer should look. Rules behind it: `rules/architecture.md`, `rules/application.md`, `rules/permissions.md`, `rules/php.md`. The names illustrate the Business/Contact model of step 7: `ContactId`, `ContactDTO`, `ContactWriteData`, the repository ports, `EloquentContactRepository`, `EloquentContactMapper`, the `Contact` model, `CreateContact`, `CreateContactHandler`, `GetContact`, `GetContactHandler`, StoreContactRequest, `LimitedEntity`, `EntityLimitExceededException`, `ContactNotFoundException` (`docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`). The address, the shared party profile and the duplicate check are left out to keep the slice short.
 
 ## Domain — value object, data classes, port
 
@@ -269,7 +269,7 @@ final class ContactController extends Controller
 }
 ```
 
-`StoreContactRequest` has no `authorize()`: `rules()` validates and `toWriteData()` builds `ContactWriteData` from the validated input. `PermissionDeniedException`, `ContactNotFoundException` and `EntityLimitExceededException` are mapped to responses once in `app/Exceptions/ExceptionHandling.php`.
+StoreContactRequest has no `authorize()`: `rules()` validates and `toWriteData()` builds `ContactWriteData` from the validated input. `PermissionDeniedException`, `ContactNotFoundException` and `EntityLimitExceededException` are mapped to responses once in `app/Exceptions/ExceptionHandling.php`.
 
 ## Test — real gate and services, fake ports
 

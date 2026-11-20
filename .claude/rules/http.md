@@ -34,13 +34,13 @@ Controllers are delivery: allowed dependencies in `architecture.md`, Backpack CR
 
 ## Middleware
 
-- Each middleware is registered once: aliases in `bootstrap/app.php`, and the `web` / `api` groups keep Laravel's defaults — never re-append `StartSession`, CSRF or cookie middleware that the group already contains.
+- Each middleware is registered once: aliases in `bootstrap/app.php`, and the `web` / `api` groups keep Laravel's defaults — never re-append `Illuminate\Session\Middleware\StartSession`, CSRF or cookie middleware that the group already contains.
 - Every route group states its guard: `auth:web` (frontend), `api.require.frontend` / `api.require.backpack` (API), `admin` (Backpack). A public route is public on purpose and returns no user data.
 - External callbacks (payment notifications) are excluded from CSRF explicitly and authenticate the call by asking the gateway (`payments.md`).
 
 ## API responses
 
-- Every JSON response goes through a `JsonResource` (`app/Http/Resources/<Entity>Resource`) built from a DTO; its `toArray()` lists every field the API returns, so nothing leaves the app by accident. Never `response()->json($object)` or ad-hoc arrays in the controller.
+- Every JSON response goes through a `Illuminate\Http\Resources\Json\JsonResource` (`app/Http/Resources/<Entity>Resource`) built from a DTO; its `toArray()` lists every field the API returns, so nothing leaves the app by accident. Never `response()->json($object)` or ad-hoc arrays in the controller.
 - Laravel's default `{"data": …}` wrapping; paginated collections add `links` and `meta`. JSON keys are snake_case like request keys; the resource converts from the DTO's camelCase properties.
 - Errors use Laravel's standard JSON format (401, 403, 404, 422 with `errors`), mapped once in `app/Exceptions/ExceptionHandling.php`. Another user's record is a 404 (`application.md`).
 - An endpoint exists only for a real consumer; data a Livewire component can load server-side gets no JSON endpoint.

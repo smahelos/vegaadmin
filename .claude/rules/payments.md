@@ -15,8 +15,8 @@ Card payments of subscriptions go through GoPay; invoices carry QR payment codes
 
 ## Gateways
 
-- A gateway implements the Domain port `PaymentGatewayInterface` in Infrastructure (`app/Infrastructure/Gateways/Payment/`) and is registered in `GatewayRegistryInterface`. Domain and Application know only the port — never `GoPayGateway` or the GoPay SDK.
-- Requests to the gateway are typed: amount as `Money` (checked by `PaymentAmount` against gateway limits), the subscriber's real name and email, return and notify URLs. A placeholder customer is a defect.
+- A gateway implements the Domain port `PaymentGatewayInterface` in Infrastructure (app/Infrastructure/Gateways/Payment/, where `docs/TECH_DEBT.md` moves it, Directory layout) and is registered in `GatewayRegistryInterface`. Domain and Application know only the port — never `GoPayGateway` or the GoPay SDK.
+- Requests to the gateway are typed: amount as `Money` (checked by a PaymentAmount value object against gateway limits, `docs/TECH_DEBT.md`), the subscriber's real name and email, return and notify URLs. A placeholder customer is a defect.
 - Credentials come from `config/services.php` / `.env`; tests use the fakes in `tests/Support/Fakes/`.
 
 ## Callbacks and state changes

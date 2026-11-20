@@ -10,14 +10,14 @@ DI wiring has moved three times:
 
 1. **Until August 2025**: everything in `AppServiceProvider`.
 2. **D-039 (2025-08-26)**: one `<Domain>DomainServiceProvider` per domain (Analytics, Content, Invoice, Party, Payment, Product, Shared, User). D-039 explicitly rejected "merge thin domain providers back" because it would invite re-centralization. Structural tests asserted that each contract is bound in its own domain provider.
-3. **Commit `7e999b2a` (2025-10-12, "Last part of DDD migrations")**: the Infrastructure layer was introduced (Eloquent repositories, observers and `GoPayGateway` moved out of `app/Domain`). In the same commit the domain providers were replaced by layer providers: `DomainServiceProvider`, `App\Infrastructure\InfrastructureServiceProvider`, `App\Application\ApplicationServiceProvider`. No ADR was written, and `docs/ddd` (including D-039) was deleted.
+3. **Commit `7e999b2a` (2025-10-12, "Last part of DDD migrations")**: the Infrastructure layer was introduced (Eloquent repositories, observers and `GoPayGateway` moved out of `app/Domain`). In the same commit the domain providers were replaced by layer providers: DomainServiceProvider, App\Infrastructure\InfrastructureServiceProvider, App\Application\ApplicationServiceProvider. No ADR was written, and docs/ddd (including D-039) was deleted.
 
 The likely motivation for step 3 was layer purity: once Eloquent left `app/Domain`, a "domain" provider binding Eloquent classes looked inconsistent. The change was left half-done:
 
-- `PaymentDomainServiceProvider` survived and still bound 13 contracts that the layer providers bound as well (same implementations, so it was functionally harmless but ambiguous).
+- PaymentDomainServiceProvider survived and still bound 13 contracts that the layer providers bound as well (same implementations, so it was functionally harmless but ambiguous).
 - The binding-origin test still encoded the D-039 convention, so the duplicates were kept to satisfy it.
 - `ddd:providers:snapshot` only scanned `app/Providers/*DomainServiceProvider.php`, so the CI snapshot diff reported every repository and adapter contract as unbound.
-- `DomainServiceProvider::registerPaymentDomainServices()` was an empty placeholder.
+- DomainServiceProvider::registerPaymentDomainServices() was an empty placeholder.
 
 ## Decision
 
@@ -55,7 +55,7 @@ Framework-level providers keep their current roles: `AppServiceProvider` (helper
 
 ## Rationale
 
-- **The unit of change is the context, not the layer.** Adding a payment gateway touches Payment's domain, application and infrastructure code; it now touches one provider instead of three (the old `InfrastructureServiceProvider` alone mixed 8 contexts in over 400 lines).
+- **The unit of change is the context, not the layer.** Adding a payment gateway touches Payment's domain, application and infrastructure code; it now touches one provider instead of three (the old InfrastructureServiceProvider alone mixed 8 contexts in over 400 lines).
 - **Discoverability.** All wiring of a context is in one file named after it (the original D-039 argument).
 - **Module extraction.** A context with its own provider can later move into a module or package without untangling shared layer providers.
 - **Growth ahead.** Payments are unfinished (more gateways, gateway registration, webhooks); that context needs room to grow.
@@ -66,12 +66,12 @@ Framework-level providers keep their current roles: `AppServiceProvider` (helper
 | Option | Reason rejected |
 |---|---|
 | Keep layer providers (state after `7e999b2a`) | Optimizes for swapping a whole layer at once (e.g. leaving Eloquent), which is not a goal; spreads every context change across three files |
-| Per-layer provider per context (`PaymentInfrastructureServiceProvider`, …) | Up to 24 providers with no added safety; layer rules are already enforced elsewhere |
+| Per-layer provider per context (PaymentInfrastructureServiceProvider, …) | Up to 24 providers with no added safety; layer rules are already enforced elsewhere |
 | Auto-discovery of providers in context folders | Implicit, harder to read boot order; D-039 already rejected it |
 
 ## Consequences
 
-- `DomainServiceProvider`, `PaymentDomainServiceProvider`, `InfrastructureServiceProvider` and `ApplicationServiceProvider` are removed; `bootstrap/providers.php` lists the context providers.
+- DomainServiceProvider, PaymentDomainServiceProvider, InfrastructureServiceProvider and ApplicationServiceProvider are removed; `bootstrap/providers.php` lists the context providers.
 - The 13 duplicated Payment bindings are gone; each contract is bound exactly once.
 - Runtime container state is unchanged: all 134 `App\` bindings resolve to the same classes with the same sharing, and observers, policies and the `UserPassword` hasher are registered as before (verified by dumping the container before and after the change).
 
