@@ -8,6 +8,7 @@ use App\Application\Invoice\Commands\CreateInvoice;
 use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Enums\Permission;
@@ -50,6 +51,7 @@ final class InvoiceCrudController extends CrudController
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly CountryOptionsPresenter $countries,
+        private readonly CurrencyOptionsPresenter $currencies,
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {
         parent::__construct();
@@ -325,6 +327,7 @@ final class InvoiceCrudController extends CrudController
         CRUD::addFields(
             (new AdminInvoiceFormFields)->fields(
                 $countries,
+                $this->currencies->options(App::getLocale()),
                 $create ? null : CRUD::getCurrentEntry(),
             ),
         );

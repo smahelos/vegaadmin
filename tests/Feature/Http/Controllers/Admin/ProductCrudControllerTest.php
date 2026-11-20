@@ -44,6 +44,20 @@ class ProductCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function create_form_names_the_currencies(): void
+    {
+        $this->actingAs($this->adminUser, 'backpack');
+
+        $response = $this->get('/admin/product/create');
+
+        $response->assertOk();
+        $this->assertMatchesRegularExpression(
+            '/<option value="CZK"[^>]*>CZK – \\p{L}/u',
+            (string) $response->getContent(),
+        );
+    }
+
+    #[Test]
     public function store_creates_the_product_for_the_chosen_owner(): void
     {
         $this->actingAs($this->adminUser, 'backpack');

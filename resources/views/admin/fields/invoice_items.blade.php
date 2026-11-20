@@ -64,8 +64,8 @@
                 </label>
                 <label class="col-6 col-md-2">{{ __('invoices.fields.item_currency') }}
                     <select class="form-select" data-key="currency">
-                        @foreach ($field['currencies'] as $currency)
-                            <option value="{{ $currency }}">{{ $currency }}</option>
+                        @foreach ($field['currencies'] as $code => $label)
+                            <option value="{{ $code }}">{{ $label }}</option>
                         @endforeach
                     </select>
                 </label>

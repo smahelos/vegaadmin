@@ -128,6 +128,21 @@ final class InvoiceCrudControllerTest extends TestCase
     }
 
     #[Test]
+    public function the_payment_and_item_currency_selects_name_the_currencies(): void
+    {
+        $httpResponse = $this->get('/admin/invoice/create');
+
+        $httpResponse = $httpResponse->assertOk();
+        $this->assertSame(
+            2,
+            preg_match_all(
+                '/<option value="CZK"[^>]*>CZK – \\p{L}/u',
+                (string) $httpResponse->getContent(),
+            ),
+        );
+    }
+
+    #[Test]
     public function editing_keeps_the_stored_owner_whatever_owner_is_submitted(): void
     {
         [$business, $account] = $this->issuerOf($this->regularUser);

@@ -12,9 +12,9 @@
         id="{{ $id ?? $name }}"
         @if($required) required @endif
         class="form-select block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base bg-blue-50 dark:bg-gray-700 dark:text-gray-200 py-2 {{ $class }}">
-        @foreach($currencies as $currency)
-            <option value="{{ $currency->value }}" @selected($currency === $selectedCurrency)>
-                {{ $currency->value }}
+        @foreach($currencies as $code => $label)
+            <option value="{{ $code }}" @selected($code === $selectedCurrency?->value)>
+                {{ $label }}
             </option>
         @endforeach
     </select>

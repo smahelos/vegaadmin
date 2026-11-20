@@ -38,6 +38,21 @@ final class CurrencySelectFeatureTest extends TestCase
     }
 
     #[Test]
+    public function labels_each_currency_with_its_code_and_name(): void
+    {
+        $view = $this->component(
+            CurrencySelect::class,
+            [
+                'name' => 'currency',
+                'label' => 'Měna',
+            ],
+        );
+
+        $view->assertSee('CZK – česká koruna');
+        $view->assertSee('USD – americký dolar');
+    }
+
+    #[Test]
     public function preselects_czk_by_default(): void
     {
         $view = $this->component(

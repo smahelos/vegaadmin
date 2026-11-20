@@ -61,10 +61,14 @@ final class ExpenseFormFields
 
     /**
      * @param  array<string, string>  $countries
+     * @param  array<string, string>  $currencies  currency labels by code
      * @return list<array<string, mixed>>
      */
-    public static function fields(array $countries, ?Expense $document): array
-    {
+    public static function fields(
+        array $countries,
+        array $currencies,
+        ?Expense $document,
+    ): array {
         $fields = [];
         $half = ['class' => 'form-group col-12 col-md-6'];
         foreach (
@@ -91,10 +95,7 @@ final class ExpenseFormFields
             'name' => 'currency',
             'label' => __('expenses.fields.currency'),
             'type' => 'select2_from_array',
-            'options' => array_combine(
-                array_column(Currency::cases(), 'value'),
-                array_column(Currency::cases(), 'value'),
-            ),
+            'options' => $currencies,
             'default' => Currency::CZK->value,
             'wrapper' => $half,
         ];

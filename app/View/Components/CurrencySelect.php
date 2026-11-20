@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\View\Components;
 
+use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Domain\Shared\Money\Enums\Currency;
+use Illuminate\Support\Facades\App;
 use Illuminate\View\Component;
 use Illuminate\View\View;
 
@@ -17,6 +19,7 @@ final class CurrencySelect extends Component
      * @param  array<mixed>|string|null  $selected  usually `old()`, which repeats a failed submit as it came: empty or an array too
      */
     public function __construct(
+        private readonly CurrencyOptionsPresenter $currencies,
         public readonly string $name,
         public readonly string $label,
         public readonly ?string $id = null,
@@ -37,7 +40,7 @@ final class CurrencySelect extends Component
         return view(
             'components.currency-select',
             [
-                'currencies' => Currency::cases(),
+                'currencies' => $this->currencies->options(App::getLocale()),
                 'selectedCurrency' => $selectedCurrency,
             ],
         );

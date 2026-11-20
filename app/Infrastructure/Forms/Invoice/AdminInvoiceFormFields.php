@@ -25,12 +25,19 @@ final class AdminInvoiceFormFields
 
     /**
      * @param  array<string, string>  $countries
+     * @param  array<string, string>  $currencies  currency labels by code
      * @return list<array<string, mixed>>
      */
-    public function fields(array $countries, ?Invoice $document): array
-    {
+    public function fields(
+        array $countries,
+        array $currencies,
+        ?Invoice $document,
+    ): array {
         $fields = [];
         foreach ($this->getInvoiceFields() as $field) {
+            if ($field['name'] === 'payment_currency') {
+                $field['options'] = $currencies;
+            }
             // The total comes from the lines, which the item editor shows
             if ($field['name'] === 'invoice_logo' || $field['name'] === 'payment_amount') {
                 continue;
@@ -109,7 +116,7 @@ final class AdminInvoiceFormFields
                 'amounts',
                 __('invoices.sections.amounts'),
             ),
-            AdminInvoiceItemFields::field($document),
+            AdminInvoiceItemFields::field($currencies, $document),
             $fields['payment_currency'],
             AdminDocumentFormFields::section(
                 'status',

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Traits;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields;
 use App\Models\PaymentMethod;
 use PHPUnit\Framework\Attributes\Test;
@@ -20,11 +19,6 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $paymentMethod = $paymentMethodQuery->firstOrFail();
         $paymentMethods = [$paymentMethod->id => $paymentMethod->name];
-        $currencies = array_column(
-            Currency::cases(),
-            'value',
-            'value',
-        );
 
         // Act
         $result = $this->getInvoiceFields($paymentMethods);
@@ -36,10 +30,8 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         // Verify options are passed correctly
         $resultList = collect($result);
         $paymentMethodField = $resultList->firstWhere('name', 'payment_method_id');
-        $currencyField = $resultList->firstWhere('name', 'payment_currency');
 
         $this->assertEquals($paymentMethods, $paymentMethodField['options']);
-        $this->assertEquals($currencies, $currencyField['options']);
     }
 
     #[Test]
