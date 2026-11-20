@@ -308,7 +308,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                                     class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
                                     __('invoices.placeholders.item_currency') }}</label>
                                 <x-currency-select name="item-currency" label="" id="item-currency"
-                                    class="item-currency" />
+                                    class="item-currency" :codes="true" />
                             </div>
                             <div class="col-span-2 md:col-span-3">
                                 <label

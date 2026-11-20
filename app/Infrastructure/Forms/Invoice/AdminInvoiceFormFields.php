@@ -116,7 +116,7 @@ final class AdminInvoiceFormFields
                 'amounts',
                 __('invoices.sections.amounts'),
             ),
-            AdminInvoiceItemFields::field($currencies, $document),
+            AdminInvoiceItemFields::field($document),
             $fields['payment_currency'],
             AdminDocumentFormFields::section(
                 'status',

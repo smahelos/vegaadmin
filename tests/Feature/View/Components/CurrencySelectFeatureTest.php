@@ -53,6 +53,24 @@ final class CurrencySelectFeatureTest extends TestCase
     }
 
     #[Test]
+    public function labels_each_currency_with_its_code_only_when_asked(): void
+    {
+        $view = $this->component(
+            CurrencySelect::class,
+            [
+                'name' => 'currency',
+                'label' => 'Měna',
+                'codes' => true,
+            ],
+        );
+
+        $this->assertMatchesRegularExpression(
+            '/<option value="USD"\s*>\s*USD\s*<\/option>/',
+            (string) $view,
+        );
+    }
+
+    #[Test]
     public function preselects_czk_by_default(): void
     {
         $view = $this->component(

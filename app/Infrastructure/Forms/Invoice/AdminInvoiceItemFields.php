@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Forms\Invoice;
 
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -11,11 +12,8 @@ use App\Models\Tax;
 
 final class AdminInvoiceItemFields
 {
-    /**
-     * @param  array<string, string>  $currencies  currency labels by code
-     * @return array<string, mixed>
-     */
-    public static function field(array $currencies, ?Invoice $invoice): array
+    /** @return array<string, mixed> */
+    public static function field(?Invoice $invoice): array
     {
         $items = old('invoice-products');
         if (is_string($items)) {
@@ -60,7 +58,7 @@ final class AdminInvoiceItemFields
             'wrapper' => ['class' => 'form-group col-12'],
             'items' => $items,
             'units' => $units,
-            'currencies' => $currencies,
+            'currencies' => array_column(Currency::cases(), 'value'),
             'tax_rates' => array_values(
                 array_unique($taxRates),
             ),

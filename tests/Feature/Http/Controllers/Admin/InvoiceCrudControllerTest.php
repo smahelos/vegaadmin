@@ -128,17 +128,22 @@ final class InvoiceCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function the_payment_and_item_currency_selects_name_the_currencies(): void
+    public function the_payment_currency_select_names_the_currencies_and_the_item_one_shows_codes(): void
     {
         $httpResponse = $this->get('/admin/invoice/create');
 
         $httpResponse = $httpResponse->assertOk();
+        $html = (string) $httpResponse->getContent();
         $this->assertSame(
-            2,
+            1,
             preg_match_all(
                 '/<option value="CZK"[^>]*>CZK – \\p{L}/u',
-                (string) $httpResponse->getContent(),
+                $html,
             ),
+        );
+        $this->assertStringContainsString(
+            '<option value="CZK">CZK</option>',
+            $html,
         );
     }
 
