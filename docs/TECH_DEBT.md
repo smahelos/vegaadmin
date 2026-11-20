@@ -374,7 +374,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ClientReadRepositoryInterface`; today e.g. `BankDtoRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `BankDtoRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
 
 ### Framework and model dependencies outside Infrastructure
-- **Where:** `App\Models` in 10 Application files and 29 of 57 controllers (2026-11-18); `Illuminate\Http` in 1 Application file; facades/helpers in Application files (e.g. `Cache` in `TemporaryInvoiceStore`, whose tests have to boot Laravel); `config()` in `app/Domain/Shared/File/Config/FileUploadConfig.php`; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`
+- **Where:** `App\Models` in 10 Application files and 29 of 57 controllers (2026-11-18); `Illuminate\Http` in 1 Application file; facades/helpers in Application files (e.g. `Cache` in `TemporaryInvoiceStore`, whose tests have to boot Laravel); `config()` in `app/Domain/Shared/File/Config/FileUploadConfig.php`; `app/Domain/Payment/Services/SubscriptionPaymentService.php` imports `GoPayGateway`; `app/Application/Invoice/Form/InvoiceCreateFieldSetFactory.php` builds the invoice form from the Infrastructure trait `InvoiceFormFields`, which translates its labels with `__()`
 - **Fix:** per `rules/architecture.md` (dependency table).
 
 ### Interfaces without a port

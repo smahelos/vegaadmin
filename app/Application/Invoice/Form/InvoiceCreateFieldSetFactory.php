@@ -5,8 +5,6 @@ namespace App\Application\Invoice\Form;
 use App\Application\Shared\Form\DTO\FieldDTO;
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 use App\Application\Shared\Form\Enum\FieldType;
-use App\Domain\Invoice\Enums\InvoiceStatus;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Infrastructure\Forms\Invoice\InvoiceFormFields; // Temporarily reuse trait logic Phase 1
 
 /**
@@ -15,8 +13,7 @@ use App\Infrastructure\Forms\Invoice\InvoiceFormFields; // Temporarily reuse tra
  */
 class InvoiceCreateFieldSetFactory
 {
-    // Alias trait method so we can provide a safe wrapper fallback in non-Laravel (plain PHPUnit) context
-    use InvoiceFormFields { getInvoiceFields as private traitGetInvoiceFields; }
+    use InvoiceFormFields;
 
     /**
      * Build FieldSetDTO from legacy trait output.
@@ -43,89 +40,5 @@ class InvoiceCreateFieldSetFactory
         }
 
         return new FieldSetDTO($fields);
-    }
-
-    /**
-     * Safe wrapper around trait's getInvoiceFields. When running plain PHPUnit unit tests
-     * without a bootstrapped Laravel container, Facades are unavailable and would throw
-     * "A facade root has not been set.". In that case, provide a minimal fallback field
-     * definition sufficient for unit tests. In normal app runtime, delegate to the trait.
-     */
-    protected function getInvoiceFields(array $paymentMethods = []): array
-    {
-        try {
-            // Attempt to call the original trait implementation (requires Laravel container)
-            return $this->traitGetInvoiceFields($paymentMethods);
-        } catch (\Throwable $e) {
-            // Minimal fallback for non-Laravel context (plain PHPUnit)
-            $currencies = array_column(
-                Currency::cases(),
-                'value',
-                'value',
-            );
-
-            return [
-                [
-                    'name' => 'invoice_logo',
-                    'label' => 'Invoice Logo',
-                    'type' => 'file',
-                    'accept' => 'image/*',
-                ],
-                [
-                    'name' => 'template',
-                    'label' => 'Template',
-                    'type' => 'hidden',
-                    'default' => 'default',
-                ],
-                [
-                    'name' => 'invoice_vs',
-                    'label' => 'Variable Symbol',
-                    'type' => 'text',
-                    'required' => true,
-                ],
-                [
-                    'name' => 'status',
-                    'label' => 'Status',
-                    'type' => 'select_from_array',
-                    'options' => array_column(
-                        InvoiceStatus::cases(),
-                        'value',
-                        'value',
-                    ),
-                    'required' => true,
-                ],
-                [
-                    'name' => 'issue_date',
-                    'label' => 'Issue Date',
-                    'type' => 'date',
-                ],
-                [
-                    'name' => 'payment_method_id',
-                    'label' => 'Payment Method',
-                    'type' => 'select',
-                    'options' => $paymentMethods,
-                    'required' => true,
-                ],
-                [
-                    'name' => 'due_in',
-                    'label' => 'Due In',
-                    'type' => 'select_from_array',
-                    'options' => [
-                        1 => '1',
-                        3 => '3',
-                        7 => '7',
-                        14 => '14',
-                        30 => '30',
-                    ],
-                ],
-                [
-                    'name' => 'payment_currency',
-                    'label' => 'Currency',
-                    'type' => 'select_from_array',
-                    'options' => $currencies,
-                    'required' => true,
-                ],
-            ];
-        }
     }
 }
