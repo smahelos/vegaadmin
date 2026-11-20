@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Billex\PHPStan\Collectors;
 
+use Illuminate\Container\Container;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\App;
 use PhpParser\Node;
 use PhpParser\Node\Expr\CallLike;
@@ -15,7 +17,8 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 
 /**
- * Every lookup in the Laravel container: app() with or without an argument, resolve() and App::make().
+ * Every lookup in the Laravel container: app() with or without an argument, resolve(), the App facade's make(),
+ * makeWith(), get() and call() (also through the global alias \App) and Container::getInstance().
  *
  * @implements Collector<CallLike, array{string, string, int}>
  */
@@ -29,6 +32,19 @@ final class ContainerLookupCollector implements Collector
     private const FACADE_METHODS = [
         'make',
         'makewith',
+        'get',
+        'call',
+    ];
+
+    /** The class names App::make() resolves through: the facade and its global alias */
+    private const FACADES = [
+        App::class,
+        'App',
+    ];
+
+    private const CONTAINERS = [
+        Container::class,
+        Application::class,
     ];
 
     public function getNodeType(): string
@@ -68,16 +84,26 @@ final class ContainerLookupCollector implements Collector
         if (!$node instanceof StaticCall || !$node->class instanceof Name || !$node->name instanceof Identifier) {
             return null;
         }
+        $class = $scope->resolveName($node->class);
         $method = $node->name->toLowerString();
-        $listed = in_array(
+        $container = $method === 'getinstance' && in_array(
+            $class,
+            self::CONTAINERS,
+            true,
+        );
+        $facade = in_array(
             $method,
             self::FACADE_METHODS,
             true,
+        ) && in_array(
+            $class,
+            self::FACADES,
+            true,
         );
-        if (!$listed || $scope->resolveName($node->class) !== App::class) {
+        if (!$container && !$facade) {
             return null;
         }
 
-        return 'App::' . $node->name->toString() . '()';
+        return $node->class->getLast() . '::' . $node->name->toString() . '()';
     }
 }

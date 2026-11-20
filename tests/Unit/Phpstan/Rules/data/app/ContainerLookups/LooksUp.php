@@ -23,6 +23,11 @@ final class LooksUp
         $resolved = resolve(CountryOptionsPresenter::class);
         $made = App::make(CountryOptionsPresenter::class);
         $made = \Illuminate\Support\Facades\App::makeWith(CountryOptionsPresenter::class, []);
+        $got = App::get(CountryOptionsPresenter::class);
+        App::call([$this, 'state']);
+        $aliased = \App::make(CountryOptionsPresenter::class);
+        $container = \Illuminate\Container\Container::getInstance();
+        $application = \Illuminate\Foundation\Application::getInstance();
     }
 
     public function state(): void

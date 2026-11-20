@@ -16,7 +16,7 @@ final class BankFormFieldsTest extends TestCase
     ];
 
     #[Test]
-    public function get_bank_fields_returns_properly_structured_bank_fields(): void
+    public function returns_properly_structured_bank_fields(): void
     {
         $fields = BankFormFields::fields(self::COUNTRIES);
 
@@ -85,7 +85,7 @@ final class BankFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_field_names_are_correct(): void
+    public function field_names_are_correct(): void
     {
         $fields = BankFormFields::fields(self::COUNTRIES);
         $collection = collect($fields);
@@ -105,7 +105,7 @@ final class BankFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_required_fields_are_properly_set(): void
+    public function required_fields_are_properly_set(): void
     {
         $fields = BankFormFields::fields(self::COUNTRIES);
 
@@ -126,7 +126,7 @@ final class BankFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_field_types_are_appropriate(): void
+    public function field_types_are_appropriate(): void
     {
         $fields = BankFormFields::fields(self::COUNTRIES);
 
@@ -143,7 +143,7 @@ final class BankFormFieldsTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_default_values_are_set_correctly(): void
+    public function default_values_are_set_correctly(): void
     {
         $fields = BankFormFields::fields(self::COUNTRIES);
 

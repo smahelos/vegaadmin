@@ -17,16 +17,19 @@ final class ContainerLookupRuleTest extends RuleTestCase
 {
     private const ADVICE = ' looks a dependency up in the container: inject it through the constructor or the method the framework calls, read framework state through its facade.';
 
+    /** @var list<string> */
+    private array $files = [
+        __DIR__ . '/data/app/ContainerLookups/StillLooksUp.php',
+        __DIR__ . '/data/app/ContainerLookups/LooksNothingUp.php',
+    ];
+
     protected function getRule(): Rule
     {
         // The fixtures' app/ stands for application code, its Providers/ for the composition roots
         return new ContainerLookupRule(
             [__DIR__ . '/data/app/'],
             __DIR__ . '/data/app/Providers/',
-            [
-                __DIR__ . '/data/app/ContainerLookups/StillLooksUp.php',
-                __DIR__ . '/data/app/ContainerLookups/LooksNothingUp.php',
-            ],
+            $this->files,
         );
     }
 
@@ -54,9 +57,28 @@ final class ContainerLookupRuleTest extends RuleTestCase
                 ['resolve()' . self::ADVICE, 23],
                 ['App::make()' . self::ADVICE, 24],
                 ['App::makeWith()' . self::ADVICE, 25],
+                ['App::get()' . self::ADVICE, 26],
+                ['App::call()' . self::ADVICE, 27],
+                ['App::make()' . self::ADVICE, 28],
+                ['Container::getInstance()' . self::ADVICE, 29],
+                ['Application::getInstance()' . self::ADVICE, 30],
                 ['app()' . self::ADVICE, 13],
                 [__DIR__ . '/data/app/ContainerLookups/LooksNothingUp.php looks nothing up in the container: remove it from the files of this rule in phpstan.neon.', -1],
             ],
+        );
+    }
+
+    #[Test]
+    public function a_listed_trait_is_exempt_in_the_classes_that_use_it(): void
+    {
+        $this->files = [__DIR__ . '/data/app/ContainerLookups/LooksUpInATrait.php'];
+
+        $this->analyse(
+            [
+                __DIR__ . '/data/app/ContainerLookups/LooksUpInATrait.php',
+                __DIR__ . '/data/app/ContainerLookups/UsesTheTrait.php',
+            ],
+            [],
         );
     }
 }
