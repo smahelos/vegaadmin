@@ -1,36 +1,24 @@
 <?php
 
-namespace Tests\Feature\Traits;
+declare(strict_types=1);
 
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+namespace Tests\Feature\Infrastructure\Forms\Party;
+
 use App\Infrastructure\Forms\Party\BankFormFields;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
-class BankFormFieldsFeatureTest extends TestCase
+final class BankFormFieldsTest extends TestCase
 {
-    private object $traitInstance;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        // Create anonymous class using the trait
-        $this->traitInstance = new class
-        {
-            use BankFormFields;
-
-            public function callGetBankFields(): array
-            {
-                return $this->getBankFields();
-            }
-        };
-    }
+    private const COUNTRIES = [
+        'CZ' => 'Česko',
+        'SK' => 'Slovensko',
+    ];
 
     #[Test]
     public function get_bank_fields_returns_properly_structured_bank_fields(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
 
         $this->assertIsArray($fields);
         $this->assertCount(6, $fields);
@@ -78,27 +66,19 @@ class BankFormFieldsFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_bank_fields_offers_countries_named_in_the_app_locale(): void
+    public function the_country_select_offers_the_given_countries(): void
     {
-        $application = app();
-        $application->setLocale('cs');
-
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
 
         $collection = collect($fields);
         $countryField = $collection->firstWhere('name', 'country');
-        $countryOptionsPresenter = app(CountryOptionsPresenter::class);
-        $this->assertSame(
-            $countryOptionsPresenter->options('cs'),
-            $countryField['options'],
-        );
-        $this->assertSame('Česko', $countryField['options']['CZ']);
+        $this->assertSame(self::COUNTRIES, $countryField['options']);
     }
 
     #[Test]
     public function labels_and_hints_are_translated(): void
     {
-        foreach ($this->traitInstance->callGetBankFields() as $field) {
+        foreach (BankFormFields::fields(self::COUNTRIES) as $field) {
             $this->assertStringNotContainsString('banks.', $field['label']);
             $this->assertStringNotContainsString('banks.', $field['hint'] ?? '');
         }
@@ -107,7 +87,7 @@ class BankFormFieldsFeatureTest extends TestCase
     #[Test]
     public function get_bank_fields_field_names_are_correct(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
         $collection = collect($fields);
         $values = $collection->pluck('name');
         $fieldNames = $values->toArray();
@@ -127,7 +107,7 @@ class BankFormFieldsFeatureTest extends TestCase
     #[Test]
     public function get_bank_fields_required_fields_are_properly_set(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
 
         $fieldList = collect($fields);
         $matches = $fieldList->where('required', true);
@@ -148,7 +128,7 @@ class BankFormFieldsFeatureTest extends TestCase
     #[Test]
     public function get_bank_fields_field_types_are_appropriate(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
 
         $collection = collect($fields);
         $values = $collection->pluck('type', 'name');
@@ -165,7 +145,7 @@ class BankFormFieldsFeatureTest extends TestCase
     #[Test]
     public function get_bank_fields_default_values_are_set_correctly(): void
     {
-        $fields = $this->traitInstance->callGetBankFields();
+        $fields = BankFormFields::fields(self::COUNTRIES);
 
         $fieldList = collect($fields);
         $countryField = $fieldList->firstWhere('name', 'country');

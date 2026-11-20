@@ -16,6 +16,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
@@ -83,8 +84,10 @@ final class InvoiceRequest extends FormRequest
     /**
      * @return array<string, mixed>
      */
-    public function rules(): array
-    {
+    public function rules(
+        TaxDtoReadRepositoryInterface $taxes,
+        PaymentMethodDtoReadRepositoryInterface $paymentMethods,
+    ): array {
         // Get max file size from config
         $maxFileSize = Config::get('file_upload.contexts.invoice_logo.max_kb', 2048);
 
@@ -98,8 +101,9 @@ final class InvoiceRequest extends FormRequest
                 $user?->getAuthIdentifier(),
                 $this->isGuestStore(),
                 true,
+                $taxes,
             ),
-            ...$this->partyRules(),
+            ...$this->partyRules($paymentMethods),
         ];
     }
 
@@ -109,10 +113,10 @@ final class InvoiceRequest extends FormRequest
      *
      * @return array<string, mixed>
      */
-    private function partyRules(): array
+    private function partyRules(PaymentMethodDtoReadRepositoryInterface $paymentMethods): array
     {
         $input = $this->all();
-        $bankTransfer = $this->paysByBankTransfer();
+        $bankTransfer = $this->paysByBankTransfer($paymentMethods);
 
         if ($this->isGuestStore()) {
             return [
@@ -177,14 +181,13 @@ final class InvoiceRequest extends FormRequest
         ];
     }
 
-    private function paysByBankTransfer(): bool
+    private function paysByBankTransfer(PaymentMethodDtoReadRepositoryInterface $paymentMethods): bool
     {
         $paymentMethodId = $this->integer('payment_method_id');
         if ($paymentMethodId <= 0) {
             return false;
         }
 
-        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
         $paymentMethod = $paymentMethods->findById(
             PaymentMethodId::fromInt($paymentMethodId),
         );
@@ -200,10 +203,8 @@ final class InvoiceRequest extends FormRequest
     }
 
     /** @return list<InvoiceProductWriteData> */
-    public function products(): array
+    public function products(InvoiceProductWriteDataAssembler $assembler): array
     {
-        $assembler = app(InvoiceProductWriteDataAssembler::class);
-
         return $assembler->fromValidated(
             $this->validated('invoice-products'),
         );

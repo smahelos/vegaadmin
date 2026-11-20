@@ -46,6 +46,7 @@ final class ExpenseCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
@@ -208,8 +209,7 @@ final class ExpenseCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseRequest::class);
-        $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options(App::getLocale());
+        $countries = $this->countries->options(App::getLocale());
         CRUD::addFields(
             ExpenseFormFields::fields(
                 $countries,

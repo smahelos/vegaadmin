@@ -18,6 +18,7 @@ use App\Application\Invoice\Queries\GetInvoiceCreateForm;
 use App\Application\Invoice\Queries\GetInvoiceForEdit;
 use App\Application\Invoice\Queries\GetInvoicePdf;
 use App\Application\Invoice\Services\GuestInvoiceCreateForm;
+use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
@@ -47,6 +48,7 @@ final class InvoiceController extends Controller
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly InvoiceRequestAssemblerInterface $invoiceRequestAssembler,
         private readonly CountryOptionsPresenter $countries,
+        private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
     public function index(): View
@@ -102,7 +104,7 @@ final class InvoiceController extends Controller
                 $owner,
                 $request->toWriteData(),
                 $request->partySelection(),
-                $request->products(),
+                $request->products($this->products),
             ),
         );
 
@@ -224,7 +226,7 @@ final class InvoiceController extends Controller
                 InvoiceId::fromInt($id),
                 $request->toWriteData(),
                 $request->partySelection(),
-                $request->products(),
+                $request->products($this->products),
             ),
         );
 

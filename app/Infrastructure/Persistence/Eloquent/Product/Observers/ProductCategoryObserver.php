@@ -8,13 +8,14 @@ use App\Models\ProductCategory;
 
 class ProductCategoryObserver
 {
+    public function __construct(private readonly EventPublisherInterface $events) {}
+
     /** Handle the ProductCategory "created" event. */
     public function created(ProductCategory $category): void
     {
         $auth = auth();
         $userId = $auth->id() ?? 0;
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged($userId, 'categories'),
         );
     }
@@ -25,8 +26,7 @@ class ProductCategoryObserver
         if ($category->isDirty(['name'])) {
             $auth = auth();
             $userId = $auth->id() ?? 0;
-            $publisher = app(EventPublisherInterface::class);
-            $publisher->publish(
+            $this->events->publish(
                 new FormDataChanged($userId, 'categories'),
             );
         }
@@ -37,8 +37,7 @@ class ProductCategoryObserver
     {
         $auth = auth();
         $userId = $auth->id() ?? 0;
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged($userId, 'categories'),
         );
     }

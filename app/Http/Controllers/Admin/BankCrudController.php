@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\BankRequest;
@@ -15,6 +16,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Support\Facades\App;
 
 /**
  * Class BankCrudController
@@ -23,7 +25,6 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
  */
 class BankCrudController extends CrudController
 {
-    use BankFormFields;
     use CreateOperation;
     use DeleteOperation;
     use GatesCrudOperations;
@@ -33,6 +34,7 @@ class BankCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
     }
@@ -83,7 +85,10 @@ class BankCrudController extends CrudController
     {
         CRUD::setValidation(BankRequest::class);
 
-        $this->crud->addFields($this->getBankFields());
+        $countries = $this->countries->options(App::getLocale());
+        $this->crud->addFields(
+            BankFormFields::fields($countries),
+        );
     }
 
     /**

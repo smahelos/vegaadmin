@@ -48,6 +48,7 @@ final class BankAccountCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
     }
@@ -289,8 +290,7 @@ final class BankAccountCrudController extends CrudController
 
     private function addAccountFields(): void
     {
-        $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options(App::getLocale());
+        $countries = $this->countries->options(App::getLocale());
 
         CRUD::addFields(
             PartyFormFields::bankAccount($countries),

@@ -14,14 +14,23 @@ use Illuminate\Support\Facades\App;
  */
 trait ProvidesPartyOptions
 {
+    private CountryOptionsPresenter $countries;
+
+    private BankApplicationService $banks;
+
+    /** Livewire calls it through the container before every request of the component. */
+    public function bootProvidesPartyOptions(CountryOptionsPresenter $countries, BankApplicationService $banks): void
+    {
+        $this->countries = $countries;
+        $this->banks = $banks;
+    }
+
     /**
      * @return array<string, string> country name by code
      */
     protected function countryOptions(): array
     {
-        $presenter = app(CountryOptionsPresenter::class);
-
-        return $presenter->options(App::getLocale());
+        return $this->countries->options(App::getLocale());
     }
 
     /**
@@ -37,8 +46,7 @@ trait ProvidesPartyOptions
         }
 
         $options = [];
-        $banks = app(BankApplicationService::class);
-        foreach ($banks->listActive($country) as $bank) {
+        foreach ($this->banks->listActive($country) as $bank) {
             if ($bank->code !== null) {
                 $options[$bank->code] = $bank->code . ' – ' . $bank->name;
             }

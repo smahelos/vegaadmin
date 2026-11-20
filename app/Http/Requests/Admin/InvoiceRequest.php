@@ -14,6 +14,7 @@ use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
@@ -27,6 +28,9 @@ final class InvoiceRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
+        // Backpack calls rules() without the container, so the request cannot receive them (docs/TECH_DEBT.md)
+        $taxes = app(TaxDtoReadRepositoryInterface::class);
+        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
         $businessExists = Rule::exists('businesses', 'id');
         $businessExists->where(
             'user_id',
@@ -37,7 +41,7 @@ final class InvoiceRequest extends FormRequest
             'user_id',
             $this->integer('user_id'),
         );
-        if ($this->paysByBankTransfer()) {
+        if ($this->paysByBankTransfer($paymentMethods)) {
             $bankAccountExists = Rule::exists('bank_accounts', 'id');
             $bankAccountExists->where(
                 'business_id',
@@ -80,6 +84,7 @@ final class InvoiceRequest extends FormRequest
                 $this->integer('user_id'),
                 false,
                 true,
+                $taxes,
             ),
             ...$customerRules,
         ];
@@ -112,10 +117,8 @@ final class InvoiceRequest extends FormRequest
     }
 
     /** @return list<InvoiceProductWriteData> */
-    public function products(): array
+    public function products(InvoiceProductWriteDataAssembler $assembler): array
     {
-        $assembler = app(InvoiceProductWriteDataAssembler::class);
-
         return $assembler->fromValidated(
             $this->validated('invoice-products'),
         );
@@ -158,14 +161,13 @@ final class InvoiceRequest extends FormRequest
         return $attributes;
     }
 
-    private function paysByBankTransfer(): bool
+    private function paysByBankTransfer(PaymentMethodDtoReadRepositoryInterface $paymentMethods): bool
     {
         $id = $this->integer('payment_method_id');
         if ($id <= 0) {
             return false;
         }
 
-        $paymentMethods = app(PaymentMethodDtoReadRepositoryInterface::class);
         $paymentMethod = $paymentMethods->findById(
             PaymentMethodId::fromInt($id),
         );

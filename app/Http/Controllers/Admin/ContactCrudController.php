@@ -9,6 +9,7 @@ use App\Application\Party\Commands\CreateContact;
 use App\Application\Party\Commands\RestoreContact;
 use App\Application\Party\Commands\UpdateContact;
 use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\ContactDTO;
 use App\Domain\Party\DTO\ContactWriteData;
@@ -46,6 +47,7 @@ final class ContactCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');

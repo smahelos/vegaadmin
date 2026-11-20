@@ -8,11 +8,12 @@ use App\Models\Product;
 
 class ProductObserver
 {
+    public function __construct(private readonly EventPublisherInterface $events) {}
+
     /** Handle the Product "created" event. */
     public function created(Product $product): void
     {
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged((int) $product->user_id, 'products'),
         );
     }
@@ -27,8 +28,7 @@ class ProductObserver
                 'category_id',
             ])
         ) {
-            $publisher = app(EventPublisherInterface::class);
-            $publisher->publish(
+            $this->events->publish(
                 new FormDataChanged((int) $product->user_id, 'products'),
             );
         }
@@ -37,8 +37,7 @@ class ProductObserver
     /** Handle the Product "deleted" event. */
     public function deleted(Product $product): void
     {
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged((int) $product->user_id, 'products'),
         );
     }

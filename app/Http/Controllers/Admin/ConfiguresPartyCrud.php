@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\Party\PartyFormFields;
@@ -153,8 +152,7 @@ trait ConfiguresPartyCrud
      */
     protected function addProfileFields(?Address $address = null): void
     {
-        $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options(App::getLocale());
+        $countries = $this->countries->options(App::getLocale());
 
         CRUD::addFields(
             PartyFormFields::profile(

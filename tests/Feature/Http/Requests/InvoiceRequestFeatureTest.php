@@ -105,9 +105,12 @@ final class InvoiceRequestFeatureTest extends TestCase
             );
         }
 
+        // The framework calls rules() through the container, which injects its dependencies
+        $rules = $this->app->call([$request, 'rules']);
+
         return Validator::make(
             $data,
-            $request->rules(),
+            $rules,
             $request->messages(),
             $request->attributes(),
         );
