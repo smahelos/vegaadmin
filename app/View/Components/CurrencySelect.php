@@ -13,11 +13,14 @@ use Illuminate\View\View;
  */
 final class CurrencySelect extends Component
 {
+    /**
+     * @param  array<mixed>|string|null  $selected  usually `old()`, which repeats a failed submit as it came: empty or an array too
+     */
     public function __construct(
         public readonly string $name,
         public readonly string $label,
         public readonly ?string $id = null,
-        public readonly string $selected = Currency::CZK->value,
+        public readonly array|string|null $selected = Currency::CZK->value,
         public readonly bool $required = false,
         public readonly string $class = '',
         public readonly string $labelClass = '',
@@ -26,6 +29,17 @@ final class CurrencySelect extends Component
 
     public function render(): View
     {
-        return view('components.currency-select', ['currencies' => Currency::cases()]);
+        $selectedCurrency = null;
+        if (is_string($this->selected)) {
+            $selectedCurrency = Currency::tryFrom($this->selected);
+        }
+
+        return view(
+            'components.currency-select',
+            [
+                'currencies' => Currency::cases(),
+                'selectedCurrency' => $selectedCurrency,
+            ],
+        );
     }
 }

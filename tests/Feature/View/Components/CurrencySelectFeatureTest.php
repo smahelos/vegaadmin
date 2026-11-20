@@ -6,6 +6,7 @@ namespace Tests\Feature\View\Components;
 
 use App\Domain\Shared\Money\Enums\Currency;
 use App\View\Components\CurrencySelect;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -64,5 +65,55 @@ final class CurrencySelectFeatureTest extends TestCase
 
         $view->assertSee('<option value="EUR" selected>', false);
         $view->assertDontSee('<option value="CZK" selected>', false);
+    }
+
+    /**
+     * @return array<string, array{array<mixed>|string|null}>
+     */
+    public static function unusableSubmits(): array
+    {
+        return [
+            'empty' => [null],
+            'array' => [['EUR']],
+            'unknown code' => ['XYZ'],
+        ];
+    }
+
+    /**
+     * @param  array<mixed>|string|null  $submitted
+     */
+    #[Test]
+    #[DataProvider('unusableSubmits')]
+    public function renders_without_a_selection_after_an_unusable_submit(array|string|null $submitted): void
+    {
+        $view = $this->component(
+            CurrencySelect::class,
+            [
+                'name' => 'currency',
+                'label' => 'Měna',
+                'selected' => $submitted,
+            ],
+        );
+
+        $this->assertSame(
+            count(Currency::cases()),
+            substr_count((string) $view, '<option '),
+        );
+        $view->assertDontSee(' selected>', false);
+    }
+
+    #[Test]
+    public function prints_the_hint(): void
+    {
+        $view = $this->component(
+            CurrencySelect::class,
+            [
+                'name' => 'currency',
+                'label' => 'Měna',
+                'hint' => 'Měna, ve které faktura požaduje platbu',
+            ],
+        );
+
+        $view->assertSee('Měna, ve které faktura požaduje platbu');
     }
 }

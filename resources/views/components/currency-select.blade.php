@@ -13,11 +13,14 @@
         @if($required) required @endif
         class="form-select block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base bg-blue-50 dark:bg-gray-700 dark:text-gray-200 py-2 {{ $class }}">
         @foreach($currencies as $currency)
-            <option value="{{ $currency->value }}" @selected($currency->value === $selected)>
+            <option value="{{ $currency->value }}" @selected($currency === $selectedCurrency)>
                 {{ $currency->value }}
             </option>
         @endforeach
     </select>
+    @if ($hint !== '')
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ $hint }}</p>
+    @endif
     @error($name)
         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
     @enderror
