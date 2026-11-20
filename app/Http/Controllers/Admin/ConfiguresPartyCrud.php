@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Forms\Party\PartyFormFields;
@@ -14,6 +13,7 @@ use App\Models\Business;
 use App\Models\Contact;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -152,9 +152,7 @@ trait ConfiguresPartyCrud
      */
     protected function addProfileFields(?Address $address = null): void
     {
-        $application = app();
-        $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options($application->getLocale());
+        $countries = $this->countries->options(App::getLocale());
 
         CRUD::addFields(
             PartyFormFields::profile(

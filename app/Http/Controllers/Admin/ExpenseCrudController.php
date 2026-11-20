@@ -26,6 +26,7 @@ use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Backpack\CRUD\app\Library\Widget;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -45,6 +46,7 @@ final class ExpenseCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
@@ -207,9 +209,7 @@ final class ExpenseCrudController extends CrudController
     protected function setupCreateOperation(): void
     {
         CRUD::setValidation(ExpenseRequest::class);
-        $application = app();
-        $presenter = app(CountryOptionsPresenter::class);
-        $countries = $presenter->options($application->getLocale());
+        $countries = $this->countries->options(App::getLocale());
         CRUD::addFields(
             ExpenseFormFields::fields(
                 $countries,

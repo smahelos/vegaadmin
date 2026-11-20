@@ -16,6 +16,7 @@ use App\Domain\User\Contracts\Locale;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocument;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use NumberFormatter;
 
@@ -104,14 +105,13 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
         ];
 
-        $application = app();
-        $previousLocale = $application->getLocale();
+        $previousLocale = App::getLocale();
         try {
-            $application->setLocale($locale);
+            App::setLocale($locale);
 
             return Pdf::loadView($templateName, $viewData);
         } finally {
-            $application->setLocale($previousLocale);
+            App::setLocale($previousLocale);
         }
     }
 

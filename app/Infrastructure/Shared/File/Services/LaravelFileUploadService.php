@@ -21,17 +21,10 @@ use Illuminate\Validation\ValidationException;
  */
 class LaravelFileUploadService implements FileUploadServiceInterface
 {
-    /** Image processor (strategy). */
-    protected ImageProcessorInterface $imageProcessor;
-
-    /** Config wrapper */
-    protected FileUploadConfig $config;
-
-    public function __construct(?FileUploadConfig $config = null, ?ImageProcessorInterface $imageProcessor = null)
-    {
-        $this->config = $config ?? app(FileUploadConfig::class);
-        $this->imageProcessor = $imageProcessor ?? app(ImageProcessorInterface::class);
-    }
+    public function __construct(
+        private readonly FileUploadConfig $config,
+        private readonly ImageProcessorInterface $imageProcessor,
+    ) {}
 
     /** {@inheritDoc} */
     public function handleFileUpload(

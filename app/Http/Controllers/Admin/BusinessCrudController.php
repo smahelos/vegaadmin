@@ -10,6 +10,7 @@ use App\Application\Party\Commands\RestoreBusiness;
 use App\Application\Party\Commands\SetDefaultBusiness;
 use App\Application\Party\Commands\UpdateBusiness;
 use App\Application\Party\Services\PartyLogoApplicationService;
+use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
@@ -48,6 +49,7 @@ final class BusinessCrudController extends CrudController
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly CountryOptionsPresenter $countries,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');

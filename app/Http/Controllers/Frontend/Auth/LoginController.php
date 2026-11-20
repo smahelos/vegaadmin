@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -40,9 +41,8 @@ class LoginController extends Controller
     protected function authenticated(Request $request, mixed $user): RedirectResponse
     {
         $redirector = redirect();
-        $application = app();
 
-        return $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
+        return $redirector->route('frontend.dashboard', ['locale' => App::getLocale()]);
     }
 
     /**
@@ -98,9 +98,8 @@ class LoginController extends Controller
         $session->regenerateToken();
 
         $redirector = redirect();
-        $application = app();
 
-        return $redirector->route('home', ['locale' => $application->getLocale()]);
+        return $redirector->route('home', ['locale' => App::getLocale()]);
     }
 
     /**

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\App;
 
 class Page extends Model
 {
@@ -108,8 +109,7 @@ class Page extends Model
     public function getName(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $names = $this->name ?? [];
 
@@ -141,8 +141,7 @@ class Page extends Model
     public function getSlug(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $slugs = $this->slug ?? [];
 
@@ -174,8 +173,7 @@ class Page extends Model
     public function getDescription(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $descriptions = $this->description ?? [];
 
@@ -207,8 +205,7 @@ class Page extends Model
     public function getContent(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $contents = $this->content ?? [];
 
@@ -240,8 +237,7 @@ class Page extends Model
     public function getMetaTitle(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $metaTitles = $this->meta_title ?? [];
 
@@ -273,8 +269,7 @@ class Page extends Model
     public function getMetaDescription(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $metaDescriptions = $this->meta_description ?? [];
 
@@ -301,8 +296,7 @@ class Page extends Model
     public function getMetaKeywords(?string $locale = null): string
     {
         if ($locale === null) {
-            $application = app();
-            $locale = $application->getLocale();
+            $locale = App::getLocale();
         }
         $metaKeywords = $this->meta_keywords ?? [];
 

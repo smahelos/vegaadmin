@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,13 +14,14 @@ use Illuminate\Validation\Rule;
 final class InvoiceItemsRequest extends FormRequest
 {
     /** @return array<string, mixed> */
-    public function rules(): array
+    public function rules(TaxDtoReadRepositoryInterface $taxes): array
     {
         if ($this->isMethod('POST')) {
             $itemRules = InvoiceItemInput::rules(
                 $this->integer('user_id'),
                 false,
                 false,
+                $taxes,
             );
         } else {
             $itemRules = [];

@@ -12,6 +12,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 
 final class PaymentController extends Controller
@@ -25,7 +26,6 @@ final class PaymentController extends Controller
      */
     public function return(Request $request): RedirectResponse
     {
-        $application = app();
         $result = $this->handleCallback($request, 'Payment return received');
 
         if ($result->success) {
@@ -33,7 +33,7 @@ final class PaymentController extends Controller
 
             if ($status === 'completed') {
                 $redirector = redirect();
-                $redirect = $redirector->route('subscriptions.my-subscription', ['locale' => $application->getLocale()]);
+                $redirect = $redirector->route('subscriptions.my-subscription', ['locale' => App::getLocale()]);
 
                 return $redirect->with(
                     'success',
@@ -41,7 +41,7 @@ final class PaymentController extends Controller
                 );
             } elseif ($status === 'failed') {
                 $redirector = redirect();
-                $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+                $redirect = $redirector->route('subscriptions.index', ['locale' => App::getLocale()]);
 
                 return $redirect->with(
                     'error',
@@ -50,7 +50,7 @@ final class PaymentController extends Controller
             }
 
             $redirector = redirect();
-            $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+            $redirect = $redirector->route('subscriptions.index', ['locale' => App::getLocale()]);
 
             return $redirect->with(
                 'info',
@@ -59,7 +59,7 @@ final class PaymentController extends Controller
         }
 
         $redirector = redirect();
-        $redirect = $redirector->route('subscriptions.index', ['locale' => $application->getLocale()]);
+        $redirect = $redirector->route('subscriptions.index', ['locale' => App::getLocale()]);
 
         return $redirect->with(
             'error',

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Livewire\Party;
 
+use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -12,8 +13,6 @@ use App\Domain\Party\ValueObjects\ContactId;
 /**
  * The duplicate check before saving a business or contact. A Czech IČO match blocks the save and points to the
  * existing record, so the user can open or restore it; any other match is a warning the user confirms once.
- *
- * The component declares the action `save()`.
  */
 trait ChecksPartyDuplicates
 {
@@ -32,6 +31,8 @@ trait ChecksPartyDuplicates
 
     abstract protected function duplicateUrl(BusinessId|ContactId $id): string;
 
+    abstract public function save(PartyLogoApplicationService $logos): void;
+
     /**
      * A changed field may match other records, so earlier warnings no longer count as confirmed.
      */
@@ -43,11 +44,10 @@ trait ChecksPartyDuplicates
     /**
      * Saves only after the user has seen the warnings once.
      */
-    public function confirmDuplicates(): void
+    public function confirmDuplicates(PartyLogoApplicationService $logos): void
     {
         $this->duplicatesConfirmed = true;
-        $application = app();
-        $application->call([$this, 'save']);
+        $this->save($logos);
     }
 
     /**

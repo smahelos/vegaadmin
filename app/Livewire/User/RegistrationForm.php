@@ -16,6 +16,7 @@ use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Party\ProvidesPartyOptions;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Password;
@@ -108,8 +109,7 @@ final class RegistrationForm extends Component
             'success',
             __('users.auth.registration_success'),
         );
-        $application = app();
-        $this->redirectRoute('home', ['locale' => $application->getLocale()]);
+        $this->redirectRoute('home', ['locale' => App::getLocale()]);
     }
 
     public function render(): View

@@ -9,7 +9,6 @@ use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\Contracts\QueryInterface;
 use App\Domain\User\ValueObjects\UserId;
-use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -18,6 +17,14 @@ use Illuminate\Support\Facades\Auth;
  */
 trait ActsForUser
 {
+    private AuthorizingUseCaseRunnerInterface $useCases;
+
+    /** Livewire calls it through the container before every request of the component. */
+    public function bootActsForUser(AuthorizingUseCaseRunnerInterface $useCases): void
+    {
+        $this->useCases = $useCases;
+    }
+
     protected function userId(): UserId
     {
         $id = Auth::id();
@@ -36,9 +43,7 @@ trait ActsForUser
      */
     protected function runUseCase(CommandInterface|QueryInterface $useCase): mixed
     {
-        $useCases = App::make(AuthorizingUseCaseRunnerInterface::class);
-
-        return $useCases->run(
+        return $this->useCases->run(
             Actor::user($this->userId()),
             $useCase,
         );
@@ -65,9 +70,7 @@ trait ActsForUser
      */
     protected function isAllowed(string $useCase): bool
     {
-        $useCases = App::make(AuthorizingUseCaseRunnerInterface::class);
-
-        return $useCases->allowed(
+        return $this->useCases->allowed(
             Actor::user($this->userId()),
             $useCase,
         );

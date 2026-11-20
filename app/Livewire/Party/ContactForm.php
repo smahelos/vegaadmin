@@ -19,6 +19,7 @@ use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\App;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 
@@ -139,11 +140,10 @@ final class ContactForm extends Component
                 $creating ? 'contacts.messages.created' : 'contacts.messages.updated',
             ),
         );
-        $application = app();
         $this->redirectRoute(
             'frontend.contacts.show',
             [
-                'locale' => $application->getLocale(),
+                'locale' => App::getLocale(),
                 'contact' => $contact->id->value,
             ],
         );
@@ -201,12 +201,10 @@ final class ContactForm extends Component
 
     protected function duplicateUrl(BusinessId|ContactId $id): string
     {
-        $application = app();
-
         return route(
             'frontend.contacts.show',
             [
-                'locale' => $application->getLocale(),
+                'locale' => App::getLocale(),
                 'contact' => $id->value,
             ],
         );
@@ -214,8 +212,7 @@ final class ContactForm extends Component
 
     private function cancelHref(): string
     {
-        $application = app();
-        $locale = $application->getLocale();
+        $locale = App::getLocale();
 
         if ($this->contactId === null) {
             return route('frontend.contacts.index', ['locale' => $locale]);

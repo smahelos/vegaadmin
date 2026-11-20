@@ -8,12 +8,13 @@ use App\Models\Tax;
 
 class TaxObserver
 {
+    public function __construct(private readonly EventPublisherInterface $events) {}
+
     public function created(Tax $tax): void
     {
         $auth = auth();
         $userId = $auth->id() ?? 0;
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged($userId, 'taxes'),
         );
     }
@@ -23,8 +24,7 @@ class TaxObserver
         if ($tax->isDirty(['name', 'rate'])) {
             $auth = auth();
             $userId = $auth->id() ?? 0;
-            $publisher = app(EventPublisherInterface::class);
-            $publisher->publish(
+            $this->events->publish(
                 new FormDataChanged($userId, 'taxes'),
             );
         }
@@ -34,8 +34,7 @@ class TaxObserver
     {
         $auth = auth();
         $userId = $auth->id() ?? 0;
-        $publisher = app(EventPublisherInterface::class);
-        $publisher->publish(
+        $this->events->publish(
             new FormDataChanged($userId, 'taxes'),
         );
     }

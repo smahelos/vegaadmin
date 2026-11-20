@@ -8,6 +8,7 @@ use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -59,11 +60,10 @@ class RequireFrontendApiAccess
             );
         }
 
-        $application = app();
         $redirector = redirect();
 
         return $redirector->guest(
-            route('frontend.login', ['locale' => $application->getLocale()]),
+            route('frontend.login', ['locale' => App::getLocale()]),
         );
     }
 
@@ -84,9 +84,8 @@ class RequireFrontendApiAccess
             );
         }
 
-        $application = app();
         $redirector = redirect();
-        $redirect = $redirector->route('frontend.dashboard', ['locale' => $application->getLocale()]);
+        $redirect = $redirector->route('frontend.dashboard', ['locale' => App::getLocale()]);
 
         return $redirect->with(
             'error',

@@ -1,20 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Infrastructure\Forms\Party;
 
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
-
-trait BankFormFields
+final class BankFormFields
 {
     /**
-     * Get bank form fields definitions
+     * @param  array<string, string>  $countries  country names by code
+     * @return list<array<string, mixed>>
      */
-    protected function getBankFields(): array
+    public static function fields(array $countries): array
     {
-        $presenter = app(CountryOptionsPresenter::class);
-        $application = app();
-        $countries = $presenter->options($application->getLocale());
-
         return [
             [
                 'name' => 'name',

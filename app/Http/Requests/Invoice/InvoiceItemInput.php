@@ -8,6 +8,7 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
 use App\Domain\Shared\Unit\Enums\Unit;
 use Closure;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Number;
 use Illuminate\Validation\Rule;
 
@@ -18,6 +19,7 @@ final class InvoiceItemInput
         ?int $userId,
         bool $guest,
         bool $required,
+        TaxDtoReadRepositoryInterface $taxes,
     ): array {
         if ($guest) {
             $productRules = ['prohibited'];
@@ -68,7 +70,7 @@ final class InvoiceItemInput
             'invoice-products.*.tax_rate' => [
                 'required',
                 'numeric',
-                self::taxRateRule(),
+                self::taxRateRule($taxes),
             ],
             'invoice-products.*.product_id' => $productRules,
             'invoice-products.*.category' => [
@@ -105,7 +107,7 @@ final class InvoiceItemInput
      * A line may carry only a rate the invoice form offers: 0 % or one of the VAT rates in the taxes table.
      * The rates are loaded once, when the first numeric rate reaches the rule.
      */
-    private static function taxRateRule(): Closure
+    private static function taxRateRule(TaxDtoReadRepositoryInterface $taxes): Closure
     {
         $allowed = null;
 
@@ -113,11 +115,11 @@ final class InvoiceItemInput
             string $attribute,
             mixed $value,
             Closure $fail,
-        ) use (&$allowed): void {
+        ) use (&$allowed, $taxes): void {
             if (!is_numeric($value)) {
                 return;
             }
-            $allowed ??= self::allowedTaxRates();
+            $allowed ??= self::allowedTaxRates($taxes);
             if (
                 !in_array(
                     self::normalizedRate((string) $value),
@@ -138,9 +140,8 @@ final class InvoiceItemInput
     /**
      * @return list<string>
      */
-    private static function allowedTaxRates(): array
+    private static function allowedTaxRates(TaxDtoReadRepositoryInterface $taxes): array
     {
-        $taxes = app(TaxDtoReadRepositoryInterface::class);
         $rates = array_map(
             fn (int|float|string $rate): string => self::normalizedRate((string) $rate),
             ['0', ...array_values(
@@ -160,15 +161,13 @@ final class InvoiceItemInput
      */
     private static function formattedRates(array $rates): string
     {
-        $application = app();
-
         return implode(
             ', ',
             array_map(
                 fn (string $rate): string => (string) Number::percentage(
                     (float) $rate,
                     maxPrecision: 2,
-                    locale: $application->getLocale(),
+                    locale: App::getLocale(),
                 ),
                 $rates,
             ),

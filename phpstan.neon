@@ -81,6 +81,30 @@ services:
         class: Billex\PHPStan\Collectors\EloquentCallCollector
         tags:
             - phpstan.collector
+    # Files without an injection point that still look dependencies up (Backpack calls rules() of a request directly); one leaves the list when it is converted
+    # (docs/TECH_DEBT.md, "Dependencies taken from the container")
+    -
+        class: Billex\PHPStan\Rules\ContainerLookupRule
+        arguments:
+            paths:
+                - %currentWorkingDirectory%/app/
+                - %currentWorkingDirectory%/bootstrap/
+                - %currentWorkingDirectory%/config/
+                - %currentWorkingDirectory%/routes/
+            providers: %currentWorkingDirectory%/app/Providers/
+            files:
+                - %currentWorkingDirectory%/app/Http/Requests/Admin/InvoiceRequest.php
+                - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceDueReminder.php
+                - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceOverdueReminder.php
+                - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceUpcomingDueReminder.php
+                - %currentWorkingDirectory%/app/Infrastructure/Shared/File/Traits/HasFileUploads.php
+                - %currentWorkingDirectory%/routes/console.php
+        tags:
+            - phpstan.rules.rule
+    -
+        class: Billex\PHPStan\Collectors\ContainerLookupCollector
+        tags:
+            - phpstan.collector
     -
         class: Billex\PHPStan\DeadCode\BackpackUsageProvider
         tags:

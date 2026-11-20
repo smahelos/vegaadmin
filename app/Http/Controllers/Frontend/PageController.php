@@ -8,6 +8,7 @@ use App\Application\Content\Services\PageApplicationService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 use Illuminate\View\View;
 
 final class PageController extends Controller
@@ -21,8 +22,7 @@ final class PageController extends Controller
      */
     public function homepage(): View
     {
-        $application = app();
-        $locale = $application->getLocale();
+        $locale = App::getLocale();
         $page = $this->pageService->getHomepage($locale);
 
         // If no published pages exist, show a default message
@@ -78,8 +78,7 @@ final class PageController extends Controller
     public function show(string $locale, string $slug): View|RedirectResponse
     {
         // Set application locale from URL parameter
-        $application = app();
-        $application->setLocale($locale);
+        App::setLocale($locale);
 
         $page = $this->pageService->getPageBySlug($slug, $locale);
 
@@ -129,8 +128,7 @@ final class PageController extends Controller
     public function categoryBySlug(string $locale, string $slug): View
     {
         // Set application locale from URL parameter
-        $application = app();
-        $application->setLocale($locale);
+        App::setLocale($locale);
 
         $category = $this->pageService->getCategoryBySlug($slug, $locale);
 
@@ -161,8 +159,7 @@ final class PageController extends Controller
     public function category(string $locale, string $categoryId): View
     {
         // Set application locale from URL parameter
-        $application = app();
-        $application->setLocale($locale);
+        App::setLocale($locale);
 
         $pages = $this->pageService->getPagesByCategory((int) $categoryId);
 
@@ -192,10 +189,9 @@ final class PageController extends Controller
      */
     public function search(Request $request, ?string $locale = null): View
     {
-        $application = app();
-        $locale = $locale ?? $application->getLocale();
+        $locale = $locale ?? App::getLocale();
         // Set application locale
-        $application->setLocale($locale);
+        App::setLocale($locale);
 
         $keyword = $request->get('q', '');
         $pages = collect();
@@ -222,10 +218,9 @@ final class PageController extends Controller
      */
     public function sitemap(?string $locale = null): View
     {
-        $application = app();
         // Set application locale from URL parameter or use current locale
-        $locale = $locale ?? $application->getLocale();
-        $application->setLocale($locale);
+        $locale = $locale ?? App::getLocale();
+        App::setLocale($locale);
 
         $categoriesWithPages = $this->pageService->getCategoriesWithPages();
         $navigationPages = $this->pageService->getPagesForNavigation();

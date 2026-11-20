@@ -14,6 +14,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Support\Facades\App;
 
 /**
  * Class PageCategoryCrudController
@@ -74,8 +75,7 @@ class PageCategoryCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getName($currentLocale) ?? $entry->getName('cs') ?? __('general.placeholders.not_available');
             },
@@ -88,8 +88,7 @@ class PageCategoryCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
 
                 return $entry->getSlug($currentLocale) ?? $entry->getSlug('cs') ?? __('general.placeholders.not_available');
             },
@@ -102,8 +101,7 @@ class PageCategoryCrudController extends CrudController
         $column->type('closure');
         $column->function(
             function ($entry) {
-                $application = app();
-                $currentLocale = $application->getLocale();
+                $currentLocale = App::getLocale();
                 $description = $entry->getDescription($currentLocale) ?? $entry->getDescription('cs') ?? '';
 
                 return \Str::limit($description, 100);

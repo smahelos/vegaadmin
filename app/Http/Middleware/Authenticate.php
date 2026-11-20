@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Auth\Middleware\Authenticate as Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\App;
 
 class Authenticate extends Middleware
 {
@@ -20,9 +21,8 @@ class Authenticate extends Middleware
             }
 
             // For frontend use standard login route
-            $application = app();
 
-            return route('frontend.login', ['locale' => $application->getLocale()]);
+            return route('frontend.login', ['locale' => App::getLocale()]);
         }
 
         return null;
