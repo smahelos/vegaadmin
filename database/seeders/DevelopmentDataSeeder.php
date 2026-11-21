@@ -4,13 +4,25 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Infrastructure\Persistence\Eloquent\Product\Mappers\EloquentInvoiceProductMapper;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Expense;
+use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\Product;
 use App\Models\User;
 use Database\Factories\CzechCompanyNumbers;
@@ -25,8 +37,8 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Development accounts and their data: an admin, a backend user and two users of each frontend
- * role. Every frontend user gets businesses, contacts, products and expenses over the last fourteen
- * months, so that every list and dashboard chart has something to show. Running it again
+ * role. Every frontend user gets businesses, contacts, products, invoices and expenses over the last
+ * fourteen months, so that every list and dashboard chart has something to show. Running it again
  * deletes the accounts' data and creates it anew; the data is the same on every run, dated
  * relative to today. Every account signs in with the password "backpack". Local and testing
  * environments only.
@@ -78,6 +90,8 @@ final class DevelopmentDataSeeder extends Seeder
     ];
 
     private const MONTHS = 14;
+
+    private const DUE_IN_DAYS = 14;
 
     private Randomizer $random;
 
@@ -138,9 +152,15 @@ final class DevelopmentDataSeeder extends Seeder
         $this->deleteData($user);
 
         $business = $this->createBusinesses($user);
-        $this->createContacts($user);
+        $customers = $this->createContacts($user);
         $suppliers = $this->createExpenseSuppliers($user);
-        $this->createProducts($user);
+        $catalog = $this->createProducts($user);
+        $this->createInvoices(
+            $user,
+            $business,
+            $customers,
+            $catalog,
+        );
         $this->createExpenses(
             $user,
             $business,
@@ -308,9 +328,12 @@ final class DevelopmentDataSeeder extends Seeder
 
     /**
      * Customers: one Austrian, one without a company number and one archived.
+     *
+     * @return non-empty-list<Contact> the active Czech customers, which invoices are issued to
      */
-    private function createContacts(User $user): void
+    private function createContacts(User $user): array
     {
+        $customers = [];
         $contacts = [
             [
                 'Alfa Stavby a.s.',
@@ -353,7 +376,8 @@ final class DevelopmentDataSeeder extends Seeder
             ]
         ) {
             $withoutNumber = $name === 'Epsilon Design';
-            $this->createParty(
+            $archived = $name === 'Delta Pekárny s.r.o.';
+            $contact = $this->createParty(
                 Contact::class,
                 $user,
                 [
@@ -363,7 +387,7 @@ final class DevelopmentDataSeeder extends Seeder
                     'vat_number' => $withoutNumber ? null : 'CZ' . $this->companyNumber($user, 10 + $index),
                     'email' => 'ucetni' . $user->id . '-' . ($index + 1) . '@dev-client.test',
                     'phone' => '+420 70' . $index . ' 111 222',
-                    'archived_at' => $name === 'Delta Pekárny s.r.o.' ? now() : null,
+                    'archived_at' => $archived ? now() : null,
                 ],
                 [
                     $street,
@@ -372,6 +396,9 @@ final class DevelopmentDataSeeder extends Seeder
                     'CZ',
                 ],
             );
+            if (!$archived) {
+                $customers[] = $contact;
+            }
         }
 
         $this->createParty(
@@ -392,6 +419,9 @@ final class DevelopmentDataSeeder extends Seeder
                 'AT',
             ],
         );
+
+        // The Austrian customer is left out: its invoices would need the reverse charge, not Czech VAT
+        return $customers;
     }
 
     /**
@@ -519,8 +549,12 @@ final class DevelopmentDataSeeder extends Seeder
         }
     }
 
-    private function createProducts(User $user): void
+    /**
+     * @return non-empty-list<InvoiceProductWriteData> a line of one of each product, which invoices are built from
+     */
+    private function createProducts(User $user): array
     {
+        $catalog = [];
         $products = [
             [
                 'Konzultace',
@@ -575,7 +609,7 @@ final class DevelopmentDataSeeder extends Seeder
             ]
         ) {
             $productQuery = Product::query();
-            $productQuery->create(
+            $product = $productQuery->create(
                 [
                     'user_id' => $user->id,
                     'name' => $name,
@@ -587,7 +621,171 @@ final class DevelopmentDataSeeder extends Seeder
                     'is_default' => $index === 0,
                 ],
             );
+            $catalog[] = new InvoiceProductWriteData(
+                name: $name,
+                quantity: '1',
+                unit: $unit,
+                price: Money::fromString($price, Currency::CZK),
+                taxRate: $rate,
+                productId: ProductId::fromInt($product->id),
+            );
         }
+
+        return $catalog;
+    }
+
+    /**
+     * One to three invoices a month from the default business, numbered per year in issue order: the first
+     * two to a one-off customer that is not in the contacts, the others to the customers.
+     *
+     * @param  non-empty-list<Contact>  $customers
+     * @param  non-empty-list<InvoiceProductWriteData>  $catalog
+     */
+    private function createInvoices(
+        User $user,
+        Business $business,
+        array $customers,
+        array $catalog,
+    ): void {
+        $today = new DateTimeImmutable('today');
+        $oneOffCustomers = [
+            [
+                'customer_name' => 'Jan Novák',
+                'customer_street' => 'Lipová 14',
+                'customer_city' => 'Liberec',
+                'customer_postal_code' => '460 01',
+                'customer_country' => 'CZ',
+            ],
+            [
+                'customer_name' => 'Kavárna Na Rohu',
+                'customer_street' => 'Pražská 31',
+                'customer_city' => 'Hradec Králové',
+                'customer_postal_code' => '500 02',
+                'customer_country' => 'CZ',
+            ],
+        ];
+        $methodQuery = DB::table('payment_methods');
+        $methodQuery->where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $bankTransfer = $methodQuery->value('id');
+        if ($bankTransfer === null) {
+            throw new RuntimeException(
+                'Payment method ' . PaymentMethodCode::BANK_ACCOUNT->value . ' is missing; run ReferenceDataSeeder first',
+            );
+        }
+        $statusIds = [];
+        foreach (InvoiceStatus::cases() as $status) {
+            $statusIds[$status->value] = $this->statusId('invoice-statuses', $status->value);
+        }
+        $contactCustomers = [];
+        foreach ($customers as $contact) {
+            $contactCustomers[] = [
+                'contact_id' => $contact->id,
+                ...$this->documentParty('customer', $contact),
+            ];
+        }
+        $accountQuery = BankAccount::query();
+        $account = $accountQuery->findOrFail($business->default_bank_account_id);
+        $supplier = [
+            'business_id' => $business->id,
+            'bank_account_id' => $account->id,
+            ...$this->documentParty('supplier', $business),
+            ...$this->documentAccount($account),
+        ];
+        $lineMapper = new EloquentInvoiceProductMapper;
+        $invoiceQuery = Invoice::query();
+        $lineQuery = InvoiceProduct::query();
+        $sequences = [];
+
+        for ($monthsBack = self::MONTHS - 1; $monthsBack >= 0; $monthsBack--) {
+            $month = $today->modify('first day of this month');
+            $month = $month->modify('-' . $monthsBack . ' months');
+            $days = [];
+            for ($i = $this->random->getInt(1, 3); $i > 0; $i--) {
+                $days[] = $this->random->getInt(0, 27);
+            }
+            sort($days);
+
+            foreach ($days as $day) {
+                $date = $month->modify('+' . $day . ' days');
+                if ($date > $today) {
+                    continue;
+                }
+
+                $year = (int) $date->format('Y');
+                $sequences[$year] = ($sequences[$year] ?? 0) + 1;
+                $number = InvoiceNumber::fromYearAndSequence($year, $sequences[$year]);
+                $lines = [];
+                for ($i = $this->random->getInt(1, 3); $i > 0; $i--) {
+                    $product = $catalog[$this->random->getInt(
+                        0,
+                        count($catalog) - 1,
+                    )];
+                    $lines[] = new InvoiceProductWriteData(
+                        name: $product->name,
+                        quantity: (string) $this->random->getInt(1, 10),
+                        unit: $product->unit,
+                        price: $product->price,
+                        taxRate: $product->taxRate,
+                        productId: $product->productId,
+                    );
+                }
+                $totals = InvoiceTotals::fromProducts(Currency::CZK, $lines);
+                $total = $totals->total();
+                $customer = array_shift($oneOffCustomers);
+                if ($customer === null) {
+                    $customer = $contactCustomers[$this->random->getInt(
+                        0,
+                        count($contactCustomers) - 1,
+                    )];
+                }
+                $status = $this->invoiceStatus($date, $today);
+
+                // Created when issued, so the seeded invoices do not use up the current month's quota
+                $invoice = $invoiceQuery->create(
+                    [
+                        'user_id' => $user->id,
+                        ...$supplier,
+                        ...$customer,
+                        'payment_method_id' => $bankTransfer,
+                        'invoice_vs' => $number->value,
+                        'issue_date' => $date->format('Y-m-d'),
+                        'tax_point_date' => $date->format('Y-m-d'),
+                        'due_in' => self::DUE_IN_DAYS,
+                        'payment_status_id' => $statusIds[$status->value],
+                        'payment_amount' => $total->amount,
+                        'payment_currency' => Currency::CZK->value,
+                        'created_at' => $date,
+                        'updated_at' => $date,
+                    ],
+                );
+                $invoiceId = InvoiceId::fromInt($invoice->id);
+                foreach ($lines as $line) {
+                    $lineQuery->create(
+                        $lineMapper->toAttributes($invoiceId, $line),
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Unpaid invoices past their due date show as overdue.
+     */
+    private function invoiceStatus(DateTimeImmutable $issueDate, DateTimeImmutable $today): InvoiceStatus
+    {
+        $dueDate = InvoiceDueDate::fromIssueDateAndDays($issueDate, self::DUE_IN_DAYS);
+        $roll = $this->random->getInt(1, 100);
+
+        if ($dueDate->date() >= $today) {
+            return $roll <= 30 ? InvoiceStatus::PAID : InvoiceStatus::PENDING;
+        }
+
+        return match (true) {
+            $roll <= 75 => InvoiceStatus::PAID,
+            $roll <= 85 => InvoiceStatus::PARTIALLY_PAID,
+            $roll <= 95 => InvoiceStatus::PENDING,
+            default => InvoiceStatus::CANCELLED,
+        };
     }
 
     /**
