@@ -110,6 +110,13 @@ final class DevelopmentDataSeederTest extends TestCase
                 $expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null),
                 $email,
             );
+            // Dated when paid, so the seeded expenses leave the current month's quota free
+            $this->assertFalse(
+                $expenses->contains(
+                    fn (Expense $expense): bool => $expense->created_at->greaterThan($expense->expense_date->endOfDay()),
+                ),
+                $email,
+            );
         }
     }
 

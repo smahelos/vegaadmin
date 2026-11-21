@@ -877,6 +877,7 @@ final class DevelopmentDataSeeder extends Seeder
 
                 $amount = $this->random->getInt(800, 18000);
                 $expenseQuery = Expense::query();
+                // Created on its date, so the seeded expenses do not use up the current month's quota
                 $expenseQuery->create(
                     [
                         'user_id' => $user->id,
@@ -903,6 +904,8 @@ final class DevelopmentDataSeeder extends Seeder
                         )],
                         'status_id' => $paidStatus,
                         'attachments' => [],
+                        'created_at' => $date,
+                        'updated_at' => $date,
                     ],
                 );
             }
