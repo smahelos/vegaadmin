@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database\Seeders;
 
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Expense;
+use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\User;
 use Database\Seeders\DevelopmentDataSeeder;
 use Illuminate\Support\Facades\Hash;
@@ -106,6 +110,86 @@ final class DevelopmentDataSeederTest extends TestCase
                 $expenses->contains(fn (Expense $expense): bool => $expense->contact_id === null),
                 $email,
             );
+            // Dated when paid, so the seeded expenses leave the current month's quota free
+            $this->assertFalse(
+                $expenses->contains(
+                    fn (Expense $expense): bool => $expense->created_at->greaterThan($expense->expense_date->endOfDay()),
+                ),
+                $email,
+            );
+        }
+    }
+
+    #[Test]
+    public function gives_every_frontend_account_numbered_invoices_whose_lines_sum_to_their_total(): void
+    {
+        $this->seed(DevelopmentDataSeeder::class);
+
+        foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
+            $userQuery = User::where('email', $email);
+            $user = $userQuery->firstOrFail();
+            $invoiceQuery = Invoice::where('user_id', $user->id);
+            $invoices = $invoiceQuery->get();
+
+            if ($account['guard'] === PermissionCatalog::BACKPACK) {
+                $this->assertCount(
+                    0,
+                    $invoices,
+                    $email,
+                );
+
+                continue;
+            }
+
+            $this->assertNotEmpty($invoices, $email);
+            $numbers = $invoices->map(
+                fn (Invoice $invoice): string => $invoice->invoice_vs,
+            );
+            $uniqueNumbers = $numbers->unique();
+            $this->assertSame(
+                $numbers->count(),
+                $uniqueNumbers->count(),
+                $email,
+            );
+            $oneOff = $invoices->whereNull('contact_id');
+            $this->assertCount(
+                2,
+                $oneOff,
+                $email,
+            );
+            foreach ($invoices as $invoice) {
+                $this->assertSame(
+                    $invoice->issue_date->format('Y'),
+                    substr(
+                        $invoice->invoice_vs,
+                        0,
+                        4,
+                    ),
+                    $email,
+                );
+                $lineQuery = InvoiceProduct::where('invoice_id', $invoice->id);
+                $lineTotals = $lineQuery->pluck('total_price');
+                $this->assertNotEmpty($lineTotals, $email);
+                $sum = Money::fromString('0', Currency::CZK);
+                foreach ($lineTotals as $lineTotal) {
+                    $sum = $sum->add(
+                        Money::fromString($lineTotal, Currency::CZK),
+                    );
+                }
+                $this->assertTrue(
+                    $sum->equals(
+                        Money::fromString($invoice->payment_amount, Currency::CZK),
+                    ),
+                    $email,
+                );
+            }
+            // Dated when issued, so the seeded invoices leave the current month's quota free
+            $this->assertFalse(
+                $invoices->contains(
+                    fn (Invoice $invoice): bool => $invoice->created_at->greaterThan($invoice->issue_date->endOfDay()),
+                ),
+                $email,
+            );
         }
     }
 
@@ -163,11 +247,16 @@ final class DevelopmentDataSeederTest extends TestCase
         $expenseQuery->orderBy('expense_date');
         $expenseQuery->orderBy('amount');
         $expenseValues = $expenseQuery->pluck('amount');
+        $invoiceQuery = Invoice::whereIn('user_id', $userIds);
+        $invoiceQuery->orderBy('user_id');
+        $invoiceQuery->orderBy('invoice_vs');
+        $invoiceValues = $invoiceQuery->pluck('payment_amount');
 
         return [
             'businesses' => $businessValues->all(),
             'contacts' => $contactValues->all(),
             'expenses' => $expenseValues->all(),
+            'invoices' => $invoiceValues->all(),
         ];
     }
 }

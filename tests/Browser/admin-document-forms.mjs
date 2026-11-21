@@ -1,9 +1,16 @@
 import {spawn} from 'node:child_process';
-import {writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 // Read-only browser regression against the DevelopmentDataSeeder fixtures.
 // Run: node tests/Browser/admin-document-forms.mjs
 const base=process.env.BILLEX_BROWSER_URL || 'http://billex-dev.local';
-const chrome=spawn('/usr/bin/google-chrome',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-proxy-server','--remote-debugging-port=9225','--user-data-dir=/tmp/billex-document-forms-chrome','about:blank'],{stdio:'ignore'});
+// Screenshots stay for review; the browser profile is thrown away after the run.
+const screenshots=fileURLToPath(new URL('../../dev_docs/ai/tmp/browser-scripts/',import.meta.url));
+await mkdir(screenshots,{recursive:true});
+const profile=await mkdtemp(join(screenshots,'billex-document-forms-chrome-'));
+const chrome=spawn('/usr/bin/google-chrome',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-proxy-server','--remote-debugging-port=9225','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+const chromeExit=new Promise(resolve=>chrome.once('exit',resolve));
 let ws;let id=0;const pending=new Map();
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 try {
@@ -52,18 +59,18 @@ try {
      await evaluate(`document.documentElement.setAttribute('data-bs-theme','${theme}');document.body.setAttribute('data-bs-theme','${theme}');document.activeElement?.blur();true`);
      await pause(150);
      const layout=await evaluate(`(()=>{
-       const rect=name=>{const r=document.querySelector('[name='+name+']').closest('[bp-field-wrapper]').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width};};
-       return {overflow:document.documentElement.scrollWidth>innerWidth,owner:rect('user_id'),business:rect('business_id'),contact:rect('contact_id'),account:rect('bank_account_id')};
+       const rect=selector=>{const r=document.querySelector(selector).closest('[bp-field-wrapper]').getBoundingClientRect();return {x:r.x,y:r.y,width:r.width};};
+       return {overflow:document.documentElement.scrollWidth>innerWidth,owner:rect('[name=user_id]'),usage:rect('[data-entity-usage]'),business:rect('[name=business_id]'),contact:rect('[name=contact_id]')};
      })()`);
      assert(!layout.overflow,`${label} ${width} ${theme}: horizontal overflow`);
      if(width>600) {
-       assert(Math.abs(layout.owner.y-layout.business.y)<2,`${label}: owner and business are not on the same row`);
-       assert(Math.abs(layout.contact.y-layout.account.y)<2,`${label}: contact and account are not on the same row`);
+       assert(Math.abs(layout.owner.y-layout.usage.y)<2,`${label}: owner and plan usage are not on the same row`);
+       assert(Math.abs(layout.business.y-layout.contact.y)<2,`${label}: business and contact are not on the same row`);
      } else {
-       assert(layout.business.y>layout.owner.y,`${label}: owner and business do not stack`);
-       assert(layout.account.y>layout.contact.y,`${label}: contact and account do not stack`);
+       assert(layout.usage.y>layout.owner.y,`${label}: owner and plan usage do not stack`);
+       assert(layout.contact.y>layout.business.y,`${label}: business and contact do not stack`);
      }
-     await writeFile(`/tmp/billex-document-${label}-${width}-${theme}.png`,Buffer.from((await send('Page.captureScreenshot',{captureBeyondViewport:true})).data,'base64'));
+     await writeFile(`${screenshots}billex-document-${label}-${width}-${theme}.png`,Buffer.from((await send('Page.captureScreenshot',{captureBeyondViewport:true})).data,'base64'));
      console.log('layout',label,width,theme,layout);
    }
  };
@@ -84,7 +91,7 @@ try {
    assert(await evaluate('!document.querySelector("[name=invoice_logo]")'), 'Admin invoice must not offer its own logo upload');
    await select('contact_id',fixtures.contacts[0]);
    await compareProfile(role,fixtures.contacts[0].profile);
-   if(documentType==='expense') assert(await evaluate('document.querySelector("[name=supplier_logo]").disabled'), 'A contact-backed expense must use the contact logo');
+   if(documentType==='expense') assert(await evaluate('!document.querySelector("[name=supplier_logo]").disabled'), 'A contact-backed expense must allow its own supplier logo upload');
    await select('contact_id',fixtures.contacts[1]);
    await compareProfile(role,fixtures.contacts[1].profile);
    // A programmatic selection (e.g. a validation redirect) must also fetch the complete profile by ID.
@@ -159,4 +166,4 @@ try {
  }
  assert(exceptions.length===0,'Browser JavaScript errors: '+exceptions.join(', '));
  console.log('All document form browser checks passed; no documents were saved.');
-} finally {ws?.close();chrome.kill();}
+} finally {ws?.close();chrome.kill();await chromeExit;await rm(profile,{recursive:true,force:true});}

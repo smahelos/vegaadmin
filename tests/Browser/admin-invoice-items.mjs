@@ -1,9 +1,16 @@
 import {spawn} from 'node:child_process';
-import {writeFile} from 'node:fs/promises';
+import {mkdir,mkdtemp,rm,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {fileURLToPath} from 'node:url';
 // Read-only browser regression against the DevelopmentDataSeeder fixtures.
 // Run: node tests/Browser/admin-invoice-items.mjs
 const base=process.env.BILLEX_BROWSER_URL || 'http://billex-dev.local';
-const chrome=spawn('/usr/bin/google-chrome',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-proxy-server','--remote-debugging-port=9227','--user-data-dir=/tmp/billex-invoice-items-chrome','about:blank'],{stdio:'ignore'});
+// Screenshots stay for review; the browser profile is thrown away after the run.
+const screenshots=fileURLToPath(new URL('../../dev_docs/ai/tmp/browser-scripts/',import.meta.url));
+await mkdir(screenshots,{recursive:true});
+const profile=await mkdtemp(join(screenshots,'billex-invoice-items-chrome-'));
+const chrome=spawn('/usr/bin/google-chrome',['--headless=new','--no-sandbox','--disable-dev-shm-usage','--no-proxy-server','--remote-debugging-port=9227','--user-data-dir='+profile,'about:blank'],{stdio:'ignore'});
+const chromeExit=new Promise(resolve=>chrome.once('exit',resolve));
 let ws;let id=0;const pending=new Map();
 const pause=ms=>new Promise(r=>setTimeout(r,ms));
 try {
@@ -14,7 +21,7 @@ try {
  ws.addEventListener('message',e=>{const m=JSON.parse(e.data);if(m.id){const p=pending.get(m.id);pending.delete(m.id);m.error?p.reject(m.error):p.resolve(m.result);}});
  const send=(method,params={})=>new Promise((resolve,reject)=>{pending.set(++id,{resolve,reject});ws.send(JSON.stringify({id,method,params}));});
  const evaluate=async expression=>{const r=await send('Runtime.evaluate',{expression,awaitPromise:true,returnByValue:true});if(r.exceptionDetails)throw Error(JSON.stringify(r.exceptionDetails));return r.result.value;};
- const waitFor=async expr=>{for(let i=0;i<120;i++){if(await evaluate(expr))return;await pause(100);}throw Error('Timed out: '+expr+'; '+await evaluate('JSON.stringify({status:document.querySelector("[data-items-status]")?.textContent,items:document.querySelector("[name=invoice-products]")?.value,amount:document.querySelector("[name=payment_amount]")?.value})')); };
+ const waitFor=async expr=>{for(let i=0;i<120;i++){if(await evaluate(expr))return;await pause(100);}throw Error('Timed out: '+expr+'; '+await evaluate('JSON.stringify({status:document.querySelector("[data-items-status]")?.textContent,items:document.querySelector("[name=invoice-products]")?.value,total:document.querySelector("[data-total]")?.textContent})')); };
  const go=async path=>{await send('Page.navigate',{url:base+path});await waitFor('document.readyState === "complete"');await pause(300);};
 
  await send('Page.enable');
@@ -37,7 +44,7 @@ try {
      await evaluate(`document.documentElement.setAttribute('data-bs-theme','${theme}');document.body.setAttribute('data-bs-theme','${theme}');document.activeElement?.blur();true`);
      await pause(150);
      assert(await evaluate('document.documentElement.scrollWidth <= innerWidth'),`${label} ${width} ${theme}: horizontal overflow`);
-     await writeFile(`/tmp/billex-items-${label}-${width}-${theme}.png`,Buffer.from((await send('Page.captureScreenshot',{captureBeyondViewport:true})).data,'base64'));
+     await writeFile(`${screenshots}billex-items-${label}-${width}-${theme}.png`,Buffer.from((await send('Page.captureScreenshot',{captureBeyondViewport:true})).data,'base64'));
      console.log('layout',label,width,theme);
    }
  };
@@ -52,7 +59,7 @@ try {
  assert(Number(selected.product_id)>0,'Catalog selection must keep its product reference');
  await evaluate(`document.querySelector('[data-key=quantity]').value='1.5';document.querySelector('[data-key=price]').value='0.03';document.querySelector('[data-key=tax_rate]').value=[...document.querySelector('[data-key=tax_rate]').options].find(option=>Number(option.value)===21).value;document.querySelector('[data-key=price]').dispatchEvent(new Event('input',{bubbles:true}));true`);
  await totalsReady();
- assert(await evaluate('document.querySelector("[name=payment_amount]").value === "0.06" && document.querySelector("[name=payment_amount]").readOnly'),'Preview must use server line rounding: 0.05 base + 0.01 VAT');
+ assert(await evaluate('document.querySelector("[data-total]").textContent === new Intl.NumberFormat(document.querySelector("[data-invoice-items]").dataset.locale,{style:"currency",currency:"CZK"}).format(0.06)'),'Preview must use server line rounding: 0.05 base + 0.01 VAT');
  const beforeBusiness=await evaluate('document.querySelector("[name=invoice-products]").value');
  const businessIds=await evaluate(`(async()=>{const response=await fetch('/admin/document-parties/businesses?user_id=${owner}');return (await response.json()).data.map(row=>row.id);})()`);
  for(const businessId of businessIds.slice(0,2)) await evaluate(`jQuery('[name=business_id]').append(new Option('Business',${JSON.stringify(String(businessId))},true,true)).trigger('change');true`);
@@ -74,7 +81,7 @@ try {
  await waitFor('!!document.querySelector("[data-items-status]").textContent && document.querySelector("[data-item-totals]").hidden');
  assert(await evaluate('document.querySelector("[data-key=currency]").value==="CZK"'),'Changing invoice currency must preserve each line currency until explicitly edited');
  await evaluate(`jQuery('[name=user_id]').val(${JSON.stringify(owner)}).trigger('change');true`);
- assert(await evaluate('JSON.parse(document.querySelector("[name=invoice-products]").value).length===0 && !document.querySelector("[name=payment_amount]").readOnly'),'Changing owner must clear the previous owner\'s line references');
+ assert(await evaluate('JSON.parse(document.querySelector("[name=invoice-products]").value).length===0 && document.querySelector("[data-item-totals]").hidden'),'Changing owner must clear the previous owner\'s line references');
 
  await go('/admin/invoice');await waitFor('document.querySelector("a[href$=\'/edit\']")');
  const paths=await evaluate('[...document.querySelectorAll("a[href$=\'/edit\']")].map(link=>new URL(link.href).pathname)');
@@ -103,4 +110,4 @@ try {
  }
  assert(exceptions.length===0,'Browser errors: '+exceptions.join(', '));
  console.log('All catalog and invoice item browser checks passed; no records were saved.');
-} finally {ws?.close();chrome.kill();}
+} finally {ws?.close();chrome.kill();await chromeExit;await rm(profile,{recursive:true,force:true});}
