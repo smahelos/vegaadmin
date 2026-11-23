@@ -1,6 +1,6 @@
 # System overview
 
-Status: maintained map of the code on `main`, last checked 2026-11-21. It describes how Billex works today; how code must be written is in [the rules](../../.claude/rules/), why it was decided in [the ADRs](../adr/), and known gaps in [TECH_DEBT](../TECH_DEBT.md). When this page and the code disagree, the code is right and the page is fixed in the same pull request.
+Status: maintained map of the code on `main`, last checked 2026-11-23. It describes how Billex works today; how code must be written is in [the rules](../../.claude/rules/), why it was decided in [the ADRs](../adr/), and known gaps in [TECH_DEBT](../TECH_DEBT.md). When this page and the code disagree, the code is right and the page is fixed in the same pull request.
 
 Read this page first, then the page of the context you change (table below). A context without a page is found through its provider, `app/Providers/<Context>ServiceProvider.php`.
 
@@ -11,7 +11,7 @@ Read this page first, then the page of the context you change (table below). A c
 | Analytics | dashboards and statistics | — |
 | Content | public CMS pages and their categories | — |
 | Expense | expenses, the received documents | — |
-| Invoice | issued invoices, their items, PDFs, payment reminders | — |
+| Invoice | issued invoices, their items, PDFs, payment reminders | [INVOICE.md](INVOICE.md) |
 | Party | the user's businesses and their contacts, bank accounts, the parties stored on documents | [PARTY.md](PARTY.md) |
 | Payment | subscriptions, payment gateways, QR payments, banks, payment methods | — |
 | Product | products and product categories | — |

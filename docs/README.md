@@ -9,6 +9,7 @@
 | [System overview](system/OVERVIEW.md) | Bounded contexts, entry points, the path of a request, events |
 | [User context](system/USER.md) | Accounts, roles and permissions, entity limits, locale |
 | [Party context](system/PARTY.md) | Businesses, contacts, bank accounts and the parties stored on documents |
+| [Invoice context](system/INVOICE.md) | Invoices and their lines, numbering, the guest invoice, PDFs, payment reminders |
 
 ## Requirements and technical designs
 
