@@ -2,7 +2,7 @@
 
 This is the canonical repository guidance for Codex, Claude and other coding agents. Codex reads `AGENTS.md`; `.claude/CLAUDE.md` imports this same file for Claude. Keep shared project instructions here and maintain one copy of each detailed rule or workflow. Tool entry files must not introduce a separate project standard.
 
-Before changing code, read the rules in `.claude/rules/` whose `paths` metadata matches the files you change, and `architecture.md` when you add a class or decide where code belongs; a rule without `paths` (`translations.md`) applies to every change. Reread a rule when it changes. References and skill bodies are read when their listed task needs them. Explicit user instructions take precedence over repository guidance; a local handoff does not authorize a commit, push or PR.
+Before reading or changing the code of a bounded context, also to answer a question about it, read [the system overview](docs/system/OVERVIEW.md) and the context's page in `docs/system/` when it has one; it names the classes to open. Before changing code, read the rules in `.claude/rules/` whose `paths` metadata matches the files you change, and `architecture.md` when you add a class or decide where code belongs; a rule without `paths` (`translations.md`) applies to every change. Reread a rule when it changes. References and skill bodies are read when their listed task needs them. Explicit user instructions take precedence over repository guidance; a local handoff does not authorize a commit, push or PR.
 
 ## Project
 

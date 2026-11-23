@@ -2,6 +2,13 @@
 
 [Documentation policy](DOCUMENTATION.md) defines when to write, accept and maintain a document. [AGENTS.md](../AGENTS.md) is the shared source of project instructions, rule/workflow routing and review criteria for Codex and Claude; [.claude/CLAUDE.md](../.claude/CLAUDE.md) imports it.
 
+## How the system works
+
+| Document | Purpose |
+|---|---|
+| [System overview](system/OVERVIEW.md) | Bounded contexts, entry points, the path of a request, events |
+| [User context](system/USER.md) | Accounts, roles and permissions, entity limits, locale |
+
 ## Requirements and technical designs
 
 | Document | Status and purpose |
