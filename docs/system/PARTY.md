@@ -42,7 +42,8 @@ Not a use case: `CompanyRegistryApplicationService` looks a Czech company up in 
 
 ## Archiving and limits
 
-- Businesses, contacts and bank accounts are archived (`archived_at`), never deleted. The handler sets the time and publishes the event; nothing else changes.
+- Businesses, contacts and bank accounts are archived (`archived_at`), never deleted. The handler sets the time and publishes the event (bank accounts publish none).
+- Archiving the default business or the default bank account of an owner moves the default first: `ArchiveBusinessHandler` and `ArchiveBankAccountHandler` require an active replacement while other active records remain (`DefaultBusinessRequiredException`, `DefaultBankAccountRequiredException`) and clear the default when none remains; a changed default business also publishes `DefaultBusinessChanged`.
 - Businesses and contacts are capacity limits ([USER.md](USER.md#entity-limits)): `CreateBusinessHandler`, `RestoreBusinessHandler`, `CreateContactHandler` and `RestoreContactHandler` call `EntityLimit::assertCanCreate()`. Archiving frees a place without a check. Bank accounts are not limited.
 - An archived record stays on the documents that already name it and in their filters and analytics. New selections offer only active records: `ListDocumentBusinesses`, `ListDocumentContacts` and `ListDocumentBankAccounts` (Invoice queries, used by `DocumentPartyPicker` and `Admin\DocumentPartyCrudController`). Choosing an archived record that the document did not already have throws `ArchivedReferenceSelectedException`.
 
