@@ -10,6 +10,7 @@ Status: Accepted 2026-10-30. Applies to human contributors, Codex, Claude and ot
 | `docs/adr/D-*.md` | Significant decisions, alternatives, rationale and consequences | Yes |
 | `docs/prd/PRD_*.md` | Approved product behaviour, scope and acceptance criteria | Yes |
 | `docs/design/DESIGN_*.md` | Technical designs needed to understand nontrivial mechanisms | Yes |
+| `docs/system/*.md` | How the system works today: the overview and one page per bounded context | Yes |
 | `docs/prd/VERIFICATION_*.md` | Acceptance-to-test maps where useful for a larger feature | Yes |
 | `docs/TECH_DEBT.md` | Known implementation gaps and the order of work | Yes |
 | `AGENTS.md` | Canonical shared agent instructions, rule catalog, workflow routing and review rules | Yes |
@@ -35,6 +36,7 @@ Shared review criteria live in `AGENTS.md` under Code Review Rules. GitHub revie
 - Create an ADR for a significant long-term decision about data ownership, context boundaries, transactions, persistence, public contracts or business invariants. Record the context, decision, alternatives and consequences; a short ADR is sufficient.
 - Create a PRD for a larger feature with several interacting rules or an uncertain scope. State its goal, required behaviour, explicit exclusions and observable acceptance criteria.
 - Create a DESIGN only when the technical relationships or tradeoffs need an explanation beyond the PRD and ADR. Avoid inventories of classes and methods that merely repeat the code.
+- Keep `docs/system/` a map of the current code: where each use case starts, what it checks and publishes, and which code changes together. Name code by class and path instead of restating it, link the rules instead of repeating them, and update the page of a context in the pull request that changes what it describes. A context gets its page when it is first documented; until then the overview lists it without one.
 - A small bug fix, refactoring within an accepted design or UI adjustment normally needs its change description and verification, without a new ADR or PRD. Update existing documentation when its stated behaviour or decision is affected.
 
 ## Status, authority and maintenance
