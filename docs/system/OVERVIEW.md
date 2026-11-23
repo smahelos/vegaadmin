@@ -12,7 +12,7 @@ Read this page first, then the page of the context you change (table below). A c
 | Content | public CMS pages and their categories | — |
 | Expense | expenses, the received documents | — |
 | Invoice | issued invoices, their items, PDFs, payment reminders | — |
-| Party | the user's businesses and their contacts, bank accounts (`docs/adr/D-045-businesses-and-contacts.md`) | — |
+| Party | the user's businesses and their contacts, bank accounts, the parties stored on documents | [PARTY.md](PARTY.md) |
 | Payment | subscriptions, payment gateways, QR payments, banks, payment methods | — |
 | Product | products and product categories | — |
 | System | admin system screens: caches, cron tasks, database maintenance | — |
