@@ -14,7 +14,7 @@ Read this page first, then the page of the context you change (table below). A c
 | Invoice | issued invoices, their items, PDFs, payment reminders | [INVOICE.md](INVOICE.md) |
 | Party | the user's businesses and their contacts, bank accounts, the parties stored on documents | [PARTY.md](PARTY.md) |
 | Payment | subscriptions, payment gateways, QR payments, banks, payment methods | [PAYMENT.md](PAYMENT.md) |
-| Product | products and product categories | — |
+| Product | products and product categories | [PRODUCT.md](PRODUCT.md) |
 | System | admin system screens: caches, cron tasks, database maintenance | — |
 | User | accounts, roles and permissions, entity limits, locale | [USER.md](USER.md) |
 | Shared | money, tax, time, status, files, events and the use case gate contracts | — |

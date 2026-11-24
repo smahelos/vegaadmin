@@ -44,7 +44,7 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. `DocumentationReferencesTest` covers these pages (`docs/DOCUMENTATION.md`, References to code), so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md) and the [Payment context page](system/PAYMENT.md) (2026-11-23) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
+- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md) and the [Product context page](system/PRODUCT.md) (2026-11-23) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
 
 ## Step 12: Issued invoices
 
@@ -412,7 +412,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Move cache invalidation from observers to domain event handlers
 - **Where:** `app/Infrastructure/Persistence/Eloquent/{Invoice,Product}/Observers`, `UserDataChanged` with `InvalidateUserCache`
-- **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`. Invoices, expenses and products publish only their `*Created` events; the update, delete and set-as-default events nobody published were deleted (commit "Delete unpublished domain events and unread event accessors", branch `ls-dead-code`) and are added back with their publishers. The Party context already publishes its events (created, updated, archived, restored, default business changed), and the owner's dashboard cache listens to them after the commit.
+- **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`. Invoices, expenses and products publish no domain events: their update, delete and set-as-default events nobody published were deleted (commit "Delete unpublished domain events and unread event accessors", branch `ls-dead-code`), the unread InvoiceCreated, ExpenseCreated and ProductCreated with commit 8c38d650; they are added back with their publishers. The Party context already publishes its events (created, updated, archived, restored, default business changed), and the owner's dashboard cache listens to them after the commit.
 - **Fix:** add and publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events), then remove the observers.
 
 ### Format invoice amounts through a presenter
@@ -435,12 +435,32 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** `ProductDTO::$price` is `Money`, but `ProductWriteData::$price` is `string|float|null`, the validator casts it to `float` and `ProductPrice` holds a `float`. `fromArray` also accepts `price_money` and `amount`, which only its tests send. A price `12.349` passes `required|numeric` and is stored truncated as `12.34`, while the float `12.345` is rounded to `12.35`.
 - **Fix:** `ProductWriteData::$price` as `?Money`, built at the boundary from one input shape; the validator checks the price through `Money` and `ProductPrice` is deleted with its test; the requests limit the decimal places.
 
+### Default product has no effect
+- **Where:** `products.is_default`, `ProductService::createProduct()` (the first product is the default one), `Product::boot()` (one default per owner), the product forms, the detail and the admin list
+- **Problem:** the flag is set and shown, but nothing reads it: neither invoice form picks or offers the default product. Found 2026-11-23 while writing [the Product context page](system/PRODUCT.md).
+- **Fix:** decide whether the default product prefills a new invoice line; otherwise delete the column, the form fields, the model hook and the translations.
+
+### Unused `products.supplier_id`
+- **Where:** `database/migrations/2026_10_25_000007_create_product_tables.php`
+- **Problem:** the column exists without a foreign key, and no model, form or query uses it.
+- **Fix:** delete the column from the migration (Billex is not in production).
+
+### Product categories share the product permissions
+- **Where:** `Admin\ProductCategoryCrudController` (`product.*` in `allowHeldOperations()`), `PermissionCatalog`
+- **Problem:** product categories are reference data shared by all users, but an admin who may edit products may also create, rename and delete categories; the other reference data have their own permissions (`payment_method.*`, `bank.*`), as `docs/prd/PRD_PERMISSIONS.md` requires for each admin operation.
+- **Fix:** `product_category.view`, `create`, `update` and `delete` in the admin guard through the `add-permission` skill, granted to the roles that manage reference data.
+
 ## Step 22: Frontend, API and routes
 
 ### Permissions that nothing checks
 - **Where:** `PermissionCatalog` (`invoice.delete` in the `web` guard)
 - **Problem:** roles are granted this permission but no code checks it; no frontend route deletes an invoice. Found 2026-11-08 in step 9; `subscription.view` and `subscription.create` are checked since phase 6a of step 11.
 - **Fix:** check the permission where its action exists, or remove it with a migration if the action is not planned.
+
+### The invoice product picker offers products the invoice refuses
+- **Where:** `ProductListSelect` (`ProductSearch` with `active` null and no currency), the frontend invoice forms
+- **Problem:** the frontend picker lists inactive products and products in other currencies; `InvoiceItemInput` then refuses a line whose currency differs from the invoice (`same:payment_currency`). The admin editor offers only active products of the invoice's currency (`ListInvoiceCatalogProducts`).
+- **Fix:** the picker lists only active products of the invoice's currency, which the invoice form's script sends like the excluded ids; `ProductSearch` gets the currency.
 
 ### A zero id in the URL ends with a 500
 - **Where:** routes with `whereNumber` whose controller builds an id value object (`ProductId::fromInt`, `InvoiceId`, `BusinessId`, `ContactId`, `SubscriptionId`, `SubscriptionPlanId`, …) in `routes/web.php` and `app/Http/Controllers/Frontend`
