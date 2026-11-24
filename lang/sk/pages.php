@@ -109,6 +109,21 @@ return [
         'secure_description' => 'Vaše faktúry, klientov a produkty vidíte len vy.',
     ],
 
+    'homepage_hero' => [
+        'title_line1' => 'Vytvárajte krásne faktúry :highlight',
+        'highlight' => 'zadarmo',
+        'title_line2' => 'a dostávajte od zákazníkov zaplatené',
+        'register_prompt' => 'Alebo si :link a spravujte faktúry svojej firmy',
+        'register_link' => 'založte účet',
+        'dates' => 'Termíny',
+        'step_logo' => 'Nahrajte svoje logo',
+        'step_dates' => 'Nastavte termíny a bankový účet',
+        'step_items' => 'Pridajte položky faktúry',
+        'step_customer' => 'Doplňte údaje odberateľa',
+        'step_due_date' => 'Nastavte dátum splatnosti',
+        'step_send' => 'Odošlite alebo stiahnite faktúru',
+    ],
+
     'titles' => [
         'features' => 'Funkcie',
         'pricing' => 'Cenník',

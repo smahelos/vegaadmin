@@ -91,8 +91,10 @@
             <div class="text-center">
                 <!-- Main Heading -->
                 <h1 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
-                    Create beautiful invoices <span class="text-indigo-600">for free</span><br>
-                    and get paid by your customers
+                    {!! __('pages.homepage_hero.title_line1', [
+                        'highlight' => '<span class="text-indigo-600">' . e(__('pages.homepage_hero.highlight')) . '</span>',
+                    ]) !!}<br>
+                    {{ __('pages.homepage_hero.title_line2') }}
                 </h1>
 
                 <!-- CTA Button -->
@@ -105,7 +107,7 @@
                     @else
                     <a href="{{ route('frontend.invoice.create.guest', ['locale' => App::getLocale()]) }}"
                         class="bg-[#490BF4] hover:bg-indigo-600 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 inline-block">
-                        Create Invoice
+                        {{ __('invoices.actions.create') }}
                     </a>
                     @endauth
                 </div>
@@ -113,9 +115,9 @@
                 <!-- Sub text -->
                 @guest
                 <p class="text-gray-600 text-sm mb-16">
-                    Or <a href="{{ route('frontend.register', ['locale' => App::getLocale()]) }}"
-                        class="text-[#490BF4] hover:text-indigo-600 underline">create account</a> and manage your
-                    invoices for your business
+                    {!! __('pages.homepage_hero.register_prompt', [
+                        'link' => '<a href="' . e(route('frontend.register', ['locale' => App::getLocale()])) . '" class="text-[#490BF4] hover:text-indigo-600 underline">' . e(__('pages.homepage_hero.register_link')) . '</a>',
+                    ]) !!}
                 </p>
                 @endguest
             </div>
@@ -129,23 +131,23 @@
                         <!-- Invoice Header -->
                         <div class="flex justify-between items-start mb-8">
                             <div>
-                                <div class="text-2xl font-bold text-gray-800 mb-2">Logo</div>
+                                <div class="text-2xl font-bold text-gray-800 mb-2">{{ __('parties.fields.logo') }}</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-2xl font-bold text-indigo-600 mb-2">Invoice <span
+                                <div class="text-2xl font-bold text-indigo-600 mb-2">{{ __('invoices.entity.singular') }} <span
                                         class="text-black">#2025001</span></div>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-8 mb-8 text-left">
                             <div>
-                                <div class="text-indigo-600 text-base font-medium mb-2">Supplier</div>
+                                <div class="text-indigo-600 text-base font-medium mb-2">{{ __('invoices.sections.supplier') }}</div>
                                 <div class="h-3 bg-gray-50 rounded w-3/4 mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                             </div>
                             <div>
-                                <div class="text-indigo-600 text-base font-medium mb-2">Customer</div>
+                                <div class="text-indigo-600 text-base font-medium mb-2">{{ __('invoices.sections.customer') }}</div>
                                 <div class="h-3 bg-gray-50 rounded w-3/4 mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
@@ -155,13 +157,13 @@
                         <!-- Invoice Sections -->
                         <div class="grid grid-cols-2 gap-8 mb-8 text-left">
                             <div>
-                                <div class="text-indigo-600 text-base font-medium mb-2">Instructions</div>
+                                <div class="text-indigo-600 text-base font-medium mb-2">{{ __('invoices.sections.payment_info') }}</div>
                                 <div class="h-3 bg-gray-50 rounded w-3/4 mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                             </div>
                             <div>
-                                <div class="text-indigo-600 text-base font-medium mb-2">Dates</div>
+                                <div class="text-indigo-600 text-base font-medium mb-2">{{ __('pages.homepage_hero.dates') }}</div>
                                 <div class="h-3 bg-gray-50 rounded w-3/4 mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
                                 <div class="h-3 bg-gray-50 rounded mb-3"></div>
@@ -170,14 +172,14 @@
 
                         <!-- Items Section -->
                         <div class="mb-8 text-left">
-                            <div class="text-indigo-600 text-base font-medium mb-4">Items</div>
+                            <div class="text-indigo-600 text-base font-medium mb-4">{{ __('invoices.sections.items') }}</div>
                             <div class="space-y-3">
                                 <div class="h-5 bg-gray-100 rounded"></div>
                                 <div class="h-5 bg-gray-100 rounded w-3/4"></div>
                             </div>
                             <button
                                 class="mt-5 text-indigo-600 text-base border border-indigo-600 rounded-full px-5 py-2 hover:bg-indigo-50 transition-colors">
-                                + add item
+                                + {{ __('invoices.actions.add_item') }}
                             </button>
                         </div>
 
@@ -185,7 +187,7 @@
                         <div class="text-right">
                             <button
                                 class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-4 px-8 rounded-lg text-base transition-colors duration-200">
-                                Download PDF
+                                {{ __('invoices.actions.download_pdf') }}
                             </button>
                         </div>
                     </div>
@@ -204,7 +206,7 @@
                         <div class="flex items-end space-x-0">
                             <div class="mr-3">
                                 <div class="text-base font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Upload Your Logo
+                                    {{ __('pages.homepage_hero.step_logo') }}
                                     <div class="instruction-dot"></div>
                                 </div>
                             </div>
@@ -217,7 +219,7 @@
                         <div class="flex items-end space-x-0">
                             <div class="mr-3">
                                 <div class="text-base font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Set dates and bank account
+                                    {{ __('pages.homepage_hero.step_dates') }}
                                     <div class="instruction-dot"></div>
                                 </div>
                             </div>
@@ -230,7 +232,7 @@
                         <div class="flex items-end space-x-0">
                             <div class="mr-3">
                                 <div class="text-base font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Add items to invoice
+                                    {{ __('pages.homepage_hero.step_items') }}
                                     <div class="instruction-dot"></div>
                                 </div>
                             </div>
@@ -244,7 +246,7 @@
                             <div class="ml-3">
                                 <div
                                     class="text-base text-right font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Add Customer credentials
+                                    {{ __('pages.homepage_hero.step_customer') }}
                                     <div class="instruction-dot dot-left"></div>
                                 </div>
                             </div>
@@ -258,7 +260,7 @@
                             <div class="ml-3">
                                 <div
                                     class="text-base text-right font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Set due date
+                                    {{ __('pages.homepage_hero.step_due_date') }}
                                     <div class="instruction-dot dot-left"></div>
                                 </div>
                             </div>
@@ -272,7 +274,7 @@
                             <div class="ml-3">
                                 <div
                                     class="text-base text-right font-medium text-gray-900 dark:text-white instruction-line pb-1">
-                                    Send or download invoice
+                                    {{ __('pages.homepage_hero.step_send') }}
                                     <div class="instruction-dot dot-left"></div>
                                 </div>
                             </div>

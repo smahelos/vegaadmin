@@ -109,6 +109,21 @@ return [
         'secure_description' => 'Nur Sie sehen Ihre Rechnungen, Kunden und Produkte.',
     ],
 
+    'homepage_hero' => [
+        'title_line1' => 'Erstellen Sie schöne Rechnungen :highlight',
+        'highlight' => 'kostenlos',
+        'title_line2' => 'und werden Sie von Ihren Kunden bezahlt',
+        'register_prompt' => 'Oder :link und verwalten Sie die Rechnungen Ihres Unternehmens',
+        'register_link' => 'erstellen Sie ein Konto',
+        'dates' => 'Termine',
+        'step_logo' => 'Logo hochladen',
+        'step_dates' => 'Termine und Bankkonto',
+        'step_items' => 'Positionen hinzufügen',
+        'step_customer' => 'Kundendaten ergänzen',
+        'step_due_date' => 'Fälligkeitsdatum festlegen',
+        'step_send' => 'Senden oder herunterladen',
+    ],
+
     'titles' => [
         'features' => 'Funktionen',
         'pricing' => 'Preise',
