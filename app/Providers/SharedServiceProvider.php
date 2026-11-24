@@ -55,7 +55,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Composition root of the Shared kernel: cross-cutting money, files, time, status, tax
+ * Composition root of the Shared kernel: cross-cutting money, files, time, tax
  * and framework adapters used by all bounded contexts.
  *
  * Wires the context's Domain, Infrastructure and Application layers in one place (ADR D-042).

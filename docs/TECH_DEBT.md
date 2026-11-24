@@ -20,10 +20,10 @@ Each open step has a section below with its items. An item without a **Status** 
 8. ~~Entity limit design: "The entity limit system needs a decided design".~~ Done 2026-11-06 (branch `ls-entity-limit-design`): `docs/adr/D-047-entity-limits.md` and `docs/prd/PRD_ENTITY_LIMITS.md` accepted, the Entity limits section of `rules/permissions.md` rewritten; step 10 converts the code.
 9. ~~Permission naming: "Permission naming".~~ Done 2026-11-08 (branch `ls-permission-naming`): one per-operation scheme with literal names, including the subscription, plan, plan feature and user screens; the PermissionManager role and permission screens gated by their own permissions; frontend products checked by permission; `<guard>.api.<entity>` removed.
 10. ~~Entity limit conversion: "Entity limits do not follow D-047".~~ Done 2026-11-07 (branch `ls-entity-limit-conversion`): `role_limits` with its admin CRUD screen, the plan role assignment time on `users`, the `EntityLimit` domain service in every use case that creates or restores a limited entity, usage on the dashboard, the create and list pages and the admin user detail, rate limits in `config/billex.php`; the old system with its tables, `limit_*` and `can_create_<entity>_unlimited` permissions, API, dashboard and CRUD screens is deleted.
+11. ~~Foundations for the rewrites: reliable tests and CI and the developer documentation of the contexts, which every later step uses.~~ Done 2026-11-24 (last branch `ls-shared-docs`): the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors, the currency of `Money`, the currency lists, the documentation reference test, the `ddd:guard` tests in parallel runs, the picomatch audit exception, the admin browser scripts (run by `pre-pr-check`, invoices in `DevelopmentDataSeeder`) and the system overview with the page of every context; `ProductPrice` left to "Product prices are not `Money` on the write path", the currency of the DTOs to "Data class names and properties".
 
 **Open**
 
-11. [Foundations for the rewrites](#step-11-foundations-for-the-rewrites) — in progress (the permission gate with the whole permission conversion, the grants, the controller rule, `Money` formatting, the value object accessors, the currency of `Money`, the currency lists, the documentation reference test, the `ddd:guard` tests in parallel runs, the picomatch audit exception, the admin browser scripts (run by `pre-pr-check`, invoices in `DevelopmentDataSeeder`) and the system overview with the User, Party and Invoice context pages done, `ProductPrice` left to "Product prices are not `Money` on the write path", the currency of the DTOs to "Data class names and properties"): reliable tests and CI and the developer documentation of the contexts, which every later step uses.
 12. [Issued invoices](#step-12-issued-invoices) — not started: the document life cycle with numbering at issue, its status column and the stored PDF.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
@@ -31,20 +31,12 @@ Each open step has a section below with its items. An item without a **Status** 
 16. [Statistics by currency](#step-16-statistics-by-currency) — not started; chooses between one series per currency and the ČNB rates of step 15.
 17. [Test speed](#step-17-test-speed) — not started; measured once the migrations of steps 12 and 13 are in.
 18. [Payments](#step-18-payments) — not started.
-19. [Subscription plans](#step-19-subscription-plans) — not started; the plans grant the permissions of step 9 and the limits of step 10 and are paid through step 18.
+19. [Subscription plans](#step-19-subscription-plans) — not started; the plans grant the permissions of step 9 and the limits of step 10 and are paid through step 18; the homepage pricing then reads the plans.
 20. [System admin screens](#step-20-system-admin-screens) — not started: screens of no bounded context (cron tasks, archiving, maintenance, admin users).
 21. [Conversion to the standard](#step-21-conversion-to-the-standard) — in progress (PHP readability done): one context at a time, in the order of their dependencies.
 22. [Frontend, API and routes](#step-22-frontend-api-and-routes) — not started: "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
 23. [After the conversion](#step-23-after-the-conversion) — not started: Larastan up to `max`, architecture tests instead of the guards.
 24. [Before production](#step-24-before-production) — not started: the PRO licence decision, error monitoring before the first deploy, erasing a user account before the first real user (needs the retention rules of step 12), refunds when they are needed.
-
-## Step 11: Foundations for the rewrites
-
-### No developer documentation of how the system works
-- **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
-- **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
-- **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. `DocumentationReferencesTest` covers these pages (`docs/DOCUMENTATION.md`, References to code), so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23), the [Expense context page](system/EXPENSE.md), the [Analytics context page](system/ANALYTICS.md), the [System context page](system/SYSTEM.md) and the [Content context page](system/CONTENT.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
 
 ## Step 12: Issued invoices
 
@@ -241,6 +233,16 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `resources/views/frontend/subscriptions/{index,show,my-subscription}.blade.php`, `app/Http/Controllers/Frontend/SubscriptionController.php` (`index`, `show`, `mySubscription`), `app/Http/Controllers/Admin/SubscriptionCrudController.php`
 - **Problem:** the checkout asks to agree to the terms of service and the privacy policy, but both links point to `#`. Every yearly plan carries a fixed "2 months free" badge, whatever its price. The admin list prints every amount with a "CZK" suffix, also for EUR and USD subscriptions. The plan pages read `SubscriptionPlan` models in the controller, and "My subscription" loads the subscription model with its plan, features and payments by the id `FindActiveSubscription` returned, formatting amounts and dates in Blade (kept so in phase 6a of step 11, decided 2026-11-14; `rules/architecture.md`, Persistence path).
 - **Fix:** link real terms and privacy pages (Content), compute the saving from the monthly and yearly prices or drop the badge, format amounts with the subscription's currency through `MoneyFormatterInterface`; typed page DTOs for the plans and "My subscription" (plan, features, payment history as `Money` and dates) from Payment Queries, rendered through formatters.
+
+### Plan and feature names are in one language
+- **Where:** `name` and `description` of `subscription_plans` and `subscription_plan_features` (`database/migrations/2026_10_25_000010_create_subscription_tables.php`), `Admin\SubscriptionPlanCrudController`, `Admin\SubscriptionPlanFeatureCrudController`, `SubscriptionPlanDTO`
+- **Problem:** a plan and a feature have one name and description, so every language shows the same text (`/cs` shows "Basic Plan"), and the admin has no way to enter the other languages.
+- **Fix (decided 2026-11-24):** `name` and `description` hold one value per locale as JSON, as the pages do (`App\Models\Page`); the admin forms of plans and features have a field per locale; the plan pages read the page locale. The interface texts around the plans stay translation keys in `lang/*/subscriptions.php`.
+
+### Homepage pricing is a hand-written page
+- **Where:** `PageContentSeeder::createPricingPage()` (the `cenik` page), `$pricePage` in `PageController` and `resources/views/frontend/pages/homepage.blade.php`
+- **Problem:** the pricing section is HTML typed into a CMS page: its prices ("Zdarma", "Profesionální 490 Kč/měsíc") are not the plans a customer pays for (`subscription_plans`: 50 and 100 CZK in the development database on 2026-11-24) and nothing keeps them in step. Its Tailwind classes have no dark variants, so the plans are hardly readable in the dark theme. Found 2026-11-24 while checking the homepage in the browser.
+- **Fix (decided 2026-11-24, after "Subscription screens with placeholder content" and "Plan and feature names are in one language"):** the homepage shows the most popular plan and the free plan through the same Payment Query and Blade component as the plan list, with prices from the plans formatted by `MoneyFormatterInterface`; the `cenik` page, `PRICE_PAGE_SLUG` and `$pricePage` are deleted. There is no free plan yet. To decide: how the most popular plan is marked, and how the free plan is stored (a plan nobody pays for, or the plan-less role `frontend_user` of "Plan roles are not built").
 
 ## Step 20: System admin screens
 
@@ -486,6 +488,16 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `PageDtoWriteRepositoryInterface`, `PageWriteRepositoryInterface`, `PageWriteData`, the `create()` methods of `EloquentPageDtoRepository` and `EloquentPageRepository`, their bindings in `ContentServiceProvider`
 - **Problem:** nothing calls them; pages are written only by the Backpack screens through the model. `PageDtoWriteRepositoryInterface` also carries a Czech comment.
 - **Fix:** delete them and refresh the provider snapshot; the write port comes back with the Content Commands when the admin screens are converted.
+
+### Unused Shared ports
+- **Where:** `TranslatorInterface` (`LaravelTranslator`), `SessionInterface` (`LaravelSessionStore`), `TaxDtoWriteRepositoryInterface` with `TaxWriteData` and the `create()` methods of `EloquentTaxDtoRepository` and `EloquentTaxRepository`, their bindings in `SharedServiceProvider`
+- **Problem:** nothing calls them; VAT rates are written only by `Admin\TaxCrudController` through the model. Found 2026-11-24 while writing [the Shared kernel page](system/SHARED.md).
+- **Fix:** delete them and refresh the provider snapshot; a port comes back when a use case needs it.
+
+### Public country and conversion API without a caller
+- **Where:** `/api/countries`, `/api/countries/{code}` (`CountryController`, `CountryApplicationService`, `CountryServiceInterface`, `CountryService`), `/api/currencies/convert` (`CurrencyController::convertCurrency()`, `CurrencyApplicationService::convert()`), their tests
+- **Problem:** only the tests call them. `CountryService` reads country names from restcountries.com, while every country select uses `CountryOptionsPresenter` (ICU); the conversion is done in the browser from `/api/currencies/exchange-rate` ("Currency conversion of invoice items happens in the browser"). Found 2026-11-24 while writing [the Shared kernel page](system/SHARED.md).
+- **Fix:** delete the routes, the code behind them and their tests, and refresh the provider snapshot; the exchange rate endpoint stays until step 15 replaces it.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.

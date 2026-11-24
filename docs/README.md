@@ -16,6 +16,7 @@
 | [Analytics context](system/ANALYTICS.md) | The user's dashboard and its charts, the admin dashboard statistics, the dashboard cache |
 | [Content context](system/CONTENT.md) | The public CMS pages and their categories: the admin screens, the homepage, page lookup by slug and search |
 | [System context](system/SYSTEM.md) | Cron tasks and the scheduler, clearing the application caches, the database maintenance screens and commands |
+| [Shared kernel](system/SHARED.md) | The ports to the framework and their implementations, money, VAT rates and statuses, file uploads, the public currency and country API, the use case gate contracts |
 
 ## Requirements and technical designs
 
