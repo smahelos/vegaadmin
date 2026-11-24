@@ -60,7 +60,7 @@ Every screen needs `system.configure`: the menu, the CRUD screens (`ArchivePolic
 | `db:health-check` (`DatabaseHealthCheckCommand`) | connection, cache and buffer pool status into `database_health_metrics`, alerts into `database_health_alerts` |
 | `db:clean-metrics` (`CleanPerformanceMetrics`) | deletes old and duplicate rows of `performance_metrics` |
 
-Known faults of these screens are in "Step 20: System admin screens" and the conversion notes of "Step 21: Conversion to the standard" in [TECH_DEBT](../TECH_DEBT.md): invented sample metrics, a "view all" button without a screen, Chart.js without a pinned version, the archive policy form against the table, `db:archive` without a rollback, hand-built list columns.
+Known faults of these screens are in "Step 20: System admin screens" and the conversion notes of "Step 21: Conversion to the standard" in [TECH_DEBT](../TECH_DEBT.md): invented sample metrics, Chart.js without a pinned version, the archive policy form against the table, `db:archive` without a rollback, hand-built list columns.
 
 ## Events
 

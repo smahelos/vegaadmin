@@ -284,11 +284,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** when no metric of a type is stored, the performance chart shows random values labelled as sample data. The `sample` cleanup and the `sample_metrics` count look for rows marked `metadata.generated`, which nothing writes since the unrouted sample generator was deleted (branch `ls-dead-code`).
 - **Fix:** an empty state instead of random values; delete the `sample` cleanup type, the count and their translations. The dashboard's actions become use cases of the System context, so `DatabaseDashboardRequest` loses its `authorize()`, which asks the gate's `holds()` for `system.configure` until then; its five actions without a route are deleted.
 
-### Database dashboard links to a screen that does not exist
-- **Where:** `resources/views/admin/database/dashboard.blade.php` (the "view all" button of the health card)
-- **Problem:** the button opens `database-health-metric`, but no route or CRUD controller exists for health metrics, so it answers 404.
-- **Fix:** decide whether health metrics get a list screen (a read-only CRUD controller like `PerformanceMetricCrudController`, `system.configure`); otherwise delete the button.
-
 ### Chart.js is loaded without a pinned version
 - **Where:** `resources/views/admin/database/dashboard.blade.php`, `resources/views/frontend/dashboard.blade.php` (`https://cdn.jsdelivr.net/npm/chart.js`)
 - **Problem:** both dashboards load the latest Chart.js from the CDN, so a new major release can break their charts without a change in the code; the admin page bypasses Basset (`rules/admin.md`, Assets), the frontend page bypasses Vite (`rules/frontend.md`).
