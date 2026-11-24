@@ -9,7 +9,7 @@ Read this page first, then the page of the context you change (table below). A c
 | Context | Owns | Page |
 |---|---|---|
 | Analytics | dashboards and statistics | [ANALYTICS.md](ANALYTICS.md) |
-| Content | public CMS pages and their categories | — |
+| Content | public CMS pages and their categories | [CONTENT.md](CONTENT.md) |
 | Expense | expenses, the received documents | [EXPENSE.md](EXPENSE.md) |
 | Invoice | issued invoices, their items, PDFs, payment reminders | [INVOICE.md](INVOICE.md) |
 | Party | the user's businesses and their contacts, bank accounts, the parties stored on documents | [PARTY.md](PARTY.md) |
