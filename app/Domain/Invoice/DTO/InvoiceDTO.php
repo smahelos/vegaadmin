@@ -2,6 +2,7 @@
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -30,7 +31,7 @@ class InvoiceDTO
         public readonly ?int $payment_method_id,
         public readonly ?string $invoice_text,
         public readonly ?string $currency,
-        public readonly ?string $template,
+        public readonly InvoiceTemplate $template,
         public readonly array $items = [],
         public readonly ?string $created_at = null,
         public readonly ?string $status = null,
@@ -54,7 +55,7 @@ class InvoiceDTO
             payment_method_id: $data['payment_method_id'] ?? null,
             invoice_text: $data['invoice_text'] ?? null,
             currency: $data['currency'] ?? null,
-            template: $data['template'] ?? null,
+            template: $data['template'],
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
             status: $data['status'] ?? null,

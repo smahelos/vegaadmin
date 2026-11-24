@@ -13,7 +13,6 @@ trait RendersInvoicePdfHtml
 {
     private function renderPdfHtml(
         PrintableInvoiceDTO $invoice,
-        string $template = 'default',
         string $locale = 'cs',
     ): string {
         $html = '';
@@ -28,11 +27,7 @@ trait RendersInvoicePdfHtml
             },
         );
         $renderer = app(InvoicePdfRenderer::class);
-        $renderer->render(
-            $invoice,
-            $template,
-            $locale,
-        );
+        $renderer->render($invoice, $locale);
 
         return $html;
     }

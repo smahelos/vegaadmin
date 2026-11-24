@@ -31,8 +31,8 @@ final class CzechQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = 'AM:' . $payload->amountDecimal();
         $qrParts[] = 'CC:' . $payload->amount->currency->value;
 
-        if (!empty($payload->variableSymbol)) {
-            $qrParts[] = 'X-VS:' . $payload->variableSymbol;
+        if ($payload->variableSymbol !== null) {
+            $qrParts[] = 'X-VS:' . $payload->variableSymbol->value;
         }
 
         if (!empty($payload->message)) {

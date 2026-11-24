@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -52,7 +53,9 @@ final class EloquentInvoiceMapper
                 'invoice_text' => $model->invoice_text,
                 'total_amount' => $totalAmount,
                 'currency' => $model->getAttribute('payment_currency') ?? null,
-                'template' => $model->getAttribute('template') ?? null,
+                'template' => InvoiceTemplate::from(
+                    $model->getAttribute('template'),
+                ),
                 'items' => $items,
                 'created_at' => $model->getAttribute('created_at'),
                 'status' => $status,

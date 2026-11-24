@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Payment\DTO;
 
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Money\ValueObjects\Money;
 
 final readonly class QrPaymentDTO
 {
     public function __construct(
-        public ?string $variableSymbol,
+        public ?VariableSymbol $variableSymbol,
         public Money $amount,
         public ?BankAccount $account,
         public ?string $message = null,

@@ -35,7 +35,7 @@ final class EuropeanQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = $payload->account?->iban;
         $qrParts[] = $payload->amount->currency->value . $payload->amountDecimal();
         $qrParts[] = '';
-        $qrParts[] = $payload->variableSymbol ?? '';
+        $qrParts[] = $payload->variableSymbol?->value ?? '';
         $qrParts[] = substr(
             $payload->message ?? '',
             0,

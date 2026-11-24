@@ -8,6 +8,7 @@ use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemDTO;
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
@@ -67,7 +68,7 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             taxPointDate: $this->toImmutable($invoiceData['tax_point_date'] ?? null),
             dueDate: $dueDate,
             currency: $currency->value,
-            template: $invoiceData['template'] ?? 'default',
+            template: InvoiceTemplate::from($invoiceData['template']),
             items: $items,
             subtotal: $totals->subtotal,
             totalTax: $totals->tax,

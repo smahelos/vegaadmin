@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentAccountDTO;
@@ -27,7 +28,7 @@ final readonly class PrintableInvoiceDTO
         public ?DateTimeImmutable $taxPointDate,
         public ?InvoiceDueDate $dueDate,
         public string $currency,
-        public ?string $template,
+        public InvoiceTemplate $template,
         public array $items,
         public Money $subtotal,
         public Money $totalTax,

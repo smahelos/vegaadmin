@@ -727,6 +727,7 @@ final class InvoiceUseCasesTest extends TestCase
             'due_in' => 14,
             'payment_status_id' => $statusQuery->value('id'),
             'invoice_text' => 'Test invoice',
+            'template' => InvoiceTemplate::DEFAULT->value,
             'invoice-products' => [
                 [
                     'name' => 'Service A',

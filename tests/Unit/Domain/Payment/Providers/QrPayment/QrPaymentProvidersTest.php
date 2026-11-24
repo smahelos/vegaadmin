@@ -10,6 +10,7 @@ use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -56,7 +57,7 @@ final class QrPaymentProvidersTest extends TestCase
             null,
         );
         $payment = new QrPaymentDTO(
-            '20260001',
+            new VariableSymbol('20260001'),
             Money::fromString(
                 '9007199254740993.01',
                 Currency::from($currency),
