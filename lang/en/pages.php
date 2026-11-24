@@ -109,6 +109,21 @@ return [
         'secure_description' => 'Only you can see your invoices, businesses, contacts and products.',
     ],
 
+    'homepage_hero' => [
+        'title_line1' => 'Create beautiful invoices :highlight',
+        'highlight' => 'for free',
+        'title_line2' => 'and get paid by your customers',
+        'register_prompt' => 'Or :link and manage your business invoices',
+        'register_link' => 'create an account',
+        'dates' => 'Dates',
+        'step_logo' => 'Upload your logo',
+        'step_dates' => 'Set dates and bank account',
+        'step_items' => 'Add invoice items',
+        'step_customer' => 'Add customer details',
+        'step_due_date' => 'Set the due date',
+        'step_send' => 'Send or download the invoice',
+    ],
+
     'titles' => [
         'features' => 'Features',
         'pricing' => 'Pricing',

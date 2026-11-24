@@ -109,6 +109,21 @@ return [
         'secure_description' => 'Vaše faktury, klienty a produkty vidíte jen vy.',
     ],
 
+    'homepage_hero' => [
+        'title_line1' => 'Vytvářejte krásné faktury :highlight',
+        'highlight' => 'zdarma',
+        'title_line2' => 'a dostávejte od zákazníků zaplaceno',
+        'register_prompt' => 'Nebo si :link a spravujte faktury své firmy',
+        'register_link' => 'založte účet',
+        'dates' => 'Termíny',
+        'step_logo' => 'Nahrajte své logo',
+        'step_dates' => 'Zadejte termíny a bankovní účet',
+        'step_items' => 'Přidejte položky faktury',
+        'step_customer' => 'Doplňte údaje odběratele',
+        'step_due_date' => 'Nastavte datum splatnosti',
+        'step_send' => 'Odešlete nebo stáhněte fakturu',
+    ],
+
     'titles' => [
         'features' => 'Funkce',
         'pricing' => 'Ceník',
