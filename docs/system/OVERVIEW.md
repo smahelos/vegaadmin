@@ -10,7 +10,7 @@ Read this page first, then the page of the context you change (table below). A c
 |---|---|---|
 | Analytics | dashboards and statistics | — |
 | Content | public CMS pages and their categories | — |
-| Expense | expenses, the received documents | — |
+| Expense | expenses, the received documents | [EXPENSE.md](EXPENSE.md) |
 | Invoice | issued invoices, their items, PDFs, payment reminders | [INVOICE.md](INVOICE.md) |
 | Party | the user's businesses and their contacts, bank accounts, the parties stored on documents | [PARTY.md](PARTY.md) |
 | Payment | subscriptions, payment gateways, QR payments, banks, payment methods | [PAYMENT.md](PAYMENT.md) |

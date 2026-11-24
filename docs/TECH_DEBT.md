@@ -44,7 +44,7 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. `DocumentationReferencesTest` covers these pages (`docs/DOCUMENTATION.md`, References to code), so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md) and the [Product context page](system/PRODUCT.md) (2026-11-23) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
+- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23) and the [Expense context page](system/EXPENSE.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
 
 ## Step 12: Issued invoices
 
@@ -96,7 +96,7 @@ Each open step has a section below with its items. An item without a **Status** 
 ## Step 13: Expenses as received documents
 
 ### Expenses are not modelled as received documents
-- **Where:** `expenses` (`database/migrations/2026_10_25_000009_create_expense_tables.php`), `App\Models\Expense`, `ExpenseRequest` (frontend and admin), `Admin\ExpenseCrudController`, expense statuses in `ReferenceDataSeeder`
+- **Where:** `expenses` (`database/migrations/2026_10_25_000009_create_expense_tables.php`), `App\Models\Expense`, `Admin\ExpenseRequest`, `Admin\ExpenseCrudController`, expense statuses in `ReferenceDataSeeder`
 - **Problem:** Billex is for VAT payers and non-payers alike, but an expense is one amount with an optional `tax_amount` and a `tax_included` flag. It has no document type, no VAT breakdown by rate, no taxable supply date (DUZP) or date of receipt (which decides the VAT deduction), no supplier's document number and no due date; its statuses (draft, in review, approved, rejected…) are an approval process for companies, not the payment state a sole trader needs. A document the user claims a VAT deduction from is kept for 10 years (§ 35 ZDPH).
 - **Fix (decided 2026-10-25, after "Issued invoices can be changed and deleted"):** an expense is a received document, stored as `docs/adr/D-044-document-tables.md` describes: a document type enum (received invoice and simplified tax document / receipt first; corrective document, advance invoice and the tax document for a received payment later as new cases), a VAT regime enum (standard first; reverse charge and acquisition from the EU later), VAT lines by rate shared with issued documents (a non-payer enters only the total), supplier's document number, issue date, DUZP, date of receipt, due date, attachment; a payment state (unpaid, paid) instead of the approval statuses; a VAT payer flag on Business (location decided 2026-10-26 in the party PRD, not on the login account). The user still deletes an expense: it is their record of someone else's document. Every table or column only one document type needs is decided by the user (criteria in the ADR). Minimal current-expense party adaptation in step 7 is approved in `docs/prd/PRD_BUSINESSES_AND_CONTACTS.md`: own business plus contact or one-off supplier, stored party/account data and matching forms/filters. Existing statuses and calculations stay until this full document model is delivered.
 
@@ -119,6 +119,16 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `app/Http/Requests/Admin/ExpenseRequest.php` (`amount`, `tax_amount`)
 - **Problem:** `numeric|decimal:0,2` accepts `.50` and `+50`, but `Money::fromString()` reads only plain decimals and throws, so the admin expense store and update answer 500 instead of a validation error. Found 2026-11-16 with the same fix in the admin subscription request (phase 6a of step 11).
 - **Fix:** the amount rule the subscription request uses (`regex:/^\d+(\.\d{1,2})?$/`), with an HTTP test of the refused formats.
+
+### Deleting an expense bypasses a use case
+- **Where:** `Admin\ExpenseCrudController` (Backpack's delete operation), `ExpenseAttachments`, `DocumentLogoService`
+- **Problem:** the admin deletes an expense through the model: no Command, no handler, and the attachments and the supplier logo copy stay on the disk. Found 2026-11-24 while writing `docs/system/EXPENSE.md`.
+- **Fix:** a DeleteExpense Command (`expense.delete`, implementing `CallsOutsideDatabaseInterface`) that deletes the row and then its files after the commit, called from an overridden `destroy` like `Admin\ProductCrudController`, with an HTTP test that the files are gone.
+
+### Expense attachments are publicly reachable
+- **Where:** `ExpenseAttachments` (`expenses/attachments` on the `public` disk), `public/storage`
+- **Problem:** the attachments are received tax documents with the user's and the supplier's data, yet anyone who has a file's URL downloads it without signing in; only the random file name protects it. Uploaded documents belong outside the public root. Found 2026-11-24 while writing `docs/system/EXPENSE.md`.
+- **Fix:** store the attachments on a private disk and serve them through an admin route that checks `expense.view`, moving the existing files in a migration; together with "Expense detail has no attachment links", which needs the same download route.
 
 ## Step 14: Sending invoices
 
@@ -445,10 +455,10 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** the column exists without a foreign key, and no model, form or query uses it.
 - **Fix:** delete the column from the migration (Billex is not in production).
 
-### Product categories share the product permissions
-- **Where:** `Admin\ProductCategoryCrudController` (`product.*` in `allowHeldOperations()`), `PermissionCatalog`
-- **Problem:** product categories are reference data shared by all users, but an admin who may edit products may also create, rename and delete categories; the other reference data have their own permissions (`payment_method.*`, `bank.*`), as `docs/prd/PRD_PERMISSIONS.md` requires for each admin operation.
-- **Fix:** `product_category.view`, `create`, `update` and `delete` in the admin guard through the `add-permission` skill, granted to the roles that manage reference data.
+### Product and expense categories share their entity's permissions
+- **Where:** `Admin\ProductCategoryCrudController` (`product.*` in `allowHeldOperations()`), `Admin\ExpenseCategoryCrudController` (`expense.*`), `PermissionCatalog`
+- **Problem:** product and expense categories are reference data shared by all users, but an admin who may edit products or expenses may also create, rename and delete their categories; the other reference data have their own permissions (`payment_method.*`, `bank.*`), as `docs/prd/PRD_PERMISSIONS.md` requires for each admin operation. Expense categories added 2026-11-24.
+- **Fix:** `product_category.*` and `expense_category.*` (`view`, `create`, `update`, `delete`) in the admin guard through the `add-permission` skill, granted to the roles that manage reference data.
 
 ## Step 22: Frontend, API and routes
 
