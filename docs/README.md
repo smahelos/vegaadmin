@@ -12,6 +12,7 @@
 | [Invoice context](system/INVOICE.md) | Invoices and their lines, numbering, the guest invoice, PDFs, payment reminders |
 | [Payment context](system/PAYMENT.md) | Subscriptions and the GoPay callback, QR payments, banks and payment methods |
 | [Product context](system/PRODUCT.md) | Products, product categories and how a product becomes an invoice line |
+| [Expense context](system/EXPENSE.md) | Expenses (received documents) in the admin: parties, attachments, categories and statuses |
 
 ## Requirements and technical designs
 
