@@ -44,7 +44,7 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. `DocumentationReferencesTest` covers these pages (`docs/DOCUMENTATION.md`, References to code), so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23), the [Expense context page](system/EXPENSE.md) and the [Analytics context page](system/ANALYTICS.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
+- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23), the [Expense context page](system/EXPENSE.md), the [Analytics context page](system/ANALYTICS.md) and the [System context page](system/SYSTEM.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
 
 ## Step 12: Issued invoices
 
@@ -283,6 +283,16 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `app/Http/Controllers/Admin/DatabaseDashboardController.php` (`generateSampleDataForMetricType()`, cleanup type `sample`, the `sample_metrics` count), `app/Console/Commands/CleanPerformanceMetrics.php`, `resources/views/admin/database/dashboard.blade.php`
 - **Problem:** when no metric of a type is stored, the performance chart shows random values labelled as sample data. The `sample` cleanup and the `sample_metrics` count look for rows marked `metadata.generated`, which nothing writes since the unrouted sample generator was deleted (branch `ls-dead-code`).
 - **Fix:** an empty state instead of random values; delete the `sample` cleanup type, the count and their translations. The dashboard's actions become use cases of the System context, so `DatabaseDashboardRequest` loses its `authorize()`, which asks the gate's `holds()` for `system.configure` until then; its five actions without a route are deleted.
+
+### Database dashboard links to a screen that does not exist
+- **Where:** `resources/views/admin/database/dashboard.blade.php` (the "view all" button of the health card)
+- **Problem:** the button opens `database-health-metric`, but no route or CRUD controller exists for health metrics, so it answers 404.
+- **Fix:** decide whether health metrics get a list screen (a read-only CRUD controller like `PerformanceMetricCrudController`, `system.configure`); otherwise delete the button.
+
+### Chart.js is loaded without a pinned version
+- **Where:** `resources/views/admin/database/dashboard.blade.php`, `resources/views/frontend/dashboard.blade.php` (`https://cdn.jsdelivr.net/npm/chart.js`)
+- **Problem:** both dashboards load the latest Chart.js from the CDN, so a new major release can break their charts without a change in the code; the admin page bypasses Basset (`rules/admin.md`, Assets), the frontend page bypasses Vite (`rules/frontend.md`).
+- **Fix:** the admin dashboard through `@basset` with a pinned version; the frontend dashboard imports Chart.js as an npm dependency from `resources/js/dashboard-statistics.js`.
 
 ### Maintenance commands query the database directly
 - **Where:** `DatabaseMonitorCommand`, `DatabaseArchiveCommand`
