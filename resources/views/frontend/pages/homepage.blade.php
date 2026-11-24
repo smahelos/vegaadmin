@@ -311,14 +311,14 @@
 
                 <div class="p-8">
                     <h3 class="text-xl font-semibold text-white mb-2">
-                        {{ $featurePage->name[$locale] }}
+                        {{ $featurePage->localizedName($locale) }}
                     </h3>
-                    @if($featurePage->description[$locale] ?? null)
+                    @if($featurePage->localizedDescription($locale) !== '')
                     <p class="text-gray-400 mb-4">
-                        {{ Str::limit($featurePage->description[$locale], 100) }}
+                        {{ Str::limit($featurePage->localizedDescription($locale), 100) }}
                     </p>
                     @endif
-                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->slug[$locale], 'locale' => App::getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->localizedSlug($locale), 'locale' => App::getLocale()]) }}"
                         class="inline-flex items-center text-white hover:underline font-medium">
                         {{ __('pages.read_more') }}
                         <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
