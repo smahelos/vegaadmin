@@ -119,7 +119,7 @@ class PageContentSeeder extends Seeder
 
         foreach ($categories as $category) {
             PageCategory::firstOrCreate(
-                ['slug' => $category['slug']],
+                ['slug->cs' => $category['slug']['cs']],
                 $category,
             );
         }
