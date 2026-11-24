@@ -31,7 +31,7 @@ Each open step has a section below with its items. An item without a **Status** 
 16. [Statistics by currency](#step-16-statistics-by-currency) — not started; chooses between one series per currency and the ČNB rates of step 15.
 17. [Test speed](#step-17-test-speed) — not started; measured once the migrations of steps 12 and 13 are in.
 18. [Payments](#step-18-payments) — not started.
-19. [Subscription plans](#step-19-subscription-plans) — not started; the plans grant the permissions of step 9 and the limits of step 10 and are paid through step 18.
+19. [Subscription plans](#step-19-subscription-plans) — not started; the plans grant the permissions of step 9 and the limits of step 10 and are paid through step 18; the homepage pricing then reads the plans.
 20. [System admin screens](#step-20-system-admin-screens) — not started: screens of no bounded context (cron tasks, archiving, maintenance, admin users).
 21. [Conversion to the standard](#step-21-conversion-to-the-standard) — in progress (PHP readability done): one context at a time, in the order of their dependencies.
 22. [Frontend, API and routes](#step-22-frontend-api-and-routes) — not started: "Frontend", then "API responses" (the Livewire forms remove endpoints), then "Route names and URLs" (fewest references left).
@@ -241,6 +241,16 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `resources/views/frontend/subscriptions/{index,show,my-subscription}.blade.php`, `app/Http/Controllers/Frontend/SubscriptionController.php` (`index`, `show`, `mySubscription`), `app/Http/Controllers/Admin/SubscriptionCrudController.php`
 - **Problem:** the checkout asks to agree to the terms of service and the privacy policy, but both links point to `#`. Every yearly plan carries a fixed "2 months free" badge, whatever its price. The admin list prints every amount with a "CZK" suffix, also for EUR and USD subscriptions. The plan pages read `SubscriptionPlan` models in the controller, and "My subscription" loads the subscription model with its plan, features and payments by the id `FindActiveSubscription` returned, formatting amounts and dates in Blade (kept so in phase 6a of step 11, decided 2026-11-14; `rules/architecture.md`, Persistence path).
 - **Fix:** link real terms and privacy pages (Content), compute the saving from the monthly and yearly prices or drop the badge, format amounts with the subscription's currency through `MoneyFormatterInterface`; typed page DTOs for the plans and "My subscription" (plan, features, payment history as `Money` and dates) from Payment Queries, rendered through formatters.
+
+### Plan and feature names are in one language
+- **Where:** `name` and `description` of `subscription_plans` and `subscription_plan_features` (`database/migrations/2026_10_25_000010_create_subscription_tables.php`), `Admin\SubscriptionPlanCrudController`, `Admin\SubscriptionPlanFeatureCrudController`, `SubscriptionPlanDTO`
+- **Problem:** a plan and a feature have one name and description, so every language shows the same text (`/cs` shows "Basic Plan"), and the admin has no way to enter the other languages.
+- **Fix (decided 2026-11-24):** `name` and `description` hold one value per locale as JSON, as the pages do (`App\Models\Page`); the admin forms of plans and features have a field per locale; the plan pages read the page locale. The interface texts around the plans stay translation keys in `lang/*/subscriptions.php`.
+
+### Homepage pricing is a hand-written page
+- **Where:** `PageContentSeeder::createPricingPage()` (the `cenik` page), `$pricePage` in `PageController` and `resources/views/frontend/pages/homepage.blade.php`
+- **Problem:** the pricing section is HTML typed into a CMS page: its prices ("Zdarma", "Profesionální 490 Kč/měsíc") are not the plans a customer pays for (`subscription_plans`: 50 and 100 CZK in the development database on 2026-11-24) and nothing keeps them in step. Its Tailwind classes have no dark variants, so the plans are hardly readable in the dark theme. Found 2026-11-24 while checking the homepage in the browser.
+- **Fix (decided 2026-11-24, after "Subscription screens with placeholder content" and "Plan and feature names are in one language"):** the homepage shows the most popular plan and the free plan through the same Payment Query and Blade component as the plan list, with prices from the plans formatted by `MoneyFormatterInterface`; the `cenik` page, `PRICE_PAGE_SLUG` and `$pricePage` are deleted. There is no free plan yet. To decide: how the most popular plan is marked, and how the free plan is stored (a plan nobody pays for, or the plan-less role `frontend_user` of "Plan roles are not built").
 
 ## Step 20: System admin screens
 
