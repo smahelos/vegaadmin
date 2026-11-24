@@ -20,7 +20,7 @@ There are no Commands or Queries.
 | Use case | Entry | Access | Code |
 |---|---|---|---|
 | Manage pages and categories | `Admin\PageCrudController`, `Admin\PageCategoryCrudController` (`page`, `page-category`) | `page.view`, `page.create`, `page.update`, `page.delete`, for categories too | Backpack writes the model; `PageRequest` and `PageCategoryRequest` merge the per-locale inputs and validate them |
-| Show the website | `Frontend\PageController`, the routes in `routes/web.php` below | none: public, also for guests | `PageApplicationService` returns models from `PageReadRepositoryInterface`; for the homepage and a page by slug it asks the Domain `PageService` first |
+| Show the website | `Frontend\PageController`, the routes in `routes/web.php` below | none: public, also for guests | `PageApplicationService` returns models from `PageReadRepositoryInterface`, except the homepage features, which come as `PageDTO`s from `PageDtoReadRepositoryInterface`; for the homepage and a page by slug it asks the Domain `PageService` first |
 
 Nothing calls the write ports (`PageDtoWriteRepositoryInterface`, `PageWriteRepositoryInterface` and `PageWriteData`); pages are written only by the admin screens ("Unused page write ports" in [TECH_DEBT](../TECH_DEBT.md)).
 

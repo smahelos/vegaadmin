@@ -48,6 +48,22 @@ class EloquentPageDtoRepository implements PageDtoReadRepositoryInterface, PageD
         return $m ? Mapper::toPageDTO($m) : null;
     }
 
+    public function getPublishedByCategorySlug(string $categorySlug, string $locale): array
+    {
+        $category = $this->repo->findCategoryBySlug($categorySlug, $locale);
+        if (!$category) {
+            return [];
+        }
+
+        $pages = $this->repo->getPublishedByCategory($category->id);
+        $dtos = [];
+        foreach ($pages as $page) {
+            $dtos[] = Mapper::toPageDTO($page);
+        }
+
+        return $dtos;
+    }
+
     public function findPublishedBySlugInLocales(
         string $slug,
         array $locales,

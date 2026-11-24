@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Content\Services;
 
 use App\Application\Content\Contracts\PageReadRepositoryInterface;
+use App\Domain\Content\Contracts\PageDtoReadRepositoryInterface;
 use App\Domain\Content\Contracts\PageServiceInterface;
 use App\Domain\Content\DTO\PageDTO;
 use App\Models\Page;
@@ -16,6 +17,7 @@ final class PageApplicationService
     public function __construct(
         private readonly PageReadRepositoryInterface $pages,
         private readonly PageServiceInterface $pageDomainService,
+        private readonly PageDtoReadRepositoryInterface $pageDtos,
     ) {}
 
     /**
@@ -71,15 +73,10 @@ final class PageApplicationService
         return $this->pages->getPublishedByCategory($categoryId);
     }
 
-    /** @return Collection<int, Page> empty when the category does not exist */
-    public function getPagesByCategorySlug(string $slug, string $locale): Collection
+    /** @return list<PageDTO> */
+    public function getPagesByCategorySlug(string $slug, string $locale): array
     {
-        $category = $this->pages->findCategoryBySlug($slug, $locale);
-        if (!$category) {
-            return new Collection;
-        }
-
-        return $this->pages->getPublishedByCategory($category->id);
+        return $this->pageDtos->getPublishedByCategorySlug($slug, $locale);
     }
 
     // we simply delegate to the model repo, as NO business logic is needed

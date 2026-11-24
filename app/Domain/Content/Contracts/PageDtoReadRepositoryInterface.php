@@ -17,6 +17,9 @@ interface PageDtoReadRepositoryInterface
 
     public function findPublishedById(int $id): ?PageDTO;
 
+    /** @return list<PageDTO> by sort order, empty when no category has the slug */
+    public function getPublishedByCategorySlug(string $categorySlug, string $locale): array;
+
     public function findPublishedBySlugInLocales(
         string $slug,
         array $locales,

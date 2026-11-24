@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Http\Controllers\Frontend;
 
+use App\Domain\Content\DTO\PageDTO;
 use App\Models\Page;
 use App\Models\PageCategory;
 use Database\Seeders\PageContentSeeder;
@@ -102,10 +103,13 @@ final class PageControllerFeatureTest extends TestCase
         $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.homepage');
         $assertionResponse = $assertionResponse->assertViewHas(
             'featurePages',
-            function (Collection $pages): bool {
-                $slugs = $pages->map(fn (Page $page): string => $page->slug['cs']);
+            function (array $pages): bool {
+                $slugs = array_map(
+                    fn (PageDTO $page): string => $page->slug['cs'],
+                    $pages,
+                );
 
-                return $slugs->all() === [
+                return $slugs === [
                     'fakturace-pro-firmy',
                     'rychle-faktury-pro-hosty',
                     'kontakty',

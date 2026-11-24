@@ -285,7 +285,7 @@
 </div>
 
 <!-- Feature  Pages -->
-@if($featurePages && $featurePages->count() > 0)
+@if($featurePages !== [])
 <div class="bg-[#F5F6FF] dark:bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
@@ -309,17 +309,11 @@
                 $featurePageNum++;
                 @endphp
 
-                @if($featurePage->image)
-                <div class="aspect-w-16 aspect-h-9">
-                    <img src="{{ $featurePage->image }}" alt="{{ $featurePage->name }}"
-                        class="object-cover rounded-t-lg">
-                </div>
-                @endif
                 <div class="p-8">
                     <h3 class="text-xl font-semibold text-white mb-2">
                         {{ $featurePage->name[$locale] }}
                     </h3>
-                    @if($featurePage->description[$locale])
+                    @if($featurePage->description[$locale] ?? null)
                     <p class="text-gray-400 mb-4">
                         {{ Str::limit($featurePage->description[$locale], 100) }}
                     </p>
