@@ -8,7 +8,7 @@ Read this page first, then the page of the context you change (table below). A c
 
 | Context | Owns | Page |
 |---|---|---|
-| Analytics | dashboards and statistics | — |
+| Analytics | dashboards and statistics | [ANALYTICS.md](ANALYTICS.md) |
 | Content | public CMS pages and their categories | — |
 | Expense | expenses, the received documents | [EXPENSE.md](EXPENSE.md) |
 | Invoice | issued invoices, their items, PDFs, payment reminders | [INVOICE.md](INVOICE.md) |
