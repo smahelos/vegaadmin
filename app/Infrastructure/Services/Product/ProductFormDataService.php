@@ -30,7 +30,7 @@ class ProductFormDataService implements ProductFormDataServiceInterface
             $cacheKey,
             function () {
                 // Get product categories for dropdown
-                $productCategories = ProductCategory::pluck('slug', 'id');
+                $productCategories = ProductCategory::pluck('name', 'id');
                 $productCategories = $productCategories->toArray();
 
                 // Get tax rates for dropdown
