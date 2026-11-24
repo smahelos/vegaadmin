@@ -288,10 +288,6 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">{{ __('admin/database.dashboard.health_status') }}</h5>
                                 <div>
-                                    <a href="{{ backpack_url('database-health-metric') }}"
-                                        class="btn btn-sm btn-outline-primary me-2">
-                                        {{ __('admin/database.dashboard.view_all') }}
-                                    </a>
                                     <button type="button" class="btn btn-sm btn-success"
                                         onclick="runDatabaseCommand('health-check')">
                                         <i class="la la-refresh"></i> {{ __('admin/database.dashboard.refresh_metrics') }}
