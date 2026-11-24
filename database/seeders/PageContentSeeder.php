@@ -29,6 +29,7 @@ class PageContentSeeder extends Seeder
         $this->createPrivacyPolicyPage();
         $this->createTermsPage();
         $this->createCookiesPage();
+        $this->createFeatureCategoryPages();
     }
 
     private function createCategories(): void
@@ -92,6 +93,26 @@ class PageContentSeeder extends Seeder
                     'en' => 'Help and documentation',
                     'de' => 'Hilfe und Dokumentation',
                     'sk' => 'Pomoc a dokumentácia',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Funkce',
+                    'en' => 'Features',
+                    'de' => 'Funktionen',
+                    'sk' => 'Funkcie',
+                ],
+                'slug' => [
+                    'cs' => 'funkce',
+                    'en' => 'features',
+                    'de' => 'funktionen',
+                    'sk' => 'funkcie',
+                ],
+                'description' => [
+                    'cs' => 'Funkce systému',
+                    'en' => 'System features',
+                    'de' => 'Systemfunktionen',
+                    'sk' => 'Funkcie systému',
                 ],
             ],
         ];
@@ -561,6 +582,283 @@ class PageContentSeeder extends Seeder
                 'published_by' => User::first()?->id,
             ],
         );
+    }
+
+    private function createFeatureCategoryPages(): void
+    {
+        $categoryId = $this->categoryId('funkce');
+        $publisher = User::first();
+
+        foreach ($this->featureCategoryPages() as $index => $page) {
+            Page::updateOrCreate(
+                ['slug->cs' => $page['slug']['cs']],
+                $page + [
+                    'category_id' => $categoryId,
+                    'sort_order' => $index + 1,
+                    'published' => true,
+                    'published_by' => $publisher?->id,
+                ],
+            );
+        }
+    }
+
+    /**
+     * The homepage shows these pages as its feature cards.
+     *
+     * @return list<array{name: array<string, string>, slug: array<string, string>, description: array<string, string>, content: array<string, string>}>
+     */
+    private function featureCategoryPages(): array
+    {
+        return [
+            [
+                'name' => [
+                    'cs' => 'Fakturace pro firmy',
+                    'en' => 'Invoicing for businesses',
+                    'de' => 'Rechnungsstellung für Unternehmen',
+                    'sk' => 'Fakturácia pre firmy',
+                ],
+                'slug' => [
+                    'cs' => 'fakturace-pro-firmy',
+                    'en' => 'invoicing-for-businesses',
+                    'de' => 'rechnungsstellung-fur-unternehmen',
+                    'sk' => 'fakturacia-pre-firmy',
+                ],
+                'description' => [
+                    'cs' => 'Profesionální fakturace speciálně navržená pro potřeby firem a podnikatelů',
+                    'en' => 'Professional invoicing specially designed for the needs of businesses and entrepreneurs',
+                    'de' => 'Professionelle Rechnungsstellung, speziell für die Bedürfnisse von Unternehmen und Unternehmern entwickelt',
+                    'sk' => 'Profesionálna fakturácia špeciálne navrhnutá pre potreby firiem a podnikateľov',
+                ],
+                'content' => [
+                    'cs' => '
+                        <h2>Fakturace šitá na míru vašemu podnikání</h2>
+                        <p>Naše řešení je ideální pro malé i střední firmy, které potřebují jednoduchou a spolehlivou fakturaci.</p>
+                        <h3>Výhody pro firmy:</h3>
+                        <ul>
+                            <li>Adresář kontaktů pro rychlé vyplnění faktur</li>
+                            <li>Možnost vytváření šablon produktů</li>
+                            <li>Pokročilé nástroje pro správu faktur</li>
+                            <li>Označování faktur jako zaplacené</li>
+                            <li>Historie všech vystavených faktur</li>
+                        </ul>
+                        <p>Registrujte se zdarma a vyzkoušejte všechny funkce.</p>
+                    ',
+                    'en' => '
+                        <h2>Invoicing tailored to your business</h2>
+                        <p>Our solution is ideal for small and medium-sized businesses that need simple and reliable invoicing.</p>
+                        <h3>Benefits for businesses:</h3>
+                        <ul>
+                            <li>Contact address book for filling in invoices quickly</li>
+                            <li>Ability to create product templates</li>
+                            <li>Advanced tools for invoice management</li>
+                            <li>Marking invoices as paid</li>
+                            <li>History of all issued invoices</li>
+                        </ul>
+                        <p>Register for free and try all the features.</p>
+                    ',
+                    'de' => '
+                        <h2>Rechnungsstellung, die auf Ihr Unternehmen zugeschnitten ist</h2>
+                        <p>Unsere Lösung ist ideal für kleine und mittelständische Unternehmen, die eine einfache und zuverlässige Rechnungsstellung benötigen.</p>
+                        <h3>Vorteile für Unternehmen:</h3>
+                        <ul>
+                            <li>Kontaktverzeichnis zum schnellen Ausfüllen von Rechnungen</li>
+                            <li>Möglichkeit zur Erstellung von Produktvorlagen</li>
+                            <li>Erweiterte Tools für das Rechnungsmanagement</li>
+                            <li>Markierung von Rechnungen als bezahlt</li>
+                            <li>Historie aller ausgestellten Rechnungen</li>
+                        </ul>
+                        <p>Registrieren Sie sich kostenlos und testen Sie alle Funktionen.</p>
+                    ',
+                    'sk' => '
+                        <h2>Fakturácia prispôsobená vášmu podnikaniu</h2>
+                        <p>Naše riešenie je ideálne pre malé a stredné firmy, ktoré potrebujú jednoduchú a spoľahlivú fakturáciu.</p>
+                        <h3>Výhody pre firmy:</h3>
+                        <ul>
+                            <li>Adresár kontaktov na rýchle vyplnenie faktúr</li>
+                            <li>Možnosť vytvárania šablón produktov</li>
+                            <li>Pokročilé nástroje na správu faktúr</li>
+                            <li>Označovanie faktúr ako zaplatené</li>
+                            <li>História všetkých vystavených faktúr</li>
+                        </ul>
+                        <p>Registrujte sa zadarmo a vyskúšajte všetky funkcie.</p>
+                    ',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Rychlé faktury pro hosty',
+                    'en' => 'Quick invoices for guests',
+                    'de' => 'Schnelle Rechnungen für Gäste',
+                    'sk' => 'Rýchle faktúry pre hostí',
+                ],
+                'slug' => [
+                    'cs' => 'rychle-faktury-pro-hosty',
+                    'en' => 'quick-invoices-for-guests',
+                    'de' => 'schnelle-rechnungen-fur-gaste',
+                    'sk' => 'rychle-faktury-pre-hosti',
+                ],
+                'description' => [
+                    'cs' => 'Vytvořte si fakturu za pár minut, bez nutnosti registrace',
+                    'en' => 'Create an invoice in a few minutes, no registration required',
+                    'de' => 'Erstellen Sie eine Rechnung in wenigen Minuten, ohne Registrierung',
+                    'sk' => 'Vytvorte si faktúru za pár minút, bez nutnosti registrácie',
+                ],
+                'content' => [
+                    'cs' => '
+                        <h2>Fakturu bez registrace</h2>
+                        <p>Potřebujete rychle vystavit fakturu a nechcete se registrovat? Naše řešení pro hosty je přesně pro vás!</p>
+                        <h3>Jak to funguje:</h3>
+                        <ol>
+                            <li>Vyplníte základní údaje o faktuře</li>
+                            <li>Zadáte položky a ceny</li>
+                            <li>Systém vygeneruje PDF fakturu</li>
+                            <li>Dostanete bezpečný odkaz pro stažení</li>
+                        </ol>
+                        <p>Máte potřebu fakturovat pravidelně? <a href="/cs/register">Registrujte se zdarma</a> a získejte přístup ke všem funkcím.</p>
+                    ',
+                    'en' => '
+                        <h2>Invoice without registration</h2>
+                        <p>Need to quickly issue an invoice without registering? Our guest solution is perfect for you!</p>
+                        <h3>How it works:</h3>
+                        <ol>
+                            <li>Fill in basic invoice details</li>
+                            <li>Enter items and prices</li>
+                            <li>The system generates a PDF invoice</li>
+                            <li>You receive a secure download link</li>
+                        </ol>
+                        <p>Need to invoice regularly? <a href="/en/register">Register for free</a> and gain access to all features.</p>
+                    ',
+                    'de' => '
+                        <h2>Rechnung ohne Registrierung</h2>
+                        <p>Müssen Sie schnell eine Rechnung ausstellen, ohne sich zu registrieren? Unsere Gastlösung ist perfekt für Sie!</p>
+                        <h3>So funktioniert es:</h3>
+                        <ol>
+                            <li>Geben Sie die grundlegenden Rechnungsdetails ein</li>
+                            <li>Fügen Sie Artikel und Preise hinzu</li>
+                            <li>Das System erstellt eine PDF-Rechnung</li>
+                            <li>Sie erhalten einen sicheren Download-Link</li>
+                        </ol>
+                        <p>Müssen Sie regelmäßig Rechnungen ausstellen? <a href="/de/register">Registrieren Sie sich kostenlos</a> und erhalten Sie Zugriff auf alle Funktionen.</p>
+                    ',
+                    'sk' => '
+                        <h2>Faktúra bez registrácie</h2>
+                        <p>Potrebujete rýchlo vystaviť faktúru bez registrácie? Naše riešenie pre hostí je presne pre vás!</p>
+                        <h3>Ako to funguje:</h3>
+                        <ol>
+                            <li>Vyplníte základné údaje o faktúre</li>
+                            <li>Zadáte položky a ceny</li>
+                            <li>Systém vygeneruje PDF faktúru</li>
+                            <li>Dostanete bezpečný odkaz na stiahnutie</li>
+                        </ol>
+                        <p>Potrebujete fakturovať pravidelne? <a href="/sk/register">Zaregistrujte sa zdarma</a> a získajte prístup ku všetkým funkciám.</p>
+                    ',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Kontakty',
+                    'en' => 'Contacts',
+                    'de' => 'Kontakte',
+                    'sk' => 'Kontakty',
+                ],
+                'slug' => [
+                    'cs' => 'kontakty',
+                    'en' => 'contacts',
+                    'de' => 'kontakte',
+                    'sk' => 'kontakty',
+                ],
+                'description' => [
+                    'cs' => 'Jeden adresář pro odběratele i dodavatele.',
+                    'en' => 'One address book for customers and suppliers.',
+                    'de' => 'Ein Adressbuch für Kunden und Lieferanten.',
+                    'sk' => 'Jeden adresár pre odberateľov aj dodávateľov.',
+                ],
+                'content' => [
+                    'cs' => '<p>Systém umožňuje vytvářet osobní adresář kontaktů, firem i lidí, se kterými obchodujete. Kontakt snadno načtete do faktury a z vystavených faktur se automaticky vytvářejí dlouhodobé statistiky.</p>',
+                    'en' => '<p>The system allows creating a personal address book of contacts, the companies and people you do business with. You load a contact into an invoice in one step, and your issued invoices automatically build long-term statistics.</p>',
+                    'de' => '<p>Das System ermöglicht ein persönliches Kontaktverzeichnis der Firmen und Personen, mit denen Sie Geschäfte machen. Einen Kontakt laden Sie mit einem Klick in die Rechnung, und aus Ihren ausgestellten Rechnungen entstehen automatisch langfristige Statistiken.</p>',
+                    'sk' => '<p>Systém umožňuje vytvárať osobný adresár kontaktov, firiem aj ľudí, s ktorými obchodujete. Kontakt jednoducho načítate do faktúry a z vystavených faktúr sa automaticky vytvárajú dlhodobé štatistiky.</p>',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Moje firmy',
+                    'en' => 'My businesses',
+                    'de' => 'Meine Firmen',
+                    'sk' => 'Moje firmy',
+                ],
+                'slug' => [
+                    'cs' => 'moje-firmy',
+                    'en' => 'my-businesses',
+                    'de' => 'meine-firmen',
+                    'sk' => 'moje-firmy',
+                ],
+                'description' => [
+                    'cs' => 'Fakturujte za více vlastních firem z jednoho účtu.',
+                    'en' => 'Invoice for several businesses of your own from one account.',
+                    'de' => 'Stellen Sie Rechnungen für mehrere eigene Firmen aus einem Konto aus.',
+                    'sk' => 'Fakturujte za viac vlastných firiem z jedného účtu.',
+                ],
+                'content' => [
+                    'cs' => '<p>Pod jedním účtem můžete vést více vlastních firem. Každá má své údaje, logo a bankovní účty, které se tisknou na fakturu a použijí se pro QR platbu. Při vystavení faktury se předvyplní výchozí firma.</p>',
+                    'en' => '<p>One account can hold several businesses of your own. Each has its own details, logo and bank accounts, which are printed on the invoice and used for the QR payment. A new invoice is prefilled with your default business.</p>',
+                    'de' => '<p>Unter einem Konto können Sie mehrere eigene Firmen führen. Jede hat ihre eigenen Angaben, ihr Logo und ihre Bankkonten, die auf der Rechnung gedruckt und für die QR-Zahlung verwendet werden. Eine neue Rechnung wird mit Ihrer Standardfirma vorausgefüllt.</p>',
+                    'sk' => '<p>Pod jedným účtom môžete viesť viac vlastných firiem. Každá má svoje údaje, logo a bankové účty, ktoré sa tlačia na faktúru a použijú sa pre QR platbu. Pri vystavení faktúry sa predvyplní predvolená firma.</p>',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Soukromé statistiky',
+                    'en' => 'Private statistics',
+                    'de' => 'Private Statistiken',
+                    'sk' => 'Súkromné štatistiky',
+                ],
+                'slug' => [
+                    'cs' => 'soukrome-statistiky',
+                    'en' => 'private-statistics',
+                    'de' => 'private-statistiken',
+                    'sk' => 'sukromne-statistiky',
+                ],
+                'description' => [
+                    'cs' => 'Automatické vytváření statistik na Vašem dashboardu.',
+                    'en' => 'Automatic generation of statistics on your dashboard.',
+                    'de' => 'Automatische Erstellung von Statistiken auf Ihrem Dashboard.',
+                    'sk' => 'Automatické vytváranie štatistík na vašom dashboarde.',
+                ],
+                'content' => [
+                    'cs' => '<p>Každý přihlášený uživatel má svůj osobní Dashboard (nástěnku) s rychlým přehledem a podrobnými statistikami.</p>',
+                    'en' => '<p>Each logged-in user has their personal Dashboard with a quick overview and detailed statistics.</p>',
+                    'de' => '<p>Jeder angemeldete Benutzer hat sein persönliches Dashboard mit einer schnellen Übersicht und detaillierten Statistiken.</p>',
+                    'sk' => '<p>Každý prihlásený používateľ má svoj osobný Dashboard s rýchlym prehľadom a podrobnými štatistikami.</p>',
+                ],
+            ],
+            [
+                'name' => [
+                    'cs' => 'Soukromé produkty',
+                    'en' => 'Private products',
+                    'de' => 'Private Produkte',
+                    'sk' => 'Súkromné produkty',
+                ],
+                'slug' => [
+                    'cs' => 'soukrome-produkty',
+                    'en' => 'private-products',
+                    'de' => 'private-produkte',
+                    'sk' => 'sukromne-produkty',
+                ],
+                'description' => [
+                    'cs' => 'Každý uživatel má možnost si vytvářet své produkty.',
+                    'en' => 'Each user has the ability to create their own products.',
+                    'de' => 'Jeder Benutzer hat die Möglichkeit, seine eigenen Produkte zu erstellen.',
+                    'sk' => 'Každý používateľ má možnosť vytvárať svoje vlastné produkty.',
+                ],
+                'content' => [
+                    'cs' => '<p>Můžete si vytvářet své produkty na základě Vašich nejčastějších položek na faktuře. Následně si je můžete do faktury pouze přidat v podobě položky faktury. Vše se pak na faktuře automaticky přepočítá, tak aby s tím nebyla žádná starost.</p>',
+                    'en' => '<p>You can create your products based on your most frequent invoice items. Subsequently, you can simply add them to the invoice as an invoice item. Everything will then be automatically recalculated on the invoice, so there is no hassle.</p>',
+                    'de' => '<p>Sie können Ihre Produkte basierend auf Ihren häufigsten Rechnungspositionen erstellen. Anschließend können Sie diese einfach als Rechnungsposition zur Rechnung hinzufügen. Alles wird dann automatisch auf der Rechnung neu berechnet, sodass es keine Mühe bereitet.</p>',
+                    'sk' => '<p>Môžete si vytvárať svoje produkty na základe vašich najčastejších položiek na faktúre. Následne si ich môžete do faktúry jednoducho pridať ako položku faktúry. Všetko sa potom na faktúre automaticky prepočíta, aby ste s tým nemali žiadne starosti.</p>',
+                ],
+            ],
+        ];
     }
 
     private function getFeaturesContent(string $locale): string

@@ -71,10 +71,15 @@ final class PageApplicationService
         return $this->pages->getPublishedByCategory($categoryId);
     }
 
-    // we simply delegate to the model repo, as NO business logic is needed
-    public function getPageContentById(int $pageId): ?Page
+    /** @return Collection<int, Page> empty when the category does not exist */
+    public function getPagesByCategorySlug(string $slug, string $locale): Collection
     {
-        return $this->pages->findPublishedById($pageId);
+        $category = $this->pages->findCategoryBySlug($slug, $locale);
+        if (!$category) {
+            return new Collection;
+        }
+
+        return $this->pages->getPublishedByCategory($category->id);
     }
 
     // we simply delegate to the model repo, as NO business logic is needed

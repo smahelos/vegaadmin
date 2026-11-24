@@ -13,6 +13,11 @@ use Illuminate\View\View;
 
 final class PageController extends Controller
 {
+    // Czech slugs that PageContentSeeder creates for the homepage sections
+    private const FEATURE_CATEGORY_SLUG = 'funkce';
+
+    private const PRICE_PAGE_SLUG = 'cenik';
+
     public function __construct(
         private readonly PageApplicationService $pageService,
     ) {}
@@ -33,13 +38,11 @@ final class PageController extends Controller
         // Get navigation pages for menu
         $navigationPages = $this->pageService->getPagesForNavigation();
 
-        // Get Feature pages for homepage
-        // TODO: This should be dynamic, currently hardcoded to category ID 4
-        $featurePages = $this->pageService->getPagesByCategory(4);
-
-        // Get Prices
-        // TODO: This should be dynamic, currently hardcoded to page ID 11
-        $pricePage = $this->pageService->getPageContentById(11);
+        $featurePages = $this->pageService->getPagesByCategorySlug(
+            self::FEATURE_CATEGORY_SLUG,
+            'cs',
+        );
+        $pricePage = $this->pageService->getPageBySlug(self::PRICE_PAGE_SLUG, 'cs');
 
         return view(
             'frontend.pages.homepage',

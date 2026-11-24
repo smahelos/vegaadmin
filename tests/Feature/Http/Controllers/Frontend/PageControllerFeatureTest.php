@@ -6,6 +6,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Models\Page;
 use App\Models\PageCategory;
+use Database\Seeders\PageContentSeeder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\URL;
 use PHPUnit\Framework\Attributes\Test;
@@ -79,8 +80,7 @@ final class PageControllerFeatureTest extends TestCase
         $this->publishedPage(['slug' => ['cs' => 'uvod', 'en' => 'home']]);
         $pageFactory = Page::factory();
         $draftFactory = $pageFactory->draft();
-        // The homepage reads the price page by its fixed id
-        $draftFactory->create(['id' => 11]);
+        $draftFactory->create(['slug' => ['cs' => 'cenik', 'en' => 'pricing']]);
         $response = $this->get(
             route('home', ['locale' => 'cs']),
         );
@@ -88,6 +88,37 @@ final class PageControllerFeatureTest extends TestCase
         $assertionResponse->assertViewHas(
             'pricePage',
             fn (?Page $pricePage): bool => $pricePage === null,
+        );
+    }
+
+    #[Test]
+    public function homepage_shows_the_seeded_feature_pages_and_price_page(): void
+    {
+        $this->seed(PageContentSeeder::class);
+        $response = $this->get(
+            route('home', ['locale' => 'cs']),
+        );
+        $assertionResponse = $response->assertOk();
+        $assertionResponse = $assertionResponse->assertViewIs('frontend.pages.homepage');
+        $assertionResponse = $assertionResponse->assertViewHas(
+            'featurePages',
+            function (Collection $pages): bool {
+                $slugs = $pages->map(fn (Page $page): string => $page->slug['cs']);
+
+                return $slugs->all() === [
+                    'fakturace-pro-firmy',
+                    'rychle-faktury-pro-hosty',
+                    'kontakty',
+                    'moje-firmy',
+                    'soukrome-statistiky',
+                    'soukrome-produkty',
+                ];
+            },
+        );
+        $assertionResponse = $assertionResponse->assertSeeText('Moje firmy');
+        $assertionResponse->assertViewHas(
+            'pricePage',
+            fn (?Page $pricePage): bool => $pricePage?->slug['cs'] === 'cenik',
         );
     }
 

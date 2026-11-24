@@ -482,11 +482,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** the action reads `q` straight from the request, so `?q[]=x` passes an array to `strlen()` and answers 500 instead of a validation error. Found 2026-11-18 in the review of phase 7 of step 11.
 - **Fix:** a form request with `q` as a nullable string of limited length (`rules/http.md`, Form requests), with a test of the array input.
 
-### Homepage sections are found by fixed ids
-- **Where:** `Frontend\PageController::homepage()` (category 4, page 11), `resources/views/frontend/pages/homepage.blade.php`, `PageContentSeeder`
-- **Problem:** the homepage shows the pages of category 4 as features and page 11 as prices. The seeder creates three categories, so the features section is always empty, and page 11 of a fresh database is the cookie policy (`zasady-pouzivani-cookies`), which the homepage prints as the prices. Found 2026-11-24 while writing [the Content context page](system/CONTENT.md).
-- **Fix:** find the sections by the slugs the seeder creates (the `hlavni-stranky` category, the `cenik` page) through `PageApplicationService`, with an HTTP test of the homepage on seeded pages.
-
 ### Unused page write ports
 - **Where:** `PageDtoWriteRepositoryInterface`, `PageWriteRepositoryInterface`, `PageWriteData`, the `create()` methods of `EloquentPageDtoRepository` and `EloquentPageRepository`, their bindings in `ContentServiceProvider`
 - **Problem:** nothing calls them; pages are written only by the Backpack screens through the model. `PageDtoWriteRepositoryInterface` also carries a Czech comment.

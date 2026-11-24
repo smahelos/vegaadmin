@@ -28,7 +28,7 @@ Nothing calls the write ports (`PageDtoWriteRepositoryInterface`, `PageWriteRepo
 
 | Route | Action | Shows |
 |---|---|---|
-| `home` (`/{locale}`) | `homepage()` | the homepage, then the pages of category 4 as features and page 11 as prices; `frontend.pages.homepage-empty` when no page is published |
+| `home` (`/{locale}`) | `homepage()` | the homepage, then the pages of the category `funkce` as features and the page `cenik` as prices; `frontend.pages.homepage-empty` when no page is published |
 | `frontend.pages.index` | `index()` | every published page and the categories with their pages |
 | `frontend.pages.show` (`/pages/{slug}`) | `show()` | a page with its breadcrumbs and three related pages of its category |
 | `frontend.pages.category.slug`, `frontend.pages.category` | `categoryBySlug()`, `category()` | the pages of a category by its slug or id |
@@ -42,7 +42,7 @@ Every action also loads the navigation (root pages with their published children
 | Homepage | `PageService::getHomepage()`: the published page whose slug in the locale is `home`, `homepage` or `uvod`, otherwise the first published page by sort order |
 | Page by slug | `PageService::getPageBySlug()`: the slug in the URL's locale, then a numeric slug as the page id, then the slug in the other locales; `show()` redirects to the page's slug in the URL's locale when it differs |
 
-The homepage takes its features and prices by fixed ids: `PageContentSeeder` creates three categories, so the features section stays empty, and page 11 of a fresh database is the cookie policy, shown as the prices. The footer links to the Czech slugs `funkce`, `cenik` and `sablony`, which other locales reach through the lookup in the other locales. The search reads `q` unvalidated and `EloquentPageRepository::searchPublished()` puts the locale into raw SQL ("Homepage sections are found by fixed ids", "Page search reads its query unvalidated" and the conversion of `app/Infrastructure` in [TECH_DEBT](../TECH_DEBT.md)).
+The homepage finds its features and prices by the Czech slugs that `PageContentSeeder` creates, kept as constants in `PageController`; a missing category or page leaves its section empty. The footer links to the Czech slugs `funkce`, `cenik` and `sablony`, which other locales reach through the lookup in the other locales. The search reads `q` unvalidated and `EloquentPageRepository::searchPublished()` puts the locale into raw SQL ("Page search reads its query unvalidated" and the conversion of `app/Infrastructure` in [TECH_DEBT](../TECH_DEBT.md)).
 
 ## Events
 
