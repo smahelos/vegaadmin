@@ -45,7 +45,7 @@
                         <div class="mb-5">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
                                 id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $product->tax_id ?? '')"
+                                :selected="old($field['name'], $product->category_id ?? '')"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 :options="$productCategories" hint="{{ $field['hint'] }}" class="bg-[#FDFDFC]"
                                 labelClass="" allowsNull="true" placeholder="{{ $field['placeholder'] }}" />

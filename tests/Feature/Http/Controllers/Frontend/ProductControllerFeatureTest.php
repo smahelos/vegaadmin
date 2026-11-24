@@ -6,7 +6,9 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Enums\Permission;
 use App\Models\InvoiceProduct;
 use App\Models\Product;
+use App\Models\ProductCategory;
 use App\Models\RoleLimit;
+use App\Models\Tax;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
@@ -257,6 +259,40 @@ class ProductControllerFeatureTest extends TestCase
 
         $response->assertStatus(200);
         $response->assertSee('value="1234.5"', false);
+    }
+
+    #[Test]
+    public function edit_selects_the_stored_category_by_its_name(): void
+    {
+        $this->actingAs($this->user, 'web');
+
+        $taxFactory = Tax::factory();
+        $tax = $taxFactory->create();
+        $categoryFactory = ProductCategory::factory();
+        // Ids that differ, so a category selected by the tax id would show
+        $category = $categoryFactory->create(['id' => $tax->id + 1]);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'tax_id' => $tax->id,
+                'category_id' => $category->id,
+            ],
+        );
+
+        $response = $this->get(
+            route('frontend.product.edit', ['locale' => 'cs', 'id' => $product->id]),
+        );
+
+        $response->assertStatus(200);
+        $response->assertSeeInOrder(
+            [
+                'value="' . $category->id . '" selected',
+                e($category->name),
+            ],
+            false,
+        );
+        $response->assertDontSee($category->slug);
     }
 
     #[Test]
