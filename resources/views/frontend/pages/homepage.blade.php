@@ -285,7 +285,7 @@
 </div>
 
 <!-- Feature  Pages -->
-@if($featurePages && $featurePages->count() > 0)
+@if($featurePages !== [])
 <div class="bg-[#F5F6FF] dark:bg-gray-900">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center">
@@ -309,22 +309,16 @@
                 $featurePageNum++;
                 @endphp
 
-                @if($featurePage->image)
-                <div class="aspect-w-16 aspect-h-9">
-                    <img src="{{ $featurePage->image }}" alt="{{ $featurePage->name }}"
-                        class="object-cover rounded-t-lg">
-                </div>
-                @endif
                 <div class="p-8">
                     <h3 class="text-xl font-semibold text-white mb-2">
-                        {{ $featurePage->name[$locale] }}
+                        {{ $featurePage->localizedName($locale) }}
                     </h3>
-                    @if($featurePage->description[$locale])
+                    @if($featurePage->localizedDescription($locale) !== '')
                     <p class="text-gray-400 mb-4">
-                        {{ Str::limit($featurePage->description[$locale], 100) }}
+                        {{ Str::limit($featurePage->localizedDescription($locale), 100) }}
                     </p>
                     @endif
-                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->slug[$locale], 'locale' => App::getLocale()]) }}"
+                    <a href="{{ route('frontend.pages.show', ['slug' => $featurePage->localizedSlug($locale), 'locale' => App::getLocale()]) }}"
                         class="inline-flex items-center text-white hover:underline font-medium">
                         {{ __('pages.read_more') }}
                         <svg class="ml-1 w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
