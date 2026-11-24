@@ -116,16 +116,6 @@ class Expense extends Model
     }
 
     /**
-     * Get the tax who recorded this expense.
-     *
-     * @return BelongsTo<Tax, $this>
-     */
-    public function tax(): BelongsTo
-    {
-        return $this->belongsTo(Tax::class);
-    }
-
-    /**
      * Get the status of this expense.
      *
      * @return BelongsTo<Status, $this>
