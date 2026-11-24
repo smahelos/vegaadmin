@@ -1,8 +1,8 @@
 # System overview
 
-Status: maintained map of the code on `main`, last checked 2026-11-23. It describes how Billex works today; how code must be written is in [the rules](../../.claude/rules/), why it was decided in [the ADRs](../adr/), and known gaps in [TECH_DEBT](../TECH_DEBT.md). When this page and the code disagree, the code is right and the page is fixed in the same pull request.
+Status: maintained map of the code on `main`, last checked 2026-11-24. It describes how Billex works today; how code must be written is in [the rules](../../.claude/rules/), why it was decided in [the ADRs](../adr/), and known gaps in [TECH_DEBT](../TECH_DEBT.md). When this page and the code disagree, the code is right and the page is fixed in the same pull request.
 
-Read this page first, then the page of the context you change (table below). A context without a page is found through its provider, `app/Providers/<Context>ServiceProvider.php`.
+Read this page first, then the page of the context you change (table below).
 
 ## Bounded contexts
 
@@ -17,7 +17,7 @@ Read this page first, then the page of the context you change (table below). A c
 | Product | products and product categories | [PRODUCT.md](PRODUCT.md) |
 | System | admin system screens: caches, cron tasks, database maintenance | [SYSTEM.md](SYSTEM.md) |
 | User | accounts, roles and permissions, entity limits, locale | [USER.md](USER.md) |
-| Shared | money, tax, time, status, files, events and the use case gate contracts | — |
+| Shared | the ports to the framework, money, VAT rates, statuses, files, events and the use case gate contracts | [SHARED.md](SHARED.md) |
 
 Every context uses User (permissions, limits) and Shared. Beyond those, Invoice uses Party, Product and Payment; Expense and Analytics use Party; Payment uses Party and Invoice; Product uses Invoice. How one context may use another is in `rules/architecture.md` (Bounded contexts).
 
