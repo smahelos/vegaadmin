@@ -44,7 +44,7 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `docs/` (only rules, ADRs, PRDs and designs); `AGENTS.md` and `docs/README.md` as the entry points
 - **Problem:** the rules say how code is written and the ADRs why something was decided, but nothing describes how the system works: which entities and use cases a context has, where each use case starts, which events it publishes and who reacts, which permissions and limits apply. People and AI agents find this by searching the code, and an agent guesses more when it cannot find the entry point.
 - **Fix (proposed 2026-11-07):** one page per bounded context plus a system overview in `docs/`, listed in `docs/README.md`: purpose, entities, main use cases with their application service, events (publisher, reactions), permissions and limits, links to ADRs and PRDs. Code is referenced by class names and paths, never restated in prose; normative rules stay in `.claude/rules/` and are only linked. `DocumentationReferencesTest` covers these pages (`docs/DOCUMENTATION.md`, References to code), so a rename fails the suite instead of leaving the page wrong. Start with the User context (entity limits) and check in a fresh agent session that a task in that context reads fewer files; end-user documentation of the frontend is a separate audience and not part of this item.
-- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23), the [Expense context page](system/EXPENSE.md), the [Analytics context page](system/ANALYTICS.md) and the [System context page](system/SYSTEM.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
+- **Status:** the [system overview](system/OVERVIEW.md), the [User context page](system/USER.md) (2026-11-21), the [Party context page](system/PARTY.md), the [Invoice context page](system/INVOICE.md), the [Payment context page](system/PAYMENT.md), the [Product context page](system/PRODUCT.md) (2026-11-23), the [Expense context page](system/EXPENSE.md), the [Analytics context page](system/ANALYTICS.md), the [System context page](system/SYSTEM.md) and the [Content context page](system/CONTENT.md) (2026-11-24) are done, read by the instruction in `AGENTS.md`; the pages of the other contexts are left.
 
 ## Step 12: Issued invoices
 
@@ -486,6 +486,16 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `Frontend\PageController::search()`, route `frontend.pages.search`
 - **Problem:** the action reads `q` straight from the request, so `?q[]=x` passes an array to `strlen()` and answers 500 instead of a validation error. Found 2026-11-18 in the review of phase 7 of step 11.
 - **Fix:** a form request with `q` as a nullable string of limited length (`rules/http.md`, Form requests), with a test of the array input.
+
+### Homepage sections are found by fixed ids
+- **Where:** `Frontend\PageController::homepage()` (category 4, page 11), `resources/views/frontend/pages/homepage.blade.php`, `PageContentSeeder`
+- **Problem:** the homepage shows the pages of category 4 as features and page 11 as prices. The seeder creates three categories, so the features section is always empty, and page 11 of a fresh database is the cookie policy (`zasady-pouzivani-cookies`), which the homepage prints as the prices. Found 2026-11-24 while writing [the Content context page](system/CONTENT.md).
+- **Fix:** find the sections by the slugs the seeder creates (the `hlavni-stranky` category, the `cenik` page) through `PageApplicationService`, with an HTTP test of the homepage on seeded pages.
+
+### Unused page write ports
+- **Where:** `PageDtoWriteRepositoryInterface`, `PageWriteRepositoryInterface`, `PageWriteData`, the `create()` methods of `EloquentPageDtoRepository` and `EloquentPageRepository`, their bindings in `ContentServiceProvider`
+- **Problem:** nothing calls them; pages are written only by the Backpack screens through the model. `PageDtoWriteRepositoryInterface` also carries a Czech comment.
+- **Fix:** delete them and refresh the provider snapshot; the write port comes back with the Content Commands when the admin screens are converted.
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
