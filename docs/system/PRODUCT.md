@@ -21,16 +21,16 @@ The Application port `InvoiceProductWriteRepositoryInterface` is bound in the pr
 
 Commands in `app/Application/Product/Commands/`, queries in `app/Application/Product/Queries/`. The frontend uses `Frontend\ProductController` (`frontend.products` and `frontend.product.*` routes) and the Livewire components in `app/Livewire/Product/`; the admin uses `Admin\ProductCrudController`.
 
-| Use case | Frontend | Admin | Access | Limit |
+| Use case | Frontend | Admin | Access | Limit, rate limit |
 |---|---|---|---|---|
-| `CreateProduct` | `store` (`allowed`) | `store` | `product.create` with owner | products (capacity) |
+| `CreateProduct` | `store` (`allowed`, `throttle:create`) | `store` (`throttle:create`) | `product.create` with owner | products (capacity) |
 | `UpdateProduct` | `update` (`allowed`) | `update` | `product.update` with owner | — |
 | `DeleteProduct` | `destroy` | `destroy` | `product.delete` | — |
 | `GetProduct` | `show`, `ProductListSelect::selectProduct()` | — | `product.view` | — |
 | `GetProductForEdit` | `edit` | — | `product.update` | — |
 | `ListProducts` | `ProductList` (the products page), `ProductListSelect` (the product picker of the invoice form) | Backpack's list operation, reading the model | `product.view` | — |
 
-"With owner" is `Access::permissionWithOwner()` (`rules/permissions.md`). `CreateProductHandler` calls `EntityLimit::assertCanCreate()` for `LimitedEntity::PRODUCT`; a product is a capacity limit, so deleting one frees a place (D-047). No product route has a rate limiter. `DeleteProduct` removes the image file after the commit, so it implements `CallsOutsideDatabaseInterface` and opens its own transaction.
+"With owner" is `Access::permissionWithOwner()` (`rules/permissions.md`). `CreateProductHandler` calls `EntityLimit::assertCanCreate()` for `LimitedEntity::PRODUCT`; a product is a capacity limit, so deleting one frees a place (D-047). The `create` rate limiter is registered in `RouteServiceProvider`. `DeleteProduct` removes the image file after the commit, so it implements `CallsOutsideDatabaseInterface` and opens its own transaction.
 
 The admin invoice editor reads the catalogue through Invoice's `ListInvoiceCatalogProducts` (`InvoiceItemsController`): up to 50 active products of the invoice's currency. The frontend picker `ProductListSelect` lists every product of the owner, active or not and in any currency, and leaves out those already on the invoice (`ProductSearch::$excluded`, sent by `resources/js/product-selector.js`); a line in another currency than the invoice is then refused by `InvoiceItemInput` ("The invoice product picker offers products the invoice refuses" in [TECH_DEBT](../TECH_DEBT.md)).
 
