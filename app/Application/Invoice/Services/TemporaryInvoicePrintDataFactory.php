@@ -17,6 +17,7 @@ use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Money\Enums\Currency;
 use DateMalformedStringException;
 use DateTimeImmutable;
@@ -77,7 +78,7 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             customer: PartyPrintDTO::fromDocumentParty($customer),
             account: $account,
             supplierLogo: $invoiceData['invoice_logo'] ?? null,
-            variableSymbol: $invoiceData['invoice_vs'] ?? null,
+            variableSymbol: new VariableSymbol($invoiceData['invoice_vs']),
             constantSymbol: $invoiceData['invoice_ks'] ?? null,
             specificSymbol: $invoiceData['invoice_ss'] ?? null,
             paymentMethod: $this->paymentMethods->findById(

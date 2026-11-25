@@ -31,7 +31,6 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
     public function render(PrintableInvoiceDTO $data, string $locale): PdfDocument
     {
-
         $paymentAmountFormatted = $this->moneyFormatter->format($data->totalAmount, $locale);
         $subtotalFormatted = $this->moneyFormatter->format($data->subtotal, $locale);
         $taxFormatted = $this->moneyFormatter->format($data->totalTax, $locale);
@@ -54,14 +53,10 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
         $qrCode = null;
         $hasQr = false;
-        try {
-            if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
-                $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
-                $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
-                $hasQr = !empty($qrCode);
-            }
-        } catch (\Throwable) {
-            // ignore QR generation errors in renderer
+        if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
+            $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
+            $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
+            $hasQr = !empty($qrCode);
         }
 
         $logoPath = null;

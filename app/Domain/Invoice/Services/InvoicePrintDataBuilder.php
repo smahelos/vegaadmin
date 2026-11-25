@@ -13,6 +13,7 @@ use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
@@ -80,7 +81,7 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             customer: PartyPrintDTO::fromDocumentParty($customer),
             account: $account,
             supplierLogo: $invoice->parties->supplierLogo,
-            variableSymbol: $invoice->number,
+            variableSymbol: $invoice->number === null ? null : new VariableSymbol($invoice->number),
             constantSymbol: $invoice->constant_code,
             specificSymbol: $invoice->payment_reference,
             paymentMethod: $this->paymentMethod($invoice->payment_method_id),

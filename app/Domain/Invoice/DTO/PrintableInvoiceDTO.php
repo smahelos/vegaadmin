@@ -10,6 +10,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use DateTimeImmutable;
 
@@ -37,7 +38,7 @@ final readonly class PrintableInvoiceDTO
         public PartyPrintDTO $customer,
         public ?DocumentAccountDTO $account,
         public ?string $supplierLogo,
-        public ?string $variableSymbol,
+        public ?VariableSymbol $variableSymbol,
         public ?string $constantSymbol,
         public ?string $specificSymbol,
         public ?PaymentMethodCode $paymentMethod,

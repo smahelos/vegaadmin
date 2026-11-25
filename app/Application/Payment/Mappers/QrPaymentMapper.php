@@ -13,13 +13,13 @@ use App\Domain\Shared\Money\ValueObjects\Money;
 final class QrPaymentMapper
 {
     public function fromSnapshot(
-        ?string $number,
+        ?VariableSymbol $variableSymbol,
         Money $amount,
         ?DocumentAccountDTO $account,
         ?string $message,
     ): QrPaymentDTO {
         return new QrPaymentDTO(
-            variableSymbol: $number === null ? null : new VariableSymbol($number),
+            variableSymbol: $variableSymbol,
             amount: $amount,
             account: $account?->account,
             message: $message,

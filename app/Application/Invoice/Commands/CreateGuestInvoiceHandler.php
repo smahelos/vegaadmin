@@ -10,6 +10,7 @@ use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Application\Payment\Mappers\QrPaymentMapper;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\User\Contracts\Locale;
@@ -55,7 +56,7 @@ final class CreateGuestInvoiceHandler
         try {
             if ($command->account !== null) {
                 $qrPayload = $this->qrPaymentMapper->fromSnapshot(
-                    $data['invoice_vs'] ?? null,
+                    new VariableSymbol($data['invoice_vs']),
                     $total,
                     $command->account,
                     $data['invoice_text'] ?? null,
