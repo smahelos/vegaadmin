@@ -671,7 +671,7 @@ class LaravelFileUploadService implements FileUploadServiceInterface
             return isset($value[$index]) ? $this->getFileUrl($value[$index], $disk) : null;
         }
         if (is_string($value)) {
-            if (function_exists('json_validate') && json_validate($value)) {
+            if (json_validate($value)) {
                 $decoded = json_decode($value, true);
                 if (is_array($decoded) && $index !== null && isset($decoded[$index])) {
                     return $this->getFileUrl($decoded[$index], $disk);
