@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -42,7 +42,7 @@ class InvoiceFactory extends Factory
             'due_in' => random_int(14, 30),
             'user_id' => User::factory(),
             'business_id' => $this->businessOfUser(),
-            'payment_status_id' => Status::factory(),
+            'payment_status' => InvoiceStatus::PENDING->value,
             'payment_method_id' => function (): int {
                 $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
 

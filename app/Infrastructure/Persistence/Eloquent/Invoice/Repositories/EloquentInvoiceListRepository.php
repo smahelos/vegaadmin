@@ -23,7 +23,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
         PageRequest $page,
     ): PaginatedResult {
         $query = Invoice::query();
-        $query->with(['paymentMethod', 'paymentStatus']);
+        $query->with('paymentMethod');
         $query->where('user_id', $scope->owner->value);
         if ($search->term !== '') {
             $query->where(
@@ -42,12 +42,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
             );
         }
         if ($search->status !== null) {
-            $query->whereHas(
-                'paymentStatus',
-                static function (Builder $query) use ($search): void {
-                    $query->where('slug', $search->status->value);
-                },
-            );
+            $query->where('payment_status', $search->status->value);
         }
         if ($search->businessId !== null) {
             $query->where('business_id', $search->businessId->value);
@@ -64,7 +59,7 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
                 'customer_name',
                 'payment_amount',
                 'payment_method_id',
-                'payment_status_id',
+                'payment_status',
                 'due_date',
             ],
             true,

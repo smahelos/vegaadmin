@@ -17,31 +17,6 @@ final class ReferenceDataSeeder extends Seeder
 {
     /** @var array<string, array{name: string, statuses: list<array{string, string, string}>}> */
     private const STATUSES = [
-        'invoice-statuses' => [
-            'name' => 'Invoice statuses',
-            'statuses' => [
-                [
-                    'paid',
-                    'Uhrazená',
-                    'green',
-                ],
-                [
-                    'pending',
-                    'Čeká na zaplacení',
-                    'yellow',
-                ],
-                [
-                    'partially-paid',
-                    'Částečně uhrazená',
-                    'blue',
-                ],
-                [
-                    'cancelled',
-                    'Zrušená',
-                    'gray',
-                ],
-            ],
-        ],
         'expense-statuses' => [
             'name' => 'Expense statuses',
             'statuses' => [

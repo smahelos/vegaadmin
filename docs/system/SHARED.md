@@ -1,8 +1,8 @@
 # Shared kernel
 
-Status: maintained map of the code on `main`, last checked 2026-11-24. Start with [the system overview](OVERVIEW.md). What may live in Shared and how its ports are used is in `rules/architecture.md`; money and VAT in `rules/domain.md`; the use case contracts in `rules/application.md` and `rules/permissions.md`.
+Status: maintained map of the code on `main`, last checked 2026-11-25. Start with [the system overview](OVERVIEW.md). What may live in Shared and how its ports are used is in `rules/architecture.md`; money and VAT in `rules/domain.md`; the use case contracts in `rules/application.md` and `rules/permissions.md`.
 
-What every context uses: the ports to the framework, money, VAT rates, countries, units, pagination, file uploads, the statuses of invoices and expenses, and the contracts of the use case gate. Shared has no use cases of its own. Composition root: `SharedServiceProvider`, which binds every port below unless the row names another provider. Before adding a port, look here for one that exists.
+What every context uses: the ports to the framework, money, VAT rates, countries, units, pagination, file uploads, the statuses of expenses, and the contracts of the use case gate. Shared has no use cases of its own. Composition root: `SharedServiceProvider`, which binds every port below unless the row names another provider. Before adding a port, look here for one that exists.
 
 ## Ports
 
@@ -55,7 +55,7 @@ Livewire components share four traits in `app/Livewire/Shared/`: `ActsForUser` (
 | VAT rate | `taxes` (`database/migrations/2026_10_25_000005_create_payment_reference_tables.php`) | `Admin\TaxCrudController`, `tax.*` | `App\Models\Tax`; `TaxObserver` (bound in `InvoiceServiceProvider`) publishes `FormDataChanged` |
 | Status and status category | `statuses`, `status_categories` (`database/migrations/2026_10_25_000004_create_status_tables.php`) | `Admin\StatusCrudController`, `Admin\StatusCategoryCrudController`, `status.*` | `App\Models\Status`, `App\Models\StatusCategory`; filter options from `StatusFormFields` |
 
-A fresh database gets both from `ReferenceDataSeeder`. Invoices store their `InvoiceStatus` and expenses their status as a `status_id` of a `statuses` row; both are known gaps: "Invoice status is stored as a reference to a statuses row" and "Status labels are translated in the model" in [TECH_DEBT](../TECH_DEBT.md).
+A fresh database gets both from `ReferenceDataSeeder`. Expenses store their status as a `status_id` of a `statuses` row, labelled by the model: "Status labels are translated in the model" in [TECH_DEBT](../TECH_DEBT.md). Invoices store their `InvoiceStatus` in `invoices.payment_status` ([INVOICE.md](INVOICE.md)).
 
 ## Files
 

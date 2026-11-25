@@ -48,6 +48,7 @@ final class GetInvoiceHandler
             new FieldSetDTO([]),
             [
                 'invoice' => $invoice,
+                'status' => $stored->status,
                 'paymentAmount' => $invoice->payment_amount_money,
                 'subtotal' => $invoice->subtotal_money,
                 'totalTax' => $invoice->total_tax_money,

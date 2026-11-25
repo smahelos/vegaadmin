@@ -2,7 +2,7 @@
     @if($invoices !== [])
         <ul class="divide-y divide-gray-200 dark:divide-gray-700">
             @foreach($invoices as $invoice)
-                <li class="px-4 hover:bg-gray-50 dark:hover:bg-gray-700 bg-{{ $invoice->statusColor }}-100 dark:bg-{{ $invoice->statusColor }}-600">
+                <li class="px-4 hover:bg-gray-50 dark:hover:bg-gray-700 bg-{{ $statusPresenter->color($invoice->status) }}-100 dark:bg-{{ $statusPresenter->color($invoice->status) }}-600">
                     <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}" class="flex flex-row items-center">
                         <div class="basis-3/18 lg:basis-3/24">
                             <p class="text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number }}</p>
@@ -23,13 +23,11 @@
                             </p>
                         </div>
                         <div class="basis-6/18 lg:basis-6/24">
-                            <p class="p-3 text-{{ $invoice->statusColor }}-800 dark:text-{{ $invoice->statusColor }}-200">
-                                @if($invoice->status)
-                                    {{ __('statuses.statuses.' . $invoice->status->value) }}
-                                @endif
+                            <p class="p-3 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
+                                {{ __('invoices.statuses.' . $invoice->status->value) }}
                             </p>
                         </div>
-                        <div class="basis-2/18 lg:basis-2/24 p-4 text-{{ $invoice->statusColor }}-800 dark:text-{{ $invoice->statusColor }}-200">
+                        <div class="basis-2/18 lg:basis-2/24 p-4 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
                             <p class="text-xs">{{ $presenter->dueDate($invoice, App::getLocale()) }}</p>
                         </div>
                         <div class="basis-1/24 text-right">

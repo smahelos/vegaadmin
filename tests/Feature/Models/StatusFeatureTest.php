@@ -4,7 +4,6 @@ namespace Tests\Feature\Models;
 
 use App\Models\Status;
 use App\Models\StatusCategory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Carbon;
@@ -191,17 +190,6 @@ class StatusFeatureTest extends TestCase
         $this->assertNotNull($statusWithCategory->category);
         $this->assertEquals('Test Category', $statusWithCategory->category->name);
         $this->assertEquals($category->id, $statusWithCategory->category->id);
-    }
-
-    #[Test]
-    public function can_access_invoices_relationship(): void
-    {
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create();
-
-        $invoicesRelation = $status->invoices();
-
-        $this->assertInstanceOf(HasMany::class, $invoicesRelation);
     }
 
     #[Test]

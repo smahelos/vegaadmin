@@ -100,7 +100,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                         <div class="md:col-span-1 mb-5">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
                                 id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $invoice->paymentStatus?->slug)"
+                                :selected="old($field['name'], $invoice->payment_status->value)"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$field['options']"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>

@@ -133,7 +133,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         );
         $business->update(['archived_at' => now()]);
         $invoiceMapper = app(EloquentInvoiceMapper::class);
-        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $invoice->load('invoiceProducts');
         $stored = $invoiceMapper->toDto($invoice);
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilderInterface::class);
         $printable = $invoicePrintDataBuilder->build($stored);

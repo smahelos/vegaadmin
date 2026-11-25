@@ -19,9 +19,7 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
-use App\Models\Status;
 use InvalidArgumentException;
-use LogicException;
 
 final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
 {
@@ -32,8 +30,8 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
 
     public function findById(InvoiceId $id, ReadScope $scope): ?InvoiceDTO
     {
-        // The mapper reads the lines and the status name
-        $query = Invoice::with(['invoiceProducts', 'paymentStatus']);
+        // The mapper reads the lines
+        $query = Invoice::with('invoiceProducts');
         $query->where('user_id', $scope->owner->value);
         $model = $query->find($id->value);
 
@@ -65,7 +63,6 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             $total,
         );
         $attributes['user_id'] = $scope->owner->value;
-        $attributes['payment_status_id'] = $this->statusId($data->status);
 
         $model = $this->invoiceRepository->create($attributes);
 
@@ -84,8 +81,6 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             $parties,
             $total,
         );
-        $attributes['payment_status_id'] = $this->statusId($data->status);
-
         $model = $this->invoiceRepository->updateById(
             $id->value,
             $scope->owner->value,
@@ -114,9 +109,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $query = Invoice::query();
         $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->value);
-        $query->update(
-            ['payment_status_id' => $this->statusId($status)],
-        );
+        $query->update(['payment_status' => $status->value]);
     }
 
     public function linkContact(
@@ -147,20 +140,5 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         }
 
         return $last?->value;
-    }
-
-    /** The statuses row an invoice status is stored as; the reference data contain one for every case. */
-    private function statusId(InvoiceStatus $status): int
-    {
-        $query = Status::query();
-        $query->where('slug', $status->value);
-        $id = $query->value('id');
-        if ($id === null) {
-            throw new LogicException(
-                'Invoice status ' . $status->value . ' is missing from the statuses table',
-            );
-        }
-
-        return (int) $id;
     }
 }

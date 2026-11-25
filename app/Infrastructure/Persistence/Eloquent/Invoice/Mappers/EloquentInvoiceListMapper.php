@@ -6,7 +6,6 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceListDTO;
 use App\Domain\Invoice\DTO\InvoicePartyFilterDTO;
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\ValueObjects\BusinessId;
@@ -38,9 +37,8 @@ final class EloquentInvoiceListMapper
                 Currency::from($invoice->payment_currency),
             ),
             dueDate: $dueDate,
-            status: InvoiceStatus::tryFrom($invoice->paymentStatus?->slug ?? ''),
+            status: $invoice->payment_status,
             paymentMethod: PaymentMethodCode::tryFrom($invoice->paymentMethod?->slug ?? ''),
-            statusColor: $invoice->paymentStatus?->color ?: 'gray',
         );
     }
 

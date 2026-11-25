@@ -202,6 +202,12 @@ return [
         'invalid_iban' => 'IBAN ist ungültig',
         'invalid_vat_id' => 'Umsatzsteuer-ID ist ungültig',
     ],
+    'statuses' => [
+        'paid' => 'Bezahlt',
+        'pending' => 'Ausstehend',
+        'cancelled' => 'Storniert',
+        'overdue' => 'Überfällig',
+    ],
     'qr_code_info' => 'Verwenden Sie den QR-Code für die Zahlung',
     'generated_at' => 'Generiert am',
     'defaults' => [

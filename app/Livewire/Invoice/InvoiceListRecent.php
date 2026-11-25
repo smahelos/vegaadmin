@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Invoice;
 
 use App\Application\Invoice\Presenters\InvoiceListPresenter;
+use App\Application\Invoice\Presenters\InvoiceStatusPresenter;
 use App\Application\Invoice\Queries\ListInvoices;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
@@ -19,7 +20,7 @@ final class InvoiceListRecent extends Component
 {
     use ActsForUser;
 
-    public function render(InvoiceListPresenter $presenter): View
+    public function render(InvoiceListPresenter $presenter, InvoiceStatusPresenter $statusPresenter): View
     {
         $this->requireAllowed(ListInvoices::class);
         $result = $this->runUseCase(
@@ -42,6 +43,7 @@ final class InvoiceListRecent extends Component
             [
                 'invoices' => $result->items(),
                 'presenter' => $presenter,
+                'statusPresenter' => $statusPresenter,
             ],
         );
     }

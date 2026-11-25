@@ -2,6 +2,7 @@
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentParties;
@@ -32,9 +33,9 @@ class InvoiceDTO
         public readonly ?string $invoice_text,
         public readonly ?string $currency,
         public readonly InvoiceTemplate $template,
+        public readonly InvoiceStatus $status,
         public readonly array $items = [],
         public readonly ?string $created_at = null,
-        public readonly ?string $status = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -56,9 +57,9 @@ class InvoiceDTO
             invoice_text: $data['invoice_text'] ?? null,
             currency: $data['currency'] ?? null,
             template: $data['template'],
+            status: $data['status'],
             items: $data['items'] ?? [],
             created_at: $data['created_at'] ?? null,
-            status: $data['status'] ?? null,
         );
     }
 }

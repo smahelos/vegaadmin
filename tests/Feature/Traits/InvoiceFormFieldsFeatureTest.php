@@ -60,10 +60,9 @@ class InvoiceFormFieldsFeatureTest extends TestCase
         $statusField = $resultList->firstWhere('name', 'status');
         $this->assertSame(
             [
-                'paid' => __('statuses.statuses.paid'),
-                'pending' => __('statuses.statuses.pending'),
-                'partially-paid' => __('statuses.statuses.partially-paid'),
-                'cancelled' => __('statuses.statuses.cancelled'),
+                'paid' => __('invoices.statuses.paid'),
+                'pending' => __('invoices.statuses.pending'),
+                'cancelled' => __('invoices.statuses.cancelled'),
             ],
             $statusField['options'],
         );

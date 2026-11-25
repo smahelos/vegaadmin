@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Livewire\Invoice;
 
 use App\Application\Invoice\Presenters\InvoiceListPresenter;
+use App\Application\Invoice\Presenters\InvoiceStatusPresenter;
 use App\Application\Invoice\Queries\ListInvoiceFilters;
 use App\Application\Invoice\Queries\ListInvoices;
 use App\Domain\Invoice\DTO\InvoiceSearch;
@@ -80,7 +81,7 @@ final class InvoiceList extends Component
             'customer_name' => 'customer_name',
             'payment_amount' => 'payment_amount',
             'payment_method_id' => 'payment_method_id',
-            'payment_status_id' => 'payment_status_id',
+            'payment_status' => 'payment_status',
             'due_date' => 'due_date',
         ];
     }
@@ -90,7 +91,7 @@ final class InvoiceList extends Component
         return 'created_at';
     }
 
-    public function render(InvoiceListPresenter $presenter): View
+    public function render(InvoiceListPresenter $presenter, InvoiceStatusPresenter $statusPresenter): View
     {
         $this->requireAllowed(ListInvoices::class);
         $owner = $this->userId();
@@ -129,6 +130,7 @@ final class InvoiceList extends Component
                 'contacts' => $filters->contacts,
                 'statuses' => InvoiceStatus::cases(),
                 'presenter' => $presenter,
+                'statusPresenter' => $statusPresenter,
             ],
         );
     }

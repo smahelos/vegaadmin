@@ -20,8 +20,7 @@ final readonly class InvoiceListDTO
         public string $customerName,
         public Money $amount,
         public ?InvoiceDueDate $dueDate,
-        public ?InvoiceStatus $status,
+        public InvoiceStatus $status,
         public ?PaymentMethodCode $paymentMethod,
-        public string $statusColor,
     ) {}
 }

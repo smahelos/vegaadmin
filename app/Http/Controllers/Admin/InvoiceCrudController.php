@@ -15,11 +15,9 @@ use App\Domain\User\Enums\Permission;
 use App\Http\Requests\Admin\InvoiceRequest;
 use App\Http\Requests\Party\AdminDocumentPartyInput;
 use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
-use App\Infrastructure\Forms\Shared\StatusFormFields;
 use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
 use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
@@ -98,7 +96,7 @@ final class InvoiceCrudController extends CrudController
 
         CRUD::addFilter(
             AdminInvoiceFormFields::statusFilter(),
-            StatusFormFields::names('invoice-statuses'),
+            AdminInvoiceFormFields::statusOptions(),
         );
 
         CRUD::addFilter(
@@ -162,9 +160,11 @@ final class InvoiceCrudController extends CrudController
         );
         $column->value(
             function ($entry) {
-                return $entry->paymentStatus?->name ?? __('general.placeholders.not_available');
+                return __('invoices.statuses.' . $entry->payment_status->value);
             },
         );
+        // The search would match the stored value, not the label; the status filter covers it.
+        $column->searchLogic(false);
 
         $column = CRUD::column('due_in');
         $column->label(
@@ -224,13 +224,15 @@ final class InvoiceCrudController extends CrudController
         $column->label(
             __('invoices.fields.payment_method'),
         );
-        $column = CRUD::column('payment_status_id');
-        $column->type('select');
-        $column->entity('paymentStatus');
-        $column->attribute('name');
-        $column->model(Status::class);
+        $column = CRUD::column('payment_status');
+        $column->type('text');
         $column->label(
             __('invoices.fields.status'),
+        );
+        $column->value(
+            function ($entry) {
+                return __('invoices.statuses.' . $entry->payment_status->value);
+            },
         );
         $column = CRUD::column('payment_amount');
         $column->type('number');

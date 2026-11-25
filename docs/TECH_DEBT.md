@@ -24,7 +24,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-12. [Issued invoices](#step-12-issued-invoices) — in progress: the document life cycle with numbering at issue, its status column, the stored PDF and corrective documents, as `docs/adr/D-050-issued-documents.md` and `docs/prd/PRD_ISSUED_DOCUMENTS.md` decide (2026-11-25). Branches in this order: `ls-invoice-typed-values` (the PDF template as `InvoiceTemplate`, `VariableSymbol`), `ls-invoice-status-column` (the payment status column, partial payments, `db:archive` deleted), `ls-invoice-page-dtos`, `ls-invoice-issue` (drafts and issuing, numbering at issue with its year and uniqueness, the lock, the VAT lines, the VAT payer flag, the register entry, the document language, the admin read-only, the quota at issue), `ls-invoice-stored-pdf`, `ls-corrective-documents` (the common document table of D-044, corrective documents, negative `Money`), and `ls-business-invoice-defaults` (default currency, QR payment switch) and `ls-product-archive` at any point.
+12. [Issued invoices](#step-12-issued-invoices) — in progress: the document life cycle with numbering at issue, its status column, the stored PDF and corrective documents, as `docs/adr/D-050-issued-documents.md` and `docs/prd/PRD_ISSUED_DOCUMENTS.md` decide (2026-11-25). Done: `ls-invoice-typed-values` (the PDF template as `InvoiceTemplate`, `VariableSymbol`; PR #139) and `ls-invoice-status-column` (the payment status column, partial payments removed, `db:archive` deleted). Branches left in this order: `ls-invoice-page-dtos`, `ls-invoice-issue` (drafts and issuing, numbering at issue with its year and uniqueness, the lock, the VAT lines, the VAT payer flag, the register entry, the document language, the admin read-only, the quota at issue), `ls-invoice-stored-pdf`, `ls-corrective-documents` (the common document table of D-044, corrective documents, negative `Money`), and `ls-business-invoice-defaults` (default currency, QR payment switch) and `ls-product-archive` at any point.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
 15. [Exchange rates](#step-15-exchange-rates) — not started; the rate is stored with the document of step 12.
@@ -55,11 +55,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the show and edit pages get an untyped array with the Eloquent `Invoice` inside, so Application and the views receive a model (`rules/architecture.md`, Persistence path). Phase 5a moved the checks into the Queries and kept the pages as they were (decided 2026-11-12). `GetInvoice` therefore reads the invoice twice, as the model for the page and as `InvoiceDTO` for the parties.
 - **Fix:** typed page DTOs built from `InvoiceDTO`, and the Application read port deleted, in `ls-invoice-page-dtos` before the life cycle: issuing stores no separate snapshot (D-050), so `ls-invoice-issue` only adds the issue fields to the DTOs.
 
-### Invoice status is stored as a reference to a statuses row
-- **Where:** `invoices.payment_status_id` (`database/migrations/2026_10_25_000008_create_invoice_tables.php`), `App\Models\Invoice::paymentStatus()`, `EloquentInvoiceDtoRepository::statusId()` and `setStatus()` (`MarkInvoicePaid`), the list filters and sorting and `EloquentApiStatisticsRepository`
-- **Problem:** the invoice status is the `InvoiceStatus` enum, but it is stored as a foreign key to a `statuses` row that the invoice and expense statuses share; the repository and the status actions look the id up by slug, and the lists and statistics join `statuses`. Enum-backed values are stored as strings (`rules/persistence.md`, Migrations and schema).
-- **Fix:** a string column `invoices.payment_status` with the enum value, filled from the slug by a migration; the reads map it to the enum in the mapper, and the invoice statuses leave the `statuses` table. It is `payment_status`, not `status`: the life cycle is derived from `issued_at` (D-050). `CANCELLED` stays until `ls-invoice-issue` removes it; afterwards the payment status is only `pending` or `paid`, and in step 18 it stays a stored column recomputed when a payment is recorded.
-
 ### Invoice numbers are not unique per user and year
 - **Where:** `invoices` (only the index `idx_invoices_user_invoice_vs`), `InvoiceWriteDataInput`, `InvoiceService`
 - **Problem:** the forms accept only numbers in the `InvoiceNumber` format, but nothing refuses a number the user already used in the same year, neither the requests nor the database; two invoices can carry the same variable symbol (`rules/domain.md`, Invoices).
@@ -75,11 +70,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** products used on invoices cannot leave new selections while remaining identifiable on existing documents.
 - **Fix:** product archiving is part of step 12; products are a capacity limit (D-047), so archiving will free a place as deleting does now. Business/contact archiving and restore are implemented in step 7: archived records leave new selections but remain in history and analytics; archive frees capacity, restore requires capacity, and archiving the last business leaves no default. The Czech identity constraint continues to cover archived records.
 
-### Partial payments are a status without an amount
-- **Where:** `InvoiceStatus::PARTIALLY_PAID`, `invoices.payment_status_id`; everything that shows what is still owed: the payment reminders (`SendInvoiceReminders`), the QR payment, the overdue count in `EloquentApiStatisticsRepository`, the overdue mark in `InvoiceListPresenter` (through `InvoiceStatus::isUnpaid()`)
-- **Problem:** an invoice can be marked partially paid, but nothing records how much was paid or when: Billex has no invoice payments (the `payments` table belongs to subscriptions). The amount still owed cannot be shown, reminded or put into a QR payment, so every reader can only use the full total, and the statistics count a partially paid invoice like an unpaid one.
-- **Fix (decided 2026-11-24):** `ls-invoice-status-column` removes `PARTIALLY_PAID` (stored partially paid invoices become pending). Invoice payment records (amount as `Money`, date, method) with the paid status recomputed from their sum against the amount owed (the invoice and its corrective documents) and stored in `payment_status` in the same transaction (D-050) come with bank matching in step 18; removing the status moves that part there as its own item.
-
 ## Step 13: Expenses as received documents
 
 ### Expenses are not modelled as received documents
@@ -89,8 +79,8 @@ Each open step has a section below with its items. An item without a **Status** 
 
 ### Status labels are translated in the model
 - **Where:** `App\Models\Status::getTranslatedNameAttribute()`
-- **Problem:** invoice statuses are the `InvoiceStatus` enum, expense statuses plain slugs in the `statuses` table: the expense counterpart StatusCode and the translation in StatusService had no caller and were deleted (branch `ls-dead-code`). The model accessor translates the slug itself, with a fallback to the stored name.
-- **Fix:** labels only from `statuses.statuses.<slug>` (every case has the key), resolved by one presenter used by the invoice mapper and the dashboard instead of the model. The expense statuses change with "Expenses are not modelled as received documents".
+- **Problem:** expense statuses are plain slugs in the `statuses` table (invoice statuses are the `InvoiceStatus` enum with labels in `invoices.statuses.*`): the expense counterpart StatusCode and the translation in StatusService had no caller and were deleted (branch `ls-dead-code`). The model accessor translates the slug itself, with a fallback to the stored name.
+- **Fix:** labels only from `statuses.statuses.<slug>` (every case has the key), resolved by one presenter instead of the model. The expense statuses change with "Expenses are not modelled as received documents".
 
 ### Expense detail has no attachment links
 - **Where:** `app/Http/Controllers/Admin/ExpenseCrudController.php` (`setupShowOperation()`)
@@ -156,6 +146,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Fix:** `php artisan schema:dump` would save the migrating part (about 6 s of the run) but needs the `mysql` client in `app.dockerfile` and in CI and a new dump after every migration; decided 2026-10-25 to measure again after steps 12 and 13, when the invoice and document migrations are in.
 
 ## Step 18: Payments
+
+### Invoices have no payment records
+- **Where:** `invoices.payment_status`, `MarkInvoicePaid`; everything that shows what is still owed: the payment reminders (`SendInvoiceReminders`), the QR payment, the overdue count in `EloquentApiStatisticsRepository`, the overdue mark in `InvoiceListPresenter` (through `InvoiceStatus::isUnpaid()`)
+- **Problem:** an invoice is only pending or paid; nothing records how much was paid or when (the `payments` table belongs to subscriptions). A partial payment cannot be entered, and the amount still owed cannot be shown, reminded or put into a QR payment. `ls-invoice-status-column` removed the partially paid status, which had no amount (D-050).
+- **Fix (decided 2026-11-24, D-050):** invoice payment records (amount as `Money`, date, method) with the paid status recomputed from their sum against the amount owed (the invoice and its corrective documents) and stored in `payment_status` in the same transaction; with bank matching, before production (PRD_ISSUED_DOCUMENTS, section 5).
 
 ### Plan currencies are not checked against the gateway
 - **Where:** `SubscriptionRequest`, `SubscriptionPlanRequest` (`Rule::enum(Currency::class)` limited to CZK, EUR and USD), the currency options of `SubscriptionCrudController` and `SubscriptionPlanCrudController`, `GoPayGateway::getSupportedCurrencies()` (CZK and EUR)

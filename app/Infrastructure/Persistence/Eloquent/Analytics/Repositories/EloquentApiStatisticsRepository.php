@@ -43,14 +43,8 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             DB::raw('SUM(invoices.payment_amount) as total'),
         );
         $query->selectRaw(
-            'SUM(CASE WHEN statuses.slug = ? THEN invoices.payment_amount ELSE 0 END) as paid',
+            'SUM(CASE WHEN invoices.payment_status = ? THEN invoices.payment_amount ELSE 0 END) as paid',
             [InvoiceStatus::PAID->value],
-        );
-        $query->leftJoin(
-            'statuses',
-            'invoices.payment_status_id',
-            '=',
-            'statuses.id',
         );
         $query->groupBy('month');
         $query->orderBy('month');
@@ -142,22 +136,24 @@ final class EloquentApiStatisticsRepository implements ApiStatisticsRepository
             $contactIds,
         );
         $today = $this->clock->now();
+        $unpaid = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::unpaid());
+        $placeholders = implode(
+            ', ',
+            array_fill(
+                0,
+                count($unpaid),
+                '?',
+            ),
+        );
         $query->selectRaw(
-            'CASE WHEN statuses.slug IN (?, ?) AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE statuses.slug END as status',
+            'CASE WHEN invoices.payment_status IN (' . $placeholders . ') AND DATE_ADD(invoices.issue_date, INTERVAL invoices.due_in DAY) < ? THEN ? ELSE invoices.payment_status END as status',
             [
-                InvoiceStatus::PENDING->value,
-                InvoiceStatus::PARTIALLY_PAID->value,
+                ...$unpaid,
                 $today->format('Y-m-d'),
                 self::OVERDUE,
             ],
         );
         $query->selectRaw('COUNT(*) as count');
-        $query->leftJoin(
-            'statuses',
-            'invoices.payment_status_id',
-            '=',
-            'statuses.id',
-        );
         $query->groupBy('status');
 
         return $this->rows($query);

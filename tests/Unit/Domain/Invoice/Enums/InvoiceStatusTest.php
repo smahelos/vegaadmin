@@ -11,8 +11,8 @@ use PHPUnit\Framework\TestCase;
 final class InvoiceStatusTest extends TestCase
 {
     #[Test]
-    public function pending_and_partially_paid_invoices_are_unpaid(): void
+    public function only_pending_invoices_are_unpaid(): void
     {
-        $this->assertSame([InvoiceStatus::PENDING, InvoiceStatus::PARTIALLY_PAID], InvoiceStatus::unpaid());
+        $this->assertSame([InvoiceStatus::PENDING], InvoiceStatus::unpaid());
     }
 }

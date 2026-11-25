@@ -242,22 +242,13 @@ class DashboardStatistics {
         this.fetchData('invoice-status').then(data => {
             const statusColors = {
                 'paid': 'rgba(16, 185, 129, 0.7)',  // green
-                'partially-paid': 'rgba(37, 99, 235, 0.7)', // blue
                 'pending': 'rgba(251, 191, 36, 0.7)',  // yellow
                 'overdue': 'rgba(239, 68, 68, 0.7)',   // red
                 'cancelled': 'rgba(156, 163, 175, 0.7)'    // gray
             };
 
             console.log('Invoice status data (raw):', data);
-            // Ensure we use the correct translation key
-            const getTranslation = (status) => {
-                // If status is partially-paid, check for partiallyPaid in translations first
-                if (status === 'partially-paid' && this.translations['partiallyPaid']) {
-                    return this.translations['partiallyPaid'];
-                }
-                // Otherwise use the status as key or fallback to the status itself
-                return this.translations[status] || status;
-            };
+            const getTranslation = (status) => this.translations[status] || status;
 
             // Ujistíme se, že máme platná data
             if (!data || !Array.isArray(data) || data.length === 0) {
