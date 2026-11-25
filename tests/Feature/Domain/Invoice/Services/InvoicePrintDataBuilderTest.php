@@ -28,7 +28,7 @@ final class InvoicePrintDataBuilderTest extends TestCase
             ],
         );
         $invoiceMapper = app(EloquentInvoiceMapper::class);
-        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $invoice->load('invoiceProducts');
         $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);

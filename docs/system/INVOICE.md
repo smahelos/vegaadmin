@@ -1,6 +1,6 @@
 # Invoice context
 
-Status: maintained map of the code on `main`, last checked 2026-11-23. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
+Status: maintained map of the code on `main`, last checked 2026-11-25. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
 
 Invoices the user issues, their lines, the PDF with the QR payment code, the one-off invoice of a guest and the payment reminders. Composition root: `InvoiceServiceProvider`.
 
@@ -13,7 +13,7 @@ Invoices the user issues, their lines, the PDF with the QR payment code, the one
 | Parties and payment account | `supplier_*`, `customer_*`, `account_*` columns of `invoices` | Party's `DocumentParties` ([PARTY.md](PARTY.md#parties-on-documents)) |
 | Guest invoice | none: the cache, 10 minutes, under a random token | `TemporaryInvoiceStore` |
 
-Values: `InvoiceNumber`, `InvoiceDueDate` (`due_in` days from the issue date), `InvoiceTotals`, `InvoiceStatus` (stored as `payment_status_id`, a row of `statuses`), `InvoiceTemplate`.
+Values: `InvoiceNumber`, `InvoiceDueDate` (`due_in` days from the issue date), `InvoiceTotals`, `InvoiceStatus` (stored as its value in `invoices.payment_status`), `InvoiceTemplate`.
 
 ## Use cases
 
@@ -54,7 +54,8 @@ The guest invoice is never stored in the database: `CreateGuestInvoiceHandler` p
 ## Status, payment and reminders
 
 - `MarkInvoicePaid` sets `InvoiceStatus::PAID` with a query update (`EloquentInvoiceDtoRepository::setStatus()`); the form sets any status through `UpdateInvoice`.
-- `PENDING` and `PARTIALLY_PAID` are unpaid (`InvoiceStatus::isUnpaid()`); only those get reminders. "Partial payments are a status without an amount" in [TECH_DEBT](../TECH_DEBT.md).
+- `PENDING` is unpaid (`InvoiceStatus::isUnpaid()`); only those invoices get reminders. `CANCELLED` stays until drafts and issuing replace it (D-050). Partial payments cannot be recorded: "Invoices have no payment records" in [TECH_DEBT](../TECH_DEBT.md).
+- Labels are `invoices.statuses.*` (with `overdue` for the derived state); `InvoiceStatusPresenter::color()` gives the colour of a status in the lists and on the detail page. The dashboard chart keeps its own palette in `resources/js/dashboard-statistics.js`.
 - `invoices:check-payment-status` (`CheckInvoicePaymentStatus`, a cron task managed in the admin) runs `SendInvoiceReminders`: for every unpaid invoice of all users (`EloquentInvoiceReminderRepository::unpaidForReminders()`) it sends one reminder on the day `--days-before` the due date, on the due date and on the day `--days-after` it. `InvoiceReminderSender` mails the supplier and the customer that have an email address, in the language of their country, through `LaravelInvoiceReminderNotifier`. `invoices:test-reminder` (`TestInvoiceReminder`) sends one with `SendInvoiceReminder`.
 - Reminders stop when the status is no longer unpaid, or after the overdue reminder.
 
@@ -66,4 +67,4 @@ A new field printed on the PDF goes through `InvoiceWriteData`, `InvoiceDTO`, `E
 
 ## Events
 
-No invoice use case publishes a domain event. `InvoiceObserver` publishes `UserDataChanged` when an invoice is created or deleted, or its amount, status, issue date or due days change through the model; `InvalidateUserCache` then clears the dashboard cache. `MarkInvoicePaid` writes with a query, so the observer does not see it. Analytics reads `invoices` directly (`EloquentAnalyticsRepository`, `EloquentApiStatisticsRepository`); `db:archive` (`DatabaseArchiveCommand`) archives old invoices as JSON. The observer is "Move cache invalidation from observers to domain event handlers" in [TECH_DEBT](../TECH_DEBT.md).
+No invoice use case publishes a domain event. `InvoiceObserver` publishes `UserDataChanged` when an invoice is created or deleted, or its amount, status, issue date or due days change through the model; `InvalidateUserCache` then clears the dashboard cache. `MarkInvoicePaid` writes with a query, so the observer does not see it. Analytics reads `invoices` directly (`EloquentAnalyticsRepository`, `EloquentApiStatisticsRepository`). The observer is "Move cache invalidation from observers to domain event handlers" in [TECH_DEBT](../TECH_DEBT.md).

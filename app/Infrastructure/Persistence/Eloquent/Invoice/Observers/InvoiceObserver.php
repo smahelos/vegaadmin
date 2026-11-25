@@ -23,7 +23,7 @@ final class InvoiceObserver
             $invoice->isDirty(
                 [
                     'payment_amount',
-                    'payment_status_id',
+                    'payment_status',
                     'issue_date',
                     'due_in',
                 ],

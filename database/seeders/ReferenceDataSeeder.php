@@ -10,38 +10,13 @@ use Spatie\Permission\Models\Role;
 
 /**
  * Reference data the application needs to run in every environment: statuses, VAT rates, payment
- * methods, banks, categories, archive policies and the limits of the frontend plan roles. Rows
+ * methods, banks, categories and the limits of the frontend plan roles. Rows
  * are matched by their natural key, so running it again updates them instead of adding copies.
  */
 final class ReferenceDataSeeder extends Seeder
 {
     /** @var array<string, array{name: string, statuses: list<array{string, string, string}>}> */
     private const STATUSES = [
-        'invoice-statuses' => [
-            'name' => 'Invoice statuses',
-            'statuses' => [
-                [
-                    'paid',
-                    'Uhrazená',
-                    'green',
-                ],
-                [
-                    'pending',
-                    'Čeká na zaplacení',
-                    'yellow',
-                ],
-                [
-                    'partially-paid',
-                    'Částečně uhrazená',
-                    'blue',
-                ],
-                [
-                    'cancelled',
-                    'Zrušená',
-                    'gray',
-                ],
-            ],
-        ],
         'expense-statuses' => [
             'name' => 'Expense statuses',
             'statuses' => [
@@ -194,12 +169,6 @@ final class ReferenceDataSeeder extends Seeder
         'services' => ['Služby', 'různé služby'],
     ];
 
-    /** @var array<string, int> */
-    private const ARCHIVE_RETENTION_MONTHS = [
-        'invoices' => 36,
-        'invoice_products' => 36,
-    ];
-
     /**
      * Limits of the plan roles (D-047): null unlimited, 0 not allowed. The values are decided with the plans in
      * TECH_DEBT step 19.
@@ -233,7 +202,6 @@ final class ReferenceDataSeeder extends Seeder
                 $this->seedBanks();
                 $this->seedExpenseCategories();
                 $this->seedProductCategories();
-                $this->seedArchivePolicies();
                 $this->seedRoleLimits();
             },
         );
@@ -337,20 +305,6 @@ final class ReferenceDataSeeder extends Seeder
                 'product_categories',
                 ['slug' => $slug],
                 ['name' => $name, 'description' => $description],
-            );
-        }
-    }
-
-    private function seedArchivePolicies(): void
-    {
-        foreach (self::ARCHIVE_RETENTION_MONTHS as $table => $months) {
-            $this->upsert(
-                'archive_policies',
-                ['table_name' => $table],
-                [
-                    'retention_months' => $months,
-                    'date_column' => 'created_at',
-                ],
             );
         }
     }

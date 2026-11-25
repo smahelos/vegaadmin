@@ -15,7 +15,6 @@ class EloquentInvoiceRepository implements InvoiceReadRepositoryInterface, Invoi
         $query = Invoice::with([
             'invoiceProducts',
             'paymentMethod',
-            'paymentStatus',
         ]);
         $query->where('user_id', $scope->owner->value);
 

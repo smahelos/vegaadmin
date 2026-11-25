@@ -66,7 +66,7 @@
 <!-- Main invoice information -->
 <div class="mb-6">
     <div class="space-y-6">
-        <x-detail.card :title="__('invoices.sections.invoice_info')" :badge="$invoice->payment_status_name">
+        <x-detail.card :title="__('invoices.sections.invoice_info')" :badge="__('invoices.statuses.' . $status->value)">
             <div class="flex flex-col lg:flex-row gap-6">
                 <div class="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
                     <x-detail.item accent="border-indigo-500" :label="__('invoices.fields.invoice_vs_long')">{{ $invoice['invoice_vs'] }}</x-detail.item>
@@ -84,7 +84,7 @@
                         {{ number_format((float)($paymentAmount->amount ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') }}
                         {{ $paymentAmount->currency->value ?? ($invoice->payment_currency ?? 'CZK') }}
                     </x-detail.item>
-                    <x-detail.item :accent="'border-' . $invoice->status_color_class . '-500'" :label="__('invoices.status.invoice_status')">{{ $invoice->payment_status_name }}</x-detail.item>
+                    <x-detail.item :accent="'border-' . $statusColor . '-500'" :label="__('invoices.status.invoice_status')">{{ __('invoices.statuses.' . $status->value) }}</x-detail.item>
 
                     <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ks')">{{ $invoice->invoice_ks }}</x-detail.item>
                     <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ss')">{{ $invoice->invoice_ss }}</x-detail.item>

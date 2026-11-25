@@ -202,6 +202,12 @@ return [
         'invalid_iban' => 'IBAN je neplatný',
         'invalid_vat_id' => 'Daňové identifikační číslo je neplatné',
     ],
+    'statuses' => [
+        'paid' => 'Zaplaceno',
+        'pending' => 'Čeká na zaplacení',
+        'cancelled' => 'Stornováno',
+        'overdue' => 'Po splatnosti',
+    ],
     'qr_code_info' => 'Pro platbu použijte QR kód',
     'generated_at' => 'Vygenerováno',
     'defaults' => [

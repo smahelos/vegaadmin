@@ -11,7 +11,6 @@ use App\Domain\Invoice\Notifications\Enums\InvoiceReminderType;
 use App\Domain\Shared\Notifications\DTO\Recipient;
 use App\Models\Business;
 use App\Models\Invoice;
-use App\Models\Status;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -51,13 +50,12 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $now = CarbonImmutable::now();
         $date = $now->startOfDay();
         $date = $date->subDays(10);
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $invoiceFactory->create(
             [
                 'invoice_vs' => '20260001',
                 'issue_date' => $date->addDays($days),
                 'due_in' => 10,
-                'payment_status_id' => $statusQuery->sole()->id,
+                'payment_status' => InvoiceStatus::PENDING->value,
                 'contact_id' => null,
                 'supplier_name' => 'Saved supplier',
                 'supplier_email' => 'saved-supplier@example.test',
@@ -116,7 +114,7 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $invoice = $this->dueInvoice(
             ['supplier_email' => null, 'customer_email' => 'one-off@example.test'],
         );
-        $status = $invoice->payment_status_id;
+        $status = $invoice->payment_status;
 
         $this->assertSame(
             0,
@@ -124,7 +122,7 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         );
         $this->assertCount(1, $notifier->sent);
         $this->assertStringContainsString('0 upcoming, 1 today, 0 overdue', Artisan::output());
-        $this->assertSame($status, $invoice->fresh()->payment_status_id);
+        $this->assertSame($status, $invoice->fresh()->payment_status);
     }
 
     #[Test]
@@ -132,9 +130,8 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     {
         $notifier = $this->captureReminders();
         foreach ([InvoiceStatus::PAID, InvoiceStatus::CANCELLED] as $status) {
-            $statusQuery = Status::where('slug', $status->value);
             $this->dueInvoice(
-                ['payment_status_id' => $statusQuery->sole()->id],
+                ['payment_status' => $status->value],
             );
         }
         $this->dueInvoice(['due_in' => 12]);
@@ -243,13 +240,12 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
         $invoiceFactory = Invoice::factory();
 
         $now = CarbonImmutable::now();
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
 
         return $invoiceFactory->create(
             $overrides + [
                 'issue_date' => $now->subDays(10),
                 'due_in' => 10,
-                'payment_status_id' => $statusQuery->sole()->id,
+                'payment_status' => InvoiceStatus::PENDING->value,
                 'supplier_email' => 'supplier@example.test',
                 'customer_email' => 'customer@example.test',
             ],

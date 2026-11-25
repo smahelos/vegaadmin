@@ -6,7 +6,6 @@ use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -34,16 +33,6 @@ class Status extends Model
     | RELATIONS
     |--------------------------------------------------------------------------
     */
-    /**
-     * Get all invoices with this status
-     *
-     * @return HasMany<Invoice, $this>
-     */
-    public function invoices(): HasMany
-    {
-        return $this->hasMany(Invoice::class, 'payment_status_id');
-    }
-
     /**
      * Get the category of this status
      *

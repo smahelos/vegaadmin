@@ -202,6 +202,12 @@ return [
         'invalid_iban' => 'IBAN is invalid',
         'invalid_vat_id' => 'VAT ID is invalid',
     ],
+    'statuses' => [
+        'paid' => 'Paid',
+        'pending' => 'Pending',
+        'cancelled' => 'Cancelled',
+        'overdue' => 'Overdue',
+    ],
     'qr_code_info' => 'Use the QR code for payment',
     'generated_at' => 'Generated at',
     'defaults' => [

@@ -7,6 +7,17 @@ use App\Models\PaymentMethod;
 
 trait InvoiceFormFields
 {
+    /** @return array<string, string> status labels by value */
+    public static function statusOptions(): array
+    {
+        $statuses = [];
+        foreach (InvoiceStatus::cases() as $status) {
+            $statuses[$status->value] = __('invoices.statuses.' . $status->value);
+        }
+
+        return $statuses;
+    }
+
     /**
      * Get invoice form field definitions; the parties come from the party picker
      *
@@ -14,10 +25,7 @@ trait InvoiceFormFields
      */
     protected function getInvoiceFields(array $paymentMethods = []): array
     {
-        $statuses = [];
-        foreach (InvoiceStatus::cases() as $status) {
-            $statuses[$status->value] = __('statuses.statuses.' . $status->value);
-        }
+        $statuses = self::statusOptions();
 
         return [
             // INVOICE data

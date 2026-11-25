@@ -672,10 +672,6 @@ final class DevelopmentDataSeeder extends Seeder
                 'Payment method ' . PaymentMethodCode::BANK_ACCOUNT->value . ' is missing; run ReferenceDataSeeder first',
             );
         }
-        $statusIds = [];
-        foreach (InvoiceStatus::cases() as $status) {
-            $statusIds[$status->value] = $this->statusId('invoice-statuses', $status->value);
-        }
         $contactCustomers = [];
         foreach ($customers as $contact) {
             $contactCustomers[] = [
@@ -751,7 +747,7 @@ final class DevelopmentDataSeeder extends Seeder
                         'issue_date' => $date->format('Y-m-d'),
                         'tax_point_date' => $date->format('Y-m-d'),
                         'due_in' => self::DUE_IN_DAYS,
-                        'payment_status_id' => $statusIds[$status->value],
+                        'payment_status' => $status->value,
                         'payment_amount' => $total->amount,
                         'payment_currency' => Currency::CZK->value,
                         'created_at' => $date,
@@ -782,7 +778,6 @@ final class DevelopmentDataSeeder extends Seeder
 
         return match (true) {
             $roll <= 75 => InvoiceStatus::PAID,
-            $roll <= 85 => InvoiceStatus::PARTIALLY_PAID,
             $roll <= 95 => InvoiceStatus::PENDING,
             default => InvoiceStatus::CANCELLED,
         };

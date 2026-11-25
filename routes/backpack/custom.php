@@ -17,7 +17,6 @@ use App\Application\Party\Commands\SetDefaultBankAccount;
 use App\Application\Party\Commands\SetDefaultBusiness;
 use App\Application\User\Queries\GetEntityUsage;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\ArchivePolicyCrudController;
 use App\Http\Controllers\Admin\BankAccountCrudController;
 use App\Http\Controllers\Admin\BankCrudController;
 use App\Http\Controllers\Admin\BusinessCrudController;
@@ -142,7 +141,6 @@ Route::group(
         $route->name('admin.database.run-command');
         Route::crud('database-maintenance-log', DatabaseMaintenanceLogCrudController::class);
         Route::crud('performance-metric', PerformanceMetricCrudController::class);
-        Route::crud('archive-policy', ArchivePolicyCrudController::class);
         Route::crud('mysql-optimization-log', MysqlOptimizationLogCrudController::class);
         Route::post('database-dashboard/resolve-alert', [DatabaseDashboardController::class, 'resolveAlert']);
         Route::post(

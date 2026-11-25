@@ -12,6 +12,7 @@ use App\Application\Invoice\Commands\SetInvoiceTemplate;
 use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
 use App\Application\Invoice\DTO\PdfInvoiceDTO;
+use App\Application\Invoice\Presenters\InvoiceStatusPresenter;
 use App\Application\Invoice\Queries\GetGuestInvoicePdf;
 use App\Application\Invoice\Queries\GetInvoice;
 use App\Application\Invoice\Queries\GetInvoiceCreateForm;
@@ -48,6 +49,7 @@ final class InvoiceController extends Controller
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly InvoiceRequestAssemblerInterface $invoiceRequestAssembler,
         private readonly CountryOptionsPresenter $countries,
+        private readonly InvoiceStatusPresenter $statuses,
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
@@ -170,10 +172,13 @@ final class InvoiceController extends Controller
             ),
         );
 
+        $data = $invoice->toArray();
+
         return view(
             'frontend.invoices.show',
             [
-                ...$invoice->toArray(),
+                ...$data,
+                'statusColor' => $this->statuses->color($data['status']),
                 'countries' => $this->countries->options($locale),
             ],
         );

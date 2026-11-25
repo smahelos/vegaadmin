@@ -4,7 +4,6 @@ return [
     'menu' => [
         'title' => 'Správa databáze',
         'monitoring' => 'Monitorování',
-        'configuration' => 'Konfigurace',
     ],
     'dashboard' => [
         'title' => 'Přehled databáze',
@@ -16,9 +15,6 @@ return [
         'alert_resolved' => 'Výstraha byla úspěšně vyřešena',
         'alert_resolved_successfully' => 'Výstraha byla úspěšně označena jako vyřešená',
         'alert_type' => 'Typ výstrahy',
-        'archive_completed' => 'Archivace byla úspěšně dokončena',
-        'archive_failed' => 'Archivace selhala',
-        'archived_records' => 'Archivované záznamy',
         'average' => 'Průměr',
         'avg_query_time' => 'Průměrný čas dotazu',
         'cancel' => 'Zrušit',
@@ -104,7 +100,6 @@ return [
         'refresh_metrics' => 'Aktualizovat metriky',
         'resolve' => 'Vyřešit',
         'resolved' => 'Vyřešeno',
-        'run_archive' => 'Spustit archivaci',
         'run_health_check' => 'Spustit kontrolu zdraví',
         'run_monitoring' => 'Spustit monitorování',
         'run_optimization' => 'Spustit optimalizaci',
@@ -145,35 +140,6 @@ return [
         'disk_usage' => 'Využití disku',
         'lock_wait_time' => 'Čekání na zámky',
     ],
-    'archive_policies' => [
-        'entity' => [
-            'singular' => 'Archivační pravidlo',
-            'plural' => 'Archivační pravidla',
-        ],
-        'fields' => [
-            'table_name' => 'Název tabulky',
-            'retention_months' => 'Doba uchovávání (měsíce)',
-            'date_column' => 'Sloupec s datem',
-            'is_active' => 'Aktivní',
-            'description' => 'Popis',
-            'created_at' => 'Vytvořeno',
-        ],
-        'hints' => [
-            'table_name' => 'Název tabulky v databázi',
-            'retention_months' => 'Počet měsíců, po které se data uchovávají',
-            'retention_months_suffix' => ' měsíců',
-            'date_column' => 'Název sloupce s časovým razítkem',
-            'description' => 'Popis archivačního pravidla',
-        ],
-        'form_help' => [
-            'title' => 'Konfigurace archivní politiky',
-            'description' => 'Volitelný popis účelu této archivní politiky pro lepší dokumentaci',
-            'table_name' => 'Název databázové tabulky, pro kterou se politika aplikuje (např. invoices, clients, suppliers)',
-            'retention_months' => 'Počet měsíců, po které se data uchovávají v aktivní tabulce. Starší záznamy budou přesunuty do archivu',
-            'date_column' => 'Název sloupce s datem, podle kterého se určuje stáří záznamu (obvykle created_at nebo updated_at)',
-            'is_active' => 'Určuje, zda je archivní politika aktivní a bude se automaticky spouštět',
-        ],
-    ],
     'maintenance_logs' => [
         'entity' => [
             'singular' => 'Záznam údržby',
@@ -195,9 +161,6 @@ return [
             'running' => 'Běží',
             'not_available' => 'Nedostupné',
             'no_results' => 'Žádné výsledky',
-            'archive_results' => 'Výsledky archivace',
-            'archived_records' => 'Archivované záznamy',
-            'archive_location' => 'Umístění archivu',
             'monitor_results' => 'Výsledky monitorování',
             'task_results' => 'Výsledky úkolu',
             'before_optimization' => 'Před optimalizací',

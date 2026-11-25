@@ -5,14 +5,13 @@ declare(strict_types=1);
 namespace App\Domain\Invoice\Enums;
 
 /**
- * Payment status of an invoice. The value is the slug of a statuses row in the invoice-statuses
- * category. Being overdue is not a status: it follows from an unpaid status and a past due date.
+ * Payment status of an invoice, stored in `invoices.payment_status`. Being overdue is not a status: it follows
+ * from an unpaid status and a past due date.
  */
 enum InvoiceStatus: string
 {
     case PAID = 'paid';
     case PENDING = 'pending';
-    case PARTIALLY_PAID = 'partially-paid';
     case CANCELLED = 'cancelled';
 
     /**
@@ -20,7 +19,7 @@ enum InvoiceStatus: string
      */
     public function isUnpaid(): bool
     {
-        return $this === self::PENDING || $this === self::PARTIALLY_PAID;
+        return $this === self::PENDING;
     }
 
     /**

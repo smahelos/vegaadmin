@@ -49,7 +49,6 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
@@ -298,14 +297,12 @@ final class InvoiceUseCasesTest extends TestCase
         $invoiceFactory = $invoiceFactory->connection('contact_race');
         $paymentMethodQuery = PaymentMethod::on('contact_race');
         $paymentMethodQuery->where('slug', 'cash');
-        $statusQuery = Status::on('contact_race');
-        $statusQuery->where('slug', 'pending');
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $owner->id,
                 'business_id' => $business->id,
                 'payment_method_id' => $paymentMethodQuery->value('id'),
-                'payment_status_id' => $statusQuery->value('id'),
+                'payment_status' => InvoiceStatus::PENDING->value,
                 'customer_company_number' => null,
             ],
         );
@@ -369,13 +366,12 @@ final class InvoiceUseCasesTest extends TestCase
             ),
         );
 
-        $statusQuery = Status::where('slug', InvoiceStatus::PAID->value);
         $this->assertDatabaseHas(
             'invoices',
             [
                 'id' => $invoice->id,
                 'template' => InvoiceTemplate::MODERN->value,
-                'payment_status_id' => $statusQuery->value('id'),
+                'payment_status' => InvoiceStatus::PAID->value,
             ],
         );
     }
@@ -714,7 +710,6 @@ final class InvoiceUseCasesTest extends TestCase
     private function guestValidated(): array
     {
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $statusQuery = Status::where('slug', InvoiceStatus::PENDING->value);
         $now = CarbonImmutable::now();
         $today = $now->format('Y-m-d');
 
@@ -725,7 +720,6 @@ final class InvoiceUseCasesTest extends TestCase
             'issue_date' => $today,
             'tax_point_date' => $today,
             'due_in' => 14,
-            'payment_status_id' => $statusQuery->value('id'),
             'invoice_text' => 'Test invoice',
             'template' => InvoiceTemplate::DEFAULT->value,
             'invoice-products' => [

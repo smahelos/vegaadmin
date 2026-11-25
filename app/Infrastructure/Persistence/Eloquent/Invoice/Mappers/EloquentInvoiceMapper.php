@@ -25,8 +25,6 @@ final class EloquentInvoiceMapper
         $totalTax = $model->getAttribute('total_tax_money') ?? $model->total_tax_money ?? null;
         $totalAmount = $model->getAttribute('payment_amount_money') ?? $model->payment_amount_money ?? null;
 
-        $status = $model->getAttribute('payment_status_name') ?? $model->payment_status_name ?? null;
-
         // Include items using computed accessor; repository will eager-load relation to avoid N+1
         // This returns an array shape like: [ ['name'=>..., 'quantity'=>..., 'price'=>..., 'currency'=>..., 'tax_rate'=>..., 'tax_amount'=>..., 'total_price'=>...], ... ]
         $items = $model->getAttribute('invoice_products_data') ?? $model->invoice_products_data ?? [];
@@ -58,14 +56,12 @@ final class EloquentInvoiceMapper
                 ),
                 'items' => $items,
                 'created_at' => $model->getAttribute('created_at'),
-                'status' => $status,
+                'status' => $model->payment_status,
             ],
         );
     }
 
     /**
-     * The status is stored as a reference to its statuses row, which the repository resolves.
-     *
      * @return array<string, mixed>
      */
     public function toAttributes(
@@ -86,6 +82,7 @@ final class EloquentInvoiceMapper
             'payment_amount' => $total->amount,
             'invoice_text' => $data->text,
             'template' => $data->template->value,
+            'payment_status' => $data->status->value,
         ];
     }
 }

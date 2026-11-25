@@ -1,6 +1,6 @@
 # System context
 
-Status: maintained map of the code on `main`, last checked 2026-11-24. Start with [the system overview](OVERVIEW.md). Permissions are in `rules/permissions.md`; the payment reminders a cron task runs are in [INVOICE.md](INVOICE.md).
+Status: maintained map of the code on `main`, last checked 2026-11-25. Start with [the system overview](OVERVIEW.md). Permissions are in `rules/permissions.md`; the payment reminders a cron task runs are in [INVOICE.md](INVOICE.md).
 
 The admin screens that run the application rather than the business: cron tasks and the scheduler, clearing the application caches, and database maintenance. Composition root: `SystemServiceProvider`. Cron tasks and caches follow the standard; database maintenance predates it and works through models, `DB::` and Artisan calls in the controller and the console commands ("Step 20: System admin screens" in [TECH_DEBT](../TECH_DEBT.md)).
 
@@ -9,14 +9,12 @@ The admin screens that run the application rather than the business: cron tasks 
 | Entity | Table | Code |
 |---|---|---|
 | Cron task | `cron_tasks` (`database/migrations/2026_10_25_000012_create_console_tables.php`) | `App\Models\CronTask`, `CronTaskDTO` with `CronTaskId`, `ScheduledCommand` (the commands a task may run, stored as the command name), `CronTaskFrequency`, `CommandOptions`; ports `CronTaskReadRepositoryInterface`, `CronTaskWriteRepositoryInterface` (`EloquentCronTaskRepository`) |
-| Archive policy | `archive_policies` | `App\Models\ArchivePolicy` |
 | Maintenance log | `database_maintenance_logs` | `App\Models\DatabaseMaintenanceLog` |
 | Performance metric | `performance_metrics` | `App\Models\PerformanceMetric` |
 | MySQL optimization log | `mysql_optimization_logs` | `App\Models\MysqlOptimizationLog` |
 | Health metric and alert | `database_health_metrics`, `database_health_alerts` | `App\Models\DatabaseHealthMetric`, `App\Models\DatabaseHealthAlert` |
-| Archived invoices | `invoices_archive`, `invoice_products_archive` | none; written only by `db:archive` |
 
-The maintenance tables are created in `database/migrations/2026_10_25_000014_create_database_maintenance_tables.php`. The cron tasks of a fresh database come from `CronTasksSeeder` (`invoices:check-payment-status` with its default options).
+The maintenance tables are created in `database/migrations/2026_10_25_000014_create_database_maintenance_tables.php`. Its archive tables are dropped again: issued documents stay in the main tables (D-050). The cron tasks of a fresh database come from `CronTasksSeeder` (`invoices:check-payment-status` with its default options).
 
 ## Use cases
 
@@ -48,19 +46,18 @@ The Cache menu in `resources/views/vendor/backpack/ui/inc/menu_items.blade.php`,
 
 ## Database maintenance
 
-Every screen needs `system.configure`: the menu, the CRUD screens (`ArchivePolicyCrudController`, `DatabaseMaintenanceLogCrudController`, `PerformanceMetricCrudController`, `MysqlOptimizationLogCrudController`) and `DatabaseDashboardController`, whose `DatabaseDashboardRequest::authorize()` asks the gate's `holds()`.
+Every screen needs `system.configure`: the menu, the CRUD screens (`DatabaseMaintenanceLogCrudController`, `PerformanceMetricCrudController`, `MysqlOptimizationLogCrudController`) and `DatabaseDashboardController`, whose `DatabaseDashboardRequest::authorize()` asks the gate's `holds()`.
 
 | Part | Code |
 |---|---|
-| Dashboard | `DatabaseDashboardController::index()` (`admin.database.dashboard`) reads the models into `resources/views/admin/database/dashboard.blade.php`: database size, recent maintenance tasks, the performance chart, archive statistics and health |
-| Dashboard actions | `public/assets/js/admin/database-dashboard.js` posts to `admin.database.run-command` with `optimize`, `archive`, `monitor`, `health-check`, `get-trends`, `clean-metrics` or `metrics-stats`, and to `database-dashboard/resolve-alert`; the controller calls the commands below through Artisan |
+| Dashboard | `DatabaseDashboardController::index()` (`admin.database.dashboard`) reads the models into `resources/views/admin/database/dashboard.blade.php`: database size, recent maintenance tasks, the performance chart and health |
+| Dashboard actions | `public/assets/js/admin/database-dashboard.js` posts to `admin.database.run-command` with `optimize`, `monitor`, `health-check`, `get-trends`, `clean-metrics` or `metrics-stats`, and to `database-dashboard/resolve-alert`; the controller calls the commands below through Artisan |
 | `db:optimize` (`DatabaseOptimizeCommand`) | `OPTIMIZE`, `ANALYZE` and `REPAIR TABLE`; logs to `database_maintenance_logs` and `performance_metrics` |
-| `db:archive` (`DatabaseArchiveCommand`) | moves the invoices older than the enabled policy's `retention_months` with their items into the archive tables (any other table's rows are deleted instead); reads `archive_policies`, logs to `database_maintenance_logs`. Not a `ScheduledCommand`, so it runs only from the dashboard |
 | `db:monitor` (`DatabaseMonitorCommand`) | table sizes, indexes, slow queries and connections; stores them in `performance_metrics` with `--store` |
 | `db:health-check` (`DatabaseHealthCheckCommand`) | connection, cache and buffer pool status into `database_health_metrics`, alerts into `database_health_alerts` |
 | `db:clean-metrics` (`CleanPerformanceMetrics`) | deletes old and duplicate rows of `performance_metrics` |
 
-Known faults of these screens are in "Step 20: System admin screens" and the conversion notes of "Step 21: Conversion to the standard" in [TECH_DEBT](../TECH_DEBT.md): invented sample metrics, Chart.js without a pinned version, the archive policy form against the table, `db:archive` without a rollback, hand-built list columns.
+Known faults of these screens are in "Step 20: System admin screens" and the conversion notes of "Step 21: Conversion to the standard" in [TECH_DEBT](../TECH_DEBT.md): invented sample metrics, Chart.js without a pinned version, hand-built list columns.
 
 ## Events
 

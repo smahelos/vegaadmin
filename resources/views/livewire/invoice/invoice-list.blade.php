@@ -28,7 +28,7 @@
                 <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
                     <option value="">{{ __('invoices.filters.all_statuses') }}</option>
                     @foreach($statuses as $invoiceStatus)
-                        <option value="{{ $invoiceStatus->value }}">{{ __('statuses.statuses.' . $invoiceStatus->value) }}</option>
+                        <option value="{{ $invoiceStatus->value }}">{{ __('invoices.statuses.' . $invoiceStatus->value) }}</option>
                     @endforeach
                 </select>
                 <x-icon-button icon="fa-filter-circle-xmark" :label="__('invoices.filters.reset')"
@@ -128,9 +128,9 @@
                     </th>
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('payment_status_id')">
+                        <div class="flex items-center cursor-pointer" wire:click="sortBy('payment_status')">
                             {{ __('invoices.fields.status') }}
-                            @if($orderBy === 'payment_status_id')
+                            @if($orderBy === 'payment_status')
                                 <span class="ml-1">
                                     @if($orderAsc)
                                         <i class="fas fa-sort-up text-green-600"></i>
@@ -182,14 +182,10 @@
                         @endif
                     </td>
                     <td
-                        class="px-4 py-4 whitespace-nowrap text-sm bg-{{ $invoice->statusColor }}-100 text-{{ $invoice->statusColor }}-800 dark:bg-{{ $invoice->statusColor }}-700 dark:text-{{ $invoice->statusColor }}-200">
-                        @if($invoice->status)
+                        class="px-4 py-4 whitespace-nowrap text-sm bg-{{ $statusPresenter->color($invoice->status) }}-100 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:bg-{{ $statusPresenter->color($invoice->status) }}-700 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
-                            {{ __('statuses.statuses.' . $invoice->status->value) }}
+                            {{ __('invoices.statuses.' . $invoice->status->value) }}
                         </span>
-                        @else
-                        <span class="text-gray-400">—</span>
-                        @endif
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"

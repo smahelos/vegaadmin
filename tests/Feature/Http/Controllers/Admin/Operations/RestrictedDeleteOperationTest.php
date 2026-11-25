@@ -72,10 +72,10 @@ final class RestrictedDeleteOperationTest extends TestCase
                     $statusFactory = Status::factory();
                     $status = $statusFactory->create();
 
-                    $invoiceFactory = Invoice::factory();
-                    $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
+                    $expenseFactory = Expense::factory();
+                    $expense = $expenseFactory->create(['status_id' => $status->id]);
 
-                    return $invoice->payment_status_id;
+                    return $expense->status_id;
                 },
             ],
             'subscription plan' => [

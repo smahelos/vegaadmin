@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Livewire\Invoice;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Livewire\Invoice\InvoiceList;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
-use App\Models\Status;
 use App\Models\User;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -66,15 +66,11 @@ final class InvoiceListFeatureTest extends TestCase
         $contact = $contactFactory->create(
             ['user_id' => $this->user->id, 'name' => 'Current Address Book Name'],
         );
-        $statusQuery = Status::where('slug', 'paid');
-        $paid = $statusQuery->value('id');
-        $statusQuery = Status::where('slug', 'pending');
-        $pending = $statusQuery->value('id');
         $base = [
             'user_id' => $this->user->id,
             'business_id' => $business->id,
             'contact_id' => $contact->id,
-            'payment_status_id' => $paid,
+            'payment_status' => InvoiceStatus::PAID->value,
             'customer_name' => 'Stored Customer',
         ];
         $invoiceFactory = Invoice::factory();
@@ -89,7 +85,10 @@ final class InvoiceListFeatureTest extends TestCase
             array_replace($base, ['contact_id' => null, 'invoice_vs' => 'ONE-OFF']),
         );
         $invoiceFactory->create(
-            array_replace($base, ['payment_status_id' => $pending, 'invoice_vs' => 'UNPAID']),
+            array_replace(
+                $base,
+                ['payment_status' => InvoiceStatus::PENDING->value, 'invoice_vs' => 'UNPAID'],
+            ),
         );
         $invoiceFactory->create(
             array_replace(
@@ -248,14 +247,13 @@ final class InvoiceListFeatureTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory = $invoiceFactory->count(12);
-        $statusQuery = Status::where('slug', 'paid');
         $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
                 'invoice_vs' => 'PAGE-001',
-                'payment_status_id' => $statusQuery->value('id'),
+                'payment_status' => InvoiceStatus::PAID->value,
             ],
         );
         $component = Livewire::test(InvoiceList::class);

@@ -19,7 +19,6 @@ use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use App\Models\Status;
 use App\Models\User;
 use DateTimeImmutable;
 use PHPUnit\Framework\Attributes\Test;
@@ -346,7 +345,6 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
         string $status,
     ): void {
         $invoiceFactory = Invoice::factory();
-        $statusQuery = Status::where('slug', $status);
         $paymentMethodQuery = PaymentMethod::where('slug', 'bankaccount');
         $invoiceFactory->create(
             [
@@ -355,7 +353,7 @@ final class EloquentApiStatisticsRepositoryTest extends TestCase
                 'issue_date' => $issueDate,
                 'due_in' => 14,
                 'payment_amount' => $amount,
-                'payment_status_id' => $statusQuery->value('id'),
+                'payment_status' => $status,
                 'payment_method_id' => $paymentMethodQuery->value('id'),
             ],
         );

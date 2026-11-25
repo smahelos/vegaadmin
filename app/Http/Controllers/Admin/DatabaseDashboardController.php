@@ -37,9 +37,6 @@ class DatabaseDashboardController extends CrudController
         $performanceTrends = $this->getPerformanceTrends();
         $availableMetricTypes = $this->getAvailableMetricTypes();
 
-        // Get archive statistics
-        $archiveStats = $this->getArchiveStats();
-
         // Get health monitoring status
         $healthStatus = $this->getHealthStatus();
 
@@ -52,7 +49,6 @@ class DatabaseDashboardController extends CrudController
                 'recentTasks',
                 'performanceTrends',
                 'availableMetricTypes',
-                'archiveStats',
                 'healthStatus',
             ),
         );
@@ -352,33 +348,6 @@ class DatabaseDashboardController extends CrudController
         ];
 
         return $units[$metricType] ?? 'units';
-    }
-
-    /**
-     * Get archive statistics
-     */
-    private function getArchiveStats(): array
-    {
-        try {
-            $query = DB::table('invoices_archive');
-            $archivedInvoices = $query->count();
-            $query = DB::table('invoice_products_archive');
-            $archivedProducts = $query->count();
-
-            return [
-                'archived_records' => $archivedInvoices + $archivedProducts,
-                'archived_invoices' => $archivedInvoices,
-                'archived_products' => $archivedProducts,
-            ];
-        } catch (\Exception $e) {
-            Log::error('Failed to get archive stats', ['exception' => $e]);
-
-            return [
-                'archived_records' => 0,
-                'archived_invoices' => 0,
-                'archived_products' => 0,
-            ];
-        }
     }
 
     /**
@@ -838,46 +807,6 @@ class DatabaseDashboardController extends CrudController
     }
 
     /**
-     * Run database archive command via AJAX
-     */
-    public function runArchive(Request $request): JsonResponse
-    {
-        $table = $request->get('table', 'invoices');
-        $dryRun = $request->boolean('dry_run');
-
-        try {
-            $commandOptions = [
-                '--table' => $table,
-                '--dry-run' => $dryRun,
-            ];
-
-            Artisan::call('db:archive', $commandOptions);
-            $output = Artisan::output();
-
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                [
-                    'success' => true,
-                    'message' => __('admin/database.dashboard.archive_completed'),
-                    'output' => $output,
-                ],
-            );
-        } catch (\Exception $e) {
-            Log::error('Database archive failed', ['exception' => $e]);
-
-            $responseFactory = response();
-
-            return $responseFactory->json(
-                [
-                    'success' => false,
-                    'message' => __('admin/database.dashboard.archive_failed'),
-                ],
-            );
-        }
-    }
-
-    /**
      * Run database commands via AJAX
      */
     public function runCommand(DatabaseDashboardRequest $request): JsonResponse
@@ -888,8 +817,6 @@ class DatabaseDashboardController extends CrudController
             switch ($command) {
                 case 'optimize':
                     return $this->runOptimize($request);
-                case 'archive':
-                    return $this->runArchive($request);
                 case 'monitor':
                     return $this->runMonitor($request);
                 case 'health-check':
@@ -1165,9 +1092,6 @@ class DatabaseDashboardController extends CrudController
                     $totalSavings += (float) $table['space_freed'];
                 }
             }
-        } elseif (isset($results['archived_records']) && isset($results['estimated_space_freed'])) {
-            // Archive task results
-            $totalSavings = (float) $results['estimated_space_freed'];
         }
 
         // Convert bytes to appropriate unit

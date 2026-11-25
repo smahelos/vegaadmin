@@ -17,7 +17,7 @@ Subscriptions to a plan paid by card through GoPay, the QR payment code on invoi
 
 Values: `BankAccount` (a Czech or Slovak account number with bank code, or an IBAN; `BankAccountProblem` says why one is refused), `QrPaymentDTO`, `PaymentMethodId`.
 
-The `payments` table belongs to subscriptions: invoices have no payment records ("Partial payments are a status without an amount" in [TECH_DEBT](../TECH_DEBT.md)). The Application ports `PaymentReadRepositoryInterface`, `PaymentWriteRepositoryInterface`, `SubscriptionReadRepositoryInterface` and `SubscriptionWriteRepositoryInterface` are bound in the provider but used by no code ("Two sets of repositories" in [TECH_DEBT](../TECH_DEBT.md)).
+The `payments` table belongs to subscriptions: invoices have no payment records ("Invoices have no payment records" in [TECH_DEBT](../TECH_DEBT.md)). The Application ports `PaymentReadRepositoryInterface`, `PaymentWriteRepositoryInterface`, `SubscriptionReadRepositoryInterface` and `SubscriptionWriteRepositoryInterface` are bound in the provider but used by no code ("Two sets of repositories" in [TECH_DEBT](../TECH_DEBT.md)).
 
 ## Use cases
 

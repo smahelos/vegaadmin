@@ -8,7 +8,6 @@ use App\Domain\User\Enums\Permission;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\Permission as PermissionModel;
-use App\Models\Status;
 use App\Models\User;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsInvoiceInput;
@@ -279,7 +278,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $invoice = $invoiceQuery->sole();
         $this->assertSame('0308', $invoice->invoice_ks);
         $this->assertSame('modern', $invoice->template);
-        $this->assertSame(InvoiceStatus::PENDING->value, $invoice->paymentStatus->slug);
+        $this->assertSame(InvoiceStatus::PENDING, $invoice->payment_status);
         $this->assertSame('100.00', $invoice->payment_amount);
 
         $response = $this->put(
@@ -301,7 +300,7 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->assertNull($invoice->invoice_ks);
         $this->assertNull($invoice->invoice_text);
         $this->assertSame('modern', $invoice->template);
-        $this->assertSame(InvoiceStatus::PAID->value, $invoice->paymentStatus->slug);
+        $this->assertSame(InvoiceStatus::PAID, $invoice->payment_status);
         $this->assertSame(
             '2026-01-15',
             $invoice->issue_date->format('Y-m-d'),
@@ -339,14 +338,11 @@ class InvoiceControllerFeatureTest extends TestCase
     public function mark_as_paid_updates_status(): void
     {
         $this->actingAs($this->user, 'web');
-        $statusQuery = Status::where('slug', 'paid');
-        $paidStatus = $statusQuery->firstOrFail();
-
         $this->put(
             route('frontend.invoice.mark-as-paid', ['locale' => 'en', 'id' => $this->invoice->id]),
         );
         $this->invoice->refresh();
-        $this->assertEquals($paidStatus->id, $this->invoice->payment_status_id);
+        $this->assertSame(InvoiceStatus::PAID, $this->invoice->payment_status);
     }
 
     #[Test]

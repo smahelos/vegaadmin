@@ -38,6 +38,7 @@ class Invoice extends Model
         'tax_point_date' => 'datetime:Y-m-d',
         'due_in' => 'integer',
         'payment_amount' => 'decimal:2',
+        'payment_status' => InvoiceStatus::class,
     ];
 
     /*
@@ -103,37 +104,11 @@ class Invoice extends Model
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * Get the payment status of the invoice
-     *
-     * @return BelongsTo<Status, $this>
-     */
-    public function paymentStatus(): BelongsTo
-    {
-        return $this->belongsTo(Status::class, 'payment_status_id');
-    }
-
     /*
     |--------------------------------------------------------------------------
     | FUNCTIONS
     |--------------------------------------------------------------------------
     */
-    /**
-     * Get translated payment status name
-     */
-    public function getPaymentStatusNameAttribute(): string
-    {
-        return $this->paymentStatus ? $this->paymentStatus->translated_name : __('invoices.placeholders.not_available');
-    }
-
-    /**
-     * Get CSS class for payment status display with fallback
-     */
-    public function getStatusColorClassAttribute(): string
-    {
-        return $this->paymentStatus?->color ?: 'gray';
-    }
-
     /**
      * @return Attribute<?CarbonImmutable, never>
      */
@@ -157,7 +132,7 @@ class Invoice extends Model
     protected function paid(): Attribute
     {
         return Attribute::get(
-            fn (): bool => $this->invoiceStatus() === InvoiceStatus::PAID,
+            fn (): bool => $this->payment_status === InvoiceStatus::PAID,
         );
     }
 
@@ -170,7 +145,7 @@ class Invoice extends Model
     {
         return Attribute::get(
             function (): bool {
-                $status = $this->invoiceStatus();
+                $status = $this->payment_status;
                 if ($status === null || !$status->isUnpaid() || $this->issue_date === null || $this->due_in === null) {
                     return false;
                 }
@@ -181,11 +156,6 @@ class Invoice extends Model
                 return $dueDate->daysUntil($today->toDateTimeImmutable()) < 0;
             },
         );
-    }
-
-    private function invoiceStatus(): ?InvoiceStatus
-    {
-        return InvoiceStatus::tryFrom($this->paymentStatus?->slug ?? '');
     }
 
     /*

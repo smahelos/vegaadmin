@@ -9,7 +9,6 @@ use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
 use App\Models\Product;
-use App\Models\Status;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -60,19 +59,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function it_belongs_to_payment_status(): void
-    {
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create();
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
-
-        $relation = $invoice->paymentStatus();
-        $this->assertInstanceOf(BelongsTo::class, $relation);
-        $this->assertEquals($status->id, $invoice->paymentStatus->id);
-    }
-
-    #[Test]
     public function it_belongs_to_many_products(): void
     {
         $invoiceFactory = Invoice::factory();
@@ -90,81 +76,6 @@ class InvoiceFeatureTest extends TestCase
 
         $relation = $invoice->invoiceProducts();
         $this->assertInstanceOf(HasMany::class, $relation);
-    }
-
-    #[Test]
-    public function get_payment_status_name_attribute_returns_translated_name(): void
-    {
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create(['name' => 'Paid']);
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
-
-        $statusName = $invoice->getPaymentStatusNameAttribute();
-
-        $this->assertEquals('Paid', $statusName);
-    }
-
-    #[Test]
-    public function payment_status_name_is_translated_by_status_slug(): void
-    {
-        $statusQuery = Status::where('slug', 'partially-paid');
-        $statusFactory = Status::factory();
-        $status = $statusQuery->first()
-            ?? $statusFactory->create(['slug' => 'partially-paid', 'name' => 'Částečně uhrazená']);
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
-
-        $this->assertSame(
-            __('statuses.statuses.partially-paid'),
-            $invoice->payment_status_name,
-        );
-    }
-
-    #[Test]
-    public function get_payment_status_name_attribute_returns_fallback_when_no_status(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => null]);
-
-        $statusName = $invoice->getPaymentStatusNameAttribute();
-
-        $this->assertIsString($statusName);
-    }
-
-    #[Test]
-    public function get_status_color_class_attribute_returns_status_color(): void
-    {
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create(['color' => 'green']);
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
-
-        $colorClass = $invoice->getStatusColorClassAttribute();
-
-        $this->assertEquals('green', $colorClass);
-    }
-
-    #[Test]
-    public function get_status_color_class_attribute_returns_gray_when_status_has_no_color(): void
-    {
-        $statusFactory = Status::factory();
-        $status = $statusFactory->create(['color' => '']);
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => $status->id]);
-
-        $this->assertSame('gray', $invoice->status_color_class);
-    }
-
-    #[Test]
-    public function get_status_color_class_attribute_returns_gray_when_no_status(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['payment_status_id' => null]);
-
-        $colorClass = $invoice->getStatusColorClassAttribute();
-
-        $this->assertEquals('gray', $colorClass);
     }
 
     #[Test]
@@ -204,14 +115,14 @@ class InvoiceFeatureTest extends TestCase
             $this->invoiceDueDaysAgo(InvoiceStatus::PAID, 0)->paid,
         );
         $this->assertFalse(
-            $this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 0)->paid,
+            $this->invoiceDueDaysAgo(InvoiceStatus::PENDING, 0)->paid,
         );
     }
 
     #[Test]
     public function unpaid_invoice_is_overdue_the_day_after_its_due_date(): void
     {
-        $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PARTIALLY_PAID, 1);
+        $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PENDING, 1);
 
         $this->assertTrue($invoice->overdue);
     }
@@ -385,13 +296,12 @@ class InvoiceFeatureTest extends TestCase
     {
         $invoiceFactory = Invoice::factory();
 
-        $statusQuery = Status::where('slug', $status->value);
         $now = CarbonImmutable::now();
         $issueDate = $now->subDays(14 + $days);
 
         return $invoiceFactory->create(
             [
-                'payment_status_id' => $statusQuery->firstOrFail()->id,
+                'payment_status' => $status->value,
                 'issue_date' => $issueDate->toDateString(),
                 'due_in' => 14,
             ],

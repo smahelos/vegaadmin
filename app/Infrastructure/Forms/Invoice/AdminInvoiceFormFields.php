@@ -17,7 +17,7 @@ final class AdminInvoiceFormFields
     public static function statusFilter(): array
     {
         return [
-            'name' => 'payment_status_id',
+            'name' => 'payment_status',
             'type' => 'select2',
             'label' => __('invoices.fields.status'),
         ];
@@ -53,7 +53,7 @@ final class AdminInvoiceFormFields
                 case 'select_from_array':
                     $field['type'] = 'select2_from_array';
                     if ($field['name'] === 'status' && $document !== null) {
-                        $field['value'] = $document->paymentStatus?->slug;
+                        $field['value'] = $document->payment_status->value;
                     }
                     $current = $document?->getAttribute($field['name']);
                     if (filled($current) && !array_key_exists($current, $field['options'])) {

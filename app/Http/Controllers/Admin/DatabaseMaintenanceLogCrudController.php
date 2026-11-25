@@ -255,8 +255,6 @@ final class DatabaseMaintenanceLogCrudController extends CrudController
         switch ($taskType) {
             case 'optimize':
                 return $this->formatOptimizeResults($results);
-            case 'archive':
-                return $this->formatArchiveResults($results);
             case 'monitor':
                 return $this->formatMonitorResults($results);
             default:
@@ -345,28 +343,6 @@ final class DatabaseMaintenanceLogCrudController extends CrudController
             }
         }
 
-        $html .= '</div>';
-
-        return $html;
-    }
-
-    /**
-     * Format archive task results
-     */
-    private function formatArchiveResults(array $results): string
-    {
-        $html = '<div class="maintenance-results">';
-        $html .= '<h6 class="text-warning">' . __('admin/database.maintenance_logs.labels.archive_results') . '</h6>';
-
-        if (isset($results['archived_records'])) {
-            $html .= '<p><strong>' . __('admin/database.maintenance_logs.labels.archived_records') . ':</strong> ' . number_format($results['archived_records']) . '</p>';
-        }
-
-        if (isset($results['archive_location'])) {
-            $html .= '<p><strong>' . __('admin/database.maintenance_logs.labels.archive_location') . ':</strong> ' . $results['archive_location'] . '</p>';
-        }
-
-        $html .= '<pre class="bg-light p-3">' . json_encode($results, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) . '</pre>';
         $html .= '</div>';
 
         return $html;

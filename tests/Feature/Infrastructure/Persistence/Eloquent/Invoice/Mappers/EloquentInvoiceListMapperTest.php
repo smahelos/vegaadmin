@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceListMapper;
 use App\Models\Invoice;
@@ -59,6 +60,7 @@ final class EloquentInvoiceListMapperTest extends TestCase
                 'customer_name' => 'Customer',
                 'payment_amount' => '1.00',
                 'payment_currency' => 'CZK',
+                'payment_status' => InvoiceStatus::PENDING->value,
                 'issue_date' => $issueDate,
                 'due_in' => $days,
             ],

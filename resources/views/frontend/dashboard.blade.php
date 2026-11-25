@@ -240,18 +240,16 @@
     window.translations = window.translations || {};
     window.translations.dashboard = window.translations.dashboard || {};
     window.translations.dashboard.charts = {
-        billedAmount: "{{ __('dashboard.charts.billed_currency') }}",
-        paidAmount: "{{ __('dashboard.charts.paid_currency') }}",
-        amount: "{{ __('dashboard.charts.amount') }}",
-        revenue: "{{ __('dashboard.charts.revenue') }}",
-        expenses: "{{ __('dashboard.charts.expenses') }}",
-        paid: "{{ __('statuses.statuses.paid') }}",
-        partiallyPaid: "{{ __('statuses.statuses.partially-paid') }}",
-        pending: "{{ __('statuses.statuses.pending') }}",
-        overdue: "{{ __('statuses.statuses.overdue') }}",
-        draft: "{{ __('statuses.statuses.draft') }}",
-        cancelled: "{{ __('statuses.statuses.cancelled') }}",
-        noData: "{{ __('dashboard.charts.no_data') }}",
+        billedAmount: @js(__('dashboard.charts.billed_currency')),
+        paidAmount: @js(__('dashboard.charts.paid_currency')),
+        amount: @js(__('dashboard.charts.amount')),
+        revenue: @js(__('dashboard.charts.revenue')),
+        expenses: @js(__('dashboard.charts.expenses')),
+        paid: @js(__('invoices.statuses.paid')),
+        pending: @js(__('invoices.statuses.pending')),
+        overdue: @js(__('invoices.statuses.overdue')),
+        cancelled: @js(__('invoices.statuses.cancelled')),
+        noData: @js(__('dashboard.charts.no_data')),
     };
 
     // Set application currency

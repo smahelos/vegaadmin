@@ -52,9 +52,6 @@ final class ReferentialIntegrityTest extends TestCase
         $this->assertDeleteRefused($contact);
         $this->assertDeleteRefused($account);
         $this->assertDeleteRefused($invoice->paymentMethod);
-        $this->assertDeleteRefused(
-            Status::findOrFail($invoice->payment_status_id),
-        );
         $this->assertForceDeleteRefused(
             User::findOrFail($invoice->user_id),
         );
@@ -67,7 +64,6 @@ final class ReferentialIntegrityTest extends TestCase
                 'contact_id' => $contact->id,
                 'bank_account_id' => $account->id,
                 'payment_method_id' => $invoice->payment_method_id,
-                'payment_status_id' => $invoice->payment_status_id,
                 'user_id' => $invoice->user_id,
             ],
         );

@@ -38,13 +38,9 @@ final class InvoiceCrudControllerTest extends TestCase
     }
 
     #[Test]
-    public function the_status_filter_offers_only_invoice_statuses(): void
+    public function the_status_filter_offers_only_the_invoice_statuses(): void
     {
         $statusFactory = Status::factory();
-        $invoiceCategory = StatusCategory::where('slug', 'invoice-statuses');
-        $invoiceStatus = $statusFactory->create(
-            ['category_id' => $invoiceCategory->value('id')],
-        );
         $expenseCategory = StatusCategory::where('slug', 'expense-statuses');
         $expenseStatus = $statusFactory->create(
             ['category_id' => $expenseCategory->value('id')],
@@ -53,8 +49,33 @@ final class InvoiceCrudControllerTest extends TestCase
         $response = $this->get('/admin/invoice');
 
         $response->assertOk();
-        $response->assertSee($invoiceStatus->name);
+        foreach (InvoiceStatus::cases() as $status) {
+            $response->assertSee(
+                __('invoices.statuses.' . $status->value),
+            );
+        }
         $response->assertDontSee($expenseStatus->name);
+    }
+
+    // Backpack keeps its panel between requests of one test, so the search runs in its own test
+    #[Test]
+    public function the_status_filter_lists_only_invoices_in_that_status(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory->create(['payment_status' => InvoiceStatus::PAID->value]);
+        $invoiceFactory->create(['payment_status' => InvoiceStatus::PENDING->value]);
+
+        $response = $this->postJson(
+            '/admin/invoice/search?payment_status=' . InvoiceStatus::PAID->value,
+            [
+                'draw' => 1,
+                'start' => 0,
+                'length' => 10,
+            ],
+        );
+        $response = $response->assertOk();
+        $response = $response->assertJsonPath('recordsTotal', 2);
+        $response->assertJsonPath('recordsFiltered', 1);
     }
 
     #[Test]
@@ -477,7 +498,7 @@ final class InvoiceCrudControllerTest extends TestCase
         $this->assertNull($invoice->invoice_ks);
         $this->assertSame('Paid in advance', $invoice->invoice_text);
         $this->assertSame('modern', $invoice->template);
-        $this->assertSame(InvoiceStatus::PAID->value, $invoice->paymentStatus->slug);
+        $this->assertSame(InvoiceStatus::PAID, $invoice->payment_status);
         $this->assertDatabaseMissing('invoice_products', ['id' => $line->id]);
         $this->assertDatabaseHas(
             'invoice_products',

@@ -208,7 +208,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     {
         $invoice = $this->invoice();
         $invoiceMapper = app(EloquentInvoiceMapper::class);
-        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $invoice->load('invoiceProducts');
         $dto = $invoiceMapper->toDto($invoice);
         $temporaryInvoicePrintDataFactory = app(TemporaryInvoicePrintDataFactoryInterface::class);
         $print = $temporaryInvoicePrintDataFactory->fromArray(
@@ -297,7 +297,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     private function printable(Invoice $invoice): PrintableInvoiceDTO
     {
         $invoiceMapper = app(EloquentInvoiceMapper::class);
-        $invoice->load(['invoiceProducts', 'paymentStatus']);
+        $invoice->load('invoiceProducts');
         $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
