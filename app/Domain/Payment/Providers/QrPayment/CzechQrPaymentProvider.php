@@ -35,12 +35,9 @@ final class CzechQrPaymentProvider implements QrPaymentProviderInterface
             $qrParts[] = 'X-VS:' . $payload->variableSymbol->value;
         }
 
-        if (!empty($payload->message)) {
-            $qrParts[] = 'MSG:' . substr(
-                $payload->message,
-                0,
-                60,
-            );
+        $message = $payload->asciiMessage(60);
+        if ($message !== '') {
+            $qrParts[] = 'MSG:' . $message;
         }
 
         return implode('*', $qrParts);

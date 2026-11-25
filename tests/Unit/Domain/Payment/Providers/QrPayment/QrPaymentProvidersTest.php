@@ -84,6 +84,44 @@ final class QrPaymentProvidersTest extends TestCase
 
     #[Test]
     #[DataProvider('providers')]
+    public function writes_the_message_in_ascii_cut_to_the_format_length(
+        QrPaymentProviderInterface $provider,
+        string $currency,
+        string $iban,
+    ): void {
+        $account = BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+        $payment = new QrPaymentDTO(
+            null,
+            Money::fromString(
+                '10',
+                Currency::from($currency),
+            ),
+            $account,
+            'Příliš žluťoučký kůň úpěl ďábelské ódy ' . str_repeat('ř', 200),
+        );
+        $qr = $provider->generateQrString($payment);
+        $length = $provider instanceof EuropeanQrPaymentProvider ? 140 : 60;
+        $this->assertStringContainsString(
+            substr(
+                'Prilis zlutoucky kun upel dabelske ody ' . str_repeat('r', 200),
+                0,
+                $length,
+            ),
+            $qr,
+        );
+        $this->assertTrue(
+            mb_check_encoding($qr, 'ASCII'),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('providers')]
     public function rejects_missing_accounts_zero_rounded_amounts_and_unsupported_currency(
         QrPaymentProviderInterface $provider,
         string $currency,

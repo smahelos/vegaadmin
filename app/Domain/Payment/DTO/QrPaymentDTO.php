@@ -17,6 +17,25 @@ final readonly class QrPaymentDTO
         public ?string $message = null,
     ) {}
 
+    /**
+     * The message in ASCII, cut to the format's length: QR Platba reads ISO-8859-1, which lacks most Czech letters,
+     * and banks show the message as plain text.
+     */
+    public function asciiMessage(int $length): string
+    {
+        $ascii = transliterator_transliterate(
+            'Any-Latin; Latin-ASCII; [:^ASCII:] Remove',
+            mb_scrub($this->message ?? '', 'UTF-8'),
+        );
+
+        // Transliteration fails only on invalid UTF-8, which mb_scrub has replaced
+        return substr(
+            (string) $ascii,
+            0,
+            $length,
+        );
+    }
+
     /** QR formats carry two decimal places, rounded half up without a binary float conversion. */
     public function amountDecimal(): string
     {
