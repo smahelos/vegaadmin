@@ -18,8 +18,8 @@ final readonly class QrPaymentDTO
     ) {}
 
     /**
-     * The message in ASCII, cut to the format's length: QR Platba reads ISO-8859-1, which lacks most Czech letters,
-     * and banks show the message as plain text.
+     * The message in ASCII on one line, cut to the format's length: QR Platba reads ISO-8859-1, which lacks most
+     * Czech letters, and a line break would start the next field of the EPC format.
      */
     public function asciiMessage(int $length): string
     {
@@ -29,8 +29,14 @@ final readonly class QrPaymentDTO
         );
 
         // Transliteration fails only on invalid UTF-8, which mb_scrub has replaced
+        $oneLine = preg_replace(
+            '/\s+/',
+            ' ',
+            trim((string) $ascii),
+        );
+
         return substr(
-            (string) $ascii,
+            (string) $oneLine,
             0,
             $length,
         );

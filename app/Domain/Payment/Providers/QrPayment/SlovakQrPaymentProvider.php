@@ -37,7 +37,12 @@ final class SlovakQrPaymentProvider implements QrPaymentProviderInterface
 
         $message = $payload->asciiMessage(60);
         if ($message !== '') {
-            $qrParts[] = 'MSG:' . $message;
+            // The asterisk separates the fields; the format escapes it in a value
+            $qrParts[] = 'MSG:' . str_replace(
+                '*',
+                '%2A',
+                $message,
+            );
         }
 
         return implode('*', $qrParts);

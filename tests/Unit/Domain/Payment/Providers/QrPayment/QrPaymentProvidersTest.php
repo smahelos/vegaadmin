@@ -122,6 +122,39 @@ final class QrPaymentProvidersTest extends TestCase
 
     #[Test]
     #[DataProvider('providers')]
+    public function keeps_separators_and_line_breaks_of_the_message_out_of_the_fields(
+        QrPaymentProviderInterface $provider,
+        string $currency,
+        string $iban,
+    ): void {
+        $account = BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+        $payment = new QrPaymentDTO(
+            null,
+            Money::fromString(
+                '10',
+                Currency::from($currency),
+            ),
+            $account,
+            "Faktura 5*2\r\n  druhý řádek\n",
+        );
+        $qr = $provider->generateQrString($payment);
+        if ($provider instanceof EuropeanQrPaymentProvider) {
+            $lines = explode("\n", $qr);
+            $this->assertCount(11, $lines);
+            $this->assertSame('Faktura 5*2 druhy radek', $lines[10]);
+        } else {
+            $this->assertStringEndsWith('*MSG:Faktura 5%2A2 druhy radek', $qr);
+        }
+    }
+
+    #[Test]
+    #[DataProvider('providers')]
     public function rejects_missing_accounts_zero_rounded_amounts_and_unsupported_currency(
         QrPaymentProviderInterface $provider,
         string $currency,
