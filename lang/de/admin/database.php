@@ -4,7 +4,6 @@ return [
     'menu' => [
         'title' => 'Datenbankverwaltung',
         'monitoring' => 'Überwachung',
-        'configuration' => 'Konfiguration',
     ],
     'dashboard' => [
         'title' => 'Datenbank-Dashboard',
@@ -16,9 +15,6 @@ return [
         'alert_resolved' => 'Die Warnung wurde erfolgreich gelöst',
         'alert_resolved_successfully' => 'Die Warnung wurde erfolgreich als gelöst markiert',
         'alert_type' => 'Warnungstyp',
-        'archive_completed' => 'Archivierung wurde erfolgreich abgeschlossen',
-        'archive_failed' => 'Archivierung ist fehlgeschlagen',
-        'archived_records' => 'Archivierte Datensätze',
         'average' => 'Durchschnitt',
         'avg_query_time' => 'Durchschnittliche Abfragezeit',
         'cancel' => 'Abbrechen',
@@ -104,7 +100,6 @@ return [
         'refresh_metrics' => 'Metriken aktualisieren',
         'resolve' => 'Lösen',
         'resolved' => 'Gelöst',
-        'run_archive' => 'Archivierung ausführen',
         'run_health_check' => 'Gesundheitsprüfung durchführen',
         'run_monitoring' => 'Überwachung ausführen',
         'run_optimization' => 'Optimierung ausführen',
@@ -145,35 +140,6 @@ return [
         'disk_usage' => 'Nutzung des Datenträgers',
         'lock_wait_time' => 'Wartezeit auf Sperren',
     ],
-    'archive_policies' => [
-        'entity' => [
-            'singular' => 'Archivierungsrichtlinie',
-            'plural' => 'Archivierungsrichtlinien',
-        ],
-        'fields' => [
-            'table_name' => 'Tabellenname',
-            'retention_months' => 'Aufbewahrungsdauer (Monate)',
-            'date_column' => 'Datumsspalte',
-            'is_active' => 'Aktiv',
-            'description' => 'Beschreibung',
-            'created_at' => 'Erstellt',
-        ],
-        'hints' => [
-            'table_name' => 'Datenbanktabellenname',
-            'retention_months' => 'Anzahl der Monate zur Datenaufbewahrung',
-            'retention_months_suffix' => ' Monate',
-            'date_column' => 'Name der Zeitstempelspalte',
-            'description' => 'Beschreibung der Archivierungsrichtlinie',
-        ],
-        'form_help' => [
-            'title' => 'Konfiguration der Archivierungsrichtlinie',
-            'description' => 'Optionale Beschreibung des Zwecks dieser Archivierungsrichtlinie zur besseren Dokumentation',
-            'table_name' => 'Name der Datenbanktabelle, auf die die Richtlinie angewendet wird (z. B. invoices, clients, suppliers)',
-            'retention_months' => 'Anzahl der Monate, in denen die Daten in der aktiven Tabelle aufbewahrt werden. Ältere Datensätze werden in das Archiv verschoben',
-            'date_column' => 'Name der Spalte mit dem Datum, anhand dessen das Alter des Datensatzes bestimmt wird (normalerweise created_at oder updated_at)',
-            'is_active' => 'Bestimmt, ob die Archivierungsrichtlinie aktiv ist und automatisch ausgeführt wird',
-        ],
-    ],
     'maintenance_logs' => [
         'entity' => [
             'singular' => 'Wartungsprotokoll',
@@ -195,9 +161,6 @@ return [
             'running' => 'Läuft',
             'not_available' => 'Nicht verfügbar',
             'no_results' => 'Keine Ergebnisse',
-            'archive_results' => 'Archivierungsergebnisse',
-            'archived_records' => 'Archivierte Datensätze',
-            'archive_location' => 'Archivstandort',
             'monitor_results' => 'Überwachungsergebnisse',
             'task_results' => 'Aufgabenergebnisse',
             'before_optimization' => 'Vor der Optimierung',

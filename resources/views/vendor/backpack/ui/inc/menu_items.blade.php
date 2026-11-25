@@ -143,9 +143,6 @@
         :link="backpack_url('performance-metric')" />
     <x-backpack::menu-dropdown-item title="{{ __('admin/database.optimization_logs.entity.plural') }}" icon="la la-cogs"
         :link="backpack_url('mysql-optimization-log')" />
-    <x-backpack::menu-dropdown-header title="{{ __('admin/database.menu.configuration') }}" />
-    <x-backpack::menu-dropdown-item title="{{ __('admin/database.archive_policies.entity.plural') }}" icon="la la-archive"
-        :link="backpack_url('archive-policy')" />
 </x-backpack::menu-dropdown>
 @endholds
 

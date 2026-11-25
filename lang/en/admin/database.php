@@ -4,7 +4,6 @@ return [
     'menu' => [
         'title' => 'Database Management',
         'monitoring' => 'Monitoring',
-        'configuration' => 'Configuration',
     ],
     'dashboard' => [
         'title' => 'Database Dashboard',
@@ -16,9 +15,6 @@ return [
         'alert_resolved' => 'The alert has been successfully resolved',
         'alert_resolved_successfully' => 'The alert has been successfully marked as resolved',
         'alert_type' => 'Alert Type',
-        'archive_completed' => 'Archiving completed successfully',
-        'archive_failed' => 'Archiving failed',
-        'archived_records' => 'Archived Records',
         'average' => 'Average',
         'avg_query_time' => 'Avg Query Time',
         'cancel' => 'Cancel',
@@ -104,7 +100,6 @@ return [
         'refresh_metrics' => 'Refresh Metrics',
         'resolve' => 'Resolve',
         'resolved' => 'Resolved',
-        'run_archive' => 'Run Archive',
         'run_health_check' => 'Run Health Check',
         'run_monitoring' => 'Run Monitoring',
         'run_optimization' => 'Run Optimization',
@@ -145,35 +140,6 @@ return [
         'disk_usage' => 'Disk Usage',
         'lock_wait_time' => 'Lock Wait Time',
     ],
-    'archive_policies' => [
-        'entity' => [
-            'singular' => 'Archive Policy',
-            'plural' => 'Archive Policies',
-        ],
-        'fields' => [
-            'table_name' => 'Table Name',
-            'retention_months' => 'Retention (months)',
-            'date_column' => 'Date Column',
-            'is_active' => 'Active',
-            'description' => 'Description',
-            'created_at' => 'Created At',
-        ],
-        'hints' => [
-            'table_name' => 'Database table name',
-            'retention_months' => 'Number of months to keep data',
-            'retention_months_suffix' => ' months',
-            'date_column' => 'Name of the timestamp column',
-            'description' => 'Archive policy description',
-        ],
-        'form_help' => [
-            'title' => 'Archive Policy Configuration',
-            'description' => 'Optional description of the purpose of this archive policy for better documentation',
-            'table_name' => 'Name of the database table to which this policy applies (e.g. invoices, clients, suppliers)',
-            'retention_months' => 'Number of months to keep data in the active table. Older records will be moved to archive',
-            'date_column' => 'Name of the date column used to determine record age (usually created_at or updated_at)',
-            'is_active' => 'Determines whether the archive policy is active and will run automatically',
-        ],
-    ],
     'maintenance_logs' => [
         'entity' => [
             'singular' => 'Maintenance Log',
@@ -195,9 +161,6 @@ return [
             'running' => 'Running',
             'not_available' => 'Not Available',
             'no_results' => 'No Results',
-            'archive_results' => 'Archive Results',
-            'archived_records' => 'Archived Records',
-            'archive_location' => 'Archive Location',
             'monitor_results' => 'Monitor Results',
             'task_results' => 'Task Results',
             'before_optimization' => 'Before Optimization',

@@ -27,7 +27,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
 
                 <!-- Database Statistics Cards -->
                 <div class="row mb-4">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card bg-primary text-white">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -43,7 +43,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                         </div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card bg-success text-white">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -59,23 +59,7 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                         </div>
                     </div>
 
-                    <div class="col-md-3">
-                        <div class="card bg-orange text-white">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between">
-                                    <div>
-                                        <h4>{{ $archiveStats['archived_records'] ?? 0 }}</h4>
-                                        <small>{{ __('admin/database.dashboard.archived_records') }}</small>
-                                    </div>
-                                    <div class="align-self-center">
-                                        <i class="la la-archive fa-2x"></i>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <div class="card bg-info text-white">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -101,25 +85,19 @@ $breadcrumbs = $breadcrumbs ?? $defaultBreadcrumbs;
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <button type="button" class="btn btn-primary btn-block"
                                             onclick="runDatabaseCommand('optimize')">
                                             <i class="la la-cogs"></i> {{ __('admin/database.dashboard.run_optimization') }}
                                         </button>
                                     </div>
-                                    <div class="col-md-3 mb-2">
-                                        <button type="button" class="btn btn-orange btn-block"
-                                            onclick="runDatabaseCommand('archive')">
-                                            <i class="la la-archive"></i> {{ __('admin/database.dashboard.run_archive') }}
-                                        </button>
-                                    </div>
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <button type="button" class="btn btn-info btn-block"
                                             onclick="runDatabaseCommand('monitor')">
                                             <i class="la la-chart-line"></i> {{ __('admin/database.dashboard.run_monitoring') }}
                                         </button>
                                     </div>
-                                    <div class="col-md-3 mb-2">
+                                    <div class="col-md-4 mb-2">
                                         <button type="button" class="btn btn-success btn-block"
                                             onclick="runDatabaseCommand('health-check')">
                                             <i class="la la-heartbeat"></i> {{ __('admin/database.dashboard.run_health_check') }}

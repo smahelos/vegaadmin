@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Models\ArchivePolicy;
 use App\Models\Bank;
 use App\Models\BankAccount;
 use App\Models\Business;
@@ -56,7 +55,6 @@ class AdminCrudSmokeTest extends TestCase
     public static function cruds(): array
     {
         return [
-            'archive-policy' => ['archive-policy', ArchivePolicy::class],
             'bank' => ['bank', Bank::class],
             'bank-account' => ['bank-account', BankAccount::class],
             'business' => ['business', Business::class],

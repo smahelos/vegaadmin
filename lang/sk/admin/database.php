@@ -4,7 +4,6 @@ return [
     'menu' => [
         'title' => 'Správa databázy',
         'monitoring' => 'Monitorovanie',
-        'configuration' => 'Konfigurácia',
     ],
     'dashboard' => [
         'title' => 'Prehľad databázy',
@@ -16,9 +15,6 @@ return [
         'alert_resolved' => 'Upozornenie bolo úspešne vyriešené',
         'alert_resolved_successfully' => 'Upozornenie bolo úspešne označené ako vyriešené',
         'alert_type' => 'Typ upozornenia',
-        'archive_completed' => 'Archivácia bola úspešne dokončená',
-        'archive_failed' => 'Archivácia zlyhala',
-        'archived_records' => 'Archivované záznamy',
         'average' => 'Priemer',
         'avg_query_time' => 'Priemerný čas dotazu',
         'cancel' => 'Zrušiť',
@@ -104,7 +100,6 @@ return [
         'refresh_metrics' => 'Obnoviť metriky',
         'resolve' => 'Riešiť',
         'resolved' => 'Riešené',
-        'run_archive' => 'Spustiť archiváciu',
         'run_health_check' => 'Spustiť kontrolu zdravia',
         'run_monitoring' => 'Spustiť monitorovanie',
         'run_optimization' => 'Spustiť optimalizáciu',
@@ -145,35 +140,6 @@ return [
         'disk_usage' => 'Využitie disku',
         'lock_wait_time' => 'Čakanie na zámky',
     ],
-    'archive_policies' => [
-        'entity' => [
-            'singular' => 'Archivačné pravidlá',
-            'plural' => 'Archivačné pravidlá',
-        ],
-        'fields' => [
-            'table_name' => 'Názov tabuľky',
-            'retention_months' => 'Doba uchovávania (mesiace)',
-            'date_column' => 'Stĺpec s dátumom',
-            'is_active' => 'Aktívne',
-            'description' => 'Popis',
-            'created_at' => 'Vytvorené',
-        ],
-        'hints' => [
-            'table_name' => 'Názov tabuľky v databáze',
-            'retention_months' => 'Počet mesiacov, počas ktorých sa dáta uchovávajú',
-            'retention_months_suffix' => ' mesiacov',
-            'date_column' => 'Názov stĺpca s časovým razítkom',
-            'description' => 'Popis archivačného pravidla',
-        ],
-        'form_help' => [
-            'title' => 'Konfigurácia archivačného pravidla',
-            'description' => 'Voliteľný popis účelu tohto archivačného pravidla pre lepšiu dokumentáciu',
-            'table_name' => 'Názov databázovej tabuľky, na ktorú sa toto pravidlo vzťahuje (napr. faktúry, klienti, dodávatelia)',
-            'retention_months' => 'Počet mesiacov na uchovávanie údajov v aktívnej tabuľke. Staršie záznamy budú presunuté do archívu',
-            'date_column' => 'Názov stĺpca s dátumom, ktorý sa používa na určenie veku záznamu (zvyčajne created_at alebo updated_at)',
-            'is_active' => 'Určuje, či je archivačné pravidlo aktívne a bude sa automaticky vykonávať',
-        ],
-    ],
     'maintenance_logs' => [
         'entity' => [
             'singular' => 'Záznam údržby',
@@ -195,9 +161,6 @@ return [
             'running' => 'Beží',
             'not_available' => 'Nedostupné',
             'no_results' => 'Žiadne výsledky',
-            'archive_results' => 'Výsledky archivácie',
-            'archived_records' => 'Archivované záznamy',
-            'archive_location' => 'Umiestnenie archívu',
             'monitor_results' => 'Výsledky monitorovania',
             'task_results' => 'Výsledky úlohy',
             'before_optimization' => 'Pred optimalizáciou',

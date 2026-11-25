@@ -48,7 +48,6 @@ final class CrudOperationPermissionsTest extends TestCase
     public static function screens(): array
     {
         return [
-            'archive policy' => ['archive-policy', Permission::SYSTEM_CONFIGURE],
             'bank' => ['bank', Permission::BANK_VIEW],
             'bank account' => ['bank-account', Permission::BANK_ACCOUNT_VIEW],
             'business' => ['business', Permission::BUSINESS_VIEW],
@@ -373,17 +372,6 @@ final class CrudOperationPermissionsTest extends TestCase
 
         $response->assertForbidden();
         $this->assertModelExists($record);
-    }
-
-    #[Test]
-    public function the_archive_policies_open_with_the_system_permission(): void
-    {
-        $user = $this->backendUser([Permission::SYSTEM_CONFIGURE]);
-
-        $httpClient = $this->actingAs($user, 'backpack');
-        $response = $httpClient->get('/admin/archive-policy/create');
-
-        $response->assertOk();
     }
 
     /**
