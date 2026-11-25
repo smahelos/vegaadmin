@@ -1,6 +1,6 @@
 # D-044: Documents Share One Table, Types Add Their Own Tables
 
-Status: Proposed 2026-10-25
+Status: Accepted 2026-11-25 with [D-050](D-050-issued-documents.md) (proposed 2026-10-25)
 
 ## Context
 
@@ -43,6 +43,6 @@ Examples: the reference of a corrective document to the document it corrects is 
 
 ## Consequences
 
-- The issued-invoice work (TECH_DEBT step 12) introduces the document type enum, the VAT lines and the first type-specific table (corrective documents); the received-documents work reuses them.
+- The issued-invoice work (TECH_DEBT step 12) introduces the document type enum, the VAT lines and the first type-specific table (corrective documents); the received-documents work reuses them. [D-050](D-050-issued-documents.md) stores the VAT lines from the first issued invoice, and moves `invoices` to the common document table with its `type` column together with the corrective documents (table `corrective_documents`: the corrected invoice and the reason).
 - Repositories load the common row with its type-specific row and VAT lines in one method (`rules/persistence.md`); the mapper picks the Domain class by the type.
 - Revisit when a type needs so many own fields that most of its data lives outside the common table.

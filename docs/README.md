@@ -28,6 +28,7 @@
 | [Entity limits PRD](prd/PRD_ENTITY_LIMITS.md) | Approved product specification, version 1.0; scope and A01–A17 |
 | [Permissions PRD](prd/PRD_PERMISSIONS.md) | Approved product specification, version 1.1; scope and A01–A24 |
 | [Grants PRD](prd/PRD_GRANTS.md) | Approved product specification, version 1.0; permissions and limits read once per request, A01–A10 |
+| [Issued documents PRD](prd/PRD_ISSUED_DOCUMENTS.md) | Approved product specification, version 1.0; drafts, issuing, numbering, corrective documents, A01–A31 |
 | [PHP syntax enforcement](design/DESIGN_PHP_STYLE.md) | Implementation design for the agreed PHP readability standard; rolled out, numbered names remain |
 
 ## Architectural decisions
@@ -36,12 +37,13 @@
 |---|---|
 | [D-042: Context service providers](adr/D-042-context-service-providers.md) | Accepted |
 | [D-043: Modular monolith](adr/D-043-modular-monolith.md) | Accepted |
-| [D-044: Document tables](adr/D-044-document-tables.md) | Proposed; the future storage design requires its own acceptance |
+| [D-044: Document tables](adr/D-044-document-tables.md) | Accepted 2026-11-25 with D-050 |
 | [D-045: Businesses and contacts](adr/D-045-businesses-and-contacts.md) | Accepted |
-| [D-046: Money amounts](adr/D-046-money-amounts.md) | Accepted |
+| [D-046: Money amounts](adr/D-046-money-amounts.md) | Accepted; points 1 and 2 amended by D-050 |
 | [D-047: Entity limits](adr/D-047-entity-limits.md) | Accepted; point 8 amended by D-049 |
 | [D-048: Permission checks](adr/D-048-permission-checks.md) | Accepted; point 4 amended by D-049 |
 | [D-049: Grants](adr/D-049-grants.md) | Accepted |
+| [D-050: Issued documents](adr/D-050-issued-documents.md) | Accepted |
 
 An accepted specification or ADR is not a claim that every described path has been implemented. Use the verification map and code/tests for delivered behaviour, and [TECH_DEBT](TECH_DEBT.md) for known gaps and the order of work. The code standard lives in [.claude/rules/](../.claude/rules/).
 
