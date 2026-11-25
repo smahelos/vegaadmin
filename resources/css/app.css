@@ -14,6 +14,9 @@
 @source inline('{hover:text-white,hover:bg-indigo-500,hover:bg-gray-100,hover:bg-[#490BF4]}');
 @source inline('{transition-colors,duration-200,rounded-sm,min-w-[40px]}');
 @source inline('text-[#490BF4]');
+/* Invoice status colours of InvoiceStatusPresenter, combined into classes in the views */
+@source inline('{bg-{green,yellow,gray}-100,text-{green,yellow,gray}-800,border-{green,yellow,gray}-500}');
+@source inline('dark:{bg-{green,yellow,gray}-{600,700},text-{green,yellow,gray}-200}');
 
 /* input.css */
 @custom-variant dark (&:where(.dark, .dark *));
