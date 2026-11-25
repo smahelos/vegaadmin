@@ -31,15 +31,17 @@ final class SlovakQrPaymentProvider implements QrPaymentProviderInterface
         $qrParts[] = 'AM:' . $payload->amountDecimal();
         $qrParts[] = 'CC:' . $payload->amount->currency->value;
 
-        if (!empty($payload->variableSymbol)) {
-            $qrParts[] = 'X-VS:' . $payload->variableSymbol;
+        if ($payload->variableSymbol !== null) {
+            $qrParts[] = 'X-VS:' . $payload->variableSymbol->value;
         }
 
-        if (!empty($payload->message)) {
-            $qrParts[] = 'MSG:' . substr(
-                $payload->message,
-                0,
-                60,
+        $message = $payload->asciiMessage(60);
+        if ($message !== '') {
+            // The asterisk separates the fields; the format escapes it in a value
+            $qrParts[] = 'MSG:' . str_replace(
+                '*',
+                '%2A',
+                $message,
             );
         }
 

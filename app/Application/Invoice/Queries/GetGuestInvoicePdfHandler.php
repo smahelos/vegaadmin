@@ -32,11 +32,7 @@ final class GetGuestInvoicePdfHandler
             $query->locale,
             $this->locale->getLocale(),
         );
-        $pdf = $this->renderer->render(
-            $printable,
-            $printable->template,
-            $locale,
-        );
+        $pdf = $this->renderer->render($printable, $locale);
         $now = $this->clock->now();
 
         return new PdfInvoiceDTO(

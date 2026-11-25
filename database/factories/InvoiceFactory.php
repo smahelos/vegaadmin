@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\Invoice;
@@ -50,6 +51,7 @@ class InvoiceFactory extends Factory
             'payment_amount' => random_int(100, 10000),
             'payment_currency' => 'CZK',
             'invoice_text' => random_int(0, 1) ? 'Test invoice text' : null,
+            'template' => InvoiceTemplate::DEFAULT->value,
             ...$this->party('supplier'),
             ...$this->party('customer'),
         ];

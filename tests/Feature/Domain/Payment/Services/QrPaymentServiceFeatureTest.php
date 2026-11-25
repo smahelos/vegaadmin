@@ -10,6 +10,7 @@ use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -78,7 +79,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         );
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payload = $qrPaymentMapper->fromSnapshot(
-            '20260001',
+            new VariableSymbol('20260001'),
             Money::fromString(
                 '1500.50',
                 Currency::from($currency),
@@ -162,7 +163,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $expectation->method('renderDataUrl');
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payload = $qrPaymentMapper->fromSnapshot(
-            '20260001',
+            new VariableSymbol('20260001'),
             Money::fromString('100', Currency::CZK),
             null,
             null,

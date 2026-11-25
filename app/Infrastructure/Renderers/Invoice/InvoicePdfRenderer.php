@@ -12,7 +12,6 @@ use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
-use App\Domain\User\Contracts\Locale;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocument;
 use DateTimeImmutable;
@@ -28,17 +27,10 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly DateFormatterInterface $dateFormatter,
         private readonly ClockInterface $clock,
-        private readonly Locale $currentLocale,
     ) {}
 
-    public function render(
-        PrintableInvoiceDTO $data,
-        ?string $template = null,
-        ?string $locale = null,
-    ): PdfDocument {
-        $templateName = $this->getTemplateName($template ?? $data->template ?? 'default');
-        $locale ??= $this->currentLocale->getLocale();
-
+    public function render(PrintableInvoiceDTO $data, string $locale): PdfDocument
+    {
         $paymentAmountFormatted = $this->moneyFormatter->format($data->totalAmount, $locale);
         $subtotalFormatted = $this->moneyFormatter->format($data->subtotal, $locale);
         $taxFormatted = $this->moneyFormatter->format($data->totalTax, $locale);
@@ -61,14 +53,10 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
         $qrCode = null;
         $hasQr = false;
-        try {
-            if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
-                $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
-                $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
-                $hasQr = !empty($qrCode);
-            }
-        } catch (\Throwable) {
-            // ignore QR generation errors in renderer
+        if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
+            $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
+            $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
+            $hasQr = !empty($qrCode);
         }
 
         $logoPath = null;
@@ -109,7 +97,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         try {
             App::setLocale($locale);
 
-            return Pdf::loadView($templateName, $viewData);
+            return Pdf::loadView('pdfs.templates.' . $data->template->value, $viewData);
         } finally {
             App::setLocale($previousLocale);
         }
@@ -122,36 +110,5 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         }
 
         return $this->dateFormatter->formatDate($date, $locale);
-    }
-
-    private function getTemplateName(?string $template): string
-    {
-        $available = [
-            'default',
-            'modern',
-            'minimal',
-        ];
-        $tpl = $template ?? 'default';
-        if (
-            !in_array(
-                $tpl,
-                $available,
-                true,
-            )
-        ) {
-            $tpl = 'default';
-        }
-        if (!$this->templateFileExists($tpl)) {
-            $tpl = 'default';
-        }
-
-        return "pdfs.templates.{$tpl}";
-    }
-
-    private function templateFileExists(string $template): bool
-    {
-        $templatePath = resource_path("views/pdfs/templates/{$template}.blade.php");
-
-        return file_exists($templatePath);
     }
 }

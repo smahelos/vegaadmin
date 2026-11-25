@@ -78,6 +78,7 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'customer_postal_code' => '10115',
                 'customer_country' => 'DE',
                 'supplier_logo' => null,
+                'template' => $template,
             ],
         );
         $invoiceProductFactory = InvoiceProduct::factory();
@@ -101,7 +102,6 @@ final class InvoicePdfSnapshotTest extends TestCase
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
         $html = $this->renderPdfHtml(
             $invoicePrintDataBuilder->build($dto),
-            $template,
         );
         $normalized = trim(
             preg_replace(

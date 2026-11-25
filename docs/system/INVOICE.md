@@ -60,7 +60,7 @@ The guest invoice is never stored in the database: `CreateGuestInvoiceHandler` p
 
 ## PDF
 
-`GetInvoicePdf` reads the stored invoice, `InvoicePrintDataBuilder` turns it into `PrintableInvoiceDTO` (parties as Party's `PartyPrintDTO`), and `InvoicePdfRenderer` adds the QR code (Payment's `QrPaymentServiceInterface`, `QrPaymentMapper`) and renders `resources/views/pdfs/templates/{default,minimal,modern}.blade.php` with dompdf. The PDF is rendered on every download, never stored. The output is pinned by `tests/Feature/Domain/Invoice/Services/InvoicePdfSnapshotTest.php`.
+`GetInvoicePdf` reads the stored invoice, `InvoicePrintDataBuilder` turns it into `PrintableInvoiceDTO` (parties as Party's `PartyPrintDTO`), and `InvoicePdfRenderer` adds the QR code (Payment's `QrPaymentServiceInterface`, `QrPaymentMapper`) and renders the view the invoice's `InvoiceTemplate` names, `resources/views/pdfs/templates/{default,minimal,modern}.blade.php`, with dompdf. The PDF is rendered on every download, never stored. The output is pinned by `tests/Feature/Domain/Invoice/Services/InvoicePdfSnapshotTest.php`.
 
 A new field printed on the PDF goes through `InvoiceWriteData`, `InvoiceDTO`, `EloquentInvoiceMapper`, `InvoiceWriteDataInput`, the form fields above, `PrintableInvoiceDTO` with `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory` for the guest invoice, the three templates and their snapshots, `lang/*/invoices.php` (`invoices.fields.*`) and a migration of `invoices`.
 

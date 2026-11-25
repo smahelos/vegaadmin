@@ -63,10 +63,14 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 'archived_at' => now(),
             ],
         );
-        $invoice->update(['contact_id' => $contact->id]);
+        $invoice->update(
+            [
+                'contact_id' => $contact->id,
+                'template' => $template,
+            ],
+        );
         $html = $this->renderPdfHtml(
             $this->printable($invoice),
-            $template,
         );
         foreach (
             [
@@ -106,7 +110,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
             $this->printable($invoice),
         );
         $this->assertNotNull($qr->payload);
-        $this->assertSame('20260001', $qr->payload->variableSymbol);
+        $this->assertSame('20260001', $qr->payload->variableSymbol?->value);
         $this->assertSame('1210', $qr->payload->amount->amount);
         $this->assertSame(Currency::CZK, $qr->payload->amount->currency);
         $this->assertSame('2001234561', $qr->payload->account?->number);
@@ -179,13 +183,11 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $print = $this->printable($invoice);
         $german = $this->renderPdfHtml(
             $print,
-            'default',
             'de',
         );
         $this->assertSame($previous, $application->getLocale());
         $english = $this->renderPdfHtml(
             $print,
-            'default',
             'en',
         );
         $this->assertSame($previous, $application->getLocale());
@@ -221,6 +223,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 'payment_currency' => 'CZK',
                 'payment_method_id' => $invoice->payment_method_id,
                 'payment_amount' => '999999',
+                'template' => $template,
                 'invoice-products' => [[
                     'name' => 'Guest service',
                     'quantity' => '2.5',
@@ -234,7 +237,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertSame('250', $print->subtotal->amount);
         $this->assertSame('52.5', $print->totalTax->amount);
         $this->assertSame('302.5', $print->totalAmount->amount);
-        $html = $this->renderPdfHtml($print, $template);
+        $html = $this->renderPdfHtml($print);
         $this->assertStringContainsString('Guest service', $html);
         $dom = new DOMDocument;
         @$dom->loadHTML($html);
@@ -253,15 +256,11 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function renders_a_downloadable_pdf_and_falls_back_from_an_unknown_template(): void
+    public function renders_a_downloadable_pdf(): void
     {
         $print = $this->printable($this->invoice());
         $invoicePdfRenderer = app(InvoicePdfRenderer::class);
-        $pdf = $invoicePdfRenderer->render(
-            $print,
-            'unknown-template',
-            'cs',
-        );
+        $pdf = $invoicePdfRenderer->render($print, 'cs');
         $this->assertStringStartsWith('%PDF-', $pdf->output());
     }
 

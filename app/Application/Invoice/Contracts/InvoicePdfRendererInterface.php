@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Invoice\Contracts;
 
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
@@ -7,12 +9,5 @@ use Barryvdh\DomPDF\PDF;
 
 interface InvoicePdfRendererInterface
 {
-    /**
-     * Render DomPDF from printable invoice data, with chosen template and locale.
-     */
-    public function render(
-        PrintableInvoiceDTO $data,
-        ?string $template = null,
-        ?string $locale = null,
-    ): PDF;
+    public function render(PrintableInvoiceDTO $data, string $locale): PDF;
 }

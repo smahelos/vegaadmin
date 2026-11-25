@@ -31,11 +31,7 @@ final class GetInvoicePdfHandler
             $query->locale,
             $this->locale->getLocale(),
         );
-        $pdf = $this->renderer->render(
-            $printable,
-            $printable->template,
-            $locale,
-        );
+        $pdf = $this->renderer->render($printable, $locale);
 
         return new PdfInvoiceDTO(
             'faktura-' . ($printable->number ?? (string) $query->id->value) . '.pdf',

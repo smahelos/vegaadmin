@@ -10,6 +10,7 @@ use App\Domain\Payment\Providers\QrPayment\CzechQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\EuropeanQrPaymentProvider;
 use App\Domain\Payment\Providers\QrPayment\SlovakQrPaymentProvider;
 use App\Domain\Payment\ValueObjects\BankAccount;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -56,7 +57,7 @@ final class QrPaymentProvidersTest extends TestCase
             null,
         );
         $payment = new QrPaymentDTO(
-            '20260001',
+            new VariableSymbol('20260001'),
             Money::fromString(
                 '9007199254740993.01',
                 Currency::from($currency),
@@ -78,6 +79,77 @@ final class QrPaymentProvidersTest extends TestCase
                 'SPD*1.0*ACC:' . $iban . '*AM:9007199254740993.01*CC:' . $currency . '*X-VS:20260001*MSG:Stored message',
                 $qr,
             );
+        }
+    }
+
+    #[Test]
+    #[DataProvider('providers')]
+    public function writes_the_message_in_ascii_cut_to_the_format_length(
+        QrPaymentProviderInterface $provider,
+        string $currency,
+        string $iban,
+    ): void {
+        $account = BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+        $payment = new QrPaymentDTO(
+            null,
+            Money::fromString(
+                '10',
+                Currency::from($currency),
+            ),
+            $account,
+            'Příliš žluťoučký kůň úpěl ďábelské ódy ' . str_repeat('ř', 200),
+        );
+        $qr = $provider->generateQrString($payment);
+        $length = $provider instanceof EuropeanQrPaymentProvider ? 140 : 60;
+        $this->assertStringContainsString(
+            substr(
+                'Prilis zlutoucky kun upel dabelske ody ' . str_repeat('r', 200),
+                0,
+                $length,
+            ),
+            $qr,
+        );
+        $this->assertTrue(
+            mb_check_encoding($qr, 'ASCII'),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('providers')]
+    public function keeps_separators_and_line_breaks_of_the_message_out_of_the_fields(
+        QrPaymentProviderInterface $provider,
+        string $currency,
+        string $iban,
+    ): void {
+        $account = BankAccount::fromParts(
+            $iban,
+            null,
+            null,
+            null,
+            null,
+        );
+        $payment = new QrPaymentDTO(
+            null,
+            Money::fromString(
+                '10',
+                Currency::from($currency),
+            ),
+            $account,
+            "Faktura 5*2\r\n  druhý řádek\n",
+        );
+        $qr = $provider->generateQrString($payment);
+        if ($provider instanceof EuropeanQrPaymentProvider) {
+            $lines = explode("\n", $qr);
+            $this->assertCount(11, $lines);
+            $this->assertSame('Faktura 5*2 druhy radek', $lines[10]);
+        } else {
+            $this->assertStringEndsWith('*MSG:Faktura 5%2A2 druhy radek', $qr);
         }
     }
 

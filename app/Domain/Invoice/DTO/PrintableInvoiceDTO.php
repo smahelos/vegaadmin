@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use DateTimeImmutable;
 
@@ -27,7 +29,7 @@ final readonly class PrintableInvoiceDTO
         public ?DateTimeImmutable $taxPointDate,
         public ?InvoiceDueDate $dueDate,
         public string $currency,
-        public ?string $template,
+        public InvoiceTemplate $template,
         public array $items,
         public Money $subtotal,
         public Money $totalTax,
@@ -36,7 +38,7 @@ final readonly class PrintableInvoiceDTO
         public PartyPrintDTO $customer,
         public ?DocumentAccountDTO $account,
         public ?string $supplierLogo,
-        public ?string $variableSymbol,
+        public ?VariableSymbol $variableSymbol,
         public ?string $constantSymbol,
         public ?string $specificSymbol,
         public ?PaymentMethodCode $paymentMethod,

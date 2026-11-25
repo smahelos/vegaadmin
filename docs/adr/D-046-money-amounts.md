@@ -1,6 +1,6 @@
 # D-046: Amounts Are Decimal Strings in `Money`, Without a Float Entry
 
-Status: Accepted 2026-11-05
+Status: Accepted 2026-11-05, points 1 and 2 amended by [D-050](D-050-issued-documents.md) on 2026-11-25
 Recorded retrospectively: the rule in `.claude/rules/domain.md` and the invoice total changes existed before this ADR, without a recorded decision. The rationale and alternatives below are reconstructed from the code, its docblocks and commit messages; the original deliberation was not recorded. Removing the float entry is new in this decision.
 
 ## Context
@@ -15,8 +15,8 @@ Amounts do not need a float to reach `Money`: a `decimal` column with Eloquent's
 
 ## Decision
 
-1. **An amount is `Money`:** a non-negative decimal string plus a currency, in every layer above the mappers and form requests.
-2. **`Money::fromString()` is the only entry.** It rejects negative amounts and a decimal comma, accepts up to 8 decimals and does not round. `Money::fromFloat()` and its only helper `assertAmount()` are removed.
+1. **An amount is `Money`:** a non-negative decimal string plus a currency, in every layer above the mappers and form requests. Amended by [D-050](D-050-issued-documents.md): `Money` may be negative (corrective documents, totals and statistics); non-negativity is checked where it is a rule of the value (unit prices, QR payment amounts, subscription amounts).
+2. **`Money::fromString()` is the only entry.** It rejects negative amounts (accepted after the amendment of point 1) and a decimal comma, accepts up to 8 decimals and does not round. `Money::fromFloat()` and its only helper `assertAmount()` are removed.
 3. **Storage is `decimal`.** The mapper builds `Money` from the column's string (`persistence.md`).
 4. **Calculation uses the methods of `Money`,** with an explicit rounding strategy where the result is rounded. Amounts are not converted to `float` to calculate.
 5. **A boundary that really receives a float converts it explicitly:** it rounds to the decimals that boundary defines, formats a decimal string and calls `fromString()`. `Money` offers no helper for this, so the rounding stays visible at the place responsible for it.
@@ -32,4 +32,4 @@ Amounts do not need a float to reach `Money`: a `decimal` column with Eloquent's
 - A rounding decision is always visible in the code that makes it. `fromString()` accepts `12.349` as it is, so the code that needs 2 decimals must limit or round them.
 - Tests and fakes build amounts from strings.
 - `MoneyFormatter` formats the decimal string and rounds it half up through `Money::divideRounding()`, so no amount passes through a float on its way to display.
-- Known gaps remain, each in `docs/TECH_DEBT.md`: "Product prices are not `Money` on the write path". The non-negative invariant also awaits a decision for corrective documents ("Issued invoices can be changed and deleted").
+- Known gaps remain, each in `docs/TECH_DEBT.md`: "Product prices are not `Money` on the write path". The non-negative invariant was decided for corrective documents by [D-050](D-050-issued-documents.md) (point 1).
