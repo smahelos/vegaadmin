@@ -160,7 +160,10 @@ final class RegistrationForm extends Component
                 'same:passwordConfirmation',
                 Password::min(8),
             ],
-            'isVatPayer' => ['boolean'],
+            'isVatPayer' => [
+                'required',
+                'boolean',
+            ],
         ];
     }
 
