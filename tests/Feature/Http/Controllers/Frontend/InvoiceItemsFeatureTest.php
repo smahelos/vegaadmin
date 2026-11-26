@@ -125,8 +125,61 @@ final class InvoiceItemsFeatureTest extends TestCase
         $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
         $lines = $invoiceProductQuery->get();
         $this->assertCount(1, $lines);
-        $this->assertSame('0.21', $lines[0]->tax_amount);
+        $this->assertSame('0.50', $lines[0]->price);
         $this->assertSame('1.21', $invoice->fresh()->payment_amount);
+    }
+
+    #[Test]
+    public function lines_of_one_rate_are_rounded_once_for_the_rate(): void
+    {
+        $number = $this->invoiceNumber();
+        $line = $this->item(
+            [
+                'quantity' => '1.5',
+                'price' => '0.03',
+            ],
+        );
+        $response = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData([$line, $line], number: $number),
+        );
+
+        $response->assertSessionHas('success');
+        $invoiceQuery = Invoice::where('invoice_vs', $number);
+        // Base 2 x 0.045 = 0.09 and VAT 0.0189 of the rate; rounding each line would give 0.10 + 0.02
+        $this->assertSame(
+            '0.11',
+            $invoiceQuery->value('payment_amount'),
+        );
+    }
+
+    #[Test]
+    public function a_business_that_is_not_a_vat_payer_charges_no_vat(): void
+    {
+        $this->business->update(['is_vat_payer' => false]);
+        $number = $this->invoiceNumber();
+        $response = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData([$this->item()], number: $number),
+        );
+
+        $response->assertSessionHasErrors(['invoice-products']);
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $number]);
+
+        $response = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData(
+                [$this->item(['tax_rate' => '0'])],
+                number: $number,
+            ),
+        );
+
+        $response->assertSessionHas('success');
+        $invoiceQuery = Invoice::where('invoice_vs', $number);
+        $this->assertSame(
+            '100.00',
+            $invoiceQuery->value('payment_amount'),
+        );
     }
 
     #[Test]

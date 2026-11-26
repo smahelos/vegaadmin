@@ -13,6 +13,8 @@ use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\DTO\DocumentPartyDTO;
 use App\Domain\Party\ValueObjects\BankAccountId;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -81,7 +83,7 @@ final class InvoiceItemsControllerTest extends TestCase
     }
 
     #[Test]
-    public function preview_uses_the_same_per_line_rounding_as_saving_and_writes_nothing(): void
+    public function preview_uses_the_same_rounding_by_rate_as_saving_and_writes_nothing(): void
     {
         $taxQuery = Tax::where('slug', 'dph');
         $taxQuery->where(
@@ -124,13 +126,24 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse->assertRedirect();
         $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
         $invoice = $invoiceQuery->sole();
-        $this->assertEquals(
+        $previewTotal = Money::fromString(
             $response->json('data.total'),
-            $invoice->payment_amount,
+            Currency::CZK,
         );
+        $savedTotal = Money::fromString($invoice->payment_amount, Currency::CZK);
+        $this->assertTrue(
+            $previewTotal->equals($savedTotal),
+        );
+        // The base of a rate is rounded once: 2 x 0.045 = 0.09, not 2 x 0.05
         $this->assertSame(
-            '0.1',
+            '0.09',
             $response->json('data.subtotal'),
+        );
+        $response->assertJsonCount(1, 'data.vat_lines');
+        $response->assertJsonPath('data.vat_lines.0.base', '0.09');
+        $response->assertJsonPath(
+            'data.vat_lines.0.vat',
+            $response->json('data.tax'),
         );
         $invoiceProducts = $invoice->invoiceProducts();
         $this->assertSame(2, $invoiceProducts->count());
@@ -270,6 +283,33 @@ final class InvoiceItemsControllerTest extends TestCase
         $httpResponse = $httpResponse->assertSee('17.23');
         $httpResponse = $httpResponse->assertSee('2.500');
         $httpResponse->assertDontSee('Current catalogue name');
+    }
+
+    #[Test]
+    public function a_business_that_is_not_a_vat_payer_cannot_charge_vat(): void
+    {
+        [$business, $account] = $this->issuerOf($this->regularUser);
+        $business->update(['is_vat_payer' => false]);
+        $taxQuery = Tax::where('slug', 'dph');
+        $taxQuery->where(
+            'rate',
+            '>',
+            0,
+        );
+        $tax = $taxQuery->firstOrFail();
+        $data = $this->invoiceInput(
+            $business,
+            $account,
+            [
+                'user_id' => $this->regularUser->id,
+                'invoice-products' => json_encode(
+                    [$this->invoiceItem(['tax_rate' => (string) $tax->rate])],
+                ),
+            ],
+        );
+        $httpResponse = $this->post('/admin/invoice', $data);
+        $httpResponse->assertSessionHasErrors('invoice-products');
+        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
     #[Test]

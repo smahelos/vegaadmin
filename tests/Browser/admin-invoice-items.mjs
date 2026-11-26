@@ -59,7 +59,8 @@ try {
  assert(Number(selected.product_id)>0,'Catalog selection must keep its product reference');
  await evaluate(`document.querySelector('[data-key=quantity]').value='1.5';document.querySelector('[data-key=price]').value='0.03';document.querySelector('[data-key=tax_rate]').value=[...document.querySelector('[data-key=tax_rate]').options].find(option=>Number(option.value)===21).value;document.querySelector('[data-key=price]').dispatchEvent(new Event('input',{bubbles:true}));true`);
  await totalsReady();
- assert(await evaluate('document.querySelector("[data-total]").textContent === new Intl.NumberFormat(document.querySelector("[data-invoice-items]").dataset.locale,{style:"currency",currency:"CZK"}).format(0.06)'),'Preview must use server line rounding: 0.05 base + 0.01 VAT');
+ assert(await evaluate('document.querySelector("[data-total]").textContent === new Intl.NumberFormat(document.querySelector("[data-invoice-items]").dataset.locale,{style:"currency",currency:"CZK"}).format(0.06)'),'Preview must use the server rounding by rate: 0.045 -> 0.05 base, 0.00945 -> 0.01 VAT');
+ assert(await evaluate('document.querySelectorAll("[data-vat-lines] tr").length===1'),'Preview must show the summary by rate');
  const beforeBusiness=await evaluate('document.querySelector("[name=invoice-products]").value');
  const businessIds=await evaluate(`(async()=>{const response=await fetch('/admin/document-parties/businesses?user_id=${owner}');return (await response.json()).data.map(row=>row.id);})()`);
  for(const businessId of businessIds.slice(0,2)) await evaluate(`jQuery('[name=business_id]').append(new Option('Business',${JSON.stringify(String(businessId))},true,true)).trigger('change');true`);

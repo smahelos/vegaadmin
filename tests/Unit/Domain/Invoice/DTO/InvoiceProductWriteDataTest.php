@@ -15,69 +15,23 @@ use PHPUnit\Framework\TestCase;
 final class InvoiceProductWriteDataTest extends TestCase
 {
     #[Test]
-    public function computes_base_tax_and_total_of_a_line_in_cents(): void
+    public function rounds_the_base_of_a_line_to_cents(): void
     {
         $line = $this->line(
             quantity: '3',
             price: '74.67',
-            taxRate: '21',
         );
-
         $base = $line->base();
         $this->assertSame('224.01', $base->amount);
-        $taxAmount = $line->taxAmount();
-        $this->assertSame('47.04', $taxAmount->amount);
-        $total = $line->total();
-        $this->assertSame('271.05', $total->amount);
-        $this->assertSame(Currency::CZK, $total->currency);
-    }
+        $this->assertSame(Currency::CZK, $base->currency);
 
-    #[Test]
-    public function keeps_a_decimal_quantity(): void
-    {
-        $line = $this->line(
-            quantity: '1.5',
-            price: '249.30',
-            taxRate: '12',
-        );
-
-        $base = $line->base();
-        $this->assertSame('373.95', $base->amount);
-        $taxAmount = $line->taxAmount();
-        $this->assertSame('44.87', $taxAmount->amount);
-        $total = $line->total();
-        $this->assertSame('418.82', $total->amount);
-    }
-
-    #[Test]
-    public function computes_the_tax_from_the_rounded_base(): void
-    {
-        // 0.333 * 1.00 = 0.333 -> base 0.33; 21 % of 0.33 = 0.0693 -> 0.07
+        // 0.333 * 1.00 = 0.333 -> 0.33
         $line = $this->line(
             quantity: '0.333',
             price: '1',
-            taxRate: '21',
         );
-
         $base = $line->base();
         $this->assertSame('0.33', $base->amount);
-        $taxAmount = $line->taxAmount();
-        $this->assertSame('0.07', $taxAmount->amount);
-    }
-
-    #[Test]
-    public function a_zero_rate_line_has_no_tax(): void
-    {
-        $line = $this->line(
-            quantity: '2',
-            price: '100',
-            taxRate: '0',
-        );
-
-        $taxAmount = $line->taxAmount();
-        $this->assertSame('0', $taxAmount->amount);
-        $total = $line->total();
-        $this->assertSame('200', $total->amount);
     }
 
     #[Test]
@@ -96,7 +50,6 @@ final class InvoiceProductWriteDataTest extends TestCase
     private function line(
         string $quantity = '1',
         string $price = '100',
-        string $taxRate = '21',
         ?ProductId $productId = null,
     ): InvoiceProductWriteData {
         return new InvoiceProductWriteData(
@@ -104,7 +57,7 @@ final class InvoiceProductWriteDataTest extends TestCase
             quantity: $quantity,
             unit: Unit::PIECES,
             price: Money::fromString($price, Currency::CZK),
-            taxRate: $taxRate,
+            taxRate: '21',
             productId: $productId,
         );
     }

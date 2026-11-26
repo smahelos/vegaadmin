@@ -24,8 +24,6 @@ class InvoiceProduct extends Model
         'description',
         'is_custom_product',
         'tax_rate',
-        'tax_amount',
-        'total_price',
     ];
 
     protected function casts(): array
@@ -34,8 +32,6 @@ class InvoiceProduct extends Model
             'quantity' => 'decimal:3',
             'price' => 'decimal:2',
             'tax_rate' => 'decimal:2',
-            'tax_amount' => 'decimal:2',
-            'total_price' => 'decimal:2',
             'is_custom_product' => 'boolean',
         ];
     }

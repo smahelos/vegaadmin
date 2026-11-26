@@ -3,6 +3,43 @@
 // It handles adding, removing, and updating items, as well as calculating totals and updating JSON data.
 // It also handles the display of the total amount and the currency selection.
 
+// A decimal string as a BigInt in units of 10^-digits; the server rejects more digits, so they are cut here
+function scaled(value, digits) {
+    const [whole, fraction = ''] = String(value).trim().replace(',', '.').split('.');
+    if (!/^\d*$/.test(whole) || !/^\d*$/.test(fraction)) {
+        return 0n;
+    }
+
+    return BigInt((whole || '0') + fraction.padEnd(digits, '0').slice(0, digits));
+}
+
+// Non-negative integer division rounded half up
+function roundHalfUp(value, divisor) {
+    return (value * 2n + divisor) / (2n * divisor);
+}
+
+// The line base in cents: price (2 decimals) x quantity (3 decimals), rounded once
+function lineBaseCents(price, quantity) {
+    return roundHalfUp(scaled(price, 2) * scaled(quantity, 3), 1000n);
+}
+
+// The server's InvoiceTotals: per rate the unrounded sum of price x quantity; its base and VAT rounded to cents once
+function vatSummary(lines) {
+    const bases = new Map();
+    lines.forEach(({ price, quantity, rate }) => {
+        const rateKey = scaled(rate, 2);
+        bases.set(rateKey, (bases.get(rateKey) ?? 0n) + scaled(price, 2) * scaled(quantity, 3));
+    });
+
+    return [...bases.entries()]
+        .sort(([a], [b]) => (a < b ? 1 : -1))
+        .map(([rate, base]) => ({
+            rate: Number(rate) / 100,
+            base: roundHalfUp(base, 1000n),
+            vat: roundHalfUp(base * rate, 10000000n),
+        }));
+}
+
 export default class InvoiceItemManager {
     constructor() {
         this.itemsContainer = null;
@@ -57,9 +94,33 @@ export default class InvoiceItemManager {
         }, true);
         this.itemsContainer.addEventListener('change', this.handleItemSelectChanges.bind(this));
 
+        // The supplier's VAT payer flag: the guest's checkbox, or the selected business rendered by Livewire
+        document.addEventListener('change', (e) => {
+            if (e.target.id === 'supplier-vat-payer') {
+                this.updateJsonData();
+                this.updateTotalAmount();
+            }
+        });
+        const watchVatPayer = () => {
+            ['morph.added', 'morph.updated', 'morph.removed'].forEach((hook) => {
+                window.Livewire.hook(hook, ({ el }) => {
+                    if (el.id === 'supplier-vat-payer') {
+                        this.updateJsonData();
+                        this.updateTotalAmount();
+                    }
+                });
+            });
+        };
+        // The editor starts after Livewire, so its init events have usually passed already
+        if (window.Livewire) {
+            watchVatPayer();
+        } else {
+            document.addEventListener('livewire:init', watchVatPayer);
+        }
+
         // Listeners for currency selection
         if (this.currencySelect) {
-            this.currencySelect.addEventListener('change', () => this.updateTotalDisplay());
+            this.currencySelect.addEventListener('change', () => this.updateTotalAmount());
         }
 
         // Initialize product selection modal
@@ -401,6 +462,36 @@ export default class InvoiceItemManager {
         this.updateTotalAmount();
     }
 
+    // Without the flag (no business selected yet) the rates stay editable
+    vatPayer() {
+        const flag = document.getElementById('supplier-vat-payer');
+
+        return flag ? flag.checked : true;
+    }
+
+    // A non-payer states no VAT: the rate column is hidden, the base is labelled as the total and every line has rate 0
+    applyVatPayer() {
+        const vatPayer = this.vatPayer();
+        document.querySelectorAll('#invoice-items-container .vat-rate-column').forEach((column) => {
+            column.hidden = !vatPayer;
+        });
+        document.querySelectorAll('#invoice-items-container .non-payer-column').forEach((column) => {
+            column.hidden = vatPayer;
+        });
+        // The rates a payer entered come back when the flag returns
+        this.itemsContainer.querySelectorAll('.item-tax').forEach((select) => {
+            if (!vatPayer && select.dataset.payerRate === undefined) {
+                select.dataset.payerRate = select.value;
+                select.value = '0';
+            } else if (vatPayer && select.dataset.payerRate !== undefined) {
+                select.value = select.dataset.payerRate;
+                delete select.dataset.payerRate;
+            }
+        });
+
+        return vatPayer;
+    }
+
     // Calculate total item price
     calculateItemPrice(itemElement) {
         // Ensure we have the actual DOM element, not a cached reference
@@ -446,64 +537,40 @@ export default class InvoiceItemManager {
             itemElement: itemElement.outerHTML.slice(0, 100) + '...' // Log partial HTML for debugging
         });
 
-        // Calculate price with VAT, rounded per step like the server
-        const totalWithoutTax = Math.round(quantity * price * 100) / 100;
-        const totalWithTax = totalWithoutTax + Math.round(totalWithoutTax * taxRate) / 100;
-
-        // Round to 2 decimal places
-        const totalRounded = Math.round(totalWithTax * 100) / 100;
-
-        // Format number with thousand separator and 2 decimal places
-        const formattedTotal = this.formatNumber(totalRounded);
-
-        // Set resulting value to the price complete field
-        priceCompleteInput.value = formattedTotal;
-
-        console.log('Item price calculation completed:', {
-            totalWithoutTax,
-            totalWithTax,
-            totalRounded,
-            formattedTotal,
-            storedCurrency: itemElement.dataset.currentCurrency,
-            storedPrice: itemElement.dataset.currentPrice
-        });
+        // The line shows its base; VAT is computed by rate for the whole invoice
+        const baseCents = lineBaseCents(priceInput.value, quantityInput.value);
+        priceCompleteInput.value = this.formatNumber(Number(baseCents) / 100);
     }
 
     // Update total invoice amount
     updateTotalAmount() {
-        let total = 0;
-        let totalTax = 0;
-        let totalWithoutTax = 0;
+        const vatPayer = this.applyVatPayer();
+        const lines = [];
         let hasNonZeroPrices = false;
 
-        // Iterate through all items and sum their prices
-        const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
-        itemElements.forEach(itemElement => {
-            const quantity = parseFloat(itemElement.querySelector('.item-quantity').value) || 0;
-            const price = parseFloat(itemElement.querySelector('.item-price').value) || 0;
-            const taxRate = parseFloat(itemElement.querySelector('.item-tax').value) || 0;
-
-            // Same rule as the server (InvoiceProductWriteData): base and VAT rounded to cents per line
-            const lineBase = Math.round(quantity * price * 100) / 100;
-            const lineTax = Math.round(lineBase * taxRate) / 100;
-            total += lineBase + lineTax;
-            totalTax += lineTax;
-            totalWithoutTax += lineBase;
-
-            // Check if there are non-zero prices
-            if (price > 0) {
+        this.itemsContainer.querySelectorAll('.invoice-item').forEach(itemElement => {
+            const price = itemElement.querySelector('.item-price').value;
+            lines.push({
+                price,
+                quantity: itemElement.querySelector('.item-quantity').value,
+                rate: itemElement.querySelector('.item-tax').value,
+            });
+            if (parseFloat(price) > 0) {
                 hasNonZeroPrices = true;
             }
         });
 
-        // Round to 2 decimal places
-        const roundedTotal = Math.round(total * 100) / 100;
-
-        // Round to 2 decimal places for tax
-        const roundedTotalTax = Math.round(totalTax * 100) / 100;
-
-        // Round to 2 decimal places for total without tax
-        const roundedTotalWithoutTax = Math.round(totalWithoutTax * 100) / 100;
+        const summary = vatSummary(lines);
+        const subtotalCents = summary.reduce((sum, vatLine) => sum + vatLine.base, 0n);
+        const taxCents = summary.reduce((sum, vatLine) => sum + vatLine.vat, 0n);
+        const roundedTotalWithoutTax = Number(subtotalCents) / 100;
+        const roundedTotalTax = Number(taxCents) / 100;
+        const roundedTotal = Number(subtotalCents + taxCents) / 100;
+        this.renderVatSummary(vatPayer ? summary : []);
+        const vatTotals = document.getElementById('invoice-vat-totals');
+        if (vatTotals) {
+            vatTotals.hidden = !vatPayer;
+        }
 
         // The invoice amount is always the sum of the items; the server computes it again
         if (this.paymentAmountInput) {
@@ -588,9 +655,37 @@ export default class InvoiceItemManager {
         }
     }
 
+    // Rows of the summary by rate, as the PDF prints it
+    renderVatSummary(summary) {
+        const wrapper = document.getElementById('invoice-vat-summary');
+        const rows = document.getElementById('invoice-vat-summary-rows');
+        if (!wrapper || !rows) {
+            return;
+        }
+
+        const currency = this.currencySelect ? this.currencySelect.value : 'CZK';
+        rows.replaceChildren(...summary.map((vatLine) => {
+            const row = document.createElement('tr');
+            [
+                `${vatLine.rate.toLocaleString(document.documentElement.lang)} %`,
+                `${this.formatNumber(Number(vatLine.base) / 100)} ${currency}`,
+                `${this.formatNumber(Number(vatLine.vat) / 100)} ${currency}`,
+                `${this.formatNumber(Number(vatLine.base + vatLine.vat) / 100)} ${currency}`,
+            ].forEach((text, index) => {
+                const cell = document.createElement('td');
+                cell.textContent = text;
+                cell.className = index === 0 ? 'py-1 pr-4' : 'py-1 pl-4 text-right';
+                row.appendChild(cell);
+            });
+
+            return row;
+        }));
+        wrapper.hidden = summary.length === 0;
+    }
+
     // Format number for display
     formatNumber(number) {
-        return number.toLocaleString('cs-CZ', {
+        return number.toLocaleString(document.documentElement.lang, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
@@ -599,6 +694,7 @@ export default class InvoiceItemManager {
     // Update JSON data
     updateJsonData() {
         if (!this.jsonInput) return;
+        this.applyVatPayer();
 
         const items = [];
         const itemElements = this.itemsContainer.querySelectorAll('.invoice-item');
@@ -610,7 +706,6 @@ export default class InvoiceItemManager {
             const price = itemElement.querySelector('.item-price').value.trim();
             const currency = itemElement.querySelector('.item-currency').value.trim();
             const taxRate = itemElement.querySelector('.item-tax').value.trim();
-            const priceComplete = itemElement.querySelector('.item-price-complete').value.trim();
 
             // Add product_id only if available
             const productId = itemElement.dataset.productId || null;

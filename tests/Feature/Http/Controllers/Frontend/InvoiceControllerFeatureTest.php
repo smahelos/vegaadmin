@@ -400,8 +400,6 @@ class InvoiceControllerFeatureTest extends TestCase
                 'price' => '100',
                 'currency' => Currency::CZK->value,
                 'tax_rate' => '21',
-                'tax_amount' => '42',
-                'total_price' => '242',
             ],
         );
         $money = app(MoneyFormatterInterface::class);

@@ -32,7 +32,7 @@ final class InvoicePrintDataBuilderTest extends TestCase
         $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
-        $printData = $invoicePrintDataBuilder->build($dto);
+        $printData = $invoicePrintDataBuilder->build($dto, true);
 
         $this->assertSame(
             '2026-09-30',

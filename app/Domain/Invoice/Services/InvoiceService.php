@@ -10,6 +10,7 @@ use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
+use App\Domain\Invoice\Exceptions\NonPayerVatRateException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
@@ -29,18 +30,26 @@ final class InvoiceService implements InvoiceServiceInterface
      * The parties come checked and copied from the application.
      *
      * @param  list<InvoiceProductWriteData>  $invoiceProducts
+     * @param  bool  $vatPayer  Of the supplier business; a non-payer's lines have rate 0
+     *
+     * @throws NonPayerVatRateException
      */
     public function createInvoice(
         WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         array $invoiceProducts,
+        bool $vatPayer,
     ): InvoiceDTO {
         return $this->invoiceWriteRepository->create(
             $scope,
             $data,
             $parties,
-            $this->totalOf($data, $invoiceProducts),
+            $this->totalOf(
+                $data,
+                $invoiceProducts,
+                $vatPayer,
+            ),
             $invoiceProducts,
         );
     }
@@ -49,6 +58,9 @@ final class InvoiceService implements InvoiceServiceInterface
      * Replaces the invoice, its parties and its lines.
      *
      * @param  list<InvoiceProductWriteData>  $invoiceProducts
+     * @param  bool  $vatPayer  Of the supplier business; a non-payer's lines have rate 0
+     *
+     * @throws NonPayerVatRateException
      */
     public function updateInvoice(
         WriteScope $scope,
@@ -56,13 +68,18 @@ final class InvoiceService implements InvoiceServiceInterface
         InvoiceWriteData $data,
         DocumentParties $parties,
         array $invoiceProducts,
+        bool $vatPayer,
     ): InvoiceDTO {
         return $this->invoiceWriteRepository->update(
             $invoiceId,
             $scope,
             $data,
             $parties,
-            $this->totalOf($data, $invoiceProducts),
+            $this->totalOf(
+                $data,
+                $invoiceProducts,
+                $vatPayer,
+            ),
             $invoiceProducts,
         );
     }
@@ -81,10 +98,19 @@ final class InvoiceService implements InvoiceServiceInterface
      * The lines are the source of truth for the total (rules/domain.md, Invoices).
      *
      * @param  list<InvoiceProductWriteData>  $products
+     *
+     * @throws NonPayerVatRateException
      */
-    private function totalOf(InvoiceWriteData $data, array $products): Money
-    {
-        $totals = InvoiceTotals::fromProducts($data->currency, $products);
+    private function totalOf(
+        InvoiceWriteData $data,
+        array $products,
+        bool $vatPayer,
+    ): Money {
+        $totals = InvoiceTotals::forSupplier(
+            $data->currency,
+            $products,
+            $vatPayer,
+        );
 
         return $totals->total();
     }

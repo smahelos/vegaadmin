@@ -33,29 +33,9 @@ final readonly class InvoiceProductWriteData
         return $this->productId === null;
     }
 
-    /** Price times quantity, rounded half up to cents. */
+    /** Price times quantity, rounded half up to cents, as the line prints it; VAT is computed by rate (InvoiceTotals). */
     public function base(): Money
     {
         return $this->price->multiplyBy($this->quantity);
-    }
-
-    /** VAT of the line, computed from the rounded base and rounded half up to cents. */
-    public function taxAmount(): Money
-    {
-        $base = $this->base();
-        $tax = $base->multiplyBy($this->taxRate, 8);
-
-        return $tax->divideRounding(
-            100,
-            2,
-            Money::ROUND_HALF_UP,
-        );
-    }
-
-    public function total(): Money
-    {
-        $base = $this->base();
-
-        return $base->add($this->taxAmount());
     }
 }

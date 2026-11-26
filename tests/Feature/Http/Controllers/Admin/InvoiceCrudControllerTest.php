@@ -505,7 +505,7 @@ final class InvoiceCrudControllerTest extends TestCase
             [
                 'invoice_id' => $invoice->id,
                 'name' => 'Design',
-                'total_price' => '99.99',
+                'price' => '33.33',
             ],
         );
     }

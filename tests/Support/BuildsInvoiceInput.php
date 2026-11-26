@@ -26,14 +26,20 @@ use DateTimeImmutable;
 trait BuildsInvoiceInput
 {
     /**
-     * A business of the user with the address an invoice prints, and its account.
+     * A business of the user with the address an invoice prints, and its account. It is a VAT payer, so its
+     * invoices may use any rate.
      *
      * @return array{Business, BankAccount}
      */
     private function issuerOf(User $user): array
     {
         $businessFactory = Business::factory();
-        $business = $businessFactory->create(['user_id' => $user->id]);
+        $business = $businessFactory->create(
+            [
+                'user_id' => $user->id,
+                'is_vat_payer' => true,
+            ],
+        );
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
 

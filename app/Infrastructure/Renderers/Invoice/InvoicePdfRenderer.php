@@ -11,7 +11,6 @@ use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Number\Contracts\NumberFormatterInterface;
-use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Barryvdh\DomPDF\PDF as PdfDocument;
@@ -27,14 +26,22 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly DateFormatterInterface $dateFormatter,
         private readonly NumberFormatterInterface $numberFormatter,
-        private readonly ClockInterface $clock,
     ) {}
 
     public function render(PrintableInvoiceDTO $data, string $locale): PdfDocument
     {
         $paymentAmountFormatted = $this->moneyFormatter->format($data->totalAmount, $locale);
-        $subtotalFormatted = $this->moneyFormatter->format($data->subtotal, $locale);
-        $taxFormatted = $this->moneyFormatter->format($data->totalTax, $locale);
+        $totals = $data->totals;
+        $vatLinesFormatted = [];
+        foreach ($totals->vatLines as $vatLine) {
+            $vatLineTotal = $vatLine->total();
+            $vatLinesFormatted[] = [
+                'rate_formatted' => $this->numberFormatter->format($vatLine->rate, $locale),
+                'base_formatted' => $this->moneyFormatter->format($vatLine->base, $locale),
+                'vat_formatted' => $this->moneyFormatter->format($vatLine->vat, $locale),
+                'total_formatted' => $this->moneyFormatter->format($vatLineTotal, $locale),
+            ];
+        }
 
         $invoiceProductsFormatted = [];
         foreach ($data->items as $idx => $item) {
@@ -44,7 +51,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
                 'unit' => $item->unit->value,
                 'price_formatted' => $this->moneyFormatter->format($item->price, $locale),
                 'tax_rate_formatted' => $this->numberFormatter->format($item->taxRate, $locale),
-                'total_price_formatted' => $this->moneyFormatter->format($item->lineTotal, $locale),
+                'base_formatted' => $this->moneyFormatter->format($item->base, $locale),
                 'currency' => $data->currency,
             ];
         }
@@ -83,10 +90,8 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'qrCode' => $qrCode,
             'hasQrCode' => $hasQr,
             'locale' => $locale,
-            'generatedAt' => $this->dateFormatter->formatDateTime($this->clock->now(), $locale),
             'paymentAmountFormatted' => $paymentAmountFormatted,
-            'subtotalFormatted' => $subtotalFormatted,
-            'taxFormatted' => $taxFormatted,
+            'vatLinesFormatted' => $vatLinesFormatted,
             'invoiceProductsFormatted' => $invoiceProductsFormatted,
 
         ];

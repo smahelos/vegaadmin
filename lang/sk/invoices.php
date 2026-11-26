@@ -72,6 +72,8 @@ return [
         'contact_id' => 'Kontakt',
         'customer' => 'Odberateľ',
         'save_customer_to_contacts' => 'Uložiť odberateľa do kontaktov',
+        'is_vat_payer' => 'Platiteľ DPH',
+        'item_base' => 'Základ',
     ],
     'hints' => [
         'invoice_vs' => 'Navrhované číslo faktúry môžete prispôsobiť vášmu číslovaniu.',
@@ -104,7 +106,6 @@ return [
         'item_currency' => 'Mena',
         'item_total' => 'Celkom',
         'item_description' => 'Popis',
-        'item_price_complete' => 'Celkom',
         'actions' => 'Akcie',
         'select_item_unit' => 'Vyberte jednotku',
         'unnamed_product' => 'Položka bez názvu',
@@ -167,7 +168,6 @@ return [
         'token_invalid' => 'Neplatný alebo vypršaný odkaz pre stiahnutie faktúry.',
         'last_invoice_available' => 'Máte dostupnú poslednú vytvorenú faktúru č. (:number).',
         'pdf_error' => 'Pri generovaní PDF faktúry došlo k chybe',
-        'thank_you_pdf' => 'Ďakujeme za vytvorenie PDF faktúry!',
         'expires_in' => 'Odkaz vyprší za :minutes minút(y)',
         'expires_in_soon' => 'Odkaz čoskoro vyprší',
         'invoice_deleted' => 'Faktúra bola úspešne vymazaná.',
@@ -190,6 +190,7 @@ return [
         'no_active_account' => 'Firma nemá žiadny aktívny bankový účet.',
         'no_contacts_found' => 'Žiadny kontakt sa nenašiel.',
         'contact_exists' => 'Kontakt :name s rovnakým IČO už existuje.',
+        'not_vat_payer' => 'Neplatiteľ DPH',
     ],
     'validation' => [
         'item_currency' => 'Mena položky musí byť rovnaká ako mena faktúry.',
@@ -201,6 +202,18 @@ return [
         'invalid_swift' => 'SWIFT kód je neplatný',
         'invalid_iban' => 'IBAN je neplatný',
         'invalid_vat_id' => 'Daňové identifikačné číslo je neplatné',
+        'non_payer_vat_rate' => 'Neplatiteľ DPH uvádza pri všetkých položkách sadzbu 0 %.',
+    ],
+    'vat_lines' => [
+        'titles' => [
+            'summary' => 'Rekapitulácia DPH',
+        ],
+        'fields' => [
+            'rate' => 'Sadzba DPH',
+            'base' => 'Základ',
+            'vat' => 'DPH',
+            'total' => 'Celkom s DPH',
+        ],
     ],
     'statuses' => [
         'paid' => 'Zaplatené',
@@ -209,7 +222,6 @@ return [
         'overdue' => 'Po splatnosti',
     ],
     'qr_code_info' => 'Pre platbu použite QR kód',
-    'generated_at' => 'Vygenerované',
     'defaults' => [
         'invoice_text' => 'Fakturácia služieb',
     ],

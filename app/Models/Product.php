@@ -97,8 +97,6 @@ class Product extends Model
                 'description',
                 'is_custom_product',
                 'tax_rate',
-                'tax_amount',
-                'total_price',
             ],
         );
         $relation->withTimestamps();

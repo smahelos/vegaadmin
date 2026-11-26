@@ -4,6 +4,7 @@ namespace App\Exceptions;
 
 use App\Domain\Expense\Exceptions\ExpenseNotFoundException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Exceptions\NonPayerVatRateException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
 use App\Domain\Party\Exceptions\BankAccountNotFoundException;
@@ -139,6 +140,15 @@ class ExceptionHandling
                 $request,
                 $request->routeIs('expense.*') ? 'supplier_company_number' : 'customer_company_number',
                 __('parties.validation.contact_identity_changed'),
+            ),
+        );
+
+        // The rate field is hidden for a non-payer, so a non-zero rate comes only from a changed business or a crafted request
+        $exceptions->render(
+            fn (NonPayerVatRateException $e, Request $request): JsonResponse|RedirectResponse => self::invalid(
+                $request,
+                'invoice-products',
+                __('invoices.validation.non_payer_vat_rate'),
             ),
         );
 

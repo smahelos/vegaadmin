@@ -45,6 +45,22 @@ function setupItems(editor) {
             for (const key of ['subtotal', 'tax', 'total']) {
                 editor.querySelector(`[data-${key}]`).textContent = formatter.format(result.data[key]);
             }
+            const rateFormatter = new Intl.NumberFormat(editor.dataset.locale);
+            editor.querySelector('[data-vat-lines]').replaceChildren(...result.data.vat_lines.map(vatLine => {
+                const row = document.createElement('tr');
+                [
+                    `${rateFormatter.format(vatLine.rate)} %`,
+                    formatter.format(vatLine.base),
+                    formatter.format(vatLine.vat),
+                    formatter.format(vatLine.total),
+                ].forEach((text, index) => {
+                    const cell = document.createElement('td');
+                    cell.textContent = text;
+                    if (index > 0) cell.className = 'text-end';
+                    row.appendChild(cell);
+                });
+                return row;
+            }));
             totals.hidden = false;
             status.textContent = '';
         } catch {

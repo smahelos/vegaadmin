@@ -47,7 +47,7 @@ final class UpdateInvoiceHandler
             $business->logo,
             null,
             fn (?string $logo): InvoiceDTO => $this->transactions->transaction(
-                function () use ($command, $scope, $stored, $logo): InvoiceDTO {
+                function () use ($command, $scope, $stored, $logo, $business): InvoiceDTO {
                     $documentParties = $this->parties->assemble(
                         $scope,
                         $command->parties,
@@ -61,6 +61,7 @@ final class UpdateInvoiceHandler
                         $command->data,
                         $documentParties,
                         $command->products,
+                        $business->invoicing->vatPayer,
                     );
                 },
             ),

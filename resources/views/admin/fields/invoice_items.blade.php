@@ -32,6 +32,18 @@
     <div data-item-rows></div>
     <button type="button" class="btn btn-outline-primary mb-3" data-add-custom>{{ __('invoices.items.add_custom') }}</button>
     <div class="alert alert-secondary" data-item-totals hidden>
+        <table class="table table-sm mb-2">
+            <caption class="caption-top">{{ __('invoices.vat_lines.titles.summary') }}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">{{ __('invoices.vat_lines.fields.rate') }}</th>
+                    <th scope="col" class="text-end">{{ __('invoices.vat_lines.fields.base') }}</th>
+                    <th scope="col" class="text-end">{{ __('invoices.vat_lines.fields.vat') }}</th>
+                    <th scope="col" class="text-end">{{ __('invoices.vat_lines.fields.total') }}</th>
+                </tr>
+            </thead>
+            <tbody data-vat-lines></tbody>
+        </table>
         <dl class="row mb-0">
             <dt class="col-7">{{ __('invoices.items.subtotal') }}</dt><dd class="col-5 text-end" data-subtotal></dd>
             <dt class="col-7">{{ __('invoices.labels.total_tax') }}</dt><dd class="col-5 text-end" data-tax></dd>

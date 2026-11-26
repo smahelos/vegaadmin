@@ -243,10 +243,9 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                             __('invoices.placeholders.item_price') }}</div>
                         <div class="col-span-4 md:col-span-3 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_currency') }}</div>
-                        <div class="col-span-4 md:col-span-3 text-sm font-medium text-gray-600 dark:text-gray-400">{{
+                        <div class="vat-rate-column col-span-4 md:col-span-3 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_tax') }}</div>
-                        <div class="col-span-4 md:col-span-3 text-sm font-medium text-gray-600 dark:text-gray-400">{{
-                            __('invoices.placeholders.item_price_complete') }}</div>
+                        <div class="col-span-4 md:col-span-3 text-sm font-medium text-gray-600 dark:text-gray-400"><span class="vat-rate-column">{{ __('invoices.fields.item_base') }}</span><span class="non-payer-column" hidden>{{ __('invoices.fields.total') }}</span></div>
                         <div class="col-span-4 md:col-span-2 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.actions')
                             }}</div>
@@ -304,7 +303,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                                 <x-currency-select name="item-currency" label="" id="item-currency"
                                     class="item-currency" :codes="true" />
                             </div>
-                            <div class="col-span-2 md:col-span-3">
+                            <div class="vat-rate-column col-span-2 md:col-span-3">
                                 <label
                                     class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
                                     __('invoices.placeholders.item_tax') }}</label>
@@ -318,11 +317,10 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                             </div>
                             <div class="col-span-2 md:col-span-4 lg:col-span-3">
                                 <label
-                                    class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
-                                    __('invoices.placeholders.item_price_complete') }}</label>
+                                    class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden"><span class="vat-rate-column">{{ __('invoices.fields.item_base') }}</span><span class="non-payer-column" hidden>{{ __('invoices.fields.total') }}</span></label>
                                 <input type="text"
                                     class="item-price-complete form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500"
-                                    placeholder="{{ __('invoices.placeholders.item_price_complete') }}" readonly>
+                                    placeholder="{{ __('invoices.fields.item_base') }}" readonly>
                             </div>
                             <div class="col-span-4 md:col-span-2">
                                 <label
@@ -373,9 +371,11 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
             </div>
         </div>
     </div>
+    <x-invoice-vat-summary />
     <div class="flex justify-end mb-10">
         <!-- Invoice items total sum -->
         <div class="grid grid-cols-12 mt-5 mb-4 pt-3">
+            <div id="invoice-vat-totals" class="contents">
             <div class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2">
                 {{ __('invoices.labels.total_without_tax') }}:</div>
             <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
@@ -386,6 +386,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
             <div class="col-span-6 md:col-span-2 font-bold text-xl md:text-3xl text-right whitespace-nowrap md:whitespace-normal pl-2 pt-2 dark:text-white"
                 id="invoice-items-total-tax">
                 0.00</div>
+            </div>
             <div
                 class="col-span-6 md:col-span-10 text-xl md:text-3xl font-medium text-gray-900 dark:text-white text-left pr-2 pt-2 mt-2 border-t-3 border-[#490BF4] dark:border-gray-700">
                 {{ __('invoices.fields.total') }}:</div>

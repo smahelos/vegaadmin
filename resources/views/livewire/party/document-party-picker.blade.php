@@ -15,6 +15,14 @@
                 <x-party.document-contact-fields form="supplier" names="supplier" />
                 <x-party.billing-fields :countries="$countries" :register-message="$supplierRegisterMessage" form="supplier"
                     look-up="lookUpSupplier" names="supplier" required />
+                {{-- Posted with the invoice form; the item editor reads it, so a re-render must not reset it --}}
+                <div wire:ignore>
+                    <label class="flex items-center gap-2 text-base text-gray-900 dark:text-white">
+                        <input type="checkbox" id="supplier-vat-payer" name="is_vat_payer" value="1"
+                            class="rounded-sm border-blue-100 text-indigo-600 focus:ring-indigo-600">
+                        {{ __('invoices.fields.is_vat_payer') }}
+                    </label>
+                </div>
 
                 <div x-show="paysByBankTransfer" class="space-y-5">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white pt-2">{{ __('invoices.sections.payment_info') }}</h3>
@@ -30,6 +38,8 @@
                 <input type="hidden" name="reload_business" value="{{ $reloadBusiness ? 1 : 0 }}">
 
                 @if ($business)
+                    {{-- The item editor reads the flag; until issuing stores it, an invoice takes the business's current one --}}
+                    <input type="checkbox" id="supplier-vat-payer" hidden disabled @checked($business->invoicing->vatPayer)>
                     @if ($businessChanged)
                         <div class="rounded-sm border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
                             <p>{{ __('invoices.messages.business_changed') }}</p>

@@ -72,6 +72,8 @@ return [
         'contact_id' => 'Contact',
         'customer' => 'Client',
         'save_customer_to_contacts' => 'Save the customer to contacts',
+        'is_vat_payer' => 'VAT payer',
+        'item_base' => 'Tax base',
     ],
     'hints' => [
         'invoice_vs' => 'You can customize the suggested invoice number to match your numbering system.',
@@ -104,7 +106,6 @@ return [
         'item_currency' => 'Currency',
         'item_total' => 'Total',
         'item_description' => 'Description',
-        'item_price_complete' => 'Total',
         'actions' => 'Actions',
         'unnamed_product' => 'Unnamed item',
         'select_currency' => 'Select currency',
@@ -167,7 +168,6 @@ return [
         'token_invalid' => 'Invalid or expired invoice download link.',
         'last_invoice_available' => 'You have your last created invoice available No. (:number).',
         'pdf_error' => 'An error occurred while generating the PDF invoice',
-        'thank_you_pdf' => 'Thank you for creating a PDF invoice!',
         'expires_in' => 'Link expires in :minutes minute(s)',
         'expires_in_soon' => 'Link will expire soon',
         'invoice_deleted' => 'Invoice was successfully deleted.',
@@ -190,6 +190,7 @@ return [
         'no_active_account' => 'The business has no active bank account.',
         'no_contacts_found' => 'No contact found.',
         'contact_exists' => 'The contact :name with the same company number already exists.',
+        'not_vat_payer' => 'Not a VAT payer',
     ],
     'validation' => [
         'item_currency' => 'The item currency must match the invoice currency.',
@@ -201,6 +202,18 @@ return [
         'invalid_swift' => 'SWIFT code is invalid',
         'invalid_iban' => 'IBAN is invalid',
         'invalid_vat_id' => 'VAT ID is invalid',
+        'non_payer_vat_rate' => 'A non-VAT payer uses the 0 % rate on all items.',
+    ],
+    'vat_lines' => [
+        'titles' => [
+            'summary' => 'VAT summary',
+        ],
+        'fields' => [
+            'rate' => 'VAT rate',
+            'base' => 'Tax base',
+            'vat' => 'VAT',
+            'total' => 'Total incl. VAT',
+        ],
     ],
     'statuses' => [
         'paid' => 'Paid',
@@ -209,7 +222,6 @@ return [
         'overdue' => 'Overdue',
     ],
     'qr_code_info' => 'Use the QR code for payment',
-    'generated_at' => 'Generated at',
     'defaults' => [
         'invoice_text' => 'Billing for services',
     ],

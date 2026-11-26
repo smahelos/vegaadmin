@@ -48,11 +48,11 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
                 unit: $product->unit,
                 price: $product->price,
                 taxRate: $product->taxRate,
-                lineTotal: $product->total(),
+                base: $product->base(),
             ),
             $products,
         );
-        $totals = InvoiceTotals::fromProducts($currency, $products);
+        $totals = InvoiceTotals::fromLines($currency, $products);
 
         /** @var DocumentPartyDTO $supplier */
         $supplier = $invoiceData['supplier'];
@@ -71,8 +71,8 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             currency: $currency->value,
             template: InvoiceTemplate::from($invoiceData['template']),
             items: $items,
-            subtotal: $totals->subtotal,
-            totalTax: $totals->tax,
+            totals: $totals,
+            vatPayer: (bool) $invoiceData['is_vat_payer'],
             totalAmount: $totals->total(),
             supplier: PartyPrintDTO::fromDocumentParty($supplier),
             customer: PartyPrintDTO::fromDocumentParty($customer),
