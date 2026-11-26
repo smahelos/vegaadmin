@@ -12,6 +12,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
@@ -81,8 +82,10 @@ final class EloquentInvoiceMapper
     private function toItem(InvoiceProduct $line): InvoiceProductDTO
     {
         $currency = Currency::from($line->currency);
+        $productId = $line->product_id;
 
         return new InvoiceProductDTO(
+            productId: $productId === null ? null : ProductId::fromInt($productId),
             name: $line->name,
             quantity: $line->quantity,
             unit: Unit::from($line->unit),

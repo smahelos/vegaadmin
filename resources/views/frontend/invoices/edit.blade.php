@@ -50,7 +50,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
 </div>
 
 <form id="invoice-form" method="POST"
-    action="{{ route('frontend.invoice.update', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
+    action="{{ route('frontend.invoice.update', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}"
     enctype="multipart/form-data" data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}" data-is-editing="true"
     data-amount-required="{{ __('invoices.validation.amount_required') }}"
     data-amount-numeric="{{ __('invoices.validation.amount_numeric') }}"
@@ -84,7 +84,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                                 {{ $field['label'] }} <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="invoice_vs" id="invoice_vs" required
-                                value="{{ old('invoice_vs', $invoice->invoice_vs) }}"
+                                value="{{ old('invoice_vs', $values['invoice_vs']) }}"
                                 class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                             @if(isset($field['hint']) && $field['hint'] !== '')
                             <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
@@ -100,7 +100,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                         <div class="md:col-span-1 mb-5">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
                                 id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $invoice->payment_status->value)"
+                                :selected="old($field['name'], $values['status'])"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$field['options']"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
@@ -117,7 +117,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                             $marginBottomClass = !isset($field['hint']) || $field['hint'] === '' ? 'mb-6' : '';
                             @endphp
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" :selected="old($field['name'], $invoice->payment_method_id)"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], $values['payment_method_id'])"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 :options="$paymentMethods" hint="{{ $field['hint'] }}"
                                 class="bg-blue-50 {{ $marginBottomClass }}" labelClass="" />
@@ -126,7 +126,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                         @elseif($field['name'] === 'payment_currency')
                         <div class="md:col-span-1">
                             <x-currency-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" :selected="old($field['name'], $invoice->payment_currency)"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], $values['payment_currency'])"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 hint="{{ $field['hint'] }}" class="bg-red-50" />
                         </div>
@@ -144,7 +144,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                     @endphp
                     <div class="md:col-span-1">
                         <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}" id="{{ $field['name'] }}"
-                            :selected="old($field['name'], $invoice->due_in)"
+                            :selected="old($field['name'], $values['due_in'])"
                             required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$dueInOptions"
                             hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                     </div>
@@ -158,11 +158,8 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                             <span class="text-red-500">*</span>
                             @endif
                         </label>
-                        <input data-help="{{ old($field['name'], $invoice->{$field['name']}) }}"
-                            name="{{ $field['name'] }}" id="{{ $field['name'] }}" @if($field['name']==='issue_date' ||
-                            $field['name']==='tax_point_date' )
-                            value="{{ old($field['name'], $invoice->{$field['name']}->format('Y-m-d')) }}" @else
-                            value="{{ old($field['name'], $invoice->{$field['name']}) }}" @endif
+                        <input data-help="{{ old($field['name'], $values[$field['name']]) }}"
+                            name="{{ $field['name'] }}" id="{{ $field['name'] }}" value="{{ old($field['name'], $values[$field['name']]) }}"
                             @if($field['name']==='payment_amount') readonly
                             @elseif(isset($field['required']) && $field['required']===true) required @endif
                             class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
@@ -187,11 +184,8 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                             @endif
                         </label>
                         <input type="{{ $field['type'] }}"
-                            data-help="{{ old($field['name'], $invoice->{$field['name']}) }}"
-                            name="{{ $field['name'] }}" id="{{ $field['name'] }}" @if($field['name']==='issue_date' ||
-                            $field['name']==='tax_point_date' )
-                            value="{{ old($field['name'], $invoice->{$field['name']}->format('Y-m-d')) }}" @else
-                            value="{{ old($field['name'], $invoice->{$field['name']}) }}" @endif
+                            data-help="{{ old($field['name'], $values[$field['name']]) }}"
+                            name="{{ $field['name'] }}" id="{{ $field['name'] }}" value="{{ old($field['name'], $values[$field['name']]) }}"
                             @if(isset($field['required']) && $field['required']===true) required @endif
                             class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
                         @if(isset($field['hint']) && $field['hint'] !== '')
@@ -219,7 +213,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
     @endforeach
 
     <div class="mb-8">
-        <livewire:party.document-party-picker :invoice-id="$invoice->id" :bank-transfer-method-id="$bankTransferMethodId" />
+        <livewire:party.document-party-picker :invoice-id="$invoice->id->value" :bank-transfer-method-id="$bankTransferMethodId" />
     </div>
 
     <!-- Section 4: Invoice description -->
@@ -366,7 +360,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                         {{ __('invoices.fields.invoice_note') }}
                     </label>
                     <textarea name="invoice_text" id="invoice_text" rows="3"
-                        class="form-textarea mt-1 block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">{{ old('invoice_text', $invoice->invoice_text) }}</textarea>
+                        class="form-textarea mt-1 block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">{{ old('invoice_text', $values['invoice_text']) }}</textarea>
                     @if(isset($fieldDescription['hint']) && $fieldDescription['hint'] !== '')
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {{ $fieldDescription['hint'] }}
@@ -413,7 +407,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                 class="template-settings-btn inline-flex items-center px-4 py-4 md:px-6 md:py-6 border border-gray-300 dark:border-gray-600 shadow-xl shadow-gray-400/30 dark:shadow-gray-900/30 dark:shadow-md text-lg font-semibold rounded-sm text-gray-700 dark:text-white hover:text-gray-600 dark:hover:text-white bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200 cursor-pointer">
                 <i class="fas fa-cog mr-2"></i>
                 <span class="mr-2">{{ __('invoices.labels.template_settings') }}:</span>
-                <span class="template-name">{{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}</span>
+                <span class="template-name">{{ __('invoices.templates.' . $invoice->template->value) }}</span>
             </button>
         </div>
 
@@ -430,7 +424,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
     <input type="hidden" name="lang" value="{{ App::getLocale() }}">
     <input type="hidden" name="tax_amount" value="0">
     <input type="hidden" name="payment_without_tax_amount" value="0">
-    <input type="hidden" name="template" value="{{ $invoice->template ?? 'default' }}">
+    <input type="hidden" name="template" value="{{ $invoice->template->value }}">
 </form>
 
 <!-- Product Selection Modal -->
@@ -594,7 +588,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
 @push('scripts')
 <script>
     // Provide existing invoice data to the invoice-form.js script
-    window.existingInvoiceData = @json($invoice->invoiceProductsData ?? []);
+    window.existingInvoiceData = @json($items);
 </script>
 @vite('resources/js/invoice-form.js')
 @vite('resources/js/image-preview.js')

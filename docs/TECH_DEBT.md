@@ -412,11 +412,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`. Invoices, expenses and products publish no domain events: their update, delete and set-as-default events nobody published were deleted (commit "Delete unpublished domain events and unread event accessors", branch `ls-dead-code`), the unread InvoiceCreated, ExpenseCreated and ProductCreated with commit 8c38d650; they are added back with their publishers. The Party context already publishes its events (created, updated, archived, restored, default business changed), and the owner's dashboard cache listens to them after the commit.
 - **Fix:** add and publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events), then remove the observers.
 
-### Format invoice amounts through a presenter
-- **Where:** `resources/views/frontend/invoices/show.blade.php`
-- **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.
-- **Fix:** an invoice detail presenter using `MoneyFormatterInterface`, like `app/Application/Analytics/Presenters/*`.
-
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
@@ -486,7 +481,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
-- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
+- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion: `resources/views/frontend/invoices/edit.blade.php` and `resources/views/frontend/invoices/create.blade.php` keep `@php` logic (the `getEditFieldByName()` helper, the `dueInOptions` list, translating the payment method options in place) and pass the item editor's lines through the inline `window.existingInvoiceData` global (found 2026-11-26). Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
 
 ### Alpine is bundled next to Livewire's own
 - **Where:** `resources/js/app.js`, `package.json` (`alpinejs`, `@alpinejs/focus`), `@livewireScripts` in `resources/views/layouts/app.blade.php` and `resources/views/layouts/frontend.blade.php`
@@ -499,7 +494,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix (decided 2026-11-07):** own error pages in the frontend layout, in four locales (`add-translation`), for at least 403, 404, 419, 429, 500 and 503; decide whether the admin keeps Backpack's error views.
 
 ### Dates outside the PDFs are formatted by hand
-- **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the remaining Livewire invoice widgets)
+- **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/products/show.blade.php`, the remaining Livewire invoice widgets)
 - **Problem:** the PDFs format dates through `DateFormatterInterface` in their language, but the frontend, the admin and the reminder emails print the Czech format for every locale.
 - **Fix:** dates through `DateFormatterInterface` in the page locale: a `<x-date>` Blade component for remaining views; delete `DateHelper`. Reminder emails and the common invoice list already use the formatter in their presenter/mail factory.
 

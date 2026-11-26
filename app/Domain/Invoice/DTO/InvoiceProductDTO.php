@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 
 /**
- * One stored invoice line.
+ * One stored invoice line. A line without a product is a custom item typed into the invoice.
  */
 final readonly class InvoiceProductDTO
 {
@@ -17,6 +18,7 @@ final readonly class InvoiceProductDTO
      * @param  string  $taxRate  VAT rate in percent as a decimal string, e.g. "21.00"
      */
     public function __construct(
+        public ?ProductId $productId,
         public string $name,
         public string $quantity,
         public Unit $unit,

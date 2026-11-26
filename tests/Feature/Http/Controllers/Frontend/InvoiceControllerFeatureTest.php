@@ -4,11 +4,18 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\User\Enums\Permission;
 use App\Models\Contact;
 use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\Permission as PermissionModel;
+use App\Models\Product;
 use App\Models\User;
+use Illuminate\Support\Facades\App;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
@@ -375,6 +382,94 @@ class InvoiceControllerFeatureTest extends TestCase
         );
         $response->assertStatus(200);
         $response->assertSee($this->invoice->invoice_vs);
+    }
+
+    #[Test]
+    public function show_view_prints_the_stored_lines_as_money(): void
+    {
+        $this->invoice->update(['payment_amount' => '242.00']);
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(
+            [
+                'invoice_id' => $this->invoice->id,
+                'product_id' => null,
+                'is_custom_product' => true,
+                'name' => 'Consulting',
+                'quantity' => '2',
+                'unit' => Unit::HOURS->value,
+                'price' => '100',
+                'currency' => Currency::CZK->value,
+                'tax_rate' => '21',
+                'tax_amount' => '42',
+                'total_price' => '242',
+            ],
+        );
+        $money = app(MoneyFormatterInterface::class);
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.invoice.show', ['locale' => 'en', 'id' => $this->invoice->id]),
+        );
+
+        // The page renders in the user's language, which the locale middleware has set by now
+        $locale = App::getLocale();
+        $response->assertOk();
+        $response->assertSee('Consulting');
+        $response->assertSee(
+            $money->formatWithCode(
+                Money::fromString('100', Currency::CZK),
+                $locale,
+            ),
+        );
+        $response->assertSee(
+            $money->formatWithCode(
+                Money::fromString('242', Currency::CZK),
+                $locale,
+            ),
+        );
+        $response->assertSee(
+            __(
+                'payment_methods.methods.bankaccount',
+                [],
+                $locale,
+            ),
+        );
+    }
+
+    #[Test]
+    public function edit_view_fills_the_form_with_the_stored_invoice_and_line_names(): void
+    {
+        $productFactory = Product::factory();
+        $product = $productFactory->create(
+            ['user_id' => $this->user->id, 'name' => 'Renamed in the catalog'],
+        );
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(
+            [
+                'invoice_id' => $this->invoice->id,
+                'product_id' => $product->id,
+                'name' => 'Name on the invoice',
+            ],
+        );
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.invoice.edit', ['locale' => 'en', 'id' => $this->invoice->id]),
+        );
+
+        $response->assertOk();
+        $response->assertViewHas(
+            'values',
+            fn (array $values): bool => $values['invoice_vs'] === $this->invoice->invoice_vs
+                && $values['issue_date'] === $this->invoice->issue_date->format('Y-m-d')
+                && $values['status'] === InvoiceStatus::PENDING->value,
+        );
+        $response->assertViewHas(
+            'items',
+            fn (array $items): bool => count($items) === 1
+                && $items[0]['name'] === 'Name on the invoice'
+                && $items[0]['product_id'] === $product->id,
+        );
     }
 
     #[Test]

@@ -1,13 +1,14 @@
 @use('App\Application\Invoice\Commands\LinkInvoiceContact')
 @use('App\Application\Invoice\Commands\SaveInvoiceCustomerToContacts')
 @use('App\Application\Party\Commands\CreateContact')
+@use('App\Domain\Invoice\Enums\InvoiceStatus')
 @extends('layouts.frontend')
 
 @section('content')
 <!-- Top navigation bar with buttons -->
 <div class="flex justify-between items-center mb-6">
     <h1 class="main_title text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-4 leading-tight pt-3">{{
-        __('invoices.titles.invoice_number', ['number' => $invoice['invoice_vs']]) }}
+        __('invoices.titles.invoice_number', ['number' => $invoice->number]) }}
     </h1>
     <div class="flex-none space-x-2 space-y-2 grid grid-cols-4 md:flex md:grid-cols-none md:space-x-0">
         <x-back-button />
@@ -19,9 +20,9 @@
         </a>
 
         <!-- Button for marking as paid - show only if not paid -->
-        @if(! $invoice->paid)
+        @if($invoice->status !== InvoiceStatus::PAID)
         <form method="POST" class="col-span-1 md:col-span-none inline-block"
-            action="{{ route('frontend.invoice.mark-as-paid', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}">
+            action="{{ route('frontend.invoice.mark-as-paid', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}">
             @csrf
             @method('PUT')
             <button type="submit" title="{{ __('invoices.actions.mark_as_paid') }}"
@@ -34,17 +35,17 @@
 
         <!-- Template Settings Button -->
         <form id="invoice-form" method="POST" action=""
-            data-action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}">
+            data-action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id->value, 'template' => $invoice->template->value]) }}">
             <button type="button"
-                title="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}"
-                aria-label="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . ($invoice->template ?? 'default')) }}"
+                title="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . $invoice->template->value) }}"
+                aria-label="{{ __('invoices.labels.template_settings') }}: {{ __('invoices.templates.' . $invoice->template->value) }}"
                 class="template-settings-btn px-4 py-2 md:col-span-1 md:ml-4 inline-block bg-yellow-200 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-700 rounded-sm text-gray-700 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 text-sm font-medium cursor-pointer transition-colors">
                 <i class="fas fa-cog"></i>
             </button>
-            <input type="hidden" name="current_template" value="{{ $invoice->template ?? 'default' }}">
+            <input type="hidden" name="current_template" value="{{ $invoice->template->value }}">
         </form>
 
-        <a href="{{ route('frontend.invoice.edit', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
+        <a href="{{ route('frontend.invoice.edit', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}"
             title="{{ __('invoices.actions.edit') }}" aria-label="{{ __('invoices.actions.edit') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-pink-300 dark:bg-pink-500 hover:bg-pink-500 dark:hover:bg-pink-800 rounded-sm text-gray-700 dark:text-gray-200 hover:text-white text-sm font-medium transition-colors">
             <i class="fas fa-pencil-alt"></i>
@@ -54,7 +55,7 @@
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 bg-indigo-500 hover:bg-[#490BF4] rounded-sm text-gray-700 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 text-sm font-medium cursor-pointer transition-colors">
             <i class="fas fa-eye"></i>
         </button>
-        <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
+        <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}"
             title="{{ __('invoices.actions.download_pdf') }}" aria-label="{{ __('invoices.actions.download_pdf') }}"
             class="px-4 py-2 col-span-1 md:col-span-1 md:ml-4 inline-block bg-red-200 dark:bg-red-500 hover:bg-red-400 dark:hover:bg-red-600 rounded-sm text-sm text-gray-700 dark:text-gray-200 hover:text-white dark:hover:text-gray-200 font-medium transition-colors">
             <i class="fas fa-download"></i>
@@ -66,28 +67,24 @@
 <!-- Main invoice information -->
 <div class="mb-6">
     <div class="space-y-6">
-        <x-detail.card :title="__('invoices.sections.invoice_info')" :badge="__('invoices.statuses.' . $status->value)">
+        <x-detail.card :title="__('invoices.sections.invoice_info')" :badge="__('invoices.statuses.' . $invoice->status->value)">
             <div class="flex flex-col lg:flex-row gap-6">
                 <div class="flex-1 grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-                    <x-detail.item accent="border-indigo-500" :label="__('invoices.fields.invoice_vs_long')">{{ $invoice['invoice_vs'] }}</x-detail.item>
+                    <x-detail.item accent="border-indigo-500" :label="__('invoices.fields.invoice_vs_long')">{{ $invoice->number }}</x-detail.item>
                     <x-detail.item accent="border-blue-500" :label="__('invoices.fields.issue_date')">
-                        @php
-                            $issueDate = \Carbon\Carbon::parse($invoice->issue_date);
-                        @endphp
-                        {{ $issueDate->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
+                        {{ $presenter->date($invoice->issueDate, App::getLocale()) }}
                     </x-detail.item>
                     <x-detail.item accent="border-red-500" :label="__('invoices.fields.due_date')">
-                        {{ $invoice->due_date->format(\App\Infrastructure\Shared\Support\DateHelper::format()) }}
+                        {{ $presenter->dueDate($invoice, App::getLocale()) }}
                     </x-detail.item>
-                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.payment_method')">{{ $invoice->paymentMethod?->translated_name }}</x-detail.item>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.payment_method')">@if($detail->paymentMethod){{ __('payment_methods.methods.' . $detail->paymentMethod->value) }}@endif</x-detail.item>
                     <x-detail.item accent="border-green-500" :label="__('invoices.fields.payment_amount')">
-                        {{ number_format((float)($paymentAmount->amount ?? ($invoice->payment_amount ?? 0)), 2, ',', ' ') }}
-                        {{ $paymentAmount->currency->value ?? ($invoice->payment_currency ?? 'CZK') }}
+                        {{ $presenter->money($invoice->totalAmount, App::getLocale()) }}
                     </x-detail.item>
-                    <x-detail.item :accent="'border-' . $statusColor . '-500'" :label="__('invoices.status.invoice_status')">{{ __('invoices.statuses.' . $status->value) }}</x-detail.item>
+                    <x-detail.item :accent="'border-' . $statusColor . '-500'" :label="__('invoices.status.invoice_status')">{{ __('invoices.statuses.' . $invoice->status->value) }}</x-detail.item>
 
-                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ks')">{{ $invoice->invoice_ks }}</x-detail.item>
-                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ss')">{{ $invoice->invoice_ss }}</x-detail.item>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ks')">{{ $invoice->constantSymbol }}</x-detail.item>
+                    <x-detail.item accent="border-gray-300" :label="__('invoices.fields.invoice_ss')">{{ $invoice->specificSymbol }}</x-detail.item>
                     @if($parties->account)
                     <x-detail.item accent="border-orange-300" :label="__('parties.bank_accounts.fields.number')">
                         @if($parties->account->account->number)
@@ -99,9 +96,9 @@
                     <x-detail.item accent="border-red-300" :label="__('parties.bank_accounts.fields.swift')">{{ $parties->account->account->swift }}</x-detail.item>
                     @endif
                 </div>
-                @if($invoice->supplier_logo)
+                @if($parties->supplierLogo)
                 <x-detail.item class="lg:w-48 lg:shrink-0" accent="border-red-300" :label="__('parties.fields.supplier_logo')">
-                    <img src="{{ asset('storage/' . ltrim($invoice->supplier_logo, '/')) }}"
+                    <img src="{{ asset('storage/' . ltrim($parties->supplierLogo, '/')) }}"
                         alt="{{ __('parties.fields.supplier_logo') }}" class="mt-1 max-h-24">
                 </x-detail.item>
                 @endif
@@ -117,26 +114,26 @@
                 <x-party.document-profile :party="$parties->customer" :countries="$countries" />
 
                 <div class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-900 dark:text-white">
-                    @if($contact)
-                    <a href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $contact->id->value]) }}"
+                    @if($detail->contact)
+                    <a href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $detail->contact->id->value]) }}"
                         class="font-semibold underline">{{ __('invoices.actions.open_contact') }}</a>
-                    @if($contact->isArchived())
+                    @if($detail->contact->isArchived())
                     <span class="text-gray-500 dark:text-gray-400">({{ __('parties.statuses.archived') }})</span>
                     @endif
-                    @elseif($contactToLink)
+                    @elseif($detail->contactToLink)
                     @allowed(LinkInvoiceContact::class)
-                    <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
+                    <form method="POST" action="{{ route('frontend.invoices.link-contact', ['locale' => App::getLocale(), 'invoice' => $invoice->id->value]) }}">
                         @csrf
-                        <input type="hidden" name="contact_id" value="{{ $contactToLink->id->value }}">
+                        <input type="hidden" name="contact_id" value="{{ $detail->contactToLink->id->value }}">
                         <button type="submit" class="font-semibold underline cursor-pointer">
-                            {{ __('invoices.actions.link_contact', ['name' => $contactToLink->name]) }}
+                            {{ __('invoices.actions.link_contact', ['name' => $detail->contactToLink->name]) }}
                         </button>
                     </form>
                     @endallowed
                     @else
                     @allowed(CreateContact::class)
                     @allowed(SaveInvoiceCustomerToContacts::class)
-                    <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id]) }}">
+                    <form method="POST" action="{{ route('frontend.invoices.save-to-contacts', ['locale' => App::getLocale(), 'invoice' => $invoice->id->value]) }}">
                         @csrf
                         <button type="submit" class="font-semibold underline cursor-pointer">{{ __('invoices.actions.save_customer_to_contacts') }}</button>
                     </form>
@@ -148,7 +145,7 @@
         </div>
 
         <!-- Section for invoice items and note (only if exists) -->
-        @if(!empty($invoice->invoice_text) || ($invoice->invoiceProducts && count($invoice->invoiceProducts) > 0))
+        @if($invoice->text || $invoice->items)
         <div>
             <div
                 class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/3 rounded-md dark:shadow-gray-900/30 dark:bg-gray-800 p-6">
@@ -161,7 +158,7 @@
                     <div class="mt-4 space-y-4">
                         <div class="">
 
-                            @if($invoice->invoiceProducts && count($invoice->invoiceProducts) > 0)
+                            @if($invoice->items)
                             <!-- Invoice items -->
                             <h3 class="text-base font-medium text-gray-900 dark:text-white mb-4 ml-4">{{
                                 __('invoices.fields.invoice_items') }}</h3>
@@ -197,45 +194,26 @@
                                     </thead>
                                     <tbody
                                         class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-600">
-                                        @foreach($invoice->invoiceProductsData as $item)
+                                        @foreach($invoice->items as $item)
                                         <tr>
                                             <td class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-                                                {{ $item['name'] ?? '-' }}
+                                                {{ $item->name }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                {{ $item['quantity'] ?? '-' }}
+                                                {{ $item->quantity }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                {{ __('invoices.units.' . $item['unit']) }}
+                                                {{ __('invoices.units.' . $item->unit->value) }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                @if(isset($item['price']) && $item['price'] > 0)
-                                                {{ number_format($item['price'], 2, ',', ' ') }}
-                                                @else
-                                                -
-                                                @endif
+                                                {{ $presenter->money($item->price, App::getLocale()) }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                @if(isset($item['tax_rate']) && $item['tax_rate'] > 0)
-                                                {{ $item['tax_rate'] }}%
-                                                @else
-                                                0%
-                                                @endif
+                                                {{ $item->taxRate }}%
                                             </td>
                                             <td
                                                 class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white font-medium">
-                                                @if(isset($item['total_price']) && $item['total_price'])
-                                                {{ $item['total_price'] }}
-                                                @elseif(isset($item['price']) && isset($item['quantity']))
-                                                @php
-                                                $tax = isset($item['tax_rate']) ? floatval($item['tax_rate']) : 0;
-                                                $totalWithTax = floatval($item['price']) * floatval($item['quantity']) *
-                                                (1 + ($tax / 100));
-                                                echo number_format($totalWithTax, 2, ',', ' ');
-                                                @endphp
-                                                @else
-                                                -
-                                                @endif
+                                                {{ $presenter->money($item->total, App::getLocale()) }}
                                             </td>
                                         </tr>
                                         @endforeach
@@ -246,9 +224,7 @@
                                                 {{ __('invoices.fields.total') }}:
                                             </td>
                                             <td class="px-4 py-3 text-right text-gray-900 dark:text-white font-bold">
-                                                {{ number_format((float)($paymentAmount->amount ??
-                                                ($invoice->payment_amount ?? 0)), 2, ',', ' ') }} {{
-                                                $paymentAmount->currency->value ?? ($invoice->payment_currency ?? 'CZK') }}
+                                                {{ $presenter->money($invoice->totalAmount, App::getLocale()) }}
                                             </td>
                                         </tr>
                                     </tfoot>
@@ -256,20 +232,14 @@
                             </div>
                             @endif
 
-                            @if($invoice->invoice_text)
+                            @if($invoice->text)
                             <!-- Invoice note -->
                             <h3 class="text-base font-medium text-gray-900 dark:text-white mb-2 mt-6 ml-4">{{
                                 __('invoices.fields.invoice_note') }}</h3>
                             <div class="bg-gray-50 dark:bg-gray-700 rounded-sm p-4">
                                 <p class="text-sm text-gray-700 dark:text-gray-400 whitespace-pre-line">{{
-                                    $invoice->invoice_text }}</p>
+                                    $invoice->text }}</p>
                             </div>
-                            {{-- @elseif(!$invoice->invoice_text)
-                            <!-- Display original content if JSON parsing fails -->
-                            <h3 class="text-base font-medium text-gray-900 dark:text-white mb-2">{{
-                                __('invoices.sections.internal_note') }}</h3>
-                            <p class="text-sm text-gray-700 dark:text-gray-400 whitespace-pre-line">{{
-                                $invoice->invoice_text }}</p> --}}
                             @endif
                         </div>
                     </div>
@@ -291,7 +261,7 @@
         <div class="relative bg-white rounded-lg shadow-xl w-full max-w-5xl">
             <div class="flex justify-between items-center p-4 border-b">
                 <h3 class="text-lg font-medium text-gray-900">{{ __('invoices.modal.preview_title', ['number' =>
-                    $invoice['invoice_vs']]) }}</h3>
+                    $invoice->number]) }}</h3>
                 <button type="button" id="closeModal" class="text-gray-400 hover:text-gray-500">
                     <span class="sr-only">{{ __('invoices.actions.close') }}</span>
                     <i class="fas fa-times text-xl"></i>
@@ -317,7 +287,7 @@
                     class="inline-flex justify-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     {{ __('invoices.actions.close') }}
                 </button>
-                <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}"
+                <a href="{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}"
                     class="inline-flex justify-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     {{ __('invoices.actions.download_pdf') }}
                 </a>
@@ -442,7 +412,7 @@
                     {{ __('general.actions.cancel') }}
                 </button>
                 <form method="POST"
-                    action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}"
+                    action="{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id->value, 'template' => $invoice->template->value]) }}"
                     id="template-selection-form" class="inline">
                     @csrf
                     @method('PUT')
@@ -475,7 +445,7 @@
             // Get current language
             const currentLang = '{{ App::getLocale() }}';
             // Set iframe source with preview=true parameter
-            pdfIframe.src = "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}?preview=true";
+            pdfIframe.src = "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}?preview=true";
 
             // Show loading indicator
             loadingIndicator.classList.remove('hidden');
@@ -489,7 +459,7 @@
 
             // Debug information
             console.log('Modal window opened, loading PDF');
-            console.log('URL:', "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id]) }}?preview=true");
+            console.log('URL:', "{{ route('frontend.invoice.download', ['locale' => App::getLocale(), 'id' => $invoice->id->value]) }}?preview=true");
         });
 
         // Closing modal window
@@ -528,7 +498,7 @@
 
 <script>
     // Provide existing invoice data to the invoice-form.js script
-    window.templateAction = "{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id, 'template' => $invoice->template]) }}";
+    window.templateAction = "{{ route('frontend.invoice.set-template', ['locale' => App::getLocale(), 'id' => $invoice->id->value, 'template' => $invoice->template->value]) }}";
     window.csfrToken = "{{ csrf_token() }}";
 </script>
 @vite('resources/js/template-selector-updating.js')

@@ -635,9 +635,9 @@ final class InvoiceUseCasesTest extends TestCase
                 $this->idOf($user),
             ),
         );
-        $data = $form->toArray();
+        $this->assertNotNull($form->suggestedNumber);
 
-        return $data['suggestedNumber'];
+        return $form->suggestedNumber;
     }
 
     private function search(?BusinessId $businessId): InvoiceSearch
@@ -773,16 +773,15 @@ final class InvoiceUseCasesTest extends TestCase
         $invoice = $invoiceFactory->create(
             $attributes + ['user_id' => $user->id, 'customer_registration_country' => 'CZ'],
         );
-        $form = $this->runAs(
+        $detail = $this->runAs(
             $this->idOf($user),
             new GetInvoice(
                 $this->idOf($user),
                 InvoiceId::fromInt($invoice->id),
             ),
         );
-        $data = $form->toArray();
 
-        return $data['contactToLink'];
+        return $detail->contactToLink;
     }
 
     /**

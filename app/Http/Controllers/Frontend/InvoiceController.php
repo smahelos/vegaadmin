@@ -11,7 +11,10 @@ use App\Application\Invoice\Commands\MarkInvoicePaid;
 use App\Application\Invoice\Commands\SetInvoiceTemplate;
 use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
+use App\Application\Invoice\DTO\InvoiceFormDTO;
 use App\Application\Invoice\DTO\PdfInvoiceDTO;
+use App\Application\Invoice\Presenters\InvoiceDetailPresenter;
+use App\Application\Invoice\Presenters\InvoiceFormPresenter;
 use App\Application\Invoice\Presenters\InvoiceStatusPresenter;
 use App\Application\Invoice\Queries\GetGuestInvoicePdf;
 use App\Application\Invoice\Queries\GetInvoice;
@@ -50,6 +53,8 @@ final class InvoiceController extends Controller
         private readonly InvoiceRequestAssemblerInterface $invoiceRequestAssembler,
         private readonly CountryOptionsPresenter $countries,
         private readonly InvoiceStatusPresenter $statuses,
+        private readonly InvoiceDetailPresenter $details,
+        private readonly InvoiceFormPresenter $forms,
         private readonly InvoiceProductWriteDataAssembler $products,
     ) {}
 
@@ -69,7 +74,7 @@ final class InvoiceController extends Controller
         return view(
             'frontend.invoices.create',
             [
-                ...$form->toArray(),
+                ...$this->formView($form),
                 'contactId' => $request->integer('contact_id') ?: null,
                 'businessId' => $request->integer('business_id') ?: null,
             ],
@@ -80,7 +85,10 @@ final class InvoiceController extends Controller
     {
         $form = $guestForm->read();
 
-        return view('frontend.invoices.create', $form->toArray());
+        return view(
+            'frontend.invoices.create',
+            $this->formView($form),
+        );
     }
 
     public function edit(string $locale, int $id): View
@@ -94,7 +102,17 @@ final class InvoiceController extends Controller
             ),
         );
 
-        return view('frontend.invoices.edit', $form->toArray());
+        $invoice = $form->invoice ?? throw new InvoiceNotFoundException('Invoice form without the invoice');
+
+        return view(
+            'frontend.invoices.edit',
+            [
+                ...$this->formView($form),
+                'invoice' => $invoice,
+                'values' => $this->forms->values($invoice),
+                'items' => $this->forms->items($invoice),
+            ],
+        );
     }
 
     public function store(InvoiceRequest $request): RedirectResponse
@@ -164,21 +182,23 @@ final class InvoiceController extends Controller
     public function show(string $locale, int $id): View
     {
         $owner = $this->owner();
-        $invoice = $this->useCases->run(
+        $detail = $this->useCases->run(
             Actor::user($owner),
             new GetInvoice(
                 $owner,
                 InvoiceId::fromInt($id),
             ),
         );
-
-        $data = $invoice->toArray();
+        $invoice = $detail->invoice;
 
         return view(
             'frontend.invoices.show',
             [
-                ...$data,
-                'statusColor' => $this->statuses->color($data['status']),
+                'detail' => $detail,
+                'invoice' => $invoice,
+                'parties' => $invoice->parties,
+                'presenter' => $this->details,
+                'statusColor' => $this->statuses->color($invoice->status),
                 'countries' => $this->countries->options($locale),
             ],
         );
@@ -348,5 +368,17 @@ final class InvoiceController extends Controller
     private function owner(): UserId
     {
         return UserId::fromInt((int) Auth::id());
+    }
+
+    /** @return array<string, mixed> */
+    private function formView(InvoiceFormDTO $form): array
+    {
+        return [
+            'fields' => $form->fields->toArray(),
+            'paymentMethods' => $form->paymentMethods,
+            'taxRates' => $form->taxRates,
+            'userLoggedIn' => $form->userLoggedIn,
+            'suggestedNumber' => $form->suggestedNumber,
+        ];
     }
 }

@@ -219,7 +219,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                         @elseif($field['name'] === 'payment_currency')
                         <div class="md:col-span-1">
                             <x-currency-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" :selected="old($field['name'], $invoice->currency ?? 'CZK')"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], 'CZK')"
                                 required="{{ isset($field['required']) ? $field['required'] : ''}}"
                                 hint="{{ $field['hint'] }}" class="" />
                         </div>
@@ -449,7 +449,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                         {{ __('invoices.fields.invoice_note') }}
                     </label>
                     <textarea name="invoice_text" id="invoice_text" rows="3"
-                        class="form-textarea mt-1 block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">{{ old('invoice_text', $invoice->invoice_text ?? '') }}</textarea>
+                        class="form-textarea mt-1 block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">{{ old('invoice_text') }}</textarea>
 
                     @if(isset($fieldDescription['hint']) && $fieldDescription['hint'] !== '')
                     <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
