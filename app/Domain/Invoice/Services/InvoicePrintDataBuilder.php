@@ -31,10 +31,10 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         foreach ($invoice->items as $item) {
             $items[] = new PrintableInvoiceItemDTO(
                 name: $item->name,
-                quantity: (float) $item->quantity,
+                quantity: $item->quantity,
                 unit: $item->unit,
                 price: $item->price,
-                taxRate: (float) $item->taxRate,
+                taxRate: $item->taxRate,
                 lineTotal: $item->total,
             );
         }

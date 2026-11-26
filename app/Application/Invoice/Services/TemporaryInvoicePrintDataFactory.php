@@ -44,10 +44,10 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
         $items = array_map(
             fn (InvoiceProductWriteData $product): PrintableInvoiceItemDTO => new PrintableInvoiceItemDTO(
                 name: $product->name,
-                quantity: (float) $product->quantity,
+                quantity: $product->quantity,
                 unit: $product->unit,
                 price: $product->price,
-                taxRate: (float) $product->taxRate,
+                taxRate: $product->taxRate,
                 lineTotal: $product->total(),
             ),
             $products,

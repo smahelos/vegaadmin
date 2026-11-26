@@ -200,7 +200,7 @@
                                                 {{ $item->name }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                {{ $item->quantity }}
+                                                {{ $presenter->number($item->quantity, App::getLocale()) }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
                                                 {{ __('invoices.units.' . $item->unit->value) }}
@@ -209,7 +209,7 @@
                                                 {{ $presenter->money($item->price, App::getLocale()) }}
                                             </td>
                                             <td class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white">
-                                                {{ $item->taxRate }}%
+                                                {{ $presenter->number($item->taxRate, App::getLocale()) }}%
                                             </td>
                                             <td
                                                 class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white font-medium">

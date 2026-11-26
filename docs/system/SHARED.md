@@ -13,6 +13,7 @@ Contracts in `app/Domain/Shared/<Area>/Contracts/`, implementations in `app/Infr
 | `ClockInterface` | `CarbonClock` | the current time in every context |
 | `DateFormatterInterface` | `IcuDateFormatter` | dates shown to people (PDFs, reminder emails, lists); `DateHelper` is the older formatter still in views |
 | `MoneyFormatterInterface` | `MoneyFormatter` (Domain, intl) | every amount shown to people |
+| `NumberFormatterInterface` | `IcuNumberFormatter` | quantities and VAT rates shown to people (invoice PDFs, the invoice detail page) |
 | `CurrencyNamesInterface`, `CountryNamesInterface` | `IntlCurrencyNames`, `IntlCountryNames` (ICU) | `CurrencyOptionsPresenter`, `CountryOptionsPresenter` |
 | `CurrencyExchangeServiceInterface` | `CurrencyExchangeService` (Domain); `DeterministicCurrencyExchangeService` when `FX_DETERMINISTIC` is set | `CurrencyApplicationService` |
 | `CountryServiceInterface` | `CountryService` (Domain) | `CountryApplicationService` |

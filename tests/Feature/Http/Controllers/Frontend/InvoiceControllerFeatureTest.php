@@ -385,7 +385,7 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function show_view_prints_the_stored_lines_as_money(): void
+    public function show_view_prints_the_stored_lines_in_the_page_language(): void
     {
         $this->invoice->update(['payment_amount' => '242.00']);
         $invoiceProductFactory = InvoiceProduct::factory();
@@ -427,6 +427,9 @@ class InvoiceControllerFeatureTest extends TestCase
                 $locale,
             ),
         );
+        // The columns hold "2.000" and "21.00"; the page shows them as numbers of its language
+        $response->assertDontSee('2.000');
+        $response->assertDontSee('21.00');
         $response->assertSee(
             __(
                 'payment_methods.methods.bankaccount',

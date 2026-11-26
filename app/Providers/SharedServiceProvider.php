@@ -22,6 +22,7 @@ use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\Services\CurrencyExchangeService;
 use App\Domain\Shared\Money\Services\DeterministicCurrencyExchangeService;
 use App\Domain\Shared\Money\Services\MoneyFormatter;
+use App\Domain\Shared\Number\Contracts\NumberFormatterInterface;
 use App\Domain\Shared\Session\Contracts\SessionInterface;
 use App\Domain\Shared\Str\Contracts\Str;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
@@ -45,6 +46,7 @@ use App\Infrastructure\Shared\Hash\LaravelHash;
 use App\Infrastructure\Shared\Http\Services\HttpClientService;
 use App\Infrastructure\Shared\Log\LaravelLogger;
 use App\Infrastructure\Shared\Money\IntlCurrencyNames;
+use App\Infrastructure\Shared\Number\IcuNumberFormatter;
 use App\Infrastructure\Shared\Session\LaravelSessionStore;
 use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
@@ -222,6 +224,11 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             DateFormatterInterface::class,
             IcuDateFormatter::class,
+        );
+
+        $this->app->bind(
+            NumberFormatterInterface::class,
+            IcuNumberFormatter::class,
         );
 
         $this->app->bind(

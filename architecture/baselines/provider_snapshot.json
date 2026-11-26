@@ -73,6 +73,10 @@
                     "concrete": "App\\Infrastructure\\Shared\\Time\\IcuDateFormatter"
                 },
                 {
+                    "abstract": "App\\Domain\\Shared\\Number\\Contracts\\NumberFormatterInterface",
+                    "concrete": "App\\Infrastructure\\Shared\\Number\\IcuNumberFormatter"
+                },
+                {
                     "abstract": "App\\Domain\\Shared\\Geography\\Contracts\\CountryNamesInterface",
                     "concrete": "App\\Infrastructure\\Shared\\Geography\\IntlCountryNames"
                 },
@@ -908,6 +912,14 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Domain\\Shared\\Money\\Services\\MoneyFormatter",
+                "provider": "App\\Providers\\SharedServiceProvider",
+                "method": "bind"
+            }
+        },
+        "App\\Domain\\Shared\\Number\\Contracts\\NumberFormatterInterface": {
+            "status": "ok",
+            "actual": {
+                "implementation": "App\\Infrastructure\\Shared\\Number\\IcuNumberFormatter",
                 "provider": "App\\Providers\\SharedServiceProvider",
                 "method": "bind"
             }
