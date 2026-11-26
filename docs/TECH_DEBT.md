@@ -50,11 +50,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** `GetInvoiceCreateForm` takes the year from `ClockInterface` and `InvoiceService::generateInvoiceNumber()` queries that year, but the value object reads the system year again through `date('Y')`, and the guest form calls it without a year at all. Around the year boundary the query and the number can disagree, and an injected clock cannot control the number (`rules/domain.md`, Time).
 - **Fix:** with issue-time numbering, resolve the year once in the use case (honour an explicit year; derive current time through `ClockInterface`) and pass the same year to the repository query and pure number generator. Cover a requested year different from the system year and a year rollover with behaviour tests.
 
-### Invoice pages read the Eloquent model
-- **Where:** `InvoiceFormDTO` (`GetInvoice`, `GetInvoiceForEdit`, `GetInvoiceCreateForm`, `GuestInvoiceCreateForm`), `Application\Invoice\Contracts\InvoiceReadRepositoryInterface::find()`, `resources/views/frontend/invoices/show.blade.php` and `resources/views/frontend/invoices/edit.blade.php`
-- **Problem:** the show and edit pages get an untyped array with the Eloquent `Invoice` inside, so Application and the views receive a model (`rules/architecture.md`, Persistence path). Phase 5a moved the checks into the Queries and kept the pages as they were (decided 2026-11-12). `GetInvoice` therefore reads the invoice twice, as the model for the page and as `InvoiceDTO` for the parties.
-- **Fix:** typed page DTOs built from `InvoiceDTO`, and the Application read port deleted, in `ls-invoice-page-dtos` before the life cycle: issuing stores no separate snapshot (D-050), so `ls-invoice-issue` only adds the issue fields to the DTOs.
-
 ### Invoice numbers are not unique per user and year
 - **Where:** `invoices` (only the index `idx_invoices_user_invoice_vs`), `InvoiceWriteDataInput`, `InvoiceService`
 - **Problem:** the forms accept only numbers in the `InvoiceNumber` format, but nothing refuses a number the user already used in the same year, neither the requests nor the database; two invoices can carry the same variable symbol (`rules/domain.md`, Invoices).
@@ -347,7 +342,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** per `rules/application.md`: the gate opens one transaction around every Command, and a Command calling outside the database opens it through the port around its writes only; Domain services and repositories open none.
 
 ### Two sets of repositories
-- **Where:** 19 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `InvoiceReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
+- **Where:** 6 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `PageReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
 - **Problem:** Application, controllers and Livewire work with models; the same entity has two persistence paths.
 - **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ContactReadRepositoryInterface`; today e.g. `BankDtoRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `BankDtoRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
 
@@ -374,8 +369,8 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Other conversion work:** `SubscriptionPaymentResultDTO` → SubscriptionPaymentResult; replace the untyped `InvoiceMutationPayload` wrapper and the validated array of the guest invoice (`CreateGuestInvoice`, the ad-hoc session keys and JSON of `InvoiceController::storeGuest`, `TemporaryInvoiceStore`, `TemporaryInvoicePrintDataFactory`) with typed data; rename remaining `Enum/` directories to `Enums/`; camelCase properties with `final readonly class`; the `currency` strings of `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO` as `Currency` (or with the amount as `Money`), and the `?? 'CZK'` defaults beside them in `ProductCreationValidator`, `SubscriptionPaymentService`, `GoPayGateway` and `ProductListSelect` deleted. These general context conversions are not additional acceptance requirements of the entity replacement.
 
 ### Business logic in models
-- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `Spatie\Permission\Traits\HasRoles`), `Spatie\Permission\Traits\HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` was corrected to use `invoices.user_id` in the business/contact branch; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
-- **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
+- **Where:** `app/Models/Invoice.php` (due date and `overdue` for the lists, `Spatie\Permission\Traits\HasRoles`), `Spatie\Permission\Traits\HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` was corrected to use `invoices.user_id` in the business/contact branch; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
+- **Fix:** logic into Domain, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
 
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Domain/*/Validation/`

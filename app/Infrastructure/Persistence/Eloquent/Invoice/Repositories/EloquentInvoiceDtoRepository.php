@@ -24,7 +24,6 @@ use InvalidArgumentException;
 final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
 {
     public function __construct(
-        private readonly EloquentInvoiceRepository $invoiceRepository,
         private readonly EloquentInvoiceMapper $mapper,
     ) {}
 
@@ -64,7 +63,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         );
         $attributes['user_id'] = $scope->owner->value;
 
-        $model = $this->invoiceRepository->create($attributes);
+        $model = Invoice::create($attributes);
 
         return $this->mapper->toDto($model);
     }
@@ -81,11 +80,11 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             $parties,
             $total,
         );
-        $model = $this->invoiceRepository->updateById(
-            $id->value,
-            $scope->owner->value,
-            $attributes,
-        );
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->findOrFail($id->value);
+        $model->update($attributes);
+        $model->refresh();
 
         return $this->mapper->toDto($model);
     }
@@ -127,8 +126,17 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     {
         // Highest sequence among numbers in the standard format; sorting the strings would put
         // 20259999 after 202510000, and non-standard numbers must not affect the sequence
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $query->where(
+            'invoice_vs',
+            'like',
+            $year . '%',
+        );
+        $numbers = $query->pluck('invoice_vs');
+
         $last = null;
-        foreach ($this->invoiceRepository->findInvoiceNumbersForYear($scope->owner->value, $year) as $number) {
+        foreach ($numbers as $number) {
             try {
                 $candidate = new InvoiceNumber($number);
             } catch (InvalidArgumentException) {

@@ -1,6 +1,6 @@
 # Invoice context
 
-Status: maintained map of the code on `main`, last checked 2026-11-25. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
+Status: maintained map of the code on `main`, last checked 2026-11-26. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
 
 Invoices the user issues, their lines, the PDF with the QR payment code, the one-off invoice of a guest and the payment reminders. Composition root: `InvoiceServiceProvider`.
 
@@ -8,7 +8,7 @@ Invoices the user issues, their lines, the PDF with the QR payment code, the one
 
 | Entity | Table | Code |
 |---|---|---|
-| Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`); `GetInvoice` and `GetInvoiceForEdit` still read the model through `InvoiceReadRepositoryInterface` (`EloquentInvoiceRepository`, "Invoice pages read the Eloquent model" in [TECH_DEBT](../TECH_DEBT.md)) |
+| Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`) |
 | Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written through Product's `InvoiceProductDtoWriteRepositoryInterface` (`EloquentInvoiceProductDtoRepository`) |
 | Parties and payment account | `supplier_*`, `customer_*`, `account_*` columns of `invoices` | Party's `DocumentParties` ([PARTY.md](PARTY.md#parties-on-documents)) |
 | Guest invoice | none: the cache, 10 minutes, under a random token | `TemporaryInvoiceStore` |

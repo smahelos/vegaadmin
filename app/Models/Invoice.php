@@ -4,9 +4,6 @@ namespace App\Models;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
-use App\Domain\Invoice\ValueObjects\InvoiceTotals;
-use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Money\ValueObjects\Money;
 use Backpack\CRUD\app\Models\Traits\CrudTrait;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -15,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Traits\HasRoles;
 
 class Invoice extends Model
@@ -127,16 +123,6 @@ class Invoice extends Model
     }
 
     /**
-     * @return Attribute<bool, never>
-     */
-    protected function paid(): Attribute
-    {
-        return Attribute::get(
-            fn (): bool => $this->payment_status === InvoiceStatus::PAID,
-        );
-    }
-
-    /**
      * Overdue is not stored: an unpaid invoice turns overdue the day after its due date.
      *
      * @return Attribute<bool, never>
@@ -169,94 +155,4 @@ class Invoice extends Model
     | ACCESSORS
     |--------------------------------------------------------------------------
     */
-
-    /**
-     * Get all products (regular and custom) associated with this invoice
-     */
-    public function getInvoiceProductsDataAttribute(): array
-    {
-        $products = [];
-
-        // Ensure the relation is loaded
-        if ($this->relationLoaded('invoiceProducts')) {
-            $invoiceProducts = $this->invoiceProducts;
-        } else {
-            $relation = $this->invoiceProducts();
-            $invoiceProducts = $relation->get();
-        }
-
-        Log::info('Invoice Products:', ['invoiceProducts' => $invoiceProducts->toArray()]);
-
-        foreach ($invoiceProducts as $invoiceProduct) {
-            $productData = [
-                'id' => $invoiceProduct->id,
-                'product_id' => $invoiceProduct->product_id,
-                'name' => $invoiceProduct->name,
-                'quantity' => $invoiceProduct->quantity,
-                'unit' => $invoiceProduct->unit,
-                'price' => $invoiceProduct->price,
-                'currency' => $invoiceProduct->currency,
-                'tax_rate' => $invoiceProduct->tax_rate,
-                'tax_amount' => $invoiceProduct->tax_amount,
-                'total_price' => $invoiceProduct->total_price,
-                'is_custom_product' => $invoiceProduct->is_custom_product,
-            ];
-
-            // Add product details if this is not a custom product
-            if (!$invoiceProduct->is_custom_product && $invoiceProduct->product) {
-                $productData['product'] = [
-                    'id' => $invoiceProduct->product->id,
-                    'name' => $invoiceProduct->product->name,
-                    // Add other product fields as needed
-                ];
-            }
-
-            $products[] = $productData;
-        }
-
-        return $products;
-    }
-
-    public function getPaymentAmountMoneyAttribute(): Money
-    {
-        // The decimal cast reads the column as a decimal string, so the amount never passes through a float
-        $amount = $this->payment_amount ?? '0';
-        $currency = Currency::from($this->payment_currency);
-
-        return Money::fromString($amount, $currency);
-    }
-
-    public function getSubtotalMoneyAttribute(): Money
-    {
-        return $this->totals()->subtotal;
-    }
-
-    public function getTotalTaxMoneyAttribute(): Money
-    {
-        return $this->totals()->tax;
-    }
-
-    /** Totals from the stored lines: base recomputed through Money, VAT as stored with each line. */
-    private function totals(): InvoiceTotals
-    {
-        $totals = InvoiceTotals::zero(
-            Currency::from($this->payment_currency),
-        );
-        foreach ($this->invoiceProducts as $line) {
-            $currency = Currency::from($line->currency);
-            $price = Money::fromString(
-                (string) $line->price,
-                $currency,
-            );
-            $totals = $totals->withLine(
-                $price->multiplyBy((string) $line->quantity),
-                Money::fromString(
-                    (string) $line->tax_amount,
-                    $currency,
-                ),
-            );
-        }
-
-        return $totals;
-    }
 }

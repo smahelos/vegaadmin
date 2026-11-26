@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-20T15:26:09+00:00",
+    "generated_at": "2026-11-26T09:39:44+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -196,14 +196,6 @@
                 {
                     "abstract": "App\\Domain\\Invoice\\Notifications\\Contracts\\InvoiceReminderNotifierInterface",
                     "concrete": "App\\Infrastructure\\Notifications\\Invoice\\LaravelInvoiceReminderNotifier"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceReadRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Invoice\\Contracts\\InvoiceWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository"
                 },
                 {
                     "abstract": "App\\Domain\\Invoice\\Contracts\\InvoiceDtoReadRepositoryInterface",
@@ -452,26 +444,10 @@
                 "method": "bind"
             }
         },
-        "App\\Application\\Invoice\\Contracts\\InvoiceReadRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
         "App\\Application\\Invoice\\Contracts\\InvoiceRequestAssemblerInterface": {
             "status": "ok",
             "actual": {
                 "implementation": "App\\Application\\Invoice\\Services\\InvoiceRequestAssembler",
-                "provider": "App\\Providers\\InvoiceServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Invoice\\Contracts\\InvoiceWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Invoice\\Repositories\\EloquentInvoiceRepository",
                 "provider": "App\\Providers\\InvoiceServiceProvider",
                 "method": "bind"
             }
