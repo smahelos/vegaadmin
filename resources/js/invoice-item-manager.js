@@ -480,10 +480,13 @@ export default class InvoiceItemManager {
         });
         // The rates a payer entered come back when the flag returns
         this.itemsContainer.querySelectorAll('.item-tax').forEach((select) => {
-            if (!vatPayer && select.dataset.payerRate === undefined) {
-                select.dataset.payerRate = select.value;
+            if (!vatPayer) {
+                // A rate set while hidden (a catalog product) is the one restored for a payer
+                if (select.dataset.payerRate === undefined || select.value !== '0') {
+                    select.dataset.payerRate = select.value;
+                }
                 select.value = '0';
-            } else if (vatPayer && select.dataset.payerRate !== undefined) {
+            } else if (select.dataset.payerRate !== undefined) {
                 select.value = select.dataset.payerRate;
                 delete select.dataset.payerRate;
             }
