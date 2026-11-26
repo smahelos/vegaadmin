@@ -437,6 +437,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** product and expense categories are reference data shared by all users, but an admin who may edit products or expenses may also create, rename and delete their categories; the other reference data have their own permissions (`payment_method.*`, `bank.*`), as `docs/prd/PRD_PERMISSIONS.md` requires for each admin operation. Expense categories added 2026-11-24.
 - **Fix:** `product_category.*` and `expense_category.*` (`view`, `create`, `update`, `delete`) in the admin guard through the `add-permission` skill, granted to the roles that manage reference data.
 
+### Product form fields carry copied Backpack keys
+- **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php` (`category_id` and `tax_id`), used by `Frontend\ProductController`
+- **Problem:** both selects declare `'entity' => 'paymentStatus'`, copied from another form, next to `model` and `attribute`. The frontend product views read none of these Backpack keys, so nothing breaks today, but a reader or a later reuse of the fields gets a relation the product does not have. Found 2026-11-26.
+- **Fix:** delete the `entity`, `model` and `attribute` keys with the conversion of the trait (`/convert-to-standard`; the trait also lacks strict types and its directory should be Forms/Product).
+
 ## Step 22: Frontend, API and routes
 
 ### Permissions that nothing checks
