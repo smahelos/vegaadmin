@@ -94,7 +94,6 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $lineQuery = $model->invoiceProducts();
         $lineQuery->delete();
         $this->createLines($model, $lines);
-        $model->refresh();
         $model->load('invoiceProducts');
 
         return $this->mapper->toDto($model);
