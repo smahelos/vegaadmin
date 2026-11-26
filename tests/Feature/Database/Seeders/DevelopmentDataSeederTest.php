@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database\Seeders;
 
-use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Authorization\PermissionCatalog;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Expense;
 use App\Models\Invoice;
-use App\Models\InvoiceProduct;
 use App\Models\User;
 use Database\Seeders\DevelopmentDataSeeder;
 use Illuminate\Support\Facades\Hash;
@@ -124,6 +122,7 @@ final class DevelopmentDataSeederTest extends TestCase
     public function gives_every_frontend_account_numbered_invoices_whose_lines_sum_to_their_total(): void
     {
         $this->seed(DevelopmentDataSeeder::class);
+        $invoiceMapper = app(EloquentInvoiceMapper::class);
 
         foreach (DevelopmentDataSeeder::ACCOUNTS as $email => $account) {
             $userQuery = User::where('email', $email);
@@ -167,19 +166,13 @@ final class DevelopmentDataSeederTest extends TestCase
                     ),
                     $email,
                 );
-                $lineQuery = InvoiceProduct::where('invoice_id', $invoice->id);
-                $lineTotals = $lineQuery->pluck('total_price');
-                $this->assertNotEmpty($lineTotals, $email);
-                $sum = Money::fromString('0', Currency::CZK);
-                foreach ($lineTotals as $lineTotal) {
-                    $sum = $sum->add(
-                        Money::fromString($lineTotal, Currency::CZK),
-                    );
-                }
+                $invoice->load('invoiceProducts');
+                $this->assertTrue($invoice->invoiceProducts->isNotEmpty(), $email);
+                $dto = $invoiceMapper->toDto($invoice);
+                $totals = $dto->totals;
+                $total = $totals->total();
                 $this->assertTrue(
-                    $sum->equals(
-                        Money::fromString($invoice->payment_amount, Currency::CZK),
-                    ),
+                    $total->equals($dto->totalAmount),
                     $email,
                 );
             }

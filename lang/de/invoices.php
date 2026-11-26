@@ -72,6 +72,8 @@ return [
         'contact_id' => 'Kontakt',
         'customer' => 'Kunde',
         'save_customer_to_contacts' => 'Kunden in Kontakte speichern',
+        'is_vat_payer' => 'Umsatzsteuerpflichtig',
+        'item_base' => 'Bemessungsgrundlage',
     ],
     'hints' => [
         'invoice_vs' => 'Sie können die vorgeschlagene Rechnungsnummer an Ihr Nummerierungssystem anpassen.',
@@ -104,7 +106,6 @@ return [
         'item_currency' => 'Währung',
         'item_total' => 'Gesamt',
         'item_description' => 'Beschreibung',
-        'item_price_complete' => 'Gesamt',
         'actions' => 'Aktionen',
         'select_item_unit' => 'Einheit auswählen',
         'unnamed_product' => 'Position ohne Namen',
@@ -167,7 +168,6 @@ return [
         'token_invalid' => 'Ungültiger oder abgelaufener Link zum Herunterladen der Rechnung.',
         'last_invoice_available' => 'Ihre zuletzt erstellte Rechnung ist verfügbar Nr. (:number).',
         'pdf_error' => 'Beim Generieren der PDF-Rechnung ist ein Fehler aufgetreten',
-        'thank_you_pdf' => 'Vielen Dank für die Erstellung der PDF-Rechnung!',
         'expires_in' => 'Der Link läuft in :minutes Minute(n) ab',
         'expires_in_soon' => 'Der Link läuft bald ab',
         'invoice_deleted' => 'Rechnung wurde erfolgreich gelöscht.',
@@ -190,6 +190,7 @@ return [
         'no_active_account' => 'Das Unternehmen hat kein aktives Bankkonto.',
         'no_contacts_found' => 'Kein Kontakt gefunden.',
         'contact_exists' => 'Der Kontakt :name mit derselben ID-Nummer existiert bereits.',
+        'not_vat_payer' => 'Nicht umsatzsteuerpflichtig',
     ],
     'validation' => [
         'item_currency' => 'Die Währung der Position muss der Währung der Rechnung entsprechen.',
@@ -201,6 +202,18 @@ return [
         'invalid_swift' => 'SWIFT-Code ist ungültig',
         'invalid_iban' => 'IBAN ist ungültig',
         'invalid_vat_id' => 'Umsatzsteuer-ID ist ungültig',
+        'non_payer_vat_rate' => 'Ein Nichtsteuerpflichtiger gibt bei allen Positionen den Steuersatz 0 % an.',
+    ],
+    'vat_lines' => [
+        'titles' => [
+            'summary' => 'Umsatzsteuer nach Steuersätzen',
+        ],
+        'fields' => [
+            'rate' => 'Steuersatz',
+            'base' => 'Bemessungsgrundlage',
+            'vat' => 'USt.',
+            'total' => 'Gesamt inkl. USt.',
+        ],
     ],
     'statuses' => [
         'paid' => 'Bezahlt',
@@ -209,7 +222,6 @@ return [
         'overdue' => 'Überfällig',
     ],
     'qr_code_info' => 'Verwenden Sie den QR-Code für die Zahlung',
-    'generated_at' => 'Generiert am',
     'defaults' => [
         'invoice_text' => 'Abrechnung für Dienstleistungen',
     ],

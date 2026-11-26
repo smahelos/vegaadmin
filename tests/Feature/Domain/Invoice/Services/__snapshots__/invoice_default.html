@@ -203,14 +203,6 @@
  background: white;
  }
 
- .footer {
- margin-top: 20px;
- text-align: center;
- font-size: 10px;
- color: #6b7280;
- padding-top: 15px;
- border-top: 1px solid #e5e7eb;
- }
 
  table {
  width: 100%;
@@ -376,8 +368,8 @@
  <th class="text-right">Množství</th>
  <th class="text-right">Jednotka</th>
  <th class="text-right">Cena/ks</th>
- <th class="text-right">DPH</th>
- <th class="text-right">Celkem</th>
+ <th class="text-right">Sazba DPH</th>
+ <th class="text-right">Základ</th>
  </tr>
  </thead>
  <tbody>
@@ -387,25 +379,47 @@
  <td class="text-right">hodin</td>
  <td class="text-right">€500,00</td>
  <td class="text-right">21%</td>
- <td class="text-right">€1 210,00</td>
+ <td class="text-right">€1 000,00</td>
+ </tr>
+ <tr>
+ <td>Snapshot licence</td>
+ <td class="text-right">3</td>
+ <td class="text-right">ks</td>
+ <td class="text-right">€33,33</td>
+ <td class="text-right">12%</td>
+ <td class="text-right">€99,99</td>
  </tr>
  </tbody>
  <tfoot>
- <tr>
- <th colspan="5" class="text-right">Celkem bez DPH</th>
- <td class="text-right"><strong>
- €1 000,00
- </strong></td>
- </tr>
- <tr>
- <th colspan="5" class="text-right">DPH</th>
- <td class="text-right"><strong>€210,00</strong></td>
- </tr>
  <tr class="amount-total">
  <th colspan="5" class="text-right">Celkem</th>
- <td class="text-right"><strong>€1 210,00</strong></td>
+ <td class="text-right"><strong>€1 321,99</strong></td>
  </tr>
  </tfoot>
+ </table>
+ <table style="margin-top: 10px;">
+ <thead>
+ <tr>
+ <th>Sazba DPH</th>
+ <th class="text-right">Základ</th>
+ <th class="text-right">DPH</th>
+ <th class="text-right">Celkem s DPH</th>
+ </tr>
+ </thead>
+ <tbody>
+ <tr>
+ <td>21%</td>
+ <td class="text-right">€1 000,00</td>
+ <td class="text-right">€210,00</td>
+ <td class="text-right">€1 210,00</td>
+ </tr>
+ <tr>
+ <td>12%</td>
+ <td class="text-right">€99,99</td>
+ <td class="text-right">€12,00</td>
+ <td class="text-right">€111,99</td>
+ </tr>
+ </tbody>
  </table>
  <div
  style="margin-top: 10px; padding: 5px 10px 0px 10px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">
@@ -426,7 +440,7 @@
 
  <div class="info-row">
  <span class="info-label">Částka:</span>
- <strong>€1 210,00</strong>
+ <strong>€1 321,99</strong>
  </div>
 
  <div class="info-row">
@@ -437,10 +451,6 @@
  </div>
  </div>
 
- <div class="footer">
- <p>Vygenerováno: 20. 3. 2026 14:07</p>
- <p>Děkujeme za vytvoření PDF faktury!</p>
- </div>
 </body>
 
 </html>

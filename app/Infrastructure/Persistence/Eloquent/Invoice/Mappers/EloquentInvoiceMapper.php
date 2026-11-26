@@ -26,12 +26,9 @@ final class EloquentInvoiceMapper
     public function toDto(Invoice $model): InvoiceDTO
     {
         $currency = Currency::from($model->payment_currency);
-        $totals = InvoiceTotals::zero($currency);
         $items = [];
         foreach ($model->invoiceProducts as $line) {
-            $item = $this->toItem($line);
-            $totals = $totals->withLine($item->base(), $item->taxAmount);
-            $items[] = $item;
+            $items[] = $this->toItem($line);
         }
         $paymentMethodId = $model->payment_method_id;
 
@@ -44,8 +41,7 @@ final class EloquentInvoiceMapper
             issueDate: $model->issue_date->toDateTimeImmutable(),
             taxPointDate: $model->tax_point_date->toDateTimeImmutable(),
             dueIn: $model->due_in,
-            subtotal: $totals->subtotal,
-            totalTax: $totals->tax,
+            totals: InvoiceTotals::fromLines($currency, $items),
             totalAmount: Money::fromString($model->payment_amount, $currency),
             paymentMethodId: $paymentMethodId === null ? null : PaymentMethodId::fromInt($paymentMethodId),
             text: $model->invoice_text,
@@ -85,9 +81,6 @@ final class EloquentInvoiceMapper
      */
     public function toLineAttributes(InvoiceProductWriteData $data): array
     {
-        $taxAmount = $data->taxAmount();
-        $total = $data->total();
-
         return [
             'product_id' => $data->productId?->value,
             'name' => $data->name,
@@ -98,8 +91,6 @@ final class EloquentInvoiceMapper
             'price' => $data->price->amount,
             'currency' => $data->price->currency->value,
             'tax_rate' => $data->taxRate,
-            'tax_amount' => $taxAmount->amount,
-            'total_price' => $total->amount,
             'is_custom_product' => $data->isCustomProduct(),
         ];
     }
@@ -116,8 +107,6 @@ final class EloquentInvoiceMapper
             unit: Unit::from($line->unit),
             price: Money::fromString($line->price ?? '0', $currency),
             taxRate: $line->tax_rate,
-            taxAmount: Money::fromString($line->tax_amount, $currency),
-            total: Money::fromString($line->total_price, $currency),
         );
     }
 }

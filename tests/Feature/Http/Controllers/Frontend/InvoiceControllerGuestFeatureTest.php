@@ -64,43 +64,7 @@ class InvoiceControllerGuestFeatureTest extends TestCase
     #[Test]
     public function store_guest_stores_the_invoice_and_its_token_downloads_the_pdf(): void
     {
-        // Provide full valid payload to satisfy validation (guest create)
-        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
-        $now = CarbonImmutable::now();
-        $invoiceData = [
-            'invoice_vs' => $now->format('Y') . '0001',
-            'payment_method_id' => $paymentMethodId,
-            'payment_amount' => 100,
-            'payment_currency' => 'CZK',
-            'invoice-products' => json_encode(
-                [[
-                    'name' => 'Service',
-                    'quantity' => '1',
-                    'unit' => 'pieces',
-                    'price' => '100',
-                    'currency' => 'CZK',
-                    'tax_rate' => '0',
-                ]],
-            ),
-            'issue_date' => $now->format('Y-m-d'),
-            'tax_point_date' => $now->format('Y-m-d'),
-            'due_in' => 14,
-            'status' => InvoiceStatus::PENDING->value,
-            'template' => 'default',
-            'supplier_name' => 'Supplier Test',
-            'supplier_street' => 'Street 1',
-            'supplier_city' => 'City',
-            'supplier_postal_code' => '12345',
-            'supplier_country' => 'CZ',
-            'customer_name' => 'Client Test',
-            'customer_street' => 'CStreet 1',
-            'customer_city' => 'CCity',
-            'customer_postal_code' => '54321',
-            'customer_country' => 'CZ',
-            'account_iban' => 'CZ1520100000002001234561',
-            'account_country' => 'CZ',
-        ];
+        $invoiceData = $this->guestInvoiceData('0');
         $payload = array_merge($invoiceData, ['lang' => 'cs']);
         $response = $this->postJson(
             route('frontend.invoice.store.guest', ['locale' => 'cs']),
@@ -195,5 +159,81 @@ class InvoiceControllerGuestFeatureTest extends TestCase
         $this->assertNotNull(
             $store->get($token),
         );
+    }
+
+    #[Test]
+    public function a_guest_vat_payer_charges_vat_and_the_flag_is_kept_for_the_pdf(): void
+    {
+        $invoiceData = $this->guestInvoiceData('21');
+        $invoiceData['is_vat_payer'] = '1';
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            $invoiceData,
+        );
+
+        $response->assertOk();
+        $store = app(TemporaryInvoiceStoreInterface::class);
+        $stored = $store->get(
+            (string) $response->json('token'),
+        );
+        $this->assertNotNull($stored);
+        $this->assertTrue($stored['is_vat_payer']);
+        $this->assertSame('121', $stored['payment_amount']);
+    }
+
+    #[Test]
+    public function a_guest_who_is_not_a_vat_payer_cannot_charge_vat(): void
+    {
+        $response = $this->postJson(
+            route('frontend.invoice.store.guest', ['locale' => 'cs']),
+            $this->guestInvoiceData('21'),
+        );
+
+        $response->assertStatus(422);
+        $response->assertJsonValidationErrors('invoice-products');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function guestInvoiceData(string $taxRate): array
+    {
+        $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
+        $paymentMethodId = $paymentMethodQuery->firstOrFail()->id;
+        $now = CarbonImmutable::now();
+
+        return [
+            'invoice_vs' => $now->format('Y') . '0001',
+            'payment_method_id' => $paymentMethodId,
+            'payment_amount' => 100,
+            'payment_currency' => 'CZK',
+            'invoice-products' => json_encode(
+                [[
+                    'name' => 'Service',
+                    'quantity' => '1',
+                    'unit' => 'pieces',
+                    'price' => '100',
+                    'currency' => 'CZK',
+                    'tax_rate' => $taxRate,
+                ]],
+            ),
+            'issue_date' => $now->format('Y-m-d'),
+            'tax_point_date' => $now->format('Y-m-d'),
+            'due_in' => 14,
+            'status' => InvoiceStatus::PENDING->value,
+            'template' => 'default',
+            'supplier_name' => 'Supplier Test',
+            'supplier_street' => 'Street 1',
+            'supplier_city' => 'City',
+            'supplier_postal_code' => '12345',
+            'supplier_country' => 'CZ',
+            'customer_name' => 'Client Test',
+            'customer_street' => 'CStreet 1',
+            'customer_city' => 'CCity',
+            'customer_postal_code' => '54321',
+            'customer_country' => 'CZ',
+            'account_iban' => 'CZ1520100000002001234561',
+            'account_country' => 'CZ',
+        ];
     }
 }

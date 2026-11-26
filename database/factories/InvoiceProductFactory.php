@@ -46,8 +46,6 @@ class InvoiceProductFactory extends Factory
         );
 
         $optional = $this->faker->optional();
-        $taxAmount = $line->taxAmount();
-        $total = $line->total();
 
         return [
             'invoice_id' => Invoice::factory(),
@@ -61,8 +59,6 @@ class InvoiceProductFactory extends Factory
             'description' => $optional->sentence(),
             'is_custom_product' => $this->faker->boolean(20), // 20% chance of being custom
             'tax_rate' => $line->taxRate,
-            'tax_amount' => $taxAmount->amount,
-            'total_price' => $total->amount,
         ];
     }
 }

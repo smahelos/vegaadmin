@@ -23,6 +23,6 @@ final readonly class PrintableInvoiceItemDTO
         public Unit $unit,
         public Money $price,
         public string $taxRate,
-        public Money $lineTotal,
+        public Money $base,
     ) {}
 }

@@ -173,12 +173,12 @@ final class InvoiceUseCasesTest extends TestCase
             $this->lineNames($invoice->items),
         );
         $this->assertTrue(
-            $invoice->subtotal->equals(
+            $invoice->totals->subtotal->equals(
                 Money::fromString('597.96', Currency::CZK),
             ),
         );
         $this->assertTrue(
-            $invoice->totalTax->equals(
+            $invoice->totals->tax->equals(
                 Money::fromString('91.91', Currency::CZK),
             ),
         );
@@ -198,8 +198,6 @@ final class InvoiceUseCasesTest extends TestCase
                 'unit' => 'hours',
                 'price' => '249.30',
                 'tax_rate' => '12.00',
-                'tax_amount' => '44.87',
-                'total_price' => '418.82',
                 'category' => 'Service',
             ],
         );
@@ -209,8 +207,7 @@ final class InvoiceUseCasesTest extends TestCase
                 'invoice_id' => $invoice->id->value,
                 'product_id' => $product->id,
                 'is_custom_product' => false,
-                'tax_amount' => '47.04',
-                'total_price' => '271.05',
+                'price' => '74.67',
             ],
         );
     }
@@ -256,13 +253,13 @@ final class InvoiceUseCasesTest extends TestCase
             $this->lineNames($updated->items),
         );
         $this->assertTrue(
-            $updated->subtotal->equals(
+            $updated->totals->subtotal->equals(
                 Money::fromString('10', Currency::CZK),
             ),
         );
         $this->assertTrue(
             $updated->totalAmount->equals(
-                Money::fromString('12.10', Currency::CZK),
+                Money::fromString('10', Currency::CZK),
             ),
         );
         $this->assertDatabaseMissing('invoice_products', ['id' => $oldLine->id]);
@@ -818,7 +815,7 @@ final class InvoiceUseCasesTest extends TestCase
             '1',
             Unit::PIECES,
             Money::fromString('10', Currency::CZK),
-            '21',
+            '0',
         );
     }
 
@@ -865,6 +862,7 @@ final class InvoiceUseCasesTest extends TestCase
             'due_in' => 14,
             'invoice_text' => 'Test invoice',
             'template' => InvoiceTemplate::DEFAULT->value,
+            'is_vat_payer' => true,
             'invoice-products' => [
                 [
                     'name' => 'Service A',
@@ -950,7 +948,7 @@ final class InvoiceUseCasesTest extends TestCase
             '1',
             Unit::PIECES,
             Money::fromString('10', Currency::CZK),
-            '21',
+            '0',
         );
     }
 }

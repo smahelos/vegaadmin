@@ -97,6 +97,8 @@ final class InvoiceRequest extends FormRequest
             ...InvoiceWriteDataInput::rules(),
             // Ensure only allowed file types are accepted; allow SVG as image format
             'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
+            // A signed-in user's invoice takes the flag of its business
+            'is_vat_payer' => $this->isGuestStore() ? ['boolean'] : ['exclude'],
             ...InvoiceItemInput::rules(
                 $user?->getAuthIdentifier(),
                 $this->isGuestStore(),
@@ -266,6 +268,7 @@ final class InvoiceRequest extends FormRequest
         return [
             ...InvoiceWriteDataInput::attributes(),
             'invoice_logo' => __('invoices.fields.invoice_logo'),
+            'is_vat_payer' => __('invoices.fields.is_vat_payer'),
             ...InvoiceItemInput::attributes(),
             'business_id' => __('invoices.fields.business_id'),
             'bank_account_id' => __('invoices.fields.bank_account_id'),

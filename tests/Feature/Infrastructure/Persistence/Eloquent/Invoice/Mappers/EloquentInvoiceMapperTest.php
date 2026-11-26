@@ -21,12 +21,12 @@ final class EloquentInvoiceMapperTest extends TestCase
         $invoiceFactory = Invoice::factory();
         $invoice = $invoiceFactory->create(
             [
-                'payment_amount' => '389.00',
+                'payment_amount' => '410.00',
                 'payment_currency' => Currency::USD->value,
             ],
         );
         $invoiceProductFactory = InvoiceProduct::factory();
-        // The base is recomputed from price and quantity, the VAT is taken as stored with each line
+        // The totals are computed by rate from the price, quantity and rate of each line
         $invoiceProductFactory->create(
             [
                 'invoice_id' => $invoice->id,
@@ -34,8 +34,6 @@ final class EloquentInvoiceMapperTest extends TestCase
                 'price' => '100.00',
                 'currency' => Currency::USD->value,
                 'tax_rate' => '21',
-                'tax_amount' => '21.00',
-                'total_price' => '242.00',
             ],
         );
         $invoiceProductFactory->create(
@@ -45,8 +43,6 @@ final class EloquentInvoiceMapperTest extends TestCase
                 'price' => '50.00',
                 'currency' => Currency::USD->value,
                 'tax_rate' => '12',
-                'tax_amount' => '18.00',
-                'total_price' => '168.00',
             ],
         );
         $mapper = new EloquentInvoiceMapper;
@@ -54,21 +50,22 @@ final class EloquentInvoiceMapperTest extends TestCase
         $dto = $mapper->toDto($invoice);
 
         $this->assertTrue(
-            $dto->subtotal->equals(
+            $dto->totals->subtotal->equals(
                 Money::fromString('350', Currency::USD),
             ),
         );
         $this->assertTrue(
-            $dto->totalTax->equals(
-                Money::fromString('39', Currency::USD),
+            $dto->totals->tax->equals(
+                Money::fromString('60', Currency::USD),
             ),
         );
         $this->assertTrue(
             $dto->totalAmount->equals(
-                Money::fromString('389', Currency::USD),
+                Money::fromString('410', Currency::USD),
             ),
         );
         $this->assertCount(2, $dto->items);
+        $this->assertCount(2, $dto->totals->vatLines);
     }
 
     #[Test]

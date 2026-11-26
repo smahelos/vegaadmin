@@ -188,7 +188,7 @@
                                             </th>
                                             <th scope="col"
                                                 class="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                                {{ __('invoices.placeholders.item_price_complete') }}
+                                                {{ __('invoices.fields.item_base') }}
                                             </th>
                                         </tr>
                                     </thead>
@@ -213,12 +213,28 @@
                                             </td>
                                             <td
                                                 class="px-4 py-2 text-sm text-right text-gray-900 dark:text-white font-medium">
-                                                {{ $presenter->money($item->total, App::getLocale()) }}
+                                                {{ $presenter->money($item->base(), App::getLocale()) }}
                                             </td>
                                         </tr>
                                         @endforeach
                                     </tbody>
                                     <tfoot>
+                                        <tr class="bg-gray-100 dark:bg-gray-700">
+                                            <td class="px-4 py-2 text-right dark:text-white" colspan="5">
+                                                {{ __('invoices.labels.total_without_tax') }}:
+                                            </td>
+                                            <td class="px-4 py-2 text-right text-gray-900 dark:text-white">
+                                                {{ $presenter->money($invoice->totals->subtotal, App::getLocale()) }}
+                                            </td>
+                                        </tr>
+                                        <tr class="bg-gray-100 dark:bg-gray-700">
+                                            <td class="px-4 py-2 text-right dark:text-white" colspan="5">
+                                                {{ __('invoices.labels.total_tax') }}:
+                                            </td>
+                                            <td class="px-4 py-2 text-right text-gray-900 dark:text-white">
+                                                {{ $presenter->money($invoice->totals->tax, App::getLocale()) }}
+                                            </td>
+                                        </tr>
                                         <tr class="bg-gray-100 dark:bg-gray-700 font-medium">
                                             <td class="px-4 py-3 text-right dark:text-white" colspan="5">
                                                 {{ __('invoices.fields.total') }}:

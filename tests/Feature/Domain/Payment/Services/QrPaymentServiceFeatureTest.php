@@ -136,7 +136,7 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $invoice->load('invoiceProducts');
         $stored = $invoiceMapper->toDto($invoice);
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilderInterface::class);
-        $printable = $invoicePrintDataBuilder->build($stored);
+        $printable = $invoicePrintDataBuilder->build($stored, true);
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payment = $qrPaymentMapper->fromPrintableInvoice($printable);
         $renderer = $this->createMock(QrCodeRendererInterface::class);

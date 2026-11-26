@@ -49,7 +49,7 @@ Not a use case: `CompanyRegistryApplicationService` looks a Czech company up in 
 
 ## Invoicing settings
 
-Only a business has them: the VAT payer flag (`is_vat_payer`), the optional free-text register entry (`register_entry`) and the default document language (`document_language`, the `Language` enum, named through `LanguageOptionsPresenter`). `BusinessDTO` and `BusinessWriteData` carry them as `InvoicingSettings`; they are not part of `PartyProfile`, so contacts and document parties never get them. Nothing reads them yet: drafts will read them from the business and issuing will copy them to the document ([D-050](../adr/D-050-issued-documents.md), point 6), with `ls-vat-by-rate` and `ls-invoice-issue`.
+Only a business has them: the VAT payer flag (`is_vat_payer`), the optional free-text register entry (`register_entry`) and the default document language (`document_language`, the `Language` enum, named through `LanguageOptionsPresenter`). `BusinessDTO` and `BusinessWriteData` carry them as `InvoicingSettings`; they are not part of `PartyProfile`, so contacts and document parties never get them. An invoice reads the current VAT payer flag of its business: a non-payer's lines carry rate 0 and its PDF states no VAT ([INVOICE.md](INVOICE.md#pdf)). The register entry and the document language are not read yet; issuing will copy all three to the document ([D-050](../adr/D-050-issued-documents.md), point 6) with `ls-invoice-issue`.
 
 | Step | Code |
 |---|---|

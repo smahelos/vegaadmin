@@ -727,7 +727,11 @@ final class DevelopmentDataSeeder extends Seeder
                         productId: $product->productId,
                     );
                 }
-                $totals = InvoiceTotals::fromProducts(Currency::CZK, $lines);
+                $totals = InvoiceTotals::forSupplier(
+                    Currency::CZK,
+                    $lines,
+                    $business->is_vat_payer,
+                );
                 $total = $totals->total();
                 $customer = array_shift($oneOffCustomers);
                 if ($customer === null) {

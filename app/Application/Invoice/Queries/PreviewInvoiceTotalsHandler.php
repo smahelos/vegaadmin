@@ -18,6 +18,6 @@ final class PreviewInvoiceTotalsHandler
     {
         $this->ownership->assertOwned($scope, $query->lines);
 
-        return InvoiceTotals::fromProducts($query->currency, $query->lines);
+        return InvoiceTotals::fromLines($query->currency, $query->lines);
     }
 }

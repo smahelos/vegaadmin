@@ -25,7 +25,7 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
     ) {}
 
-    public function build(InvoiceDTO $invoice): PrintableInvoiceDTO
+    public function build(InvoiceDTO $invoice, bool $vatPayer): PrintableInvoiceDTO
     {
         $items = [];
         foreach ($invoice->items as $item) {
@@ -35,7 +35,7 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
                 unit: $item->unit,
                 price: $item->price,
                 taxRate: $item->taxRate,
-                lineTotal: $item->total,
+                base: $item->base(),
             );
         }
 
@@ -52,8 +52,8 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
             currency: $currency->value,
             template: $invoice->template,
             items: $items,
-            subtotal: $invoice->subtotal,
-            totalTax: $invoice->totalTax,
+            totals: $invoice->totals,
+            vatPayer: $vatPayer,
             totalAmount: $invoice->totalAmount,
             supplier: PartyPrintDTO::fromDocumentParty($supplier),
             customer: PartyPrintDTO::fromDocumentParty($customer),

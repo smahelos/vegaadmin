@@ -10,5 +10,8 @@ use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
  */
 interface InvoicePrintDataBuilderInterface
 {
-    public function build(InvoiceDTO $invoice): PrintableInvoiceDTO;
+    /**
+     * @param  bool  $vatPayer  Whether the supplier states VAT on the invoice
+     */
+    public function build(InvoiceDTO $invoice, bool $vatPayer): PrintableInvoiceDTO;
 }

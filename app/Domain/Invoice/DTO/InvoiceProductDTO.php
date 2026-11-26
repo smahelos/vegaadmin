@@ -24,11 +24,9 @@ final readonly class InvoiceProductDTO
         public Unit $unit,
         public Money $price,
         public string $taxRate,
-        public Money $taxAmount,
-        public Money $total,
     ) {}
 
-    /** Price times quantity, rounded half up to cents, as the line was computed when it was written. */
+    /** Price times quantity, rounded half up to cents, as the line prints it; VAT is computed by rate (InvoiceTotals). */
     public function base(): Money
     {
         return $this->price->multiplyBy($this->quantity);

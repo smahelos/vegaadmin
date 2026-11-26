@@ -43,9 +43,12 @@ final class CreateGuestInvoiceHandler
             $data['due_in'] = (int) $data['due_in'];
         }
 
-        $totals = InvoiceTotals::fromProducts(
+        // An unchecked checkbox sends nothing: a guest is not a VAT payer unless they say so
+        $data['is_vat_payer'] = (bool) ($data['is_vat_payer'] ?? false);
+        $totals = InvoiceTotals::forSupplier(
             Currency::from((string) $data['payment_currency']),
             $this->products->fromValidated($data['invoice-products']),
+            $data['is_vat_payer'],
         );
         $total = $totals->total();
         $data['payment_amount'] = $total->amount;

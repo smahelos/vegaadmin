@@ -10,7 +10,6 @@ use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMappe
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
-use Carbon\CarbonImmutable;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\RendersInvoicePdfHtml;
@@ -20,29 +19,23 @@ final class InvoicePdfSnapshotTest extends TestCase
 {
     use RendersInvoicePdfHtml;
 
-    /** @return array<string, array{string}> */
+    /** @return array<string, array{string, bool}> */
     public static function templates(): array
     {
         return [
-            'default' => ['default'],
-            'modern' => ['modern'],
-            'minimal' => ['minimal'],
+            'default' => ['default', true],
+            'modern' => ['modern', true],
+            'minimal' => ['minimal', true],
+            'default non-payer' => ['default', false],
+            'modern non-payer' => ['modern', false],
+            'minimal non-payer' => ['minimal', false],
         ];
     }
 
     #[Test]
     #[DataProvider('templates')]
-    public function pdf_templates_print_both_saved_roles_and_amounts(string $template): void
+    public function pdf_templates_print_both_saved_roles_and_amounts(string $template, bool $vatPayer): void
     {
-        $now = CarbonImmutable::now();
-        $date = $now->setDate(
-            2026,
-            3,
-            20,
-        );
-        $this->travelTo(
-            $date->setTime(14, 7),
-        );
         $invoiceFactory = Invoice::factory();
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::CASH->value);
         $invoice = $invoiceFactory->create(
@@ -55,7 +48,7 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'due_in' => 14,
                 'invoice_text' => 'Snapshot invoice text',
                 'payment_currency' => 'EUR',
-                'payment_amount' => '1210.00',
+                'payment_amount' => $vatPayer ? '1321.99' : '1099.99',
                 'payment_method_id' => $paymentMethodQuery->sole()->id,
                 'supplier_name' => 'Snapshot Supplier s.r.o.',
                 'supplier_email' => 'supplier@snapshot.test',
@@ -91,9 +84,19 @@ final class InvoicePdfSnapshotTest extends TestCase
                 'unit' => 'hours',
                 'price' => '500',
                 'currency' => 'EUR',
-                'tax_rate' => '21',
-                'tax_amount' => '210',
-                'total_price' => '1210',
+                'tax_rate' => $vatPayer ? '21' : '0',
+            ],
+        );
+        $invoiceProductFactory->create(
+            [
+                'invoice_id' => $invoice->id,
+                'product_id' => null,
+                'name' => 'Snapshot licence',
+                'quantity' => '3',
+                'unit' => 'pieces',
+                'price' => '33.33',
+                'currency' => 'EUR',
+                'tax_rate' => $vatPayer ? '12' : '0',
             ],
         );
         $invoiceMapper = app(EloquentInvoiceMapper::class);
@@ -101,7 +104,7 @@ final class InvoicePdfSnapshotTest extends TestCase
         $dto = $invoiceMapper->toDto($invoice);
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
         $html = $this->renderPdfHtml(
-            $invoicePrintDataBuilder->build($dto),
+            $invoicePrintDataBuilder->build($dto, $vatPayer),
         );
         $normalized = trim(
             preg_replace(
@@ -118,7 +121,8 @@ final class InvoicePdfSnapshotTest extends TestCase
                 ),
             ),
         );
-        $snapshot = __DIR__ . '/__snapshots__/invoice_' . $template . '.html';
+        $suffix = $vatPayer ? '' : '_non_payer';
+        $snapshot = __DIR__ . '/__snapshots__/invoice_' . $template . $suffix . '.html';
         if (getenv('UPDATE_PDF_SNAPSHOTS') === '1') {
             file_put_contents($snapshot, $normalized);
         }

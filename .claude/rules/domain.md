@@ -29,6 +29,7 @@ Business rules in plain PHP. Allowed dependencies: `architecture.md`.
 
 - Invoice number: four-digit year followed by the yearly sequence padded to at least four digits, sequence capped at 999999 so the number fits the 10-digit variable symbol of QR payments (`InvoiceNumber`). Unique per user and year; the next number is derived from the highest existing one through `InvoiceNumber`, never by string ordering.
 - Line items are the source of truth for totals; an invoice's subtotal, VAT and total are derived from them.
+- VAT is computed by rate, never per line (`InvoiceTotals`): the VAT of a rate is the unrounded sum of price × quantity of its lines times the rate, rounded once to 2 places half up; the base of the rate is the same sum rounded separately. Subtotal, VAT and total are the sums of the rounded rates. A supplier that is not a VAT payer uses only rate 0 (`InvoiceTotals::forSupplier()`).
 
 ## Services and errors
 

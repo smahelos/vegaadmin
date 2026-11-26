@@ -233,14 +233,6 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 10px;
-            color: #64748b;
-            padding-top: 20px;
-            border-top: 2px solid #e2e8f0;
-        }
 
         table {
             width: 100%;
@@ -342,6 +334,9 @@
                     @if(!empty($supplier->vatNumber))
                     <p>{{ __('parties.fields.vat_number') }}: {{ $supplier->vatNumber }}</p>
                     @endif
+                    @unless($invoice->vatPayer)
+                    <p>{{ __('invoices.messages.not_vat_payer') }}</p>
+                    @endunless
                 </div>
             </div>
             <div class="col-right">
@@ -436,8 +431,10 @@
                         <th>{{ __('invoices.placeholders.item_quantity') }}</th>
                         <th>{{ __('invoices.placeholders.item_unit') }}</th>
                         <th>{{ __('invoices.placeholders.item_price') }}</th>
-                        <th>{{ __('invoices.placeholders.item_tax') }}</th>
-                        <th class="text-right">{{ __('invoices.placeholders.item_price_complete') }}</th>
+                        @if($invoice->vatPayer)
+                        <th>{{ __('invoices.vat_lines.fields.rate') }}</th>
+                        @endif
+                        <th class="text-right">{{ $invoice->vatPayer ? __('invoices.fields.item_base') : __('invoices.fields.total') }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -447,32 +444,44 @@
                         <td>{{ $item['quantity_formatted'] }}</td>
                         <td>{{ __('invoices.units.' . $item['unit']) }}</td>
                         <td>{{ $item['price_formatted'] }}</td>
+                        @if($invoice->vatPayer)
                         <td>{{ $item['tax_rate_formatted'] }}%</td>
-                        <td class="text-right">{{ $item['total_price_formatted'] }}</td>
+                        @endif
+                        <td class="text-right">{{ $item['base_formatted'] }}</td>
                     </tr>
                     @endforeach
                 </tbody>
                 <tfoot>
-                    <tr>
-                        <td colspan="5" class="text-right">{{ __('invoices.labels.total_without_tax') }}</td>
-                        <td class="text-right"><strong>
-                                {{ $subtotalFormatted }}
-                            </strong></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5" class="text-right">{{ __('invoices.labels.total_tax') }}</td>
-                        <td class="text-right"><strong>
-                                {{ $taxFormatted }}
-                            </strong></td>
-                    </tr>
                     <tr class="amount-total">
-                        <td colspan="5"><strong>{{ __('invoices.fields.total') }}</strong></td>
+                        <td colspan="{{ $invoice->vatPayer ? 5 : 4 }}"><strong>{{ __('invoices.fields.total') }}</strong></td>
                         <td class="text-right"><strong>
                                 {{ $paymentAmountFormatted }}
                             </strong></td>
                     </tr>
                 </tfoot>
             </table>
+            @if($invoice->vatPayer)
+            <table style="margin-top: 10px;">
+                <thead>
+                    <tr>
+                        <th>{{ __('invoices.vat_lines.fields.rate') }}</th>
+                        <th class="text-right">{{ __('invoices.vat_lines.fields.base') }}</th>
+                        <th class="text-right">{{ __('invoices.vat_lines.fields.vat') }}</th>
+                        <th class="text-right">{{ __('invoices.vat_lines.fields.total') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($vatLinesFormatted as $vatLine)
+                    <tr>
+                        <td>{{ $vatLine['rate_formatted'] }}%</td>
+                        <td class="text-right">{{ $vatLine['base_formatted'] }}</td>
+                        <td class="text-right">{{ $vatLine['vat_formatted'] }}</td>
+                        <td class="text-right">{{ $vatLine['total_formatted'] }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+            @endif
 
             @if($invoice->notes)
             <div
@@ -539,10 +548,6 @@
             @endif
         </div>
 
-        <div class="footer">
-            <p>{{ __('invoices.generated_at') }}: {{ $generatedAt }}</p>
-            <p>{{ __('invoices.messages.thank_you_pdf') }}</p>
-        </div>
     </div>
 </body>
 

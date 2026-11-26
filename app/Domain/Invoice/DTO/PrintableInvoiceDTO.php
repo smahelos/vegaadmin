@@ -7,6 +7,7 @@ namespace App\Domain\Invoice\DTO;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentAccountDTO;
 use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -21,6 +22,7 @@ final readonly class PrintableInvoiceDTO
 {
     /**
      * @param  array<int, PrintableInvoiceItemDTO>  $items
+     * @param  bool  $vatPayer  A non-payer's invoice states no VAT
      */
     public function __construct(
         public InvoiceId $id,
@@ -31,8 +33,8 @@ final readonly class PrintableInvoiceDTO
         public string $currency,
         public InvoiceTemplate $template,
         public array $items,
-        public Money $subtotal,
-        public Money $totalTax,
+        public InvoiceTotals $totals,
+        public bool $vatPayer,
         public Money $totalAmount,
         public PartyPrintDTO $supplier,
         public PartyPrintDTO $customer,

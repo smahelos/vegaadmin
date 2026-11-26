@@ -12,6 +12,4 @@ use DateTimeImmutable;
 interface DateFormatterInterface
 {
     public function formatDate(DateTimeImmutable $date, string $locale): string;
-
-    public function formatDateTime(DateTimeImmutable $dateTime, string $locale): string;
 }

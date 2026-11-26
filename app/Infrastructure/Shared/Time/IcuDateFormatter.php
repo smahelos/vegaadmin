@@ -17,31 +17,10 @@ final class IcuDateFormatter implements DateFormatterInterface
 {
     public function formatDate(DateTimeImmutable $date, string $locale): string
     {
-        return $this->format(
-            $date,
-            $locale,
-            IntlDateFormatter::NONE,
-        );
-    }
-
-    public function formatDateTime(DateTimeImmutable $dateTime, string $locale): string
-    {
-        return $this->format(
-            $dateTime,
-            $locale,
-            IntlDateFormatter::SHORT,
-        );
-    }
-
-    private function format(
-        DateTimeImmutable $date,
-        string $locale,
-        int $timeType,
-    ): string {
         $formatter = new IntlDateFormatter(
             $locale,
             IntlDateFormatter::MEDIUM,
-            $timeType,
+            IntlDateFormatter::NONE,
             $date->getTimezone(),
         );
         $formatted = $formatter->format($date);

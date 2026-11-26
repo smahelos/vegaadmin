@@ -18,7 +18,6 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
-use Carbon\CarbonImmutable;
 use DOMDocument;
 use DOMXPath;
 use Illuminate\Http\UploadedFile;
@@ -168,15 +167,6 @@ final class InvoicePdfServiceFeatureTest extends TestCase
     #[Test]
     public function prints_dates_and_money_in_the_requested_locale_and_restores_the_previous_locale(): void
     {
-        $now = CarbonImmutable::now();
-        $date = $now->setDate(
-            2026,
-            3,
-            20,
-        );
-        $this->travelTo(
-            $date->setTime(14, 7),
-        );
         $invoice = $this->invoice();
         $application = app();
         $previous = $application->getLocale();
@@ -193,7 +183,6 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertSame($previous, $application->getLocale());
         $this->assertStringContainsString('05.03.2026', $german);
         $this->assertStringContainsString('19.03.2026', $german);
-        $this->assertStringContainsString('20.03.2026, 14:07', $german);
         $this->assertStringContainsString('Mar 5, 2026', $english);
         $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertStringContainsString(
@@ -224,6 +213,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 'payment_method_id' => $invoice->payment_method_id,
                 'payment_amount' => '999999',
                 'template' => $template,
+                'is_vat_payer' => true,
                 'invoice-products' => [[
                     'name' => 'Guest service',
                     'quantity' => '2.5',
@@ -234,8 +224,8 @@ final class InvoicePdfServiceFeatureTest extends TestCase
                 ]],
             ],
         );
-        $this->assertSame('250', $print->subtotal->amount);
-        $this->assertSame('52.5', $print->totalTax->amount);
+        $this->assertSame('250', $print->totals->subtotal->amount);
+        $this->assertSame('52.5', $print->totals->tax->amount);
         $this->assertSame('302.5', $print->totalAmount->amount);
         $html = $this->renderPdfHtml($print);
         $this->assertStringContainsString('Guest service', $html);
@@ -247,7 +237,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertNotNull($lastCell);
         $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertSame(
-            $moneyFormatter->format($print->totalAmount, 'cs'),
+            $moneyFormatter->format($print->totals->subtotal, 'cs'),
             trim($lastCell->textContent),
         );
         $this->assertStringContainsString('Saved supplier', $html);
@@ -302,6 +292,6 @@ final class InvoicePdfServiceFeatureTest extends TestCase
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
 
-        return $invoicePrintDataBuilder->build($dto);
+        return $invoicePrintDataBuilder->build($dto, true);
     }
 }

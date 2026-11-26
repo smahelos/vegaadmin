@@ -43,7 +43,7 @@ final class CreateInvoiceHandler
             $business->logo,
             null,
             fn (?string $logo): InvoiceDTO => $this->transactions->transaction(
-                function () use ($command, $scope, $logo): InvoiceDTO {
+                function () use ($command, $scope, $logo, $business): InvoiceDTO {
                     $this->limits->assertCanCreate($command->owner, LimitedEntity::INVOICE);
 
                     $documentParties = $this->parties->assemble(
@@ -58,6 +58,7 @@ final class CreateInvoiceHandler
                         $command->data,
                         $documentParties,
                         $command->products,
+                        $business->invoicing->vatPayer,
                     );
                 },
             ),
