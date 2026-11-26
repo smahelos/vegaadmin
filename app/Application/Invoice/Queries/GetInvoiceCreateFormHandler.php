@@ -28,17 +28,14 @@ final class GetInvoiceCreateFormHandler
         $now = $this->clock->now();
 
         return new InvoiceFormDTO(
-            $this->fieldSets->build($paymentMethods),
-            [
-                'paymentMethods' => $paymentMethods,
-                'invoiceProducts' => [],
-                'taxRates' => $this->taxes->getDphRatesForDropdown(),
-                'suggestedNumber' => $this->invoiceService->generateInvoiceNumber(
-                    $scope,
-                    (int) $now->format('Y'),
-                ),
-                'userLoggedIn' => true,
-            ],
+            fields: $this->fieldSets->build($paymentMethods),
+            paymentMethods: $paymentMethods,
+            taxRates: $this->taxes->getDphRatesForDropdown(),
+            userLoggedIn: true,
+            suggestedNumber: $this->invoiceService->generateInvoiceNumber(
+                $scope,
+                (int) $now->format('Y'),
+            ),
         );
     }
 }

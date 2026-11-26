@@ -24,7 +24,7 @@ Each open step has a section below with its items. An item without a **Status** 
 
 **Open**
 
-12. [Issued invoices](#step-12-issued-invoices) — in progress: the document life cycle with numbering at issue, its status column, the stored PDF and corrective documents, as `docs/adr/D-050-issued-documents.md` and `docs/prd/PRD_ISSUED_DOCUMENTS.md` decide (2026-11-25). Done: `ls-invoice-typed-values` (the PDF template as `InvoiceTemplate`, `VariableSymbol`; PR #139) and `ls-invoice-status-column` (the payment status column, partial payments removed, `db:archive` deleted). Branches left in this order: `ls-invoice-page-dtos`, `ls-invoice-issue` (drafts and issuing, numbering at issue with its year and uniqueness, the lock, the VAT lines, the VAT payer flag, the register entry, the document language, the admin read-only, the quota at issue), `ls-invoice-stored-pdf`, `ls-corrective-documents` (the common document table of D-044, corrective documents, negative `Money`), and `ls-business-invoice-defaults` (default currency, QR payment switch) and `ls-product-archive` at any point.
+12. [Issued invoices](#step-12-issued-invoices) — in progress: the document life cycle with numbering at issue, its status column, the stored PDF and corrective documents, as `docs/adr/D-050-issued-documents.md` and `docs/prd/PRD_ISSUED_DOCUMENTS.md` decide (2026-11-25). Done: `ls-invoice-typed-values` (the PDF template as `InvoiceTemplate`, `VariableSymbol`; PR #139), `ls-invoice-status-column` (the payment status column, partial payments removed, `db:archive` deleted) and `ls-invoice-page-dtos` (typed DTOs of the invoice pages, the Application read port of the model deleted, the invoice lines written with the invoice). Branches left in this order: `ls-invoice-issue` (drafts and issuing, numbering at issue with its year and uniqueness, the lock, the VAT lines, the VAT payer flag, the register entry, the document language, the admin read-only, the quota at issue), `ls-invoice-stored-pdf`, `ls-corrective-documents` (the common document table of D-044, corrective documents, negative `Money`), and `ls-business-invoice-defaults` (default currency, QR payment switch) and `ls-product-archive` at any point.
 13. [Expenses as received documents](#step-13-expenses-as-received-documents) — not started; shares the document tables and VAT lines of step 12 (`docs/adr/D-044-document-tables.md`).
 14. [Sending invoices](#step-14-sending-invoices) — not started; sends the PDF that step 12 stores.
 15. [Exchange rates](#step-15-exchange-rates) — not started; the rate is stored with the document of step 12.
@@ -49,11 +49,6 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Where:** `app/Domain/Invoice/ValueObjects/InvoiceNumber.php::generateNext()`, `GuestInvoiceCreateForm`.
 - **Problem:** `GetInvoiceCreateForm` takes the year from `ClockInterface` and `InvoiceService::generateInvoiceNumber()` queries that year, but the value object reads the system year again through `date('Y')`, and the guest form calls it without a year at all. Around the year boundary the query and the number can disagree, and an injected clock cannot control the number (`rules/domain.md`, Time).
 - **Fix:** with issue-time numbering, resolve the year once in the use case (honour an explicit year; derive current time through `ClockInterface`) and pass the same year to the repository query and pure number generator. Cover a requested year different from the system year and a year rollover with behaviour tests.
-
-### Invoice pages read the Eloquent model
-- **Where:** `InvoiceFormDTO` (`GetInvoice`, `GetInvoiceForEdit`, `GetInvoiceCreateForm`, `GuestInvoiceCreateForm`), `Application\Invoice\Contracts\InvoiceReadRepositoryInterface::find()`, `resources/views/frontend/invoices/show.blade.php` and `resources/views/frontend/invoices/edit.blade.php`
-- **Problem:** the show and edit pages get an untyped array with the Eloquent `Invoice` inside, so Application and the views receive a model (`rules/architecture.md`, Persistence path). Phase 5a moved the checks into the Queries and kept the pages as they were (decided 2026-11-12). `GetInvoice` therefore reads the invoice twice, as the model for the page and as `InvoiceDTO` for the parties.
-- **Fix:** typed page DTOs built from `InvoiceDTO`, and the Application read port deleted, in `ls-invoice-page-dtos` before the life cycle: issuing stores no separate snapshot (D-050), so `ls-invoice-issue` only adds the issue fields to the DTOs.
 
 ### Invoice numbers are not unique per user and year
 - **Where:** `invoices` (only the index `idx_invoices_user_invoice_vs`), `InvoiceWriteDataInput`, `InvoiceService`
@@ -347,7 +342,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix:** per `rules/application.md`: the gate opens one transaction around every Command, and a Command calling outside the database opens it through the port around its writes only; Domain services and repositories open none.
 
 ### Two sets of repositories
-- **Where:** 19 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `InvoiceReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
+- **Where:** 6 repository contracts in `app/Application/*/Contracts` returning Eloquent models (e.g. `PageReadRepositoryInterface`), next to the Domain `*Dto*RepositoryInterface` ports
 - **Problem:** Application, controllers and Livewire work with models; the same entity has two persistence paths.
 - **Fix:** move every use to the Domain ports, delete the Application repositories and their implementations. Then, per `rules/persistence.md` (decided 2026-10-20): ports without `Dto` and always with `Interface` (`ContactReadRepositoryInterface`; today e.g. `BankDtoRepository`); a read port for every read entity, a write port only where the Domain writes (unsplit today: `BankDtoRepository`); one `Eloquent<Entity>Repository` per entity implementing both (merge `EloquentPaymentDto{Read,Write}Repository`, `EloquentSubscriptionDto{Read,Write}Repository`).
 
@@ -371,11 +366,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** suffixes `DTO`/`Data`/`Payload`/ResultDTO mixed; 167 snake_case vs 75 camelCase properties, mixed within one class.
 - **Implemented in step 7:** `PrintableInvoiceDTO`, `PrintableInvoiceItemDTO` and `PartyPrintDTO` exist and are used. Their rename is complete.
 - **Also implemented in step 7:** `QrPaymentDTO` and `InvoiceReminderDTO` replace the remaining payload names and all consumers. QR carries `BankAccount` and emits decimal amounts without floats; reminders use stored names, typed identity and Money, with regressions across all six variants and four locales.
-- **Other conversion work:** `SubscriptionPaymentResultDTO` → SubscriptionPaymentResult; replace the untyped `InvoiceMutationPayload` wrapper and the validated array of the guest invoice (`CreateGuestInvoice`, the ad-hoc session keys and JSON of `InvoiceController::storeGuest`, `TemporaryInvoiceStore`, `TemporaryInvoicePrintDataFactory`) with typed data; rename remaining `Enum/` directories to `Enums/`; camelCase properties with `final readonly class`; the `currency` strings of `InvoiceDTO`, `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO` as `Currency` (or with the amount as `Money`), and the `?? 'CZK'` defaults beside them in `ProductCreationValidator`, `SubscriptionPaymentService`, `InvoicePrintDataBuilder`, `GoPayGateway` and `ProductListSelect` deleted. These general context conversions are not additional acceptance requirements of the entity replacement.
+- **Other conversion work:** `SubscriptionPaymentResultDTO` → SubscriptionPaymentResult; replace the untyped `InvoiceMutationPayload` wrapper and the validated array of the guest invoice (`CreateGuestInvoice`, the ad-hoc session keys and JSON of `InvoiceController::storeGuest`, `TemporaryInvoiceStore`, `TemporaryInvoicePrintDataFactory`) with typed data; rename remaining `Enum/` directories to `Enums/`; camelCase properties with `final readonly class`; the `currency` strings of `PrintableInvoiceDTO`, `ProductDTO`, `ProductWriteData`, `SubscriptionDTO`, `SubscriptionPlanDTO`, `PaymentDTO`, `PaymentWriteData` and `SubscriptionPaymentResultDTO` as `Currency` (or with the amount as `Money`), and the `?? 'CZK'` defaults beside them in `ProductCreationValidator`, `SubscriptionPaymentService`, `GoPayGateway` and `ProductListSelect` deleted. These general context conversions are not additional acceptance requirements of the entity replacement.
 
 ### Business logic in models
-- **Where:** `app/Models/Invoice.php` (`subtotal_money` / `total_tax_money` accessors computing totals through `InvoiceTotals`, due date, `overdue` and `paid` for the lists, logging, `Spatie\Permission\Traits\HasRoles`), `Spatie\Permission\Traits\HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` was corrected to use `invoices.user_id` in the business/contact branch; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
-- **Fix:** logic into Domain, totals built by `EloquentInvoiceMapper` once Application no longer receives models, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
+- **Where:** `app/Models/Invoice.php` (due date and `overdue` for the lists, `Spatie\Permission\Traits\HasRoles`), `Spatie\Permission\Traits\HasRoles` also on `PaymentMethod`, `$guarded` in 6 models; `User::invoices()` was corrected to use `invoices.user_id` in the business/contact branch; invoices from 2025 in the development database keep their items only as JSON in `invoice_text`
+- **Fix:** logic into Domain, `$fillable`, `User::invoices()` as `hasMany` on `user_id` (`rules/persistence.md`).
 
 ### Validation in several places
 - **Where:** frontend and admin form requests of the same entity with diverging rules (e.g. `InvoiceRequest` vs `Admin\InvoiceRequest`), `app/Domain/*/Validation/`
@@ -412,11 +407,6 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Problem:** events are not yet used as `.claude/rules/architecture.md` (Events) requires. Cache invalidation runs through observers → `UserDataChanged`. Invoices, expenses and products publish no domain events: their update, delete and set-as-default events nobody published were deleted (commit "Delete unpublished domain events and unread event accessors", branch `ls-dead-code`), the unread InvoiceCreated, ExpenseCreated and ProductCreated with commit 8c38d650; they are added back with their publishers. The Party context already publishes its events (created, updated, archived, restored, default business changed), and the owner's dashboard cache listens to them after the commit.
 - **Fix:** add and publish the entity events from the domain services, let the cache invalidation handle them as Laravel listeners (after the commit, `rules/architecture.md` Events), then remove the observers.
 
-### Format invoice amounts through a presenter
-- **Where:** `resources/views/frontend/invoices/show.blade.php`
-- **Problem:** amounts are formatted in Blade with `number_format(..., 2, ',', ' ')` and fallback logic; the Czech format is used for every locale.
-- **Fix:** an invoice detail presenter using `MoneyFormatterInterface`, like `app/Application/Analytics/Presenters/*`.
-
 ### Products have no unit field
 - **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php`, frontend and admin product forms and requests
 - **Problem:** `products.unit` exists and is copied into the invoice item when a product is picked, but no form sets it, so every product counts in pieces.
@@ -446,6 +436,11 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Where:** `Admin\ProductCategoryCrudController` (`product.*` in `allowHeldOperations()`), `Admin\ExpenseCategoryCrudController` (`expense.*`), `PermissionCatalog`
 - **Problem:** product and expense categories are reference data shared by all users, but an admin who may edit products or expenses may also create, rename and delete their categories; the other reference data have their own permissions (`payment_method.*`, `bank.*`), as `docs/prd/PRD_PERMISSIONS.md` requires for each admin operation. Expense categories added 2026-11-24.
 - **Fix:** `product_category.*` and `expense_category.*` (`view`, `create`, `update`, `delete`) in the admin guard through the `add-permission` skill, granted to the roles that manage reference data.
+
+### Product form fields carry copied Backpack keys
+- **Where:** `app/Infrastructure/Forms/Products/ProductFormFields.php` (`category_id` and `tax_id`), used by `Frontend\ProductController`
+- **Problem:** both selects declare `'entity' => 'paymentStatus'`, copied from another form, next to `model` and `attribute`. The frontend product views read none of these Backpack keys, so nothing breaks today, but a reader or a later reuse of the fields gets a relation the product does not have. Found 2026-11-26.
+- **Fix:** delete the `entity`, `model` and `attribute` keys with the conversion of the trait (`/convert-to-standard`; the trait also lacks strict types and its directory should be Forms/Product).
 
 ## Step 22: Frontend, API and routes
 
@@ -486,7 +481,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 
 ### Frontend
 - **Where:** `resources/views` and `resources/js`: inline scripts, `@php` logic, `window.*` globals, field metadata and formatting outside presenters.
-- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion. Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components.
+- **Fix:** per `rules/frontend.md`. The business/contact branch uses the shared Livewire party picker and removes the old client/supplier prefill scripts, endpoints, dead selectors and model fallbacks from invoice forms. General invoice/item JS and field-rendering helpers still need conversion: `resources/views/frontend/invoices/edit.blade.php` and `resources/views/frontend/invoices/create.blade.php` keep `@php` logic (the `getEditFieldByName()` helper, the `dueInOptions` list, translating the payment method options in place) and pass the item editor's lines through the inline `window.existingInvoiceData` global (found 2026-11-26). Dashboard scripts still expose globals and initialize from Blade; move them to modules or Alpine and pass translated data through components. When the invoice forms become Livewire form objects, delete the form-values sentence of `rules/php.md` (data returned by Application) unless another classic form still reads its values next to `old()`.
 
 ### Alpine is bundled next to Livewire's own
 - **Where:** `resources/js/app.js`, `package.json` (`alpinejs`, `@alpinejs/focus`), `@livewireScripts` in `resources/views/layouts/app.blade.php` and `resources/views/layouts/frontend.blade.php`
@@ -499,7 +494,7 @@ The code standard is defined in `.claude/rules/` (decided 2026-10-20). Each item
 - **Fix (decided 2026-11-07):** own error pages in the frontend layout, in four locales (`add-translation`), for at least 403, 404, 419, 429, 500 and 503; decide whether the admin keeps Backpack's error views.
 
 ### Dates outside the PDFs are formatted by hand
-- **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/invoices/show.blade.php`, the remaining Livewire invoice widgets)
+- **Where:** `app/Infrastructure/Shared/Support/DateHelper.php` (formats for cs and en only), 15 views in `resources/views` (`->format('d.m.Y')`, `DateHelper::format()`, e.g. `frontend/products/show.blade.php`, the remaining Livewire invoice widgets)
 - **Problem:** the PDFs format dates through `DateFormatterInterface` in their language, but the frontend, the admin and the reminder emails print the Czech format for every locale.
 - **Fix:** dates through `DateFormatterInterface` in the page locale: a `<x-date>` Blade component for remaining views; delete `DateHelper`. Reminder emails and the common invoice list already use the formatter in their presenter/mail factory.
 

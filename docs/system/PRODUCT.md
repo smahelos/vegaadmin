@@ -11,11 +11,9 @@ The user's own catalogue of products with a price, currency, VAT rate and catego
 | Product | `products`, owned by a user; `slug` unique per user | `App\Models\Product`, `ProductDTO`, `ProductId`, `ProductWriteData`, `ProductSearch`, `ProductSort`; ports `ProductDtoReadRepositoryInterface` and `ProductDtoWriteRepositoryInterface` (`EloquentProductDtoRepository`, mapper `EloquentProductMapper`) |
 | Catalogue product | `products`: the active products of one currency, as offered by the admin invoice editor | `CatalogProductDTO`; port `CatalogProductReadRepositoryInterface` (`EloquentCatalogProductRepository`, mapper `EloquentCatalogProductMapper`) |
 | Product category | `product_categories` (reference data without an owner, the same for every user) | `App\Models\ProductCategory`; no DTO, no port |
-| Invoice line | `invoice_products` | Invoice's entity ([INVOICE.md](INVOICE.md#entities)); its write port `InvoiceProductDtoWriteRepositoryInterface` lives here (`EloquentInvoiceProductDtoRepository` over `EloquentInvoiceProductRepository`, mapper `EloquentInvoiceProductMapper`) |
+| Invoice line | `invoice_products` | Invoice's entity, written with the invoice ([INVOICE.md](INVOICE.md#entities)) |
 
 Values: `ProductName`, `ProductPrice` (a float, "Product prices are not `Money` on the write path" in [TECH_DEBT](../TECH_DEBT.md)); `ProductDTO::$price` is `Money`, the unit Shared's `Unit`. The VAT rate is a row of `taxes` (`App\Models\Tax`, the rates with slug `dph`).
-
-The Application port `InvoiceProductWriteRepositoryInterface` is bound in the provider but used by no code ("Two sets of repositories" in [TECH_DEBT](../TECH_DEBT.md)).
 
 ## Use cases
 
@@ -53,7 +51,7 @@ A product used on an invoice cannot be deleted: the `invoice_products` foreign k
 
 ## Products on invoices
 
-An invoice line keeps its own copy of the name, price, unit, VAT rate and currency, and `product_id` only as a link: changing or deleting a product never changes an existing invoice. Picking a product in the frontend form dispatches `product-selected` with these values from `ProductListSelect::selectProduct()`; `resources/js/invoice-item-manager.js` fills the line. Saving the invoice checks that every linked product belongs to the invoice's owner (Invoice's `InvoiceProductOwnership`, through `CatalogProductReadRepositoryInterface::isOwnedBy()`). `InvoiceService` writes the lines through `InvoiceProductDtoWriteRepositoryInterface`.
+An invoice line keeps its own copy of the name, price, unit, VAT rate and currency, and `product_id` only as a link: changing or deleting a product never changes an existing invoice. Picking a product in the frontend form dispatches `product-selected` with these values from `ProductListSelect::selectProduct()`; `resources/js/invoice-item-manager.js` fills the line. Saving the invoice checks that every linked product belongs to the invoice's owner (Invoice's `InvoiceProductOwnership`, through `CatalogProductReadRepositoryInterface::isOwnedBy()`). The invoice repository writes the lines with the invoice.
 
 ## Events
 

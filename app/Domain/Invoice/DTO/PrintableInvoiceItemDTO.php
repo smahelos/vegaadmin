@@ -13,12 +13,16 @@ use App\Domain\Shared\Unit\Enums\Unit;
  */
 final readonly class PrintableInvoiceItemDTO
 {
+    /**
+     * @param  string  $quantity  Decimal string, e.g. "1.500"
+     * @param  string  $taxRate  VAT rate in percent as a decimal string, e.g. "21.00"
+     */
     public function __construct(
         public string $name,
-        public float $quantity,
+        public string $quantity,
         public Unit $unit,
         public Money $price,
-        public float $taxRate,
+        public string $taxRate,
         public Money $lineTotal,
     ) {}
 }

@@ -28,7 +28,6 @@ final class InvoiceCreateControllerFeatureTest extends TestCase
         $response->assertViewHasAll(
             [
                 'paymentMethods',
-                'invoiceProducts',
                 'taxRates',
                 'suggestedNumber',
                 'fields',

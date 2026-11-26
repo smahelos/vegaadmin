@@ -5,59 +5,53 @@ declare(strict_types=1);
 namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
+use App\Domain\Payment\ValueObjects\PaymentMethodId;
+use App\Domain\Product\ValueObjects\ProductId;
+use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
 use App\Infrastructure\Persistence\Eloquent\Party\Mappers\EloquentDocumentPartiesMapper;
 use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 
 final class EloquentInvoiceMapper
 {
-    /**
-     * Convert Eloquent Invoice model to InvoiceDTO.
-     */
     public function toDto(Invoice $model): InvoiceDTO
     {
-        // Prefer Money VO accessors to avoid float issues
-        $subtotal = $model->getAttribute('subtotal_money') ?? $model->subtotal_money ?? null;
-        $totalTax = $model->getAttribute('total_tax_money') ?? $model->total_tax_money ?? null;
-        $totalAmount = $model->getAttribute('payment_amount_money') ?? $model->payment_amount_money ?? null;
-
-        // Include items using computed accessor; repository will eager-load relation to avoid N+1
-        // This returns an array shape like: [ ['name'=>..., 'quantity'=>..., 'price'=>..., 'currency'=>..., 'tax_rate'=>..., 'tax_amount'=>..., 'total_price'=>...], ... ]
-        $items = $model->getAttribute('invoice_products_data') ?? $model->invoice_products_data ?? [];
-        if (!is_array($items)) {
-            $items = [];
+        $currency = Currency::from($model->payment_currency);
+        $totals = InvoiceTotals::zero($currency);
+        $items = [];
+        foreach ($model->invoiceProducts as $line) {
+            $item = $this->toItem($line);
+            $totals = $totals->withLine($item->base(), $item->taxAmount);
+            $items[] = $item;
         }
+        $paymentMethodId = $model->payment_method_id;
 
-        return InvoiceDTO::fromArray(
-            [
-                'id' => InvoiceId::fromInt(
-                    (int) $model->getAttribute('id'),
-                ),
-                'user_id' => (int) $model->getAttribute('user_id'),
-                'parties' => EloquentDocumentPartiesMapper::toDocumentParties($model),
-                'number' => $model->getAttribute('invoice_vs'),
-                'payment_reference' => $model->getAttribute('invoice_ss'),
-                'constant_code' => $model->getAttribute('invoice_ks'),
-                'issue_date' => $model->getAttribute('issue_date'),
-                'tax_point_date' => $model->tax_point_date?->format('Y-m-d'),
-                'due_in' => $model->getAttribute('due_in') !== null ? (int) $model->getAttribute('due_in') : null,
-                'subtotal' => $subtotal,
-                'total_tax' => $totalTax,
-                'payment_method_id' => $model->payment_method_id,
-                'invoice_text' => $model->invoice_text,
-                'total_amount' => $totalAmount,
-                'currency' => $model->getAttribute('payment_currency') ?? null,
-                'template' => InvoiceTemplate::from(
-                    $model->getAttribute('template'),
-                ),
-                'items' => $items,
-                'created_at' => $model->getAttribute('created_at'),
-                'status' => $model->payment_status,
-            ],
+        return new InvoiceDTO(
+            id: InvoiceId::fromInt($model->id),
+            parties: EloquentDocumentPartiesMapper::toDocumentParties($model),
+            number: $model->invoice_vs,
+            constantSymbol: $model->invoice_ks,
+            specificSymbol: $model->invoice_ss,
+            issueDate: $model->issue_date->toDateTimeImmutable(),
+            taxPointDate: $model->tax_point_date->toDateTimeImmutable(),
+            dueIn: $model->due_in,
+            subtotal: $totals->subtotal,
+            totalTax: $totals->tax,
+            totalAmount: Money::fromString($model->payment_amount, $currency),
+            paymentMethodId: $paymentMethodId === null ? null : PaymentMethodId::fromInt($paymentMethodId),
+            text: $model->invoice_text,
+            template: InvoiceTemplate::from($model->template),
+            status: $model->payment_status,
+            items: $items,
         );
     }
 
@@ -84,5 +78,46 @@ final class EloquentInvoiceMapper
             'template' => $data->template->value,
             'payment_status' => $data->status->value,
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toLineAttributes(InvoiceProductWriteData $data): array
+    {
+        $taxAmount = $data->taxAmount();
+        $total = $data->total();
+
+        return [
+            'product_id' => $data->productId?->value,
+            'name' => $data->name,
+            'quantity' => $data->quantity,
+            'unit' => $data->unit->value,
+            'category' => $data->category,
+            'description' => $data->description,
+            'price' => $data->price->amount,
+            'currency' => $data->price->currency->value,
+            'tax_rate' => $data->taxRate,
+            'tax_amount' => $taxAmount->amount,
+            'total_price' => $total->amount,
+            'is_custom_product' => $data->isCustomProduct(),
+        ];
+    }
+
+    private function toItem(InvoiceProduct $line): InvoiceProductDTO
+    {
+        $currency = Currency::from($line->currency);
+        $productId = $line->product_id;
+
+        return new InvoiceProductDTO(
+            productId: $productId === null ? null : ProductId::fromInt($productId),
+            name: $line->name,
+            quantity: $line->quantity,
+            unit: Unit::from($line->unit),
+            price: Money::fromString($line->price ?? '0', $currency),
+            taxRate: $line->tax_rate,
+            taxAmount: Money::fromString($line->tax_amount, $currency),
+            total: Money::fromString($line->total_price, $currency),
+        );
     }
 }

@@ -1,19 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
-use App\Application\Product\Contracts\InvoiceProductWriteRepositoryInterface;
 use App\Application\Product\Contracts\ProductFormDataServiceInterface;
 use App\Domain\Product\Contracts\CatalogProductReadRepositoryInterface;
-use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoReadRepositoryInterface;
 use App\Domain\Product\Contracts\ProductDtoWriteRepositoryInterface;
 use App\Domain\Product\Validation\ProductCreationValidator;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductCategoryObserver;
 use App\Infrastructure\Persistence\Eloquent\Product\Observers\ProductObserver;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentCatalogProductRepository;
-use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentInvoiceProductDtoRepository;
-use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentInvoiceProductRepository;
 use App\Infrastructure\Persistence\Eloquent\Product\Repositories\EloquentProductDtoRepository;
 use App\Infrastructure\Services\Product\ProductFormDataService;
 use App\Models\Product;
@@ -58,17 +56,6 @@ class ProductServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductDtoWriteRepositoryInterface::class,
             EloquentProductDtoRepository::class,
-        );
-
-        $this->app->bind(
-            InvoiceProductDtoWriteRepositoryInterface::class,
-            EloquentInvoiceProductDtoRepository::class,
-        );
-
-        // Application layer product repositories
-        $this->app->bind(
-            InvoiceProductWriteRepositoryInterface::class,
-            EloquentInvoiceProductRepository::class,
         );
 
         // Infrastructure product form data service

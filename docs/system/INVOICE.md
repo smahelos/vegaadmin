@@ -1,6 +1,6 @@
 # Invoice context
 
-Status: maintained map of the code on `main`, last checked 2026-11-25. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
+Status: maintained map of the code on `main`, last checked 2026-11-26. Start with [the system overview](OVERVIEW.md). The parties an invoice stores are described in [PARTY.md](PARTY.md#parties-on-documents), the entity limit in [USER.md](USER.md#entity-limits), money and invoice invariants in `rules/domain.md`. The planned document life cycle (issuing, numbering at issue, a stored PDF) is step 12 of [TECH_DEBT](../TECH_DEBT.md#step-12-issued-invoices); until then an invoice stays editable.
 
 Invoices the user issues, their lines, the PDF with the QR payment code, the one-off invoice of a guest and the payment reminders. Composition root: `InvoiceServiceProvider`.
 
@@ -8,8 +8,8 @@ Invoices the user issues, their lines, the PDF with the QR payment code, the one
 
 | Entity | Table | Code |
 |---|---|---|
-| Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`); `GetInvoice` and `GetInvoiceForEdit` still read the model through `InvoiceReadRepositoryInterface` (`EloquentInvoiceRepository`, "Invoice pages read the Eloquent model" in [TECH_DEBT](../TECH_DEBT.md)) |
-| Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written through Product's `InvoiceProductDtoWriteRepositoryInterface` (`EloquentInvoiceProductDtoRepository`) |
+| Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`) |
+| Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written with the invoice by `EloquentInvoiceDtoRepository` (`EloquentInvoiceMapper::toLineAttributes()`) |
 | Parties and payment account | `supplier_*`, `customer_*`, `account_*` columns of `invoices` | Party's `DocumentParties` ([PARTY.md](PARTY.md#parties-on-documents)) |
 | Guest invoice | none: the cache, 10 minutes, under a random token | `TemporaryInvoiceStore` |
 
@@ -34,6 +34,8 @@ Commands in `app/Application/Invoice/Commands/`, queries in `app/Application/Inv
 | `CreateGuestInvoice`, `GetGuestInvoicePdf`, `DeleteGuestInvoice` | `storeGuest`, `downloadWithToken`, `destroyGuest` | — | public | `throttle:guest_invoice` |
 | `SendInvoiceReminders`, `SendInvoiceReminder` | — | — | system | — |
 
+The pages get typed data: `GetInvoice` returns `DetailInvoiceDTO` (the invoice with the payment method, the linked contact and a contact the customer could be linked to), formatted in the view through `InvoiceDetailPresenter`; `GetInvoiceCreateForm` returns `InvoiceFormDTO` and `GetInvoiceForEdit` returns `EditableInvoiceDTO` (the form with the stored `InvoiceDTO`); `InvoiceFormPresenter` turns the invoice into the form values and the item editor's lines (`EditableInvoiceItemDTO`, serialized with the request keys of a line).
+
 "With owner" is `Access::permissionWithOwner()` (`rules/permissions.md`). `CreateInvoiceHandler` calls `EntityLimit::assertCanCreate()` for `LimitedEntity::INVOICE` inside the transaction; the frontend form shows the usage (`x-entity-usage`). The rate limiters are registered in `RouteServiceProvider`.
 
 ## Creating and updating an invoice
@@ -45,7 +47,7 @@ Commands in `app/Application/Invoice/Commands/`, queries in `app/Application/Inv
 | Validation | `InvoiceRequest` (frontend and guest), `Admin\InvoiceRequest`; both build on `InvoiceWriteDataInput` (invoice fields) and `InvoiceItemInput` (lines), the parties on `DocumentPartyInput` (admin also `AdminDocumentPartyInput`) |
 | Request to Command | frontend: `InvoiceRequestAssembler` into `InvoiceMutationPayload`; admin: `Admin\InvoiceRequest` itself (`owner()`, `toWriteData()`, `partySelection()`, `products()`); both give `InvoiceWriteData`, `InvoicePartySelection` and the lines from `InvoiceProductWriteDataAssembler` |
 | Handler | `CreateInvoiceHandler`, `UpdateInvoiceHandler`: `InvoiceProductOwnership` refuses another user's products, `InvoicePartiesAssembler` copies the parties, `DocumentLogoService` copies the supplier logo |
-| Storage | `InvoiceService` computes the total from the lines (`InvoiceTotals`) and writes the invoice and its lines; an update replaces all lines |
+| Storage | `InvoiceService` computes the total from the lines (`InvoiceTotals`); `EloquentInvoiceDtoRepository::create()` and `update()` write the invoice with its lines and return it with them; an update replaces all lines |
 
 The invoice number is also the variable symbol of the QR payment (`invoice_vs`). `GetInvoiceCreateForm` suggests the next number of the year (`InvoiceService::generateInvoiceNumber()`, `InvoiceNumber::generateNext()`); the user can change it, and `InvoiceWriteDataInput` accepts only the `InvoiceNumber` format. Nothing refuses a number already used: "Invoice numbers are not unique per user and year" and "Invoice numbering ignores the requested year" in [TECH_DEBT](../TECH_DEBT.md).
 

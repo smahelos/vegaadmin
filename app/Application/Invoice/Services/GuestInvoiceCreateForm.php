@@ -29,14 +29,11 @@ final class GuestInvoiceCreateForm
         $number = InvoiceNumber::generateNext();
 
         return new InvoiceFormDTO(
-            $this->fieldSets->build($paymentMethods),
-            [
-                'paymentMethods' => $paymentMethods,
-                'taxRates' => $this->taxes->getDphRatesForDropdown(),
-                'suggestedNumber' => $number->value,
-                'invoiceProducts' => [],
-                'userLoggedIn' => false,
-            ],
+            fields: $this->fieldSets->build($paymentMethods),
+            paymentMethods: $paymentMethods,
+            taxRates: $this->taxes->getDphRatesForDropdown(),
+            userLoggedIn: false,
+            suggestedNumber: $number->value,
         );
     }
 }

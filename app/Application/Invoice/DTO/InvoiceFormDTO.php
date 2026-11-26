@@ -1,31 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Application\Invoice\DTO;
 
 use App\Application\Shared\Form\DTO\FieldSetDTO;
 
 /**
- * Aggregated DTO for invoice form data (create/edit) including field definitions.
- * Phase 2: Allows controller/view to consume a single object instead of manually
- * merging arrays. Provides backward-compatible toArray() for Blade.
+ * The invoice form: create (also for a guest) and edit.
  */
-class InvoiceFormDTO
+final readonly class InvoiceFormDTO
 {
-    /** @param array<string,mixed> $meta */
-    public function __construct(
-        private readonly FieldSetDTO $fields,
-        private readonly array $meta,
-    ) {}
-
     /**
-     * Return legacy compatible array for blade merge.
-     *
-     * @return array<string,mixed>
+     * @param  array<int, string>  $paymentMethods  Payment method code by id
+     * @param  array<int, string>  $taxRates  VAT rate in percent by id
      */
-    public function toArray(): array
-    {
-        return array_merge($this->meta, [
-            'fields' => $this->fields->toArray(),
-        ]);
-    }
+    public function __construct(
+        public FieldSetDTO $fields,
+        public array $paymentMethods,
+        public array $taxRates,
+        public bool $userLoggedIn,
+        public ?string $suggestedNumber = null,
+    ) {}
 }

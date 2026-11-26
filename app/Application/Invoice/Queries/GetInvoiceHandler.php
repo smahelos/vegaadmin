@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Queries;
 
-use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
-use App\Application\Invoice\DTO\InvoiceFormDTO;
-use App\Application\Shared\Form\DTO\FieldSetDTO;
+use App\Application\Invoice\DTO\DetailInvoiceDTO;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
@@ -14,28 +12,23 @@ use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\Enums\DuplicateReason;
 use App\Domain\Party\Services\DuplicateFinder;
+use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 
-/**
- * The invoice detail: the stored parties, and the contact only tells whether the customer is linked to the
- * address book.
- */
 final class GetInvoiceHandler
 {
     public function __construct(
-        private readonly InvoiceReadRepositoryInterface $invoiceModels,
         private readonly InvoiceDtoReadRepositoryInterface $invoices,
         private readonly ContactReadRepositoryInterface $contacts,
+        private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
         private readonly DuplicateFinder $duplicates,
     ) {}
 
-    public function handle(GetInvoice $query, ReadScope $scope): InvoiceFormDTO
+    public function handle(GetInvoice $query, ReadScope $scope): DetailInvoiceDTO
     {
-        $invoice = $this->invoiceModels->find($query->id, $scope)
+        $invoice = $this->invoices->findById($query->id, $scope)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
-        $stored = $this->invoices->findById($query->id, $scope)
-            ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
-        $parties = $stored->parties;
+        $parties = $invoice->parties;
         $contact = null;
         $contactToLink = null;
         if ($parties->contactId === null) {
@@ -43,19 +36,16 @@ final class GetInvoiceHandler
         } else {
             $contact = $this->contacts->findById($parties->contactId, $scope);
         }
+        $paymentMethod = null;
+        if ($invoice->paymentMethodId !== null) {
+            $paymentMethod = $this->paymentMethods->findById($invoice->paymentMethodId);
+        }
 
-        return new InvoiceFormDTO(
-            new FieldSetDTO([]),
-            [
-                'invoice' => $invoice,
-                'status' => $stored->status,
-                'paymentAmount' => $invoice->payment_amount_money,
-                'subtotal' => $invoice->subtotal_money,
-                'totalTax' => $invoice->total_tax_money,
-                'parties' => $parties,
-                'contact' => $contact,
-                'contactToLink' => $contactToLink,
-            ],
+        return new DetailInvoiceDTO(
+            $invoice,
+            $paymentMethod?->code,
+            $contact,
+            $contactToLink,
         );
     }
 

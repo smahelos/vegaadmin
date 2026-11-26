@@ -4,11 +4,8 @@ namespace Tests\Feature\Models;
 
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\Shared\Money\Enums\Currency;
 use App\Models\Invoice;
-use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
-use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,7 +13,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
-use ValueError;
 
 class InvoiceFeatureTest extends TestCase
 {
@@ -109,17 +105,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function paid_reflects_the_paid_status(): void
-    {
-        $this->assertTrue(
-            $this->invoiceDueDaysAgo(InvoiceStatus::PAID, 0)->paid,
-        );
-        $this->assertFalse(
-            $this->invoiceDueDaysAgo(InvoiceStatus::PENDING, 0)->paid,
-        );
-    }
-
-    #[Test]
     public function unpaid_invoice_is_overdue_the_day_after_its_due_date(): void
     {
         $invoice = $this->invoiceDueDaysAgo(InvoiceStatus::PENDING, 1);
@@ -144,47 +129,6 @@ class InvoiceFeatureTest extends TestCase
     }
 
     #[Test]
-    public function get_invoice_products_data_attribute_returns_array(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create();
-
-        $invoiceProductFactory = InvoiceProduct::factory();
-        $invoiceProductFactory->create(
-            [
-                'invoice_id' => $invoice->id,
-                'name' => 'Test Product',
-                'quantity' => 2,
-                'price' => 100.00,
-            ],
-        );
-
-        $invoiceProductsData = $invoice->getInvoiceProductsDataAttribute();
-
-        $this->assertIsArray($invoiceProductsData);
-        $this->assertCount(1, $invoiceProductsData);
-        $this->assertEquals('Test Product', $invoiceProductsData[0]['name']);
-        $this->assertEquals(2, $invoiceProductsData[0]['quantity']);
-        $this->assertEquals(100.00, $invoiceProductsData[0]['price']);
-    }
-
-    #[Test]
-    public function payment_amount_money_attribute_returns_money_value_object(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
-            [
-                'payment_amount' => 1234.56,
-                'payment_currency' => Currency::EUR->value,
-            ],
-        );
-
-        $money = $invoice->payment_amount_money; // Money VO
-        $this->assertEquals('1234.56', $money->amount);
-        $this->assertSame(Currency::EUR, $money->currency);
-    }
-
-    #[Test]
     public function payment_amount_is_stored_and_read_back_without_a_float(): void
     {
         // A float holds this amount as 9007199254740992
@@ -197,99 +141,7 @@ class InvoiceFeatureTest extends TestCase
         );
 
         $invoice->refresh();
-        $money = $invoice->payment_amount_money;
         $this->assertSame('9007199254740993.01', $invoice->payment_amount);
-        $this->assertSame('9007199254740993.01', $money->amount);
-    }
-
-    #[Test]
-    public function payment_amount_money_refuses_an_empty_currency_instead_of_assuming_czk(): void
-    {
-        $invoice = new Invoice;
-        $invoice->payment_currency = '';
-
-        $this->expectException(ValueError::class);
-        $invoice->payment_amount_money;
-    }
-
-    #[Test]
-    public function subtotal_money_attribute_aggregates_products_correctly(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create([
-            'payment_currency' => Currency::CZK->value,
-        ]);
-
-        // Two products: (100 * 2) + (50 * 3) = 350.00
-        $invoiceProductFactory = InvoiceProduct::factory();
-        $invoiceProductFactory->create(
-            [
-                'invoice_id' => $invoice->id,
-                'price' => 100.00,
-                'quantity' => 2,
-                'currency' => 'CZK',
-            ],
-        );
-        $invoiceProductFactory->create(
-            [
-                'invoice_id' => $invoice->id,
-                'price' => 50.00,
-                'quantity' => 3,
-                'currency' => 'CZK',
-            ],
-        );
-
-        $money = $invoice->subtotal_money; // Money VO
-        $this->assertEquals('350', $money->amount);
-        $this->assertSame(Currency::CZK, $money->currency);
-    }
-
-    #[Test]
-    public function total_tax_money_attribute_sums_tax_correctly(): void
-    {
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create([
-            'payment_currency' => Currency::USD->value,
-        ]);
-
-        // The stored tax of each line is summed as it is
-        $productFactory = Product::factory();
-        $product = $productFactory->create();
-        InvoiceProduct::create(
-            [
-                'invoice_id' => $invoice->id,
-                'product_id' => $product->id,
-                'name' => 'P1',
-                'quantity' => 1,
-                'price' => 100.00,
-                'currency' => 'USD',
-                'unit' => 'pieces',
-                'is_custom_product' => false,
-                'tax_rate' => 21,
-                'tax_amount' => '21.00',
-                'total_price' => '121.00',
-            ],
-        );
-        $product = $productFactory->create();
-        InvoiceProduct::create(
-            [
-                'invoice_id' => $invoice->id,
-                'product_id' => $product->id,
-                'name' => 'P2',
-                'quantity' => 2,
-                'price' => 50.00,
-                'currency' => 'USD',
-                'unit' => 'pieces',
-                'is_custom_product' => false,
-                'tax_rate' => 12,
-                'tax_amount' => '12.00',
-                'total_price' => '112.00',
-            ],
-        );
-
-        $money = $invoice->total_tax_money;
-        $this->assertEquals('33', $money->amount);
-        $this->assertSame(Currency::USD, $money->currency);
     }
 
     private function invoiceDueDaysAgo(InvoiceStatus $status, int $days): Invoice

@@ -7,6 +7,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
@@ -24,7 +25,6 @@ use InvalidArgumentException;
 final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
 {
     public function __construct(
-        private readonly EloquentInvoiceRepository $invoiceRepository,
         private readonly EloquentInvoiceMapper $mapper,
     ) {}
 
@@ -51,11 +51,13 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         return $model === null ? null : $this->mapper->toDto($model);
     }
 
+    /** @param  list<InvoiceProductWriteData>  $lines */
     public function create(
         WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         Money $total,
+        array $lines,
     ): InvoiceDTO {
         $attributes = $this->mapper->toAttributes(
             $data,
@@ -64,28 +66,35 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         );
         $attributes['user_id'] = $scope->owner->value;
 
-        $model = $this->invoiceRepository->create($attributes);
+        $model = Invoice::create($attributes);
+        $this->createLines($model, $lines);
+        $model->load('invoiceProducts');
 
         return $this->mapper->toDto($model);
     }
 
+    /** @param  list<InvoiceProductWriteData>  $lines */
     public function update(
         InvoiceId $id,
         WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         Money $total,
+        array $lines,
     ): InvoiceDTO {
         $attributes = $this->mapper->toAttributes(
             $data,
             $parties,
             $total,
         );
-        $model = $this->invoiceRepository->updateById(
-            $id->value,
-            $scope->owner->value,
-            $attributes,
-        );
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->findOrFail($id->value);
+        $model->update($attributes);
+        $lineQuery = $model->invoiceProducts();
+        $lineQuery->delete();
+        $this->createLines($model, $lines);
+        $model->load('invoiceProducts');
 
         return $this->mapper->toDto($model);
     }
@@ -127,8 +136,17 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     {
         // Highest sequence among numbers in the standard format; sorting the strings would put
         // 20259999 after 202510000, and non-standard numbers must not affect the sequence
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $query->where(
+            'invoice_vs',
+            'like',
+            $year . '%',
+        );
+        $numbers = $query->pluck('invoice_vs');
+
         $last = null;
-        foreach ($this->invoiceRepository->findInvoiceNumbersForYear($scope->owner->value, $year) as $number) {
+        foreach ($numbers as $number) {
             try {
                 $candidate = new InvoiceNumber($number);
             } catch (InvalidArgumentException) {
@@ -140,5 +158,16 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         }
 
         return $last?->value;
+    }
+
+    /** @param  list<InvoiceProductWriteData>  $lines */
+    private function createLines(Invoice $model, array $lines): void
+    {
+        $relation = $model->invoiceProducts();
+        foreach ($lines as $line) {
+            $relation->create(
+                $this->mapper->toLineAttributes($line),
+            );
+        }
     }
 }

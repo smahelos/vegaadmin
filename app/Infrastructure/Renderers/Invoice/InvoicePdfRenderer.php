@@ -10,6 +10,7 @@ use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
+use App\Domain\Shared\Number\Contracts\NumberFormatterInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -17,7 +18,6 @@ use Barryvdh\DomPDF\PDF as PdfDocument;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
-use NumberFormatter;
 
 final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 {
@@ -26,6 +26,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly QrPaymentServiceInterface $qrPaymentService,
         private readonly QrPaymentMapper $qrPaymentMapper,
         private readonly DateFormatterInterface $dateFormatter,
+        private readonly NumberFormatterInterface $numberFormatter,
         private readonly ClockInterface $clock,
     ) {}
 
@@ -35,17 +36,14 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         $subtotalFormatted = $this->moneyFormatter->format($data->subtotal, $locale);
         $taxFormatted = $this->moneyFormatter->format($data->totalTax, $locale);
 
-        $numbers = new NumberFormatter($locale, NumberFormatter::DECIMAL);
-        $numbers->setAttribute(NumberFormatter::MAX_FRACTION_DIGITS, 3);
-
         $invoiceProductsFormatted = [];
         foreach ($data->items as $idx => $item) {
             $invoiceProductsFormatted[$idx] = [
                 'name' => $item->name,
-                'quantity_formatted' => $numbers->format($item->quantity),
+                'quantity_formatted' => $this->numberFormatter->format($item->quantity, $locale),
                 'unit' => $item->unit->value,
                 'price_formatted' => $this->moneyFormatter->format($item->price, $locale),
-                'tax_rate_formatted' => $numbers->format($item->taxRate),
+                'tax_rate_formatted' => $this->numberFormatter->format($item->taxRate, $locale),
                 'total_price_formatted' => $this->moneyFormatter->format($item->lineTotal, $locale),
                 'currency' => $data->currency,
             ];

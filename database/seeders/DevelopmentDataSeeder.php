@@ -7,7 +7,6 @@ namespace Database\Seeders;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -16,7 +15,7 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Infrastructure\Authorization\PermissionCatalog;
-use App\Infrastructure\Persistence\Eloquent\Product\Mappers\EloquentInvoiceProductMapper;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
@@ -687,7 +686,7 @@ final class DevelopmentDataSeeder extends Seeder
             ...$this->documentParty('supplier', $business),
             ...$this->documentAccount($account),
         ];
-        $lineMapper = new EloquentInvoiceProductMapper;
+        $invoiceMapper = new EloquentInvoiceMapper;
         $invoiceQuery = Invoice::query();
         $lineQuery = InvoiceProduct::query();
         $sequences = [];
@@ -754,10 +753,12 @@ final class DevelopmentDataSeeder extends Seeder
                         'updated_at' => $date,
                     ],
                 );
-                $invoiceId = InvoiceId::fromInt($invoice->id);
                 foreach ($lines as $line) {
                     $lineQuery->create(
-                        $lineMapper->toAttributes($invoiceId, $line),
+                        [
+                            'invoice_id' => $invoice->id,
+                            ...$invoiceMapper->toLineAttributes($line),
+                        ],
                     );
                 }
             }

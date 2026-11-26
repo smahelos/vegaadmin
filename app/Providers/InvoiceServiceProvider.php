@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
-use App\Application\Invoice\Contracts\InvoiceReadRepositoryInterface;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
-use App\Application\Invoice\Contracts\InvoiceWriteRepositoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
@@ -26,7 +26,6 @@ use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceDtoRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceListRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceReminderRepository;
-use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceRepository;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
 use App\Models\Invoice;
 use App\Models\Tax;
@@ -77,16 +76,6 @@ class InvoiceServiceProvider extends ServiceProvider
         );
 
         // Invoice repositories
-        $this->app->bind(
-            InvoiceReadRepositoryInterface::class,
-            EloquentInvoiceRepository::class,
-        );
-
-        $this->app->bind(
-            InvoiceWriteRepositoryInterface::class,
-            EloquentInvoiceRepository::class,
-        );
-
         $this->app->bind(
             InvoiceDtoReadRepositoryInterface::class,
             EloquentInvoiceDtoRepository::class,
