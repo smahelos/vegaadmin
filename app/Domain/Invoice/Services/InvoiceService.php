@@ -14,7 +14,6 @@ use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
-use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -24,16 +23,7 @@ final class InvoiceService implements InvoiceServiceInterface
     public function __construct(
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriteRepository,
         private readonly InvoiceDtoReadRepositoryInterface $invoiceReadRepository,
-        private readonly InvoiceProductDtoWriteRepositoryInterface $invoiceProductRepository,
     ) {}
-
-    /**
-     * @param  list<InvoiceProductWriteData>  $products
-     */
-    public function saveInvoiceProducts(InvoiceId $invoiceId, array $products): void
-    {
-        $this->invoiceProductRepository->bulkCreate($invoiceId, $products);
-    }
 
     /**
      * The parties come checked and copied from the application.
@@ -46,16 +36,13 @@ final class InvoiceService implements InvoiceServiceInterface
         DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO {
-        $invoice = $this->invoiceWriteRepository->create(
+        return $this->invoiceWriteRepository->create(
             $scope,
             $data,
             $parties,
             $this->totalOf($data, $invoiceProducts),
+            $invoiceProducts,
         );
-
-        $this->saveInvoiceProducts($invoice->id, $invoiceProducts);
-
-        return $invoice;
     }
 
     /**
@@ -70,18 +57,14 @@ final class InvoiceService implements InvoiceServiceInterface
         DocumentParties $parties,
         array $invoiceProducts,
     ): InvoiceDTO {
-        $invoice = $this->invoiceWriteRepository->update(
+        return $this->invoiceWriteRepository->update(
             $invoiceId,
             $scope,
             $data,
             $parties,
             $this->totalOf($data, $invoiceProducts),
+            $invoiceProducts,
         );
-
-        $this->invoiceProductRepository->deleteByInvoiceId($invoiceId);
-        $this->saveInvoiceProducts($invoiceId, $invoiceProducts);
-
-        return $invoice;
     }
 
     /** The owner's next invoice number of the year (see InvoiceNumber). */

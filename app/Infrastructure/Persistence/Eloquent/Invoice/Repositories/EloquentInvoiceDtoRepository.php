@@ -7,6 +7,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
@@ -50,11 +51,13 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         return $model === null ? null : $this->mapper->toDto($model);
     }
 
+    /** @param  list<InvoiceProductWriteData>  $lines */
     public function create(
         WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         Money $total,
+        array $lines,
     ): InvoiceDTO {
         $attributes = $this->mapper->toAttributes(
             $data,
@@ -64,16 +67,20 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $attributes['user_id'] = $scope->owner->value;
 
         $model = Invoice::create($attributes);
+        $this->createLines($model, $lines);
+        $model->load('invoiceProducts');
 
         return $this->mapper->toDto($model);
     }
 
+    /** @param  list<InvoiceProductWriteData>  $lines */
     public function update(
         InvoiceId $id,
         WriteScope $scope,
         InvoiceWriteData $data,
         DocumentParties $parties,
         Money $total,
+        array $lines,
     ): InvoiceDTO {
         $attributes = $this->mapper->toAttributes(
             $data,
@@ -84,7 +91,11 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $query->where('user_id', $scope->owner->value);
         $model = $query->findOrFail($id->value);
         $model->update($attributes);
+        $lineQuery = $model->invoiceProducts();
+        $lineQuery->delete();
+        $this->createLines($model, $lines);
         $model->refresh();
+        $model->load('invoiceProducts');
 
         return $this->mapper->toDto($model);
     }
@@ -148,5 +159,16 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         }
 
         return $last?->value;
+    }
+
+    /** @param  list<InvoiceProductWriteData>  $lines */
+    private function createLines(Invoice $model, array $lines): void
+    {
+        $relation = $model->invoiceProducts();
+        foreach ($lines as $line) {
+            $relation->create(
+                $this->mapper->toLineAttributes($line),
+            );
+        }
     }
 }

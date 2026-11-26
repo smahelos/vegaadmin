@@ -23,6 +23,7 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\Contracts\QueryInterface;
+use App\Domain\Invoice\DTO\InvoiceProductDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Invoice\Enums\InvoiceStatus;
@@ -34,7 +35,7 @@ use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Payment\Enums\PaymentMethodCode;
-use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
+use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Pagination\DTO\PageRequest;
@@ -48,12 +49,13 @@ use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\PaymentMethod;
+use App\Models\Product;
 use App\Models\User;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
-use RuntimeException;
 use Spatie\Permission\Models\Role;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\Support\BuildsParties;
@@ -84,7 +86,6 @@ final class InvoiceUseCasesTest extends TestCase
         );
         $invoiceProductFactory = InvoiceProduct::factory();
         $line = $invoiceProductFactory->create(['invoice_id' => $invoice->id]);
-        $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
         try {
             $this->runAs(
@@ -105,12 +106,11 @@ final class InvoiceUseCasesTest extends TestCase
                         ),
                         false,
                     ),
-                    [$this->line()],
+                    [$this->line(), $this->rejectedLine()],
                 ),
             );
             $this->fail('The update did not fail');
-        } catch (RuntimeException $exception) {
-            $this->assertSame('Storing the lines failed', $exception->getMessage());
+        } catch (QueryException) {
         }
 
         $this->assertSame('20260001', $invoice->fresh()->invoice_vs);
@@ -123,6 +123,152 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
+    public function creating_an_invoice_stores_its_lines_and_returns_them_with_the_totals(): void
+    {
+        $user = $this->frontendUser();
+        [$business] = $this->issuerOf($user);
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $user->id]);
+
+        $invoice = $this->runAs(
+            $this->idOf($user),
+            new CreateInvoice(
+                $this->idOf($user),
+                $this->invoiceWriteData(),
+                $this->parties(
+                    BusinessId::fromInt($business->id),
+                    new DocumentPartyDTO(
+                        'Customer',
+                        null,
+                        null,
+                        $this->brnoAddress(),
+                        null,
+                        null,
+                    ),
+                    false,
+                ),
+                [
+                    new InvoiceProductWriteData(
+                        name: 'Consulting',
+                        quantity: '1.5',
+                        unit: Unit::HOURS,
+                        price: Money::fromString('249.30', Currency::CZK),
+                        taxRate: '12',
+                        category: 'Service',
+                    ),
+                    new InvoiceProductWriteData(
+                        name: 'Existing Product',
+                        quantity: '3',
+                        unit: Unit::PIECES,
+                        price: Money::fromString('74.67', Currency::CZK),
+                        taxRate: '21',
+                        productId: ProductId::fromInt($product->id),
+                    ),
+                ],
+            ),
+        );
+
+        $this->assertSame(
+            ['Consulting', 'Existing Product'],
+            $this->lineNames($invoice->items),
+        );
+        $this->assertTrue(
+            $invoice->subtotal->equals(
+                Money::fromString('597.96', Currency::CZK),
+            ),
+        );
+        $this->assertTrue(
+            $invoice->totalTax->equals(
+                Money::fromString('91.91', Currency::CZK),
+            ),
+        );
+        $this->assertTrue(
+            $invoice->totalAmount->equals(
+                Money::fromString('689.87', Currency::CZK),
+            ),
+        );
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id->value,
+                'name' => 'Consulting',
+                'product_id' => null,
+                'is_custom_product' => true,
+                'quantity' => '1.500',
+                'unit' => 'hours',
+                'price' => '249.30',
+                'tax_rate' => '12.00',
+                'tax_amount' => '44.87',
+                'total_price' => '418.82',
+                'category' => 'Service',
+            ],
+        );
+        $this->assertDatabaseHas(
+            'invoice_products',
+            [
+                'invoice_id' => $invoice->id->value,
+                'product_id' => $product->id,
+                'is_custom_product' => false,
+                'tax_amount' => '47.04',
+                'total_price' => '271.05',
+            ],
+        );
+    }
+
+    #[Test]
+    public function updating_an_invoice_replaces_its_lines_and_returns_the_new_ones(): void
+    {
+        $user = $this->frontendUser();
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(
+            [
+                'user_id' => $user->id,
+                'payment_currency' => 'CZK',
+            ],
+        );
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $oldLine = $invoiceProductFactory->create(['invoice_id' => $invoice->id]);
+
+        $updated = $this->runAs(
+            $this->idOf($user),
+            new UpdateInvoice(
+                $this->idOf($user),
+                InvoiceId::fromInt($invoice->id),
+                $this->invoiceWriteData(),
+                $this->parties(
+                    BusinessId::fromInt($invoice->business_id),
+                    new DocumentPartyDTO(
+                        'Customer',
+                        null,
+                        null,
+                        $this->brnoAddress(),
+                        null,
+                        null,
+                    ),
+                    false,
+                ),
+                [$this->line()],
+            ),
+        );
+
+        $this->assertSame(
+            ['Line'],
+            $this->lineNames($updated->items),
+        );
+        $this->assertTrue(
+            $updated->subtotal->equals(
+                Money::fromString('10', Currency::CZK),
+            ),
+        );
+        $this->assertTrue(
+            $updated->totalAmount->equals(
+                Money::fromString('12.10', Currency::CZK),
+            ),
+        );
+        $this->assertDatabaseMissing('invoice_products', ['id' => $oldLine->id]);
+    }
+
+    #[Test]
     public function a_later_line_failure_rolls_back_the_new_contact_address_and_invoice(): void
     {
         $user = $this->frontendUser();
@@ -131,7 +277,6 @@ final class InvoiceUseCasesTest extends TestCase
         $addressFactory = Address::factory();
         $addressFactory->create(['business_id' => $business->id]);
         $beforeAddresses = Address::count();
-        $this->app->bind(InvoiceProductDtoWriteRepositoryInterface::class, fn () => $this->failingLineRepository());
 
         try {
             $this->runAs(
@@ -151,12 +296,11 @@ final class InvoiceUseCasesTest extends TestCase
                         ),
                         true,
                     ),
-                    [$this->line()],
+                    [$this->line(), $this->rejectedLine()],
                 ),
             );
             $this->fail('The line write did not fail');
-        } catch (RuntimeException $exception) {
-            $this->assertSame('Storing the lines failed', $exception->getMessage());
+        } catch (QueryException) {
         }
 
         $contactQuery = Contact::where('user_id', $user->id);
@@ -785,32 +929,28 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     /**
-     * Deletes the old lines for real, then fails before the new ones are stored.
+     * @param  list<InvoiceProductDTO>  $items
+     * @return list<string>
      */
-    private function failingLineRepository(): InvoiceProductDtoWriteRepositoryInterface
+    private function lineNames(array $items): array
     {
-        return new class implements InvoiceProductDtoWriteRepositoryInterface
-        {
-            public function bulkCreate(InvoiceId $invoiceId, array $products): void
-            {
-                throw new RuntimeException('Storing the lines failed');
-            }
+        $names = [];
+        foreach ($items as $item) {
+            $names[] = $item->name;
+        }
 
-            public function deleteByInvoiceId(InvoiceId $invoiceId): void
-            {
-                $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoiceId->value);
-                $invoiceProductQuery->delete();
-            }
+        return $names;
+    }
 
-            public function allForInvoice(InvoiceId $invoiceId): array
-            {
-                return [];
-            }
-
-            public function listForInvoiceWithProduct(InvoiceId $invoiceId): array
-            {
-                return [];
-            }
-        };
+    /** A name longer than its column: MySQL refuses the line after the invoice row is written. */
+    private function rejectedLine(): InvoiceProductWriteData
+    {
+        return new InvoiceProductWriteData(
+            str_repeat('x', 256),
+            '1',
+            Unit::PIECES,
+            Money::fromString('10', Currency::CZK),
+            '21',
+        );
     }
 }

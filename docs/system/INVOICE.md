@@ -9,7 +9,7 @@ Invoices the user issues, their lines, the PDF with the QR payment code, the one
 | Entity | Table | Code |
 |---|---|---|
 | Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`) |
-| Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written through Product's `InvoiceProductDtoWriteRepositoryInterface` (`EloquentInvoiceProductDtoRepository`) |
+| Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written with the invoice by `EloquentInvoiceDtoRepository` (`EloquentInvoiceMapper::toLineAttributes()`) |
 | Parties and payment account | `supplier_*`, `customer_*`, `account_*` columns of `invoices` | Party's `DocumentParties` ([PARTY.md](PARTY.md#parties-on-documents)) |
 | Guest invoice | none: the cache, 10 minutes, under a random token | `TemporaryInvoiceStore` |
 
@@ -45,7 +45,7 @@ Commands in `app/Application/Invoice/Commands/`, queries in `app/Application/Inv
 | Validation | `InvoiceRequest` (frontend and guest), `Admin\InvoiceRequest`; both build on `InvoiceWriteDataInput` (invoice fields) and `InvoiceItemInput` (lines), the parties on `DocumentPartyInput` (admin also `AdminDocumentPartyInput`) |
 | Request to Command | frontend: `InvoiceRequestAssembler` into `InvoiceMutationPayload`; admin: `Admin\InvoiceRequest` itself (`owner()`, `toWriteData()`, `partySelection()`, `products()`); both give `InvoiceWriteData`, `InvoicePartySelection` and the lines from `InvoiceProductWriteDataAssembler` |
 | Handler | `CreateInvoiceHandler`, `UpdateInvoiceHandler`: `InvoiceProductOwnership` refuses another user's products, `InvoicePartiesAssembler` copies the parties, `DocumentLogoService` copies the supplier logo |
-| Storage | `InvoiceService` computes the total from the lines (`InvoiceTotals`) and writes the invoice and its lines; an update replaces all lines |
+| Storage | `InvoiceService` computes the total from the lines (`InvoiceTotals`); `EloquentInvoiceDtoRepository::create()` and `update()` write the invoice with its lines and return it with them; an update replaces all lines |
 
 The invoice number is also the variable symbol of the QR payment (`invoice_vs`). `GetInvoiceCreateForm` suggests the next number of the year (`InvoiceService::generateInvoiceNumber()`, `InvoiceNumber::generateNext()`); the user can change it, and `InvoiceWriteDataInput` accepts only the `InvoiceNumber` format. Nothing refuses a number already used: "Invoice numbers are not unique per user and year" and "Invoice numbering ignores the requested year" in [TECH_DEBT](../TECH_DEBT.md).
 

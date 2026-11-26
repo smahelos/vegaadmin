@@ -6,6 +6,7 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Mappers;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\InvoiceProductDTO;
+use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
@@ -76,6 +77,30 @@ final class EloquentInvoiceMapper
             'invoice_text' => $data->text,
             'template' => $data->template->value,
             'payment_status' => $data->status->value,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function toLineAttributes(InvoiceProductWriteData $data): array
+    {
+        $taxAmount = $data->taxAmount();
+        $total = $data->total();
+
+        return [
+            'product_id' => $data->productId?->value,
+            'name' => $data->name,
+            'quantity' => $data->quantity,
+            'unit' => $data->unit->value,
+            'category' => $data->category,
+            'description' => $data->description,
+            'price' => $data->price->amount,
+            'currency' => $data->price->currency->value,
+            'tax_rate' => $data->taxRate,
+            'tax_amount' => $taxAmount->amount,
+            'total_price' => $total->amount,
+            'is_custom_product' => $data->isCustomProduct(),
         ];
     }
 

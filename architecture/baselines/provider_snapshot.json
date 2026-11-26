@@ -1,5 +1,5 @@
 {
-    "generated_at": "2026-11-26T09:39:44+00:00",
+    "generated_at": "2026-11-26T10:28:20+00:00",
     "providers": {
         "App\\Providers\\AppServiceProvider": {
             "bind": [
@@ -354,14 +354,6 @@
                     "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentProductDtoRepository"
                 },
                 {
-                    "abstract": "App\\Domain\\Product\\Contracts\\InvoiceProductDtoWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository"
-                },
-                {
-                    "abstract": "App\\Application\\Product\\Contracts\\InvoiceProductWriteRepositoryInterface",
-                    "concrete": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository"
-                },
-                {
                     "abstract": "App\\Application\\Product\\Contracts\\ProductFormDataServiceInterface",
                     "concrete": "App\\Infrastructure\\Services\\Product\\ProductFormDataService"
                 }
@@ -497,14 +489,6 @@
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Payment\\Repositories\\EloquentSubscriptionWriteRepository",
                 "provider": "App\\Providers\\PaymentServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Application\\Product\\Contracts\\InvoiceProductWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductRepository",
-                "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }
         },
@@ -804,14 +788,6 @@
             "status": "ok",
             "actual": {
                 "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentCatalogProductRepository",
-                "provider": "App\\Providers\\ProductServiceProvider",
-                "method": "bind"
-            }
-        },
-        "App\\Domain\\Product\\Contracts\\InvoiceProductDtoWriteRepositoryInterface": {
-            "status": "ok",
-            "actual": {
-                "implementation": "App\\Infrastructure\\Persistence\\Eloquent\\Product\\Repositories\\EloquentInvoiceProductDtoRepository",
                 "provider": "App\\Providers\\ProductServiceProvider",
                 "method": "bind"
             }
