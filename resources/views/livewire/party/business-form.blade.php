@@ -21,6 +21,10 @@
                     <x-party.bank-account-fields :bank-options="$bankOptions" :countries="$countries" />
                 @endif
             </x-form.card>
+
+            <x-form.card class="md:col-span-2" :title="__('businesses.sections.invoicing')">
+                <x-party.invoicing-fields :languages="$languages" />
+            </x-form.card>
         </div>
 
         <x-form.actions

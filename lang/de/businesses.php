@@ -9,10 +9,15 @@ return [
         'logo' => 'Logo',
         'default' => 'Standard',
         'new_default' => 'Neue Standardfirma',
+        'is_vat_payer' => 'Umsatzsteuerpflichtig',
+        'register_entry' => 'Registereintrag',
+        'document_language' => 'Standardsprache der Belege',
     ],
     'hints' => [
         'logo' => 'PNG, JPG oder WebP bis 2 MB, wird auf Rechnungen gedruckt.',
         'first_bank_account' => 'Optional. Ein angegebenes Konto wird das Standardkonto der Firma; weitere Konten fügen Sie in der Firmenansicht hinzu.',
+        'is_vat_payer' => 'Belege eines Steuerpflichtigen weisen die Umsatzsteuer nach Steuersätzen aus, Belege eines Nichtsteuerpflichtigen keine.',
+        'register_entry' => 'Wird beim Lieferanten gedruckt, z. B. „C 12345 vedená u Krajského soudu v Brně“ oder „zapsán v živnostenském rejstříku“.',
     ],
     'actions' => [
         'create' => 'Firma hinzufügen',
@@ -37,6 +42,7 @@ return [
     ],
     'sections' => [
         'first_bank_account' => 'Bankkonto',
+        'invoicing' => 'Rechnungsstellung',
     ],
     'titles' => [
         'index' => 'Meine Firmen',

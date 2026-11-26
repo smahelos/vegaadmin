@@ -58,6 +58,7 @@ final class PartyDashboardInvalidationTest extends TestCase
                 $uid,
                 new BusinessWriteData(
                     $this->profile('Own business'),
+                    $this->invoicing(),
                     null,
                 ),
                 null,

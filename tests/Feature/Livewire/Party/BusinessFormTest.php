@@ -72,6 +72,74 @@ final class BusinessFormTest extends TestCase
     }
 
     #[Test]
+    public function a_new_business_is_a_non_payer_documenting_in_the_language_of_the_app(): void
+    {
+        App::setLocale('de');
+
+        $component = Livewire::test(BusinessForm::class);
+        $component->assertSet('invoicing.isVatPayer', false);
+        $component->assertSet('invoicing.documentLanguage', 'de');
+        $component->set('party.name', 'Plátce s.r.o.');
+        $component->set('invoicing.isVatPayer', true);
+        $component->set('invoicing.registerEntry', ' C 12345 vedená u Krajského soudu v Brně ');
+        $component->call('save');
+        $component->assertHasNoErrors();
+
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $this->user->id);
+        $business = $businessQuery->sole();
+        $this->assertTrue($business->is_vat_payer);
+        $this->assertSame('C 12345 vedená u Krajského soudu v Brně', $business->register_entry);
+        $this->assertSame('de', $business->document_language);
+    }
+
+    #[Test]
+    public function the_edit_form_shows_and_replaces_the_invoicing_settings(): void
+    {
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'is_vat_payer' => true,
+                'register_entry' => 'C 1 vedená u Městského soudu v Praze',
+                'document_language' => 'en',
+            ],
+        );
+
+        $component = Livewire::test(BusinessForm::class, ['businessId' => $business->id]);
+        $component->assertSet('invoicing.isVatPayer', true);
+        $component->assertSet('invoicing.registerEntry', 'C 1 vedená u Městského soudu v Praze');
+        $component->assertSet('invoicing.documentLanguage', 'en');
+        $component->set('invoicing.isVatPayer', false);
+        $component->set('invoicing.registerEntry', '');
+        $component->set('invoicing.documentLanguage', 'sk');
+        $component->call('save');
+        $component->assertHasNoErrors();
+
+        $business->refresh();
+        $this->assertFalse($business->is_vat_payer);
+        $this->assertNull($business->register_entry);
+        $this->assertSame('sk', $business->document_language);
+    }
+
+    #[Test]
+    public function refuses_a_document_language_the_app_is_not_translated_into(): void
+    {
+        $component = Livewire::test(BusinessForm::class);
+        $component->set('party.name', 'Acme s.r.o.');
+        $component->set('invoicing.documentLanguage', 'fr');
+        $component->call('save');
+        $component->assertHasErrors(['invoicing.documentLanguage']);
+
+        $businessQuery = Business::query();
+        $businessQuery->where('user_id', $this->user->id);
+        $this->assertSame(
+            0,
+            $businessQuery->count(),
+        );
+    }
+
+    #[Test]
     public function a_business_needs_only_its_name(): void
     {
         $component = Livewire::test(BusinessForm::class);

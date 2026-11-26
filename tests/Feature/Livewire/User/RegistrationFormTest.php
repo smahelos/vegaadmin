@@ -9,6 +9,7 @@ use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
@@ -40,6 +41,7 @@ final class RegistrationFormTest extends TestCase
         $component->set('party.email', 'faktury@example.test');
         $component->set('account.number', '2001234561');
         $component->set('account.bankCode', '2010');
+        $component->set('isVatPayer', true);
         $component->call('save');
         $component->assertHasNoErrors();
         $component->assertRedirect();
@@ -56,6 +58,12 @@ final class RegistrationFormTest extends TestCase
         $business = $businessQuery->sole();
         $this->assertSame('Novák Design s.r.o.', $business->name);
         $this->assertSame('faktury@example.test', $business->email);
+        $this->assertTrue($business->is_vat_payer);
+        $this->assertNull($business->register_entry);
+        $this->assertSame(
+            App::getLocale(),
+            $business->document_language,
+        );
         $this->assertSame($business->id, $user->default_business_id);
         $bankAccountQuery = BankAccount::query();
         $bankAccountQuery->where('business_id', $business->id);

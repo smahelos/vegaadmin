@@ -70,6 +70,9 @@ final class BusinessCrudControllerTest extends TestCase
                 'city' => 'Brno',
                 'postal_code' => '602 00',
                 'country' => 'CZ',
+                'is_vat_payer' => '1',
+                'register_entry' => 'C 12345 vedená u Krajského soudu v Brně',
+                'document_language' => 'de',
                 '_save_action' => 'save_and_back',
             ],
         );
@@ -79,6 +82,9 @@ final class BusinessCrudControllerTest extends TestCase
         $businessQuery->where('user_id', $owner->id);
         $business = $businessQuery->sole();
         $this->assertSame('27082440', $business->company_number);
+        $this->assertTrue($business->is_vat_payer);
+        $this->assertSame('C 12345 vedená u Krajského soudu v Brně', $business->register_entry);
+        $this->assertSame('de', $business->document_language);
         $addressQuery = Address::query();
         $addressQuery->where('business_id', $business->id);
         $this->assertSame(
@@ -104,6 +110,8 @@ final class BusinessCrudControllerTest extends TestCase
                 'user_id' => $owner->id,
                 'name' => 'Druhá',
                 'country' => 'CZ',
+                'is_vat_payer' => '0',
+                'document_language' => 'cs',
             ],
         );
         $httpResponse->assertRedirect('/admin/business/create');
@@ -139,6 +147,8 @@ final class BusinessCrudControllerTest extends TestCase
                 'registration_country' => 'CZ',
                 'company_number' => '27082440',
                 'country' => 'CZ',
+                'is_vat_payer' => '0',
+                'document_language' => 'cs',
             ],
         );
         $httpResponse->assertSessionHasErrors('company_number');
@@ -149,7 +159,14 @@ final class BusinessCrudControllerTest extends TestCase
     {
         $owner = $this->frontendUser();
         $businessFactory = Business::factory();
-        $business = $businessFactory->create(['user_id' => $owner->id, 'email' => 'old@example.test']);
+        $business = $businessFactory->create(
+            [
+                'user_id' => $owner->id,
+                'email' => 'old@example.test',
+                'is_vat_payer' => true,
+                'register_entry' => 'C 1 vedená u Městského soudu v Praze',
+            ],
+        );
 
         $httpClient = $this->actingAs($this->admin, 'backpack');
         $httpResponse = $httpClient->put(
@@ -159,6 +176,9 @@ final class BusinessCrudControllerTest extends TestCase
                 'name' => 'Nový název',
                 'email' => '',
                 'country' => 'CZ',
+                'is_vat_payer' => '0',
+                'register_entry' => '',
+                'document_language' => 'cs',
                 '_save_action' => 'save_and_back',
             ],
         );
@@ -167,6 +187,58 @@ final class BusinessCrudControllerTest extends TestCase
         $business->refresh();
         $this->assertSame('Nový název', $business->name);
         $this->assertNull($business->email);
+        $this->assertFalse($business->is_vat_payer);
+        $this->assertNull($business->register_entry);
+    }
+
+    #[Test]
+    public function an_update_without_the_vat_payer_flag_is_refused(): void
+    {
+        $owner = $this->frontendUser();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
+            [
+                'user_id' => $owner->id,
+                'is_vat_payer' => true,
+            ],
+        );
+
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpClient = $httpClient->from('/admin/business/' . $business->id . '/edit');
+        $httpResponse = $httpClient->put(
+            '/admin/business/' . $business->id,
+            [
+                'id' => $business->id,
+                'name' => 'Nový název',
+                'country' => 'CZ',
+                'document_language' => 'cs',
+                '_save_action' => 'save_and_back',
+            ],
+        );
+        $httpResponse->assertSessionHasErrors('is_vat_payer');
+
+        $this->assertTrue($business->fresh()?->is_vat_payer);
+    }
+
+    #[Test]
+    public function shows_the_invoicing_settings(): void
+    {
+        $owner = $this->frontendUser();
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
+            [
+                'user_id' => $owner->id,
+                'register_entry' => 'C 1 vedená u Městského soudu v Praze',
+                'document_language' => 'de',
+            ],
+        );
+
+        $httpClient = $this->actingAs($this->admin, 'backpack');
+        $httpResponse = $httpClient->get('/admin/business/' . $business->id . '/show');
+        $httpResponse->assertOk();
+        $httpResponse->assertSee('C 1 vedená u Městského soudu v Praze');
+        // the admin of the test runs in English
+        $httpResponse->assertSee('German');
     }
 
     #[Test]
@@ -313,6 +385,8 @@ final class BusinessCrudControllerTest extends TestCase
                 'id' => $business->id,
                 'name' => 'Changed',
                 'country' => 'CZ',
+                'is_vat_payer' => '0',
+                'document_language' => 'cs',
                 '_save_action' => 'save_and_back',
             ],
         );

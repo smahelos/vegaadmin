@@ -9,10 +9,15 @@ return [
         'logo' => 'Logo',
         'default' => 'Výchozí',
         'new_default' => 'Nová výchozí firma',
+        'is_vat_payer' => 'Plátce DPH',
+        'register_entry' => 'Zápis v rejstříku',
+        'document_language' => 'Výchozí jazyk dokladů',
     ],
     'hints' => [
         'logo' => 'PNG, JPG nebo WebP do 2 MB, tiskne se na faktury.',
         'first_bank_account' => 'Nepovinné. Vyplněný účet se stane výchozím účtem firmy, další účty přidáte na detailu firmy.',
+        'is_vat_payer' => 'Doklady plátce uvádějí DPH podle sazeb, doklady neplátce DPH neuvádějí.',
+        'register_entry' => 'Tiskne se u dodavatele, např. „C 12345 vedená u Krajského soudu v Brně“ nebo „zapsán v živnostenském rejstříku“.',
     ],
     'actions' => [
         'create' => 'Přidat firmu',
@@ -37,6 +42,7 @@ return [
     ],
     'sections' => [
         'first_bank_account' => 'Bankovní účet',
+        'invoicing' => 'Fakturace',
     ],
     'titles' => [
         'index' => 'Moje firmy',

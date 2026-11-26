@@ -229,8 +229,8 @@ final class DevelopmentDataSeeder extends Seeder
     }
 
     /**
-     * Two active businesses and an archived one; the first is the default, with a Czech account and a second
-     * account in EUR.
+     * Two active businesses and an archived one; the first is the default VAT payer, with a Czech account and a
+     * second account in EUR, the second a non-payer.
      */
     private function createBusinesses(User $user): Business
     {
@@ -242,6 +242,8 @@ final class DevelopmentDataSeeder extends Seeder
                 'short_name' => 'Studio',
                 'company_number' => $this->companyNumber($user, 0),
                 'vat_number' => 'CZ' . $this->companyNumber($user, 0),
+                'is_vat_payer' => true,
+                'register_entry' => 'C 123456 vedená u Městského soudu v Praze',
                 'email' => 'fakturace' . $user->id . '@dev-studio.test',
                 'phone' => '+420 601 234 567',
             ],
@@ -285,6 +287,7 @@ final class DevelopmentDataSeeder extends Seeder
             [
                 'name' => $user->name . ' Školení s.r.o.',
                 'company_number' => $this->companyNumber($user, 1),
+                'register_entry' => 'C 234567 vedená u Krajského soudu v Brně',
                 'email' => 'skoleni' . $user->id . '@dev-studio.test',
             ],
             [

@@ -31,6 +31,7 @@ use App\Domain\Shared\Tax\Contracts\TaxServiceInterface;
 use App\Domain\Shared\Tax\Services\TaxService;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
+use App\Domain\Shared\Translation\Contracts\LanguageNamesInterface;
 use App\Domain\Shared\Translation\Contracts\TranslatorInterface;
 use App\Infrastructure\Authorization\Services\AuthorizingUseCaseRunner;
 use App\Infrastructure\Authorization\Services\GrantStore;
@@ -51,6 +52,7 @@ use App\Infrastructure\Shared\Session\LaravelSessionStore;
 use App\Infrastructure\Shared\Str\Services\LaravelStrAdapter;
 use App\Infrastructure\Shared\Time\CarbonClock;
 use App\Infrastructure\Shared\Time\IcuDateFormatter;
+use App\Infrastructure\Shared\Translation\IntlLanguageNames;
 use App\Infrastructure\Shared\Translation\LaravelTranslator;
 use Illuminate\Database\DatabaseTransactionsManager;
 use Illuminate\Http\Request;
@@ -239,6 +241,11 @@ class SharedServiceProvider extends ServiceProvider
         $this->app->bind(
             CurrencyNamesInterface::class,
             IntlCurrencyNames::class,
+        );
+
+        $this->app->bind(
+            LanguageNamesInterface::class,
+            IntlLanguageNames::class,
         );
 
         // Logging adapter for Domain

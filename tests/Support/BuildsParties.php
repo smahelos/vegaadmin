@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Domain\Party\DTO\BankAccountWriteData;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Party\DTO\PartyProfile;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\RegistrationNumber;
 use App\Domain\Payment\ValueObjects\BankAccount;
 use App\Domain\Shared\Geography\Enums\Country;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\ValueObjects\UserId;
 use App\Models\RoleLimit;
@@ -44,6 +46,15 @@ trait BuildsParties
         $roleLimitQuery = RoleLimit::query();
         $roleLimitQuery->where('role_id', $role->id);
         $roleLimitQuery->update([$entity->value => $limit]);
+    }
+
+    private function invoicing(bool $vatPayer = false, ?string $registerEntry = null): InvoicingSettings
+    {
+        return new InvoicingSettings(
+            vatPayer: $vatPayer,
+            registerEntry: $registerEntry,
+            documentLanguage: Language::CS,
+        );
     }
 
     private function profile(

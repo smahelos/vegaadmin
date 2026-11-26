@@ -161,6 +161,7 @@ final class BusinessDetail extends Component
                 'isDefault' => $defaultId !== null && $defaultId->equals($business->id),
                 'newDefaultOptions' => $newDefaultOptions,
                 'countries' => $this->countryOptions(),
+                'languages' => $this->languageOptions(),
             ],
         );
     }

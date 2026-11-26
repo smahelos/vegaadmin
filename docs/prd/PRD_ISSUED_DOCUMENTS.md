@@ -116,11 +116,13 @@ The business form gets a section "Invoicing":
 
 | Field | Delivered with | Used for |
 |---|---|---|
-| VAT payer (yes/no) | `ls-invoice-issue` | VAT on new drafts; copied to the document at issue |
-| Register entry (free text, optional, e.g. "C 12345 vedená u Krajského soudu v Brně" or "zapsán v živnostenském rejstříku") | `ls-invoice-issue` | printed with the supplier; copied at issue |
-| Default document language | `ls-invoice-issue` | prefills the draft's document language |
+| VAT payer (yes/no) | `ls-business-invoice-settings` | VAT on new drafts; copied to the document at issue |
+| Register entry (free text, optional, e.g. "C 12345 vedená u Krajského soudu v Brně" or "zapsán v živnostenském rejstříku") | `ls-business-invoice-settings` | printed with the supplier; copied at issue |
+| Default document language | `ls-business-invoice-settings` | prefills the draft's document language |
 | Default currency | `ls-business-invoice-defaults` | prefills the draft's currency |
 | QR payment on documents (yes/no) | `ls-business-invoice-defaults` | whether the PDF prints the QR payment |
+
+Registration asks only the VAT payer flag and takes the document language from the registration language; a business created in the form starts as a non-payer with the user's interface language.
 
 A non-payer's document states no VAT and states "Not a VAT payer".
 
@@ -188,7 +190,7 @@ To be confirmed before production (step 24), not before delivering this document
 | A28 | The monthly invoice quota is checked at issue and counts issued invoices; drafts and corrective documents do not count. |
 | A29 | `db:archive` and the archive policies no longer exist; documents older than 36 months stay readable with their PDFs. |
 | A30 | The guest invoice is not stored, its number is free and prefilled from the current year of the clock. |
-| A31 | The business form has the VAT payer flag, the register entry and the default document language (`ls-invoice-issue`), the default currency and the QR payment switch (`ls-business-invoice-defaults`). |
+| A31 | The business form has the VAT payer flag, the register entry and the default document language (`ls-business-invoice-settings`), the default currency and the QR payment switch (`ls-business-invoice-defaults`). |
 
 ## 11. Delivery
 
@@ -196,7 +198,9 @@ To be confirmed before production (step 24), not before delivering this document
 |---|---|---|
 | `ls-invoice-status-column` | 5 (payment status `pending`/`paid` stored as a string, `PARTIALLY_PAID` removed), 7 (archive removed) | A29 |
 | `ls-invoice-page-dtos` | typed page DTOs of the invoice pages; no product behaviour | — |
-| `ls-invoice-issue` | 3, 5 (without corrective documents), 6 (first three fields), 7 (admin, quota) | A01–A07, A10–A16, A25 (without corrective documents), A26 (invoices), A27, A28, A30, A31 (first part) |
+| `ls-business-invoice-settings` | 6 (first three fields: stored on the business, set in the forms and registration) | A31 (first part) |
+| `ls-vat-by-rate` | VAT computed and printed by rate; a non-payer's lines carry rate 0 | A13 |
+| `ls-invoice-issue` | 3, 5 (without corrective documents), 7 (admin, quota) | A01–A07, A10–A12, A14–A16, A25 (without corrective documents), A26 (invoices), A27, A28, A30 |
 | `ls-invoice-stored-pdf` | 3.2 and 3.3 (stored PDF, hash, download) | A07 (PDF part), A08, A09 |
 | `ls-corrective-documents` | 4, 5 (amount owed, statistics with corrective documents) | A17–A26 |
 | `ls-business-invoice-defaults` | 6 (last two fields) | A31 (second part) |

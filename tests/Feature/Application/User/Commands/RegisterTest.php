@@ -50,6 +50,7 @@ final class RegisterTest extends TestCase
                     email: 'studio@billex.test',
                     address: $this->brnoAddress(),
                 ),
+                $this->invoicing(vatPayer: true),
                 null,
             ),
             $this->czechAccount(),
@@ -69,6 +70,7 @@ final class RegisterTest extends TestCase
         );
         $this->assertSame($business->id, $user->default_business_id);
         $this->assertSame('studio@billex.test', $business->email);
+        $this->assertTrue($business->is_vat_payer);
         $this->assertSame($email, $user->email);
         $bankAccountQuery = BankAccount::query();
         $bankAccountQuery->where('business_id', $business->id);
@@ -87,7 +89,11 @@ final class RegisterTest extends TestCase
         try {
             $this->register(
                 $email,
-                new BusinessWriteData($this->profile(), null),
+                new BusinessWriteData(
+                    $this->profile(),
+                    $this->invoicing(),
+                    null,
+                ),
                 null,
             );
             $this->fail('The registration succeeded over the business limit');
@@ -109,7 +115,11 @@ final class RegisterTest extends TestCase
         try {
             $this->register(
                 $email,
-                new BusinessWriteData($this->profile(), null),
+                new BusinessWriteData(
+                    $this->profile(),
+                    $this->invoicing(),
+                    null,
+                ),
                 null,
             );
             $this->fail(

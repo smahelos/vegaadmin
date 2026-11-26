@@ -14,6 +14,7 @@ use App\Application\Party\Queries\ListActiveBusinesses;
 use App\Domain\Party\DTO\BankAccountWriteData;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Party\Events\BusinessArchived;
 use App\Domain\Party\Events\BusinessCreated;
 use App\Domain\Party\Events\BusinessRestored;
@@ -26,6 +27,7 @@ use App\Domain\Party\Exceptions\DefaultBusinessRequiredException;
 use App\Domain\Party\Exceptions\DuplicateCompanyNumberException;
 use App\Domain\Party\ValueObjects\Address;
 use App\Domain\Party\ValueObjects\BusinessId;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Domain\User\ValueObjects\UserId;
@@ -61,6 +63,53 @@ final class BusinessUseCasesTest extends TestCase
         $this->assertSame($account->id, $business->defaultBankAccountId?->value);
         $this->assertSame('CZ1520100000002001234561', $account->iban);
         $this->assertSame('Brno', $business->profile->address?->city);
+    }
+
+    #[Test]
+    public function the_invoicing_settings_are_stored_on_create_and_replaced_on_update(): void
+    {
+        $user = $this->frontendUser();
+        $created = $this->create(
+            $this->idOf($user),
+            $this->data(
+                'Payer',
+                invoicing: new InvoicingSettings(
+                    vatPayer: true,
+                    registerEntry: 'C 12345 vedená u Krajského soudu v Brně',
+                    documentLanguage: Language::DE,
+                ),
+            ),
+            null,
+        );
+
+        $stored = $this->getBusiness(
+            $this->idOf($user),
+            $created->id,
+        );
+        $this->assertTrue($stored->invoicing->vatPayer);
+        $this->assertSame('C 12345 vedená u Krajského soudu v Brně', $stored->invoicing->registerEntry);
+        $this->assertSame(Language::DE, $stored->invoicing->documentLanguage);
+
+        $this->update(
+            $this->idOf($user),
+            $created->id,
+            $this->data(
+                'Payer',
+                invoicing: new InvoicingSettings(
+                    vatPayer: false,
+                    registerEntry: null,
+                    documentLanguage: Language::SK,
+                ),
+            ),
+        );
+
+        $stored = $this->getBusiness(
+            $this->idOf($user),
+            $created->id,
+        );
+        $this->assertFalse($stored->invoicing->vatPayer);
+        $this->assertNull($stored->invoicing->registerEntry);
+        $this->assertSame(Language::SK, $stored->invoicing->documentLanguage);
     }
 
     #[Test]
@@ -492,6 +541,7 @@ final class BusinessUseCasesTest extends TestCase
         string $name,
         ?Address $address = null,
         ?string $companyNumber = null,
+        ?InvoicingSettings $invoicing = null,
     ): BusinessWriteData {
         return new BusinessWriteData(
             $this->profile(
@@ -499,6 +549,7 @@ final class BusinessUseCasesTest extends TestCase
                 $companyNumber,
                 address: $address,
             ),
+            $invoicing ?? $this->invoicing(),
             null,
         );
     }

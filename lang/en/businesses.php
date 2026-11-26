@@ -9,10 +9,15 @@ return [
         'logo' => 'Logo',
         'default' => 'Default',
         'new_default' => 'New default business',
+        'is_vat_payer' => 'VAT payer',
+        'register_entry' => 'Register entry',
+        'document_language' => 'Default document language',
     ],
     'hints' => [
         'logo' => 'PNG, JPG or WebP up to 2 MB, printed on invoices.',
         'first_bank_account' => 'Optional. An account entered here becomes the business’s default account; add further accounts on the business detail.',
+        'is_vat_payer' => 'A VAT payer’s documents state VAT by rate; a non-payer’s documents state no VAT.',
+        'register_entry' => 'Printed with the supplier, e.g. “C 12345 vedená u Krajského soudu v Brně” or “zapsán v živnostenském rejstříku”.',
     ],
     'actions' => [
         'create' => 'Add business',
@@ -37,6 +42,7 @@ return [
     ],
     'sections' => [
         'first_bank_account' => 'Bank account',
+        'invoicing' => 'Invoicing',
     ],
     'titles' => [
         'index' => 'My businesses',
