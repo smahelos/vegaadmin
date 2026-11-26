@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Presenters;
 
+use App\Application\Invoice\DTO\EditableInvoiceItemDTO;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 
 /**
@@ -34,21 +35,20 @@ final class InvoiceFormPresenter
     /**
      * The lines for the item editor; a line shows the name stored on the invoice.
      *
-     * @return list<array{product_id: ?int, name: string, quantity: string, unit: string, price: string, currency: string, tax_rate: string}>
+     * @return list<EditableInvoiceItemDTO>
      */
     public function items(InvoiceDTO $invoice): array
     {
         $items = [];
         foreach ($invoice->items as $item) {
-            $items[] = [
-                'product_id' => $item->productId?->value,
-                'name' => $item->name,
-                'quantity' => $item->quantity,
-                'unit' => $item->unit->value,
-                'price' => $item->price->amount,
-                'currency' => $item->price->currency->value,
-                'tax_rate' => $item->taxRate,
-            ];
+            $items[] = new EditableInvoiceItemDTO(
+                productId: $item->productId,
+                name: $item->name,
+                quantity: $item->quantity,
+                unit: $item->unit,
+                price: $item->price,
+                taxRate: $item->taxRate,
+            );
         }
 
         return $items;

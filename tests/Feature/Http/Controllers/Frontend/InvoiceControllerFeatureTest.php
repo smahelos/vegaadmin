@@ -470,8 +470,12 @@ class InvoiceControllerFeatureTest extends TestCase
         $response->assertViewHas(
             'items',
             fn (array $items): bool => count($items) === 1
-                && $items[0]['name'] === 'Name on the invoice'
-                && $items[0]['product_id'] === $product->id,
+                && $items[0]->name === 'Name on the invoice'
+                && $items[0]->productId?->value === $product->id,
+        );
+        $response->assertSee(
+            '{"product_id":' . $product->id . ',"name":"Name on the invoice"',
+            false,
         );
     }
 

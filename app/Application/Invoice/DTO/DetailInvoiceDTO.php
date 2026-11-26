@@ -13,7 +13,7 @@ use App\Domain\Payment\Enums\PaymentMethodCode;
  * The invoice detail page. The contact only tells whether the customer is linked to the address book;
  * without a link, the contact with the customer's Czech company number is offered instead of a duplicate.
  */
-final readonly class InvoiceDetailDTO
+final readonly class DetailInvoiceDTO
 {
     public function __construct(
         public InvoiceDTO $invoice,

@@ -34,6 +34,8 @@ Commands in `app/Application/Invoice/Commands/`, queries in `app/Application/Inv
 | `CreateGuestInvoice`, `GetGuestInvoicePdf`, `DeleteGuestInvoice` | `storeGuest`, `downloadWithToken`, `destroyGuest` | — | public | `throttle:guest_invoice` |
 | `SendInvoiceReminders`, `SendInvoiceReminder` | — | — | system | — |
 
+The pages get typed data: `GetInvoice` returns `DetailInvoiceDTO` (the invoice with the payment method, the linked contact and a contact the customer could be linked to), formatted in the view through `InvoiceDetailPresenter`; `GetInvoiceCreateForm` returns `InvoiceFormDTO` and `GetInvoiceForEdit` returns `EditableInvoiceDTO` (the form with the stored `InvoiceDTO`); `InvoiceFormPresenter` turns the invoice into the form values and the item editor's lines (`EditableInvoiceItemDTO`, serialized with the request keys of a line).
+
 "With owner" is `Access::permissionWithOwner()` (`rules/permissions.md`). `CreateInvoiceHandler` calls `EntityLimit::assertCanCreate()` for `LimitedEntity::INVOICE` inside the transaction; the frontend form shows the usage (`x-entity-usage`). The rate limiters are registered in `RouteServiceProvider`.
 
 ## Creating and updating an invoice

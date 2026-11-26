@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Queries;
 
-use App\Application\Invoice\DTO\InvoiceDetailDTO;
+use App\Application\Invoice\DTO\DetailInvoiceDTO;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
@@ -24,7 +24,7 @@ final class GetInvoiceHandler
         private readonly DuplicateFinder $duplicates,
     ) {}
 
-    public function handle(GetInvoice $query, ReadScope $scope): InvoiceDetailDTO
+    public function handle(GetInvoice $query, ReadScope $scope): DetailInvoiceDTO
     {
         $invoice = $this->invoices->findById($query->id, $scope)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
@@ -41,7 +41,7 @@ final class GetInvoiceHandler
             $paymentMethod = $this->paymentMethods->findById($invoice->paymentMethodId);
         }
 
-        return new InvoiceDetailDTO(
+        return new DetailInvoiceDTO(
             $invoice,
             $paymentMethod?->code,
             $contact,

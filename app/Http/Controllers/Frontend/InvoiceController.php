@@ -94,20 +94,19 @@ final class InvoiceController extends Controller
     public function edit(string $locale, int $id): View
     {
         $owner = $this->owner();
-        $form = $this->useCases->run(
+        $editable = $this->useCases->run(
             Actor::user($owner),
             new GetInvoiceForEdit(
                 $owner,
                 InvoiceId::fromInt($id),
             ),
         );
-
-        $invoice = $form->invoice ?? throw new InvoiceNotFoundException('Invoice form without the invoice');
+        $invoice = $editable->invoice;
 
         return view(
             'frontend.invoices.edit',
             [
-                ...$this->formView($form),
+                ...$this->formView($editable->form),
                 'invoice' => $invoice,
                 'values' => $this->forms->values($invoice),
                 'items' => $this->forms->items($invoice),

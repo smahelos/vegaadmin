@@ -5,10 +5,9 @@ declare(strict_types=1);
 namespace App\Application\Invoice\DTO;
 
 use App\Application\Shared\Form\DTO\FieldSetDTO;
-use App\Domain\Invoice\DTO\InvoiceDTO;
 
 /**
- * The invoice form: create (also for a guest) and edit, which also carries the stored invoice.
+ * The invoice form: create (also for a guest) and edit.
  */
 final readonly class InvoiceFormDTO
 {
@@ -22,6 +21,5 @@ final readonly class InvoiceFormDTO
         public array $taxRates,
         public bool $userLoggedIn,
         public ?string $suggestedNumber = null,
-        public ?InvoiceDTO $invoice = null,
     ) {}
 }
