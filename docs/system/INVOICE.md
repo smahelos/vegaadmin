@@ -9,11 +9,11 @@ Invoices the user issues, their lines, the PDF with the QR payment code, the one
 | Entity | Table | Code |
 |---|---|---|
 | Invoice | `invoices` | `App\Models\Invoice`, `InvoiceDTO`, `InvoiceId`, `InvoiceWriteData`; ports `InvoiceDtoReadRepositoryInterface` and `InvoiceDtoWriteRepositoryInterface` (`EloquentInvoiceDtoRepository`, mapper `EloquentInvoiceMapper`), the list `InvoiceListReadRepositoryInterface` (`EloquentInvoiceListRepository`) |
-| Invoice line | `invoice_products` | `InvoiceProductDTO`, `InvoiceProductWriteData`; written with the invoice by `EloquentInvoiceDtoRepository` (`EloquentInvoiceMapper::toLineAttributes()`) |
+| Invoice line | `invoice_products` (price, quantity and rate; no VAT of its own) | `InvoiceProductDTO`, `InvoiceProductWriteData`; written with the invoice by `EloquentInvoiceDtoRepository` (`EloquentInvoiceMapper::toLineAttributes()`) |
 | Parties and payment account | `supplier_*`, `customer_*`, `account_*` columns of `invoices` | Party's `DocumentParties` ([PARTY.md](PARTY.md#parties-on-documents)) |
 | Guest invoice | none: the cache, 10 minutes, under a random token | `TemporaryInvoiceStore` |
 
-Values: `InvoiceNumber`, `InvoiceDueDate` (`due_in` days from the issue date), `InvoiceTotals`, `InvoiceStatus` (stored as its value in `invoices.payment_status`), `InvoiceTemplate`.
+Values: `InvoiceNumber`, `InvoiceDueDate` (`due_in` days from the issue date), `InvoiceTotals` with its `VatLine`s (base and VAT of one rate, rounded per rate as `rules/domain.md` says), `InvoiceStatus` (stored as its value in `invoices.payment_status`), `InvoiceTemplate`.
 
 ## Use cases
 
@@ -47,11 +47,13 @@ The pages get typed data: `GetInvoice` returns `DetailInvoiceDTO` (the invoice w
 | Validation | `InvoiceRequest` (frontend and guest), `Admin\InvoiceRequest`; both build on `InvoiceWriteDataInput` (invoice fields) and `InvoiceItemInput` (lines), the parties on `DocumentPartyInput` (admin also `AdminDocumentPartyInput`) |
 | Request to Command | frontend: `InvoiceRequestAssembler` into `InvoiceMutationPayload`; admin: `Admin\InvoiceRequest` itself (`owner()`, `toWriteData()`, `partySelection()`, `products()`); both give `InvoiceWriteData`, `InvoicePartySelection` and the lines from `InvoiceProductWriteDataAssembler` |
 | Handler | `CreateInvoiceHandler`, `UpdateInvoiceHandler`: `InvoiceProductOwnership` refuses another user's products, `InvoicePartiesAssembler` copies the parties, `DocumentLogoService` copies the supplier logo |
-| Storage | `InvoiceService` computes the total from the lines (`InvoiceTotals`); `EloquentInvoiceDtoRepository::create()` and `update()` write the invoice with its lines and return it with them; an update replaces all lines |
+| Storage | `InvoiceService` computes the totals by rate from the lines with the current VAT payer flag of the business (`InvoiceTotals::forSupplier()`; a non-payer's non-zero rate throws `NonPayerVatRateException`, which `ExceptionHandling` shows as a validation error of `invoice-products`); `EloquentInvoiceDtoRepository::create()` and `update()` write the invoice with its lines and return it with them; an update replaces all lines |
 
 The invoice number is also the variable symbol of the QR payment (`invoice_vs`). `GetInvoiceCreateForm` suggests the next number of the year (`InvoiceService::generateInvoiceNumber()`, `InvoiceNumber::generateNext()`); the user can change it, and `InvoiceWriteDataInput` accepts only the `InvoiceNumber` format. Nothing refuses a number already used: "Invoice numbers are not unique per user and year" and "Invoice numbering ignores the requested year" in [TECH_DEBT](../TECH_DEBT.md).
 
-The guest invoice is never stored in the database: `CreateGuestInvoiceHandler` puts the validated input in `TemporaryInvoiceStore` and returns the token and the QR code; `GetGuestInvoicePdf` prints it through `TemporaryInvoicePrintDataFactory`.
+The forms show the base of each line and the summary by rate below the lines: the frontend form computes it in `resources/js/invoice-item-manager.js` with the server's algorithm (`x-invoice-vat-summary`), the admin item editor (`resources/js/admin/invoice-items.js`) asks `PreviewInvoiceTotals`, which does not know the supplier, so for a non-payer it shows VAT that saving then refuses with a validation error. For a non-payer the rate field is hidden and set to 0 and the line base is labelled as the total; the frontend form reads the flag from `#supplier-vat-payer` in `resources/views/livewire/party/document-party-picker.blade.php` (the selected business's flag, or the guest's checkbox). The detail page shows the subtotal and VAT rows also for a non-payer (VAT 0), because `InvoiceDTO` has no VAT payer flag until `ls-invoice-issue` stores it.
+
+The guest invoice is never stored in the database: `CreateGuestInvoiceHandler` puts the validated input with the guest's VAT payer checkbox (`is_vat_payer`, unchecked by default) in `TemporaryInvoiceStore` and returns the token and the QR code; `GetGuestInvoicePdf` prints it through `TemporaryInvoicePrintDataFactory`.
 
 ## Status, payment and reminders
 
@@ -63,7 +65,7 @@ The guest invoice is never stored in the database: `CreateGuestInvoiceHandler` p
 
 ## PDF
 
-`GetInvoicePdf` reads the stored invoice, `InvoicePrintDataBuilder` turns it into `PrintableInvoiceDTO` (parties as Party's `PartyPrintDTO`), and `InvoicePdfRenderer` adds the QR code (Payment's `QrPaymentServiceInterface`, `QrPaymentMapper`) and renders the view the invoice's `InvoiceTemplate` names, `resources/views/pdfs/templates/{default,minimal,modern}.blade.php`, with dompdf. The PDF is rendered on every download, never stored. The output is pinned by `tests/Feature/Domain/Invoice/Services/InvoicePdfSnapshotTest.php`.
+`GetInvoicePdf` reads the stored invoice and the current VAT payer flag of its business, `InvoicePrintDataBuilder` turns them into `PrintableInvoiceDTO` (parties as Party's `PartyPrintDTO`), and `InvoicePdfRenderer` adds the QR code (Payment's `QrPaymentServiceInterface`, `QrPaymentMapper`) and renders the view the invoice's `InvoiceTemplate` names, `resources/views/pdfs/templates/{default,minimal,modern}.blade.php`, with dompdf. A payer's PDF prints the rate and base of each line, the total and the summary by rate (base, VAT, total); a non-payer's prints neither rates nor VAT, labels the line amount as the total and states that the supplier is not a VAT payer (`invoices.messages.not_vat_payer`). Until `ls-invoice-issue` stores the flag on the invoice, a change of the business's flag changes the PDF of its existing invoices, while their stored amount and line rates stay. A line prints its base rounded on its own, the rate and the total round the unrounded sum once, so in rare cases the line column does not add up to the total. The PDF is rendered on every download, never stored. The output is pinned by `tests/Feature/Domain/Invoice/Services/InvoicePdfSnapshotTest.php`.
 
 A new field printed on the PDF goes through `InvoiceWriteData`, `InvoiceDTO`, `EloquentInvoiceMapper`, `InvoiceWriteDataInput`, the form fields above, `PrintableInvoiceDTO` with `InvoicePrintDataBuilder`, `TemporaryInvoicePrintDataFactory` for the guest invoice, the three templates and their snapshots, `lang/*/invoices.php` (`invoices.fields.*`) and a migration of `invoices`.
 
