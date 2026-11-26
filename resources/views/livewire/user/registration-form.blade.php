@@ -3,7 +3,7 @@
 
     <form wire:submit="save">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-6">
+            <div class="flex flex-col gap-6">
                 <x-form.card :title="__('users.sections.basic_info')">
                     <div class="space-y-5">
                         <x-form.input model="name" :label="__('users.fields.name')" required autocomplete="name" />
@@ -14,7 +14,7 @@
                     </div>
                 </x-form.card>
 
-                <x-form.card :title="__('businesses.sections.first_bank_account')">
+                <x-form.card class="flex-1" :title="__('businesses.sections.first_bank_account')">
                     <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">{{ __('businesses.hints.first_bank_account') }}</p>
                     <x-party.bank-account-fields :bank-options="$bankOptions" :countries="$countries" />
                 </x-form.card>
@@ -25,6 +25,8 @@
                 <x-party.basic-fields />
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white pt-7 mb-5">{{ __('parties.sections.billing') }}</h3>
                 <x-party.billing-fields :countries="$countries" :register-message="$registerMessage" />
+                <x-form.checkbox class="pt-5" model="isVatPayer" :label="__('businesses.fields.is_vat_payer')"
+                    :hint="__('businesses.hints.is_vat_payer')" />
             </x-form.card>
         </div>
 

@@ -143,7 +143,11 @@ final class EntityLimitLockingTest extends TestCase
                     $userId,
                     new CreateBusiness(
                         $userId,
-                        new BusinessWriteData($this->profile(), null),
+                        new BusinessWriteData(
+                            $this->profile(),
+                            $this->invoicing(),
+                            null,
+                        ),
                         null,
                     ),
                 );
@@ -232,7 +236,11 @@ final class EntityLimitLockingTest extends TestCase
                 $userId,
                 new CreateBusiness(
                     $userId,
-                    new BusinessWriteData($this->profile(), null),
+                    new BusinessWriteData(
+                        $this->profile(),
+                        $this->invoicing(),
+                        null,
+                    ),
                     null,
                 ),
             );

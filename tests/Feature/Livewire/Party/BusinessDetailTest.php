@@ -125,6 +125,24 @@ final class BusinessDetailTest extends TestCase
         $this->assertNull($business->fresh()?->archived_at);
     }
 
+    #[Test]
+    public function shows_the_invoicing_settings(): void
+    {
+        $businessFactory = Business::factory();
+        $business = $businessFactory->create(
+            [
+                'user_id' => $this->user->id,
+                'is_vat_payer' => true,
+                'register_entry' => 'C 1 vedená u Městského soudu v Praze',
+                'document_language' => 'de',
+            ],
+        );
+
+        $component = Livewire::test(BusinessDetail::class, ['businessId' => $business->id]);
+        $component->assertSee('C 1 vedená u Městského soudu v Praze');
+        $component->assertSee('Němčina');
+    }
+
     private function business(): Business
     {
         $businessFactory = Business::factory();

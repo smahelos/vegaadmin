@@ -6,11 +6,12 @@ namespace App\Livewire\Party;
 
 use App\Application\Payment\Services\BankApplicationService;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\Translation\Presenters\LanguageOptionsPresenter;
 use App\Domain\Shared\Geography\Enums\Country;
 use Illuminate\Support\Facades\App;
 
 /**
- * Options of the country and bank selects of party and bank account forms.
+ * Options of the country, bank and language selects of party and bank account forms.
  */
 trait ProvidesPartyOptions
 {
@@ -18,11 +19,17 @@ trait ProvidesPartyOptions
 
     private BankApplicationService $banks;
 
+    private LanguageOptionsPresenter $languages;
+
     /** Livewire calls it through the container before every request of the component. */
-    public function bootProvidesPartyOptions(CountryOptionsPresenter $countries, BankApplicationService $banks): void
-    {
+    public function bootProvidesPartyOptions(
+        CountryOptionsPresenter $countries,
+        BankApplicationService $banks,
+        LanguageOptionsPresenter $languages,
+    ): void {
         $this->countries = $countries;
         $this->banks = $banks;
+        $this->languages = $languages;
     }
 
     /**
@@ -53,5 +60,13 @@ trait ProvidesPartyOptions
         }
 
         return $options;
+    }
+
+    /**
+     * @return array<string, string> language name by code
+     */
+    protected function languageOptions(): array
+    {
+        return $this->languages->options(App::getLocale());
     }
 }

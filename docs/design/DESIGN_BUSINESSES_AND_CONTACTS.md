@@ -19,6 +19,9 @@ This document specifies how to build the PRD. It was settled question by questio
 | `company_number` | yes | yes | replaces `ico`; text, leading zeros kept, empty is `NULL` |
 | `czech_company_number` | yes | yes | virtual: `IF(registration_country = 'CZ', company_number, NULL)` |
 | `vat_number` | yes | yes | replaces `dic` |
+| `is_vat_payer` | yes | — | default false; copied to a document at issue ([D-050](../adr/D-050-issued-documents.md), point 6) |
+| `register_entry` | yes | — | optional free text, printed with the supplier; copied at issue (D-050) |
+| `document_language` | yes | — | default `cs`; prefills the draft's document language (D-050) |
 | `email`, `phone` | yes | yes | optional |
 | `note` | yes | yes | replaces `description`; internal, never printed |
 | `logo` | yes | yes | source logo; a document copies its supplier’s file |

@@ -15,6 +15,7 @@ final readonly class BusinessDTO
         public BusinessId $id,
         public UserId $userId,
         public PartyProfile $profile,
+        public InvoicingSettings $invoicing,
         public ?string $logo,
         public ?BankAccountId $defaultBankAccountId,
         public ?DateTimeImmutable $archived,

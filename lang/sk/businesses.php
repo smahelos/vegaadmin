@@ -9,10 +9,15 @@ return [
         'logo' => 'Logo',
         'default' => 'Predvolená',
         'new_default' => 'Nová predvolená firma',
+        'is_vat_payer' => 'Platiteľ DPH',
+        'register_entry' => 'Zápis v registri',
+        'document_language' => 'Predvolený jazyk dokladov',
     ],
     'hints' => [
         'logo' => 'PNG, JPG alebo WebP do 2 MB, tlačí sa na faktúry.',
         'first_bank_account' => 'Nepovinné. Vyplnený účet sa stane predvoleným účtom firmy, ďalšie účty pridáte na detaile firmy.',
+        'is_vat_payer' => 'Doklady platiteľa uvádzajú DPH podľa sadzieb, doklady neplatiteľa DPH neuvádzajú.',
+        'register_entry' => 'Tlačí sa pri dodávateľovi, napr. „C 12345 vedená u Krajského soudu v Brně“ alebo „zapsán v živnostenském rejstříku“.',
     ],
     'actions' => [
         'create' => 'Pridať firmu',
@@ -37,6 +42,7 @@ return [
     ],
     'sections' => [
         'first_bank_account' => 'Bankový účet',
+        'invoicing' => 'Fakturácia',
     ],
     'titles' => [
         'index' => 'Moje firmy',

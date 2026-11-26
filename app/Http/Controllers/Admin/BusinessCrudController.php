@@ -11,6 +11,7 @@ use App\Application\Party\Commands\SetDefaultBusiness;
 use App\Application\Party\Commands\UpdateBusiness;
 use App\Application\Party\Services\PartyLogoApplicationService;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\Translation\Presenters\LanguageOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Party\DTO\BusinessDTO;
 use App\Domain\Party\DTO\BusinessWriteData;
@@ -30,6 +31,7 @@ use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\App;
 use Prologue\Alerts\Facades\Alert;
 
 /**
@@ -50,6 +52,7 @@ final class BusinessCrudController extends CrudController
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
         private readonly CountryOptionsPresenter $countries,
+        private readonly LanguageOptionsPresenter $languages,
     ) {
         parent::__construct();
         $throttle = $this->middleware('throttle:create');
@@ -79,7 +82,11 @@ final class BusinessCrudController extends CrudController
                     UserId::fromInt(
                         (int) $request->validated('user_id'),
                     ),
-                    new BusinessWriteData($request->profile(), $logo),
+                    new BusinessWriteData(
+                        $request->profile(),
+                        $request->invoicing(),
+                        $logo,
+                    ),
                     null,
                 ),
             ),
@@ -108,7 +115,11 @@ final class BusinessCrudController extends CrudController
                 new UpdateBusiness(
                     $this->ownerOf($entry),
                     BusinessId::fromInt($entry->id),
-                    new BusinessWriteData($request->profile(), $logo),
+                    new BusinessWriteData(
+                        $request->profile(),
+                        $request->invoicing(),
+                        $logo,
+                    ),
                 ),
             ),
         );
@@ -208,6 +219,24 @@ final class BusinessCrudController extends CrudController
         $column->label(
             __('parties.fields.note'),
         );
+        $column = CRUD::column('is_vat_payer');
+        $column->label(
+            __('businesses.fields.is_vat_payer'),
+        );
+        $column->type('boolean');
+        $column = CRUD::column('register_entry');
+        $column->label(
+            __('businesses.fields.register_entry'),
+        );
+        $column->limit(255);
+        $column = CRUD::column('document_language');
+        $column->label(
+            __('businesses.fields.document_language'),
+        );
+        $column->type('select_from_array');
+        $column->options(
+            $this->languageOptions(),
+        );
         $column = CRUD::column('logo');
         $column->label(
             __('parties.fields.logo'),
@@ -227,6 +256,11 @@ final class BusinessCrudController extends CrudController
         );
         $this->addProfileFields();
         $this->addLogoField();
+        CRUD::addFields(
+            PartyFormFields::invoicing(
+                $this->languageOptions(),
+            ),
+        );
     }
 
     protected function setupUpdateOperation(): void
@@ -239,6 +273,19 @@ final class BusinessCrudController extends CrudController
             $this->currentEntry(Business::class)->address,
         );
         $this->addLogoField();
+        CRUD::addFields(
+            PartyFormFields::invoicing(
+                $this->languageOptions(),
+            ),
+        );
+    }
+
+    /**
+     * @return array<string, string> language name by code
+     */
+    private function languageOptions(): array
+    {
+        return $this->languages->options(App::getLocale());
     }
 
     private function addLogoField(): void

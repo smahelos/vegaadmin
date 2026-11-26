@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Party\DTO\PartyProfile;
+use App\Http\Requests\Party\InvoicingSettingsInput;
 use App\Http\Requests\Party\PartyInput;
 use App\Http\Requests\Party\PartyLogoInput;
 use Illuminate\Foundation\Http\FormRequest;
@@ -19,7 +21,8 @@ final class BusinessRequest extends FormRequest
      */
     public function rules(): array
     {
-        $rules = PartyInput::rules($this->all(), static fn (string $field): string => $field) + PartyLogoInput::rules();
+        $sameKey = static fn (string $field): string => $field;
+        $rules = PartyInput::rules($this->all(), $sameKey) + InvoicingSettingsInput::rules($sameKey) + PartyLogoInput::rules();
 
         if ($this->isMethod('POST')) {
             $rules['user_id'] = [
@@ -37,7 +40,9 @@ final class BusinessRequest extends FormRequest
      */
     public function attributes(): array
     {
-        return PartyInput::attributes(static fn (string $field): string => $field) + [
+        $sameKey = static fn (string $field): string => $field;
+
+        return PartyInput::attributes($sameKey) + InvoicingSettingsInput::attributes($sameKey) + [
             'user_id' => __('parties.fields.owner'),
             'logo' => __('parties.fields.logo'),
         ];
@@ -46,5 +51,10 @@ final class BusinessRequest extends FormRequest
     public function profile(): PartyProfile
     {
         return PartyInput::profile($this->validated());
+    }
+
+    public function invoicing(): InvoicingSettings
+    {
+        return InvoicingSettingsInput::settings($this->validated());
     }
 }

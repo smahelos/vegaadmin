@@ -69,6 +69,9 @@
         <x-detail.card :title="__('parties.sections.billing')">
             <x-party.billing-profile :profile="$business->profile" :countries="$countries" />
         </x-detail.card>
+        <x-detail.card class="md:col-span-2" :title="__('businesses.sections.invoicing')">
+            <x-party.invoicing-profile :invoicing="$business->invoicing" :languages="$languages" />
+        </x-detail.card>
     </div>
 
     @allowed(ListBankAccounts::class)

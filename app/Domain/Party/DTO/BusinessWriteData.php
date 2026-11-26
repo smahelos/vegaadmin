@@ -11,6 +11,7 @@ final readonly class BusinessWriteData
 {
     public function __construct(
         public PartyProfile $profile,
+        public InvoicingSettings $invoicing,
         public ?string $logo,
     ) {}
 }

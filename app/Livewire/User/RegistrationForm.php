@@ -8,6 +8,8 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\User\Commands\Register;
 use App\Domain\Party\DTO\BusinessWriteData;
+use App\Domain\Party\DTO\InvoicingSettings;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Domain\User\DTO\UserWriteData;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\EditsPartyDetails;
@@ -25,7 +27,8 @@ use Livewire\Component;
 /**
  * Registers a frontend account together with its first business. The business name and email start as a copy of
  * the login details while the user has not typed their own, and stay independent afterwards. A bank account is
- * optional; when filled it becomes the business's default.
+ * optional; when filled it becomes the business's default. Of the invoicing settings only the VAT payer flag is asked,
+ * so a payer's first drafts carry VAT; the document language is the language of the registration.
  */
 final class RegistrationForm extends Component
 {
@@ -39,6 +42,8 @@ final class RegistrationForm extends Component
     public string $password = '';
 
     public string $passwordConfirmation = '';
+
+    public bool $isVatPayer = false;
 
     public PartyDetailsForm $party;
 
@@ -84,7 +89,15 @@ final class RegistrationForm extends Component
                         email: trim($this->email),
                         password: $this->password,
                     ),
-                    new BusinessWriteData($this->party->profile(), null),
+                    new BusinessWriteData(
+                        $this->party->profile(),
+                        new InvoicingSettings(
+                            vatPayer: $this->isVatPayer,
+                            registerEntry: null,
+                            documentLanguage: Language::from(App::getLocale()),
+                        ),
+                        null,
+                    ),
                     $withAccount ? $this->account->writeData() : null,
                 ),
             );
@@ -147,6 +160,7 @@ final class RegistrationForm extends Component
                 'same:passwordConfirmation',
                 Password::min(8),
             ],
+            'isVatPayer' => ['boolean'],
         ];
     }
 
@@ -160,6 +174,7 @@ final class RegistrationForm extends Component
             'email' => __('users.fields.email'),
             'password' => __('users.fields.password'),
             'passwordConfirmation' => __('users.fields.password_confirmation'),
+            'isVatPayer' => __('businesses.fields.is_vat_payer'),
         ];
     }
 }

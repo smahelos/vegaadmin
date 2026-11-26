@@ -23,6 +23,9 @@ class Business extends Model
         'registration_country',
         'company_number',
         'vat_number',
+        'is_vat_payer',
+        'register_entry',
+        'document_language',
         'email',
         'phone',
         'note',
@@ -34,6 +37,7 @@ class Business extends Model
     protected function casts(): array
     {
         return [
+            'is_vat_payer' => 'boolean',
             'archived_at' => 'immutable_datetime',
         ];
     }

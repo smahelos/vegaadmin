@@ -47,6 +47,20 @@ Not a use case: `CompanyRegistryApplicationService` looks a Czech company up in 
 - Businesses and contacts are capacity limits ([USER.md](USER.md#entity-limits)): `CreateBusinessHandler`, `RestoreBusinessHandler`, `CreateContactHandler` and `RestoreContactHandler` call `EntityLimit::assertCanCreate()`. Archiving frees a place without a check. Bank accounts are not limited.
 - An archived record stays on the documents that already name it and in their filters and analytics. New selections offer only active records: `ListDocumentBusinesses`, `ListDocumentContacts` and `ListDocumentBankAccounts` (Invoice queries, used by `DocumentPartyPicker` and `Admin\DocumentPartyCrudController`). Choosing an archived record that the document did not already have throws `ArchivedReferenceSelectedException`.
 
+## Invoicing settings
+
+Only a business has them: the VAT payer flag (`is_vat_payer`), the optional free-text register entry (`register_entry`) and the default document language (`document_language`, the `Language` enum, named through `LanguageOptionsPresenter`). `BusinessDTO` and `BusinessWriteData` carry them as `InvoicingSettings`; they are not part of `PartyProfile`, so contacts and document parties never get them. Nothing reads them yet: drafts will read them from the business and issuing will copy them to the document ([D-050](../adr/D-050-issued-documents.md), point 6), with `ls-vat-by-rate` and `ls-invoice-issue`.
+
+| Step | Code |
+|---|---|
+| Validation, shared by the Livewire form and the admin request | `InvoicingSettingsInput` |
+| Frontend form, the "Invoicing" card of `BusinessForm` | `InvoicingSettingsForm`, component `party/invoicing-fields` |
+| Business detail | component `party/invoicing-profile` |
+| Admin | `PartyFormFields::invoicing()`, `BusinessRequest::invoicing()`, the show columns of `BusinessCrudController` |
+| Registration | `RegistrationForm` asks only the VAT payer flag; the document language is the registration language |
+
+A business created in the form or the admin starts as a non-payer with the interface language as its document language.
+
 ## Parties on documents
 
 A document stores its own copy of both parties and the payment account; a later change of the business or contact never reaches it.

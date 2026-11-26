@@ -6,6 +6,7 @@ namespace App\Infrastructure\Forms\Party;
 
 use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Contact;
+use Illuminate\Support\Facades\App;
 
 /**
  * Admin form fields of the party profile and address that businesses and contacts share.
@@ -39,6 +40,38 @@ final class PartyFormFields
         }
 
         return $names;
+    }
+
+    /**
+     * The invoicing settings, which only a business has; a new business documents in the admin's language.
+     *
+     * @param  array<string, string>  $languages  language name by code
+     * @return list<array<string, mixed>>
+     */
+    public static function invoicing(array $languages): array
+    {
+        return [
+            [
+                'name' => 'is_vat_payer',
+                'label' => __('businesses.fields.is_vat_payer'),
+                'type' => 'checkbox',
+                'hint' => __('businesses.hints.is_vat_payer'),
+            ],
+            [
+                'name' => 'register_entry',
+                'label' => __('businesses.fields.register_entry'),
+                'type' => 'text',
+                'hint' => __('businesses.hints.register_entry'),
+            ],
+            [
+                'name' => 'document_language',
+                'label' => __('businesses.fields.document_language'),
+                'type' => 'select_from_array',
+                'options' => $languages,
+                'default' => App::getLocale(),
+                'allows_null' => false,
+            ],
+        ];
     }
 
     /** @return list<array<string, mixed>> */

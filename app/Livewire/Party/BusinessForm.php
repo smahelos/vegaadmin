@@ -16,6 +16,7 @@ use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Livewire\Party\Forms\BankAccountForm;
+use App\Livewire\Party\Forms\InvoicingSettingsForm;
 use App\Livewire\Party\Forms\PartyDetailsForm;
 use App\Livewire\Shared\ActsForUser;
 use App\Livewire\Shared\ThrottlesCreation;
@@ -39,6 +40,8 @@ final class BusinessForm extends Component
 
     public PartyDetailsForm $party;
 
+    public InvoicingSettingsForm $invoicing;
+
     public BankAccountForm $account;
 
     #[Locked]
@@ -53,6 +56,7 @@ final class BusinessForm extends Component
         if ($businessId === null) {
             $this->requireAllowed(CreateBusiness::class);
             $this->party->country = 'CZ';
+            $this->invoicing->documentLanguage = App::getLocale();
 
             return;
         }
@@ -67,6 +71,7 @@ final class BusinessForm extends Component
 
         $this->businessId = $businessId;
         $this->party->fillFromProfile($business->profile);
+        $this->invoicing->fillFromSettings($business->invoicing);
         $this->currentLogo = $business->logo;
     }
 
@@ -79,6 +84,7 @@ final class BusinessForm extends Component
 
         $this->validate($this->rules());
         $this->party->validate();
+        $this->invoicing->validate();
         $withAccount = $creating && $this->account->isFilled();
         if ($withAccount) {
             $this->account->validate();
@@ -97,7 +103,11 @@ final class BusinessForm extends Component
         }
 
         $logo = $this->logoPath($logos);
-        $data = new BusinessWriteData($profile, $logo);
+        $data = new BusinessWriteData(
+            $profile,
+            $this->invoicing->settings(),
+            $logo,
+        );
 
         $saved = false;
         try {
@@ -161,6 +171,7 @@ final class BusinessForm extends Component
                 'countries' => $this->countryOptions(),
                 'cancelHref' => $this->cancelHref(),
                 'bankOptions' => $this->bankOptions($this->account->country),
+                'languages' => $this->languageOptions(),
             ],
         );
     }
