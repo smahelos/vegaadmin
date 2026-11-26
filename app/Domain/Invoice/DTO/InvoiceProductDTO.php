@@ -1,31 +1,34 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Domain\Invoice\DTO;
 
+use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Unit\Enums\Unit;
+
 /**
- * Read DTO for Invoice line item (invoice_products).
+ * One stored invoice line.
  */
-class InvoiceProductDTO
+final readonly class InvoiceProductDTO
 {
+    /**
+     * @param  string  $quantity  Non-negative decimal string, e.g. "1.500"
+     * @param  string  $taxRate  VAT rate in percent as a decimal string, e.g. "21.00"
+     */
     public function __construct(
-        public readonly int $id,
-        public readonly string $name,
-        public readonly ?string $category,
-        public readonly ?string $description,
-        public readonly ?string $created_at = null,
+        public string $name,
+        public string $quantity,
+        public Unit $unit,
+        public Money $price,
+        public string $taxRate,
+        public Money $taxAmount,
+        public Money $total,
     ) {}
 
-    /**
-     * Array-based constructor for mappers.
-     */
-    public static function fromArray(array $data): self
+    /** Price times quantity, rounded half up to cents, as the line was computed when it was written. */
+    public function base(): Money
     {
-        return new self(
-            id: (int) $data['id'],
-            name: (string) ($data['name'] ?? ''),
-            category: $data['category'] ?? null,
-            description: $data['description'] ?? null,
-            created_at: $data['created_at'] ?? null,
-        );
+        return $this->price->multiplyBy($this->quantity);
     }
 }

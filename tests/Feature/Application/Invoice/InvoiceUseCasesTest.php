@@ -23,7 +23,6 @@ use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\Contracts\QueryInterface;
-use App\Domain\Invoice\DTO\InvoiceProductDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceSearch;
 use App\Domain\Invoice\Enums\InvoiceStatus;
@@ -793,11 +792,6 @@ final class InvoiceUseCasesTest extends TestCase
     {
         return new class implements InvoiceProductDtoWriteRepositoryInterface
         {
-            public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
-            {
-                throw new RuntimeException('Storing a line failed');
-            }
-
             public function bulkCreate(InvoiceId $invoiceId, array $products): void
             {
                 throw new RuntimeException('Storing the lines failed');

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Eloquent\Product\Repositories;
 
-use App\Domain\Invoice\DTO\InvoiceProductDTO;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Product\Contracts\InvoiceProductDtoWriteRepositoryInterface;
@@ -20,16 +19,6 @@ final class EloquentInvoiceProductDtoRepository implements InvoiceProductDtoWrit
         private readonly EloquentInvoiceProductRepository $productRepository,
         private readonly EloquentInvoiceProductMapper $mapper,
     ) {}
-
-    public function create(InvoiceId $invoiceId, InvoiceProductWriteData $data): InvoiceProductDTO
-    {
-        $product = $this->productRepository->create(
-            $this->mapper->toAttributes($invoiceId, $data),
-        );
-        $product = $product->toArray();
-
-        return InvoiceProductDTO::fromArray($product);
-    }
 
     /**
      * @param  list<InvoiceProductWriteData>  $products

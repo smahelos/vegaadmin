@@ -14,11 +14,6 @@ use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Payment\ValueObjects\VariableSymbol;
-use App\Domain\Shared\Money\Enums\Currency;
-use App\Domain\Shared\Money\ValueObjects\Money;
-use App\Domain\Shared\Unit\Enums\Unit;
-use DateMalformedStringException;
-use DateTimeImmutable;
 
 /**
  * Builds domain-clean printable data for invoices from InvoiceDTO.
@@ -32,92 +27,52 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
 
     public function build(InvoiceDTO $invoice): PrintableInvoiceDTO
     {
-        $issue = $this->toImmutableDate($invoice->issue_date);
-        $taxPoint = $this->toImmutableDate($invoice->tax_point_date);
-        $due = $this->dueDate($issue, $invoice->due_in);
-
         $items = [];
         foreach ($invoice->items as $item) {
-            $price = $item['price'] ?? '0';
-            $lineTotal = $item['total_price'] ?? '0';
-            if (!$price instanceof Money || !$lineTotal instanceof Money) {
-                $currency = Currency::from(
-                    $item['currency'] ?? ($invoice->currency ?? Currency::CZK->value),
-                );
-                if (!$price instanceof Money) {
-                    $price = Money::fromString((string) $price, $currency);
-                }
-                if (!$lineTotal instanceof Money) {
-                    $lineTotal = Money::fromString((string) $lineTotal, $currency);
-                }
-            }
             $items[] = new PrintableInvoiceItemDTO(
-                name: (string) ($item['name'] ?? ''),
-                quantity: isset($item['quantity']) ? (float) $item['quantity'] : 1.0,
-                unit: ($item['unit'] ?? null) instanceof Unit ? $item['unit'] : Unit::fromInput($item['unit'] ?? null),
-                price: $price,
-                taxRate: isset($item['tax_rate']) ? (float) $item['tax_rate'] : 0.0,
-                lineTotal: $lineTotal,
+                name: $item->name,
+                quantity: (float) $item->quantity,
+                unit: $item->unit,
+                price: $item->price,
+                taxRate: (float) $item->taxRate,
+                lineTotal: $item->total,
             );
         }
 
         $supplier = $invoice->parties->supplier;
         $customer = $invoice->parties->customer;
-        $account = $invoice->parties->account;
+        $currency = $invoice->totalAmount->currency;
 
         return new PrintableInvoiceDTO(
             id: $invoice->id,
             number: $invoice->number,
-            issueDate: $issue,
-            taxPointDate: $taxPoint,
-            dueDate: $due,
-            currency: strtoupper($invoice->currency ?? 'CZK'),
+            issueDate: $invoice->issueDate,
+            taxPointDate: $invoice->taxPointDate,
+            dueDate: InvoiceDueDate::fromIssueDateAndDays($invoice->issueDate, $invoice->dueIn),
+            currency: $currency->value,
             template: $invoice->template,
             items: $items,
             subtotal: $invoice->subtotal,
-            totalTax: $invoice->total_tax,
-            totalAmount: $invoice->total_amount,
+            totalTax: $invoice->totalTax,
+            totalAmount: $invoice->totalAmount,
             supplier: PartyPrintDTO::fromDocumentParty($supplier),
             customer: PartyPrintDTO::fromDocumentParty($customer),
-            account: $account,
+            account: $invoice->parties->account,
             supplierLogo: $invoice->parties->supplierLogo,
-            variableSymbol: $invoice->number === null ? null : new VariableSymbol($invoice->number),
-            constantSymbol: $invoice->constant_code,
-            specificSymbol: $invoice->payment_reference,
-            paymentMethod: $this->paymentMethod($invoice->payment_method_id),
-            notes: $invoice->invoice_text,
+            variableSymbol: new VariableSymbol($invoice->number),
+            constantSymbol: $invoice->constantSymbol,
+            specificSymbol: $invoice->specificSymbol,
+            paymentMethod: $this->paymentMethod($invoice->paymentMethodId),
+            notes: $invoice->text,
         );
     }
 
-    private function paymentMethod(?int $id): ?PaymentMethodCode
+    private function paymentMethod(?PaymentMethodId $id): ?PaymentMethodCode
     {
         if ($id === null) {
             return null;
         }
 
-        return $this->paymentMethods->findById(
-            PaymentMethodId::fromInt($id),
-        )?->code;
-    }
-
-    private function toImmutableDate(?string $date): ?DateTimeImmutable
-    {
-        if (!$date) {
-            return null;
-        }
-        try {
-            return new DateTimeImmutable($date);
-        } catch (DateMalformedStringException) {
-            return null;
-        }
-    }
-
-    private function dueDate(?DateTimeImmutable $issue, ?int $dueIn): ?InvoiceDueDate
-    {
-        if (!$issue || $dueIn === null) {
-            return null;
-        }
-
-        return InvoiceDueDate::fromIssueDateAndDays($issue, $dueIn);
+        return $this->paymentMethods->findById($id)?->code;
     }
 }
