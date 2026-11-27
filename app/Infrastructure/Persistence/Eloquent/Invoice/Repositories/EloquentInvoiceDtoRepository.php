@@ -137,11 +137,12 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
 
     public function delete(InvoiceId $id, WriteScope $scope): void
     {
-        // The lines and VAT lines go with the invoice (foreign keys with cascade)
+        // The lines and VAT lines go with the invoice (foreign keys with cascade). The model is deleted, not the query,
+        // so InvoiceObserver publishes UserDataChanged
         $query = Invoice::query();
-        $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->value);
-        $query->delete();
+        $model = $query->findOrFail($id->value);
+        $model->delete();
     }
 
     public function setTemplate(

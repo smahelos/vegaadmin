@@ -23,6 +23,7 @@ use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Enums\LimitedEntity;
+use App\Domain\User\Events\UserDataChanged;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
 use App\Models\Business;
 use App\Models\Contact;
@@ -30,6 +31,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceProduct;
 use App\Models\User;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -271,6 +273,7 @@ final class InvoiceIssuingTest extends TestCase
         $draft = $this->draft();
         $draft->update(['supplier_logo' => 'documents/logos/logo.png']);
         $owner = $this->idOf($this->user);
+        Event::fake([UserDataChanged::class]);
 
         $this->runAs(
             $owner,
@@ -283,6 +286,11 @@ final class InvoiceIssuingTest extends TestCase
         $this->assertDatabaseMissing('invoices', ['id' => $draft->id]);
         $this->assertDatabaseMissing('invoice_products', ['invoice_id' => $draft->id]);
         $disk->assertMissing('documents/logos/logo.png');
+        // The owner's cached dashboard forgets the draft
+        Event::assertDispatched(
+            UserDataChanged::class,
+            fn (UserDataChanged $event): bool => $event->userId === $this->user->id,
+        );
     }
 
     #[Test]
