@@ -204,6 +204,7 @@ return [
         'issued_note' => 'Faktúra je vystavená a uzamknutá. Meniť možno len stav platby, ostatné zmeny len opravným dokladom.',
         'draft_without_status' => 'Koncept nemá stav platby. Faktúru najprv vystavte.',
         'pdf_damaged' => 'Uložené PDF faktúry je poškodené alebo chýba. Kontaktujte, prosím, podporu.',
+        'pdf_damaged_admin' => 'Uložené PDF faktúry je poškodené alebo chýba. Podrobnosti nájdete v logu aplikácie.',
         'due_after_issue' => ':days dní po vystavení',
     ],
     'validation' => [

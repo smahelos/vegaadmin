@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
+use App\Application\Invoice\Queries\GetIssuedInvoicePdf;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Enums\Permission;
 use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Invoice;
@@ -16,10 +18,12 @@ use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
+use Illuminate\Http\Response;
+use Symfony\Component\HttpFoundation\HeaderUtils;
 
 /**
  * Read-only: the owner creates, issues and deletes invoices on the frontend, and an issued invoice changes only
- * by a corrective document (D-050).
+ * by a corrective document (D-050). The admin downloads the PDF stored at issue.
  *
  * @property-read CrudPanel $crud
  */
@@ -54,6 +58,35 @@ final class InvoiceCrudController extends CrudController
                 'list' => Permission::INVOICE_VIEW,
                 'show' => Permission::INVOICE_VIEW,
             ],
+        );
+        // The line stack is shown in the list rows and on the detail
+        CRUD::addButton(
+            'line',
+            'invoice_download',
+            'view',
+            'admin.buttons.invoice_download',
+            'end',
+        );
+    }
+
+    public function download(int $id): Response
+    {
+        // The route names the same use case in its `allowed` middleware: change them together
+        $pdf = $this->useCases->run(
+            $this->admin(),
+            new GetIssuedInvoicePdf(
+                InvoiceId::fromInt($id),
+            ),
+        );
+        $disposition = HeaderUtils::makeDisposition(
+            HeaderUtils::DISPOSITION_ATTACHMENT,
+            $pdf->filename,
+        );
+
+        return new Response(
+            $pdf->content,
+            200,
+            ['Content-Type' => 'application/pdf', 'Content-Disposition' => $disposition],
         );
     }
 

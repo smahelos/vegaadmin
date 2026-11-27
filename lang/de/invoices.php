@@ -204,6 +204,7 @@ return [
         'issued_note' => 'Die Rechnung ist ausgestellt und gesperrt. Nur der Zahlungsstatus kann sich ändern, andere Änderungen nur über einen Korrekturbeleg.',
         'draft_without_status' => 'Ein Entwurf hat keinen Zahlungsstatus. Stellen Sie die Rechnung zuerst aus.',
         'pdf_damaged' => 'Das gespeicherte PDF der Rechnung ist beschädigt oder fehlt. Bitte wenden Sie sich an den Support.',
+        'pdf_damaged_admin' => 'Das gespeicherte PDF der Rechnung ist beschädigt oder fehlt. Details stehen im Anwendungsprotokoll.',
         'due_after_issue' => ':days Tage nach Ausstellung',
     ],
     'validation' => [
