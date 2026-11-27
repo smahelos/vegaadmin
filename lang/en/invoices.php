@@ -203,6 +203,8 @@ return [
         'issued_locked' => 'Issued document – changes only through a corrective document.',
         'issued_note' => 'The invoice is issued and locked. Only its payment status can change; other changes need a corrective document.',
         'draft_without_status' => 'A draft has no payment status. Issue the invoice first.',
+        'pdf_damaged' => 'The stored PDF of the invoice is damaged or missing. Please contact support.',
+        'pdf_damaged_admin' => 'The stored PDF of the invoice is damaged or missing. The details are in the application log.',
         'due_after_issue' => ':days days after issue',
     ],
     'validation' => [

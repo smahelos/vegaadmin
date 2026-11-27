@@ -203,6 +203,8 @@ return [
         'issued_locked' => 'Vystavený doklad – změny jen opravným dokladem.',
         'issued_note' => 'Faktura je vystavená a uzamčená. Měnit lze jen stav platby, ostatní změny jen opravným dokladem.',
         'draft_without_status' => 'Koncept nemá stav platby. Fakturu nejdřív vystavte.',
+        'pdf_damaged' => 'Uložené PDF faktury je poškozené nebo chybí. Kontaktujte prosím podporu.',
+        'pdf_damaged_admin' => 'Uložené PDF faktury je poškozené nebo chybí. Podrobnosti najdete v logu aplikace.',
         'due_after_issue' => ':days dní po vystavení',
     ],
     'validation' => [

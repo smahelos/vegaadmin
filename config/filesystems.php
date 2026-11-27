@@ -47,6 +47,15 @@ return [
             'report' => false,
         ],
 
+        // PDFs of issued documents (D-050, point 8): private, read only through the app, which checks the hash.
+        // Another storage (S3 and compatible object storage) is a change of this definition only
+        'documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/documents'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

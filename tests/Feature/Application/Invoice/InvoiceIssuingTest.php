@@ -10,17 +10,21 @@ use App\Application\Invoice\Commands\IssueInvoice;
 use App\Application\Invoice\Commands\LinkInvoiceContact;
 use App\Application\Invoice\Commands\SetInvoiceStatus;
 use App\Application\Invoice\Commands\SetInvoiceTemplate;
+use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Application\Invoice\Queries\GetInvoicePdf;
 use App\Application\Invoice\Services\GuestInvoiceCreateForm;
+use App\Domain\Invoice\Contracts\DocumentPdfStorageInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\Exceptions\InvoiceNumberYearException;
+use App\Domain\Invoice\Exceptions\InvoicePdfDamagedException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Log\Contracts\LogInterface;
 use App\Domain\Shared\Time\Contracts\ClockInterface;
 use App\Domain\User\Enums\LimitedEntity;
 use App\Domain\User\Events\UserDataChanged;
@@ -35,13 +39,18 @@ use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
+use RuntimeException;
 use Tests\Support\BuildsParties;
+use Tests\Support\Fakes\Invoice\FailingDocumentPdfStorage;
+use Tests\Support\Fakes\Invoice\FailingInvoicePdfRenderer;
 use Tests\Support\Fakes\Shared\FixedClock;
+use Tests\Support\Fakes\Shared\RecordingLog;
 use Tests\Support\RunsUseCases;
 use Tests\TestCase;
 
 /**
- * The life cycle of an invoice (D-050): issuing a draft, the lock of an issued invoice, deleting and copying.
+ * The life cycle of an invoice (D-050): issuing a draft with its stored PDF, the lock of an issued invoice, deleting and
+ * copying.
  */
 final class InvoiceIssuingTest extends TestCase
 {
@@ -374,6 +383,131 @@ final class InvoiceIssuingTest extends TestCase
 
         $this->assertSame('faktura-20260001.pdf', $pdf->filename);
         $this->assertSame('en', $pdf->locale);
+    }
+
+    #[Test]
+    public function issuing_stores_the_rendered_pdf_with_its_hash(): void
+    {
+        $draft = $this->draft();
+
+        $this->issue($draft, '20260001');
+
+        $issued = $draft->fresh();
+        $disk = Storage::disk('documents');
+        $content = $disk->get($issued->pdf_path);
+        $this->assertStringStartsWith('%PDF-', $content);
+        $this->assertSame(
+            hash('sha256', $content),
+            $issued->pdf_hash,
+        );
+    }
+
+    /** @return array<string, array{class-string, class-string}> */
+    public static function pdfFailures(): array
+    {
+        return [
+            'rendering' => [InvoicePdfRendererInterface::class, FailingInvoicePdfRenderer::class],
+            'storing' => [DocumentPdfStorageInterface::class, FailingDocumentPdfStorage::class],
+        ];
+    }
+
+    /**
+     * @param  class-string  $port
+     * @param  class-string  $fake
+     */
+    #[Test]
+    #[DataProvider('pdfFailures')]
+    public function a_pdf_failure_leaves_a_draft_with_a_free_number_and_no_file(string $port, string $fake): void
+    {
+        $this->app->instance($port, new $fake);
+        $draft = $this->draft();
+
+        try {
+            $this->issue($draft, '20260001');
+            $this->fail('Issuing succeeded without a PDF');
+        } catch (RuntimeException $exception) {
+            // Not a database failure, which is a RuntimeException too
+            $this->assertStringContainsString('could not be', $exception->getMessage());
+        }
+
+        $this->assertDatabaseHas(
+            'invoices',
+            [
+                'id' => $draft->id,
+                'invoice_vs' => null,
+                'issued_at' => null,
+                'pdf_path' => null,
+            ],
+        );
+        $disk = Storage::disk('documents');
+        $this->assertSame([], $disk->allFiles());
+    }
+
+    #[Test]
+    public function the_stored_pdf_is_downloaded_unchanged_after_the_business_and_the_rendering_change(): void
+    {
+        $draft = $this->draft();
+        $this->issue($draft, '20260001');
+        $issued = $draft->fresh();
+        $disk = Storage::disk('documents');
+        $stored = $disk->get($issued->pdf_path);
+        $this->business->update(['name' => 'Přejmenovaná firma s.r.o.']);
+        $draft->update(['template' => InvoiceTemplate::MODERN->value]);
+        // Rendering again would fail: the download is the stored file
+        $this->app->instance(InvoicePdfRendererInterface::class, new FailingInvoicePdfRenderer);
+        $owner = $this->idOf($this->user);
+
+        $pdf = $this->runAs(
+            $owner,
+            new GetInvoicePdf(
+                $owner,
+                InvoiceId::fromInt($draft->id),
+            ),
+        );
+
+        $this->assertSame($stored, $pdf->content);
+    }
+
+    /** @return array<string, array{?string}> */
+    public static function damagedPdfs(): array
+    {
+        return [
+            'changed' => ['%PDF-1.4 changed'],
+            'missing' => [null],
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('damagedPdfs')]
+    public function a_damaged_stored_pdf_is_refused_and_logged_as_critical(?string $damage): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf();
+        $issued = $invoiceFactory->create(['user_id' => $this->user->id]);
+        $disk = Storage::disk('documents');
+        if ($damage === null) {
+            $disk->delete($issued->pdf_path);
+        } else {
+            $disk->put($issued->pdf_path, $damage);
+        }
+        $log = new RecordingLog;
+        $this->app->instance(LogInterface::class, $log);
+        $owner = $this->idOf($this->user);
+
+        try {
+            $this->runAs(
+                $owner,
+                new GetInvoicePdf(
+                    $owner,
+                    InvoiceId::fromInt($issued->id),
+                ),
+            );
+            $this->fail('The damaged PDF was returned');
+        } catch (InvoicePdfDamagedException) {
+        }
+
+        $this->assertSame('critical', $log->entries[0]['level']);
+        $this->assertSame($issued->id, $log->entries[0]['context']['invoiceId']);
     }
 
     #[Test]

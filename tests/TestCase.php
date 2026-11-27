@@ -8,6 +8,7 @@ use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\PendingCommand;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
@@ -30,6 +31,9 @@ abstract class TestCase extends BaseTestCase
 
         // A test never reaches a real external service; fake the request with Http::fake()
         Http::preventStrayRequests();
+
+        // Issuing stores the document PDF on the private disk; a test never writes into the development storage
+        Storage::fake('documents');
 
         // Built assets (public/build) are not versioned and CI does not run the Vite build
         $this->withoutVite();

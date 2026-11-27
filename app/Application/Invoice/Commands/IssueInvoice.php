@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Application\Invoice\Commands;
 
 use App\Application\Shared\UseCase\Access;
+use App\Application\Shared\UseCase\Contracts\CallsOutsideDatabaseInterface;
 use App\Application\Shared\UseCase\Contracts\CommandInterface;
 use App\Application\Shared\UseCase\OwnedUseCase;
 use App\Domain\Invoice\DTO\InvoiceDTO;
@@ -15,11 +16,12 @@ use App\Domain\User\ValueObjects\UserId;
 use DateTimeImmutable;
 
 /**
- * Only the owner issues a document (D-050): the admin shows invoices read-only.
+ * Only the owner issues a document (D-050): the admin shows invoices read-only. Issuing writes the PDF file, so the
+ * handler opens the transaction.
  *
  * @implements CommandInterface<InvoiceDTO>
  */
-final readonly class IssueInvoice extends OwnedUseCase implements CommandInterface
+final readonly class IssueInvoice extends OwnedUseCase implements CallsOutsideDatabaseInterface, CommandInterface
 {
     /**
      * @param  DateTimeImmutable|null  $taxPointDate  Null for the issue date

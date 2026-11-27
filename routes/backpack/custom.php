@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Application\Invoice\Queries\GetIssuedInvoicePdf;
 use App\Application\Invoice\Queries\ListDocumentBankAccounts;
 use App\Application\Invoice\Queries\ListDocumentBusinesses;
 use App\Application\Invoice\Queries\ListDocumentContacts;
@@ -74,6 +75,10 @@ Route::group(
         $route->middleware('allowed:' . GetEntityUsage::class);
         Route::crud('invoice', InvoiceCrudController::class);
         // Each `allowed` below names the use case its action runs through the gate: change them together
+        $route = Route::get('invoice/{id}/download', [InvoiceCrudController::class, 'download']);
+        $route->whereNumber('id');
+        $route->name('admin.invoices.download');
+        $route->middleware('allowed:' . GetIssuedInvoicePdf::class);
         Route::crud('business', BusinessCrudController::class);
         $route = Route::post('business/{id}/archive', [BusinessCrudController::class, 'archive']);
         $route->whereNumber('id');

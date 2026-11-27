@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database\Seeders;
 
+use App\Application\Invoice\Contracts\InvoicePdfRendererInterface;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Business;
@@ -13,12 +14,22 @@ use App\Models\Invoice;
 use App\Models\User;
 use Database\Seeders\DevelopmentDataSeeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use RuntimeException;
+use Tests\Support\Fakes\Invoice\FixedInvoicePdfRenderer;
 use Tests\TestCase;
 
 final class DevelopmentDataSeederTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        // Rendering a PDF for every seeded invoice would take longer than the test time limit
+        $this->app->instance(InvoicePdfRendererInterface::class, new FixedInvoicePdfRenderer);
+    }
+
     #[Test]
     public function creates_every_account_with_its_role_and_the_shared_password(): void
     {
@@ -219,6 +230,14 @@ final class DevelopmentDataSeederTest extends TestCase
         $this->assertSame(
             $first,
             $this->seededData($users->all()),
+        );
+        $invoiceQuery = Invoice::whereIn('user_id', $users);
+        $invoiceQuery->whereNotNull('pdf_path');
+        $disk = Storage::disk('documents');
+        $paths = $invoiceQuery->pluck('pdf_path');
+        $this->assertEqualsCanonicalizing(
+            $paths->all(),
+            $disk->allFiles(),
         );
     }
 

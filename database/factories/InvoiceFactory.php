@@ -2,11 +2,16 @@
 
 namespace Database\Factories;
 
+use App\Domain\Invoice\Contracts\DocumentPdfStorageInterface;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\ValueObjects\StoredPdf;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Translation\Enums\Language;
+use App\Domain\User\ValueObjects\UserId;
+use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -78,6 +83,27 @@ class InvoiceFactory extends Factory
                 'issued_by' => null,
                 'is_vat_payer' => null,
             ],
+        );
+    }
+
+    /** An issued invoice with its PDF stored as issuing stores it (D-050, point 8). */
+    public function withStoredPdf(string $content = '%PDF-1.4 stored'): static
+    {
+        return $this->afterCreating(
+            function (Invoice $invoice) use ($content): void {
+                $storage = app(DocumentPdfStorageInterface::class);
+                $path = $storage->store(
+                    UserId::fromInt($invoice->user_id),
+                    InvoiceId::fromInt($invoice->id),
+                    $content,
+                );
+                $mapper = app(EloquentInvoiceMapper::class);
+                $invoice->update(
+                    $mapper->toPdfAttributes(
+                        StoredPdf::of($path, $content),
+                    ),
+                );
+            },
         );
     }
 

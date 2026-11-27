@@ -13,7 +13,6 @@ use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Number\Contracts\NumberFormatterInterface;
 use App\Domain\Shared\Time\Contracts\DateFormatterInterface;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Barryvdh\DomPDF\PDF as PdfDocument;
 use DateTimeImmutable;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
@@ -28,7 +27,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         private readonly NumberFormatterInterface $numberFormatter,
     ) {}
 
-    public function render(PrintableInvoiceDTO $data, string $locale): PdfDocument
+    public function render(PrintableInvoiceDTO $data, string $locale): string
     {
         $paymentAmountFormatted = $this->moneyFormatter->formatWithCurrencyAfter($data->totalAmount, $locale);
         $totals = $data->totals;
@@ -105,7 +104,9 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
         try {
             App::setLocale($locale);
 
-            return Pdf::loadView('pdfs.templates.' . $data->template->value, $viewData);
+            $pdf = Pdf::loadView('pdfs.templates.' . $data->template->value, $viewData);
+
+            return $pdf->output();
         } finally {
             App::setLocale($previousLocale);
         }

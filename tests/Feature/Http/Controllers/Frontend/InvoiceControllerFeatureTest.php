@@ -17,6 +17,7 @@ use App\Models\Permission as PermissionModel;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsInvoiceInput;
 use Tests\TestCase;
@@ -658,6 +659,25 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
+    public function a_damaged_stored_pdf_returns_with_an_error_instead_of_a_file(): void
+    {
+        $issued = $this->issuedInvoice();
+        $disk = Storage::disk('documents');
+        $disk->delete($issued->pdf_path);
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.invoice.download', ['locale' => 'en', 'id' => $issued->id]),
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas(
+            'error',
+            __('invoices.messages.pdf_damaged'),
+        );
+    }
+
+    #[Test]
     public function store_refuses_to_save_a_customer_whose_company_number_is_in_the_contacts(): void
     {
         $this->user->givePermissionTo(Permission::CONTACT_CREATE);
@@ -695,6 +715,7 @@ class InvoiceControllerFeatureTest extends TestCase
     private function issuedInvoice(): Invoice
     {
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf();
 
         return $invoiceFactory->create(['user_id' => $this->user->id]);
     }

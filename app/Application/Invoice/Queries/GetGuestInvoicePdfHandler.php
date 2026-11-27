@@ -37,7 +37,7 @@ final class GetGuestInvoicePdfHandler
 
         return new PdfInvoiceDTO(
             'faktura-' . ($printable->number ?? $now->format('YmdHis')) . '.pdf',
-            $pdf->output(),
+            $pdf,
             $locale,
         );
     }

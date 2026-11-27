@@ -11,6 +11,7 @@ use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\Services\InvoiceRequestAssembler;
 use App\Application\Invoice\Services\TemporaryInvoicePrintDataFactory;
 use App\Application\Invoice\Services\TemporaryInvoiceStore;
+use App\Domain\Invoice\Contracts\DocumentPdfStorageInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceListReadRepositoryInterface;
@@ -25,6 +26,7 @@ use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoice
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceListRepository;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Repositories\EloquentInvoiceReminderRepository;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
+use App\Infrastructure\Storage\Invoice\PrivateDocumentPdfStorage;
 use App\Models\Invoice;
 use App\Models\Tax;
 use Illuminate\Support\ServiceProvider;
@@ -66,6 +68,11 @@ class InvoiceServiceProvider extends ServiceProvider
         $this->app->bind(
             InvoiceReminderNotifierInterface::class,
             LaravelInvoiceReminderNotifier::class,
+        );
+
+        $this->app->bind(
+            DocumentPdfStorageInterface::class,
+            PrivateDocumentPdfStorage::class,
         );
 
         // Invoice repositories

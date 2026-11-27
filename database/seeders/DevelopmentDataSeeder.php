@@ -7,6 +7,7 @@ namespace Database\Seeders;
 use App\Application\Invoice\Commands\IssueInvoice;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Invoice\Contracts\DocumentPdfStorageInterface;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
@@ -101,6 +102,7 @@ final class DevelopmentDataSeeder extends Seeder
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
+        private readonly DocumentPdfStorageInterface $pdfs,
     ) {}
 
     public function run(): void
@@ -113,18 +115,16 @@ final class DevelopmentDataSeeder extends Seeder
             );
         }
 
-        DB::transaction(
-            function (): void {
-                $index = 0;
-                foreach (self::ACCOUNTS as $email => $account) {
-                    $user = $this->account($email, $account);
-                    if ($account['guard'] === PermissionCatalog::WEB) {
-                        $this->createData($user, $index);
-                    }
-                    $index++;
-                }
-            },
-        );
+        // No outer transaction: issuing writes PDF files and opens its own (CallsOutsideDatabaseInterface), and
+        // a failed run is repaired by running the seeder again
+        $index = 0;
+        foreach (self::ACCOUNTS as $email => $account) {
+            $user = $this->account($email, $account);
+            if ($account['guard'] === PermissionCatalog::WEB) {
+                $this->createData($user, $index);
+            }
+            $index++;
+        }
     }
 
     /**
@@ -181,6 +181,11 @@ final class DevelopmentDataSeeder extends Seeder
         $query = DB::table('invoices');
         $query->where('user_id', $user->id);
         $invoiceIds = $query->pluck('id');
+        // The new invoices get new ids, so their files would not overwrite these
+        $query->whereNotNull('pdf_path');
+        foreach ($query->pluck('pdf_path') as $path) {
+            $this->pdfs->delete($path);
+        }
 
         $query = DB::table('invoice_products');
         $query->whereIn('invoice_id', $invoiceIds);

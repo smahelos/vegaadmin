@@ -8,6 +8,7 @@ use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Models\Invoice;
 use App\Models\Status;
 use App\Models\StatusCategory;
+use Illuminate\Support\Facades\Storage;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsBackendUsers;
 use Tests\Support\BuildsInvoiceInput;
@@ -134,5 +135,102 @@ final class InvoiceCrudControllerTest extends TestCase
         $httpClient = $this->actingAs($this->regularUser, 'backpack');
         $httpResponse = $httpClient->get('/admin/invoice');
         $httpResponse->assertForbidden();
+    }
+
+    #[Test]
+    public function the_admin_downloads_the_stored_pdf_of_an_issued_invoice(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf('%PDF-1.4 admin copy');
+        $invoice = $invoiceFactory->create();
+
+        $response = $this->get(
+            route('admin.invoices.download', ['id' => $invoice->id]),
+        );
+
+        $response = $response->assertOk();
+        $response = $response->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith(
+            'attachment;',
+            (string) $response->headers->get('Content-Disposition'),
+        );
+        $this->assertSame('%PDF-1.4 admin copy', $response->getContent());
+    }
+
+    #[Test]
+    public function a_damaged_stored_pdf_points_the_admin_to_the_log(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf();
+        $invoice = $invoiceFactory->create();
+        $disk = Storage::disk('documents');
+        $invoice->refresh();
+        $disk->delete($invoice->pdf_path);
+
+        $response = $this->get(
+            route('admin.invoices.download', ['id' => $invoice->id]),
+        );
+
+        $response->assertRedirect();
+        $response->assertSessionHas(
+            'alert_messages.error',
+            [__('invoices.messages.pdf_damaged_admin')],
+        );
+    }
+
+    #[Test]
+    public function a_draft_has_no_pdf_to_download_in_the_admin(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $draftFactory = $invoiceFactory->draft();
+        $draft = $draftFactory->create();
+
+        $response = $this->get(
+            route('admin.invoices.download', ['id' => $draft->id]),
+        );
+
+        $response->assertNotFound();
+    }
+
+    #[Test]
+    public function guests_and_admin_users_without_permission_cannot_download_a_pdf(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf();
+        $invoice = $invoiceFactory->create();
+        $auth = auth('backpack');
+        $auth->logout();
+        $response = $this->get(
+            route('admin.invoices.download', ['id' => $invoice->id]),
+        );
+        $response->assertRedirect(
+            route('backpack.auth.login'),
+        );
+
+        $httpClient = $this->actingAs($this->regularUser, 'backpack');
+        $response = $httpClient->get(
+            route('admin.invoices.download', ['id' => $invoice->id]),
+        );
+
+        $response->assertForbidden();
+    }
+
+    #[Test]
+    public function only_an_issued_invoice_offers_the_pdf_download(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create();
+        $draftFactory = $invoiceFactory->draft();
+        $draft = $draftFactory->create();
+
+        $response = $this->get('/admin/invoice/' . $invoice->id . '/show');
+        $response->assertSee(
+            route('admin.invoices.download', ['id' => $invoice->id]),
+        );
+        $response = $this->get('/admin/invoice/' . $draft->id . '/show');
+        $response = $response->assertOk();
+        $response->assertDontSee(
+            route('admin.invoices.download', ['id' => $draft->id]),
+        );
     }
 }
