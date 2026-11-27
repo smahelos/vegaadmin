@@ -56,6 +56,11 @@ Each open step has a section below with its items. An item without a **Status** 
 - **Problem:** the user picks the template on every invoice, and changing it on the detail page redirects to the edit page instead of back to the detail. The user would rather set the template once in the settings of the business (2026-11-26). D-050 point 3 fixes the template at issue, so an issued invoice keeps its template either way.
 - **Fix (proposed, not decided):** a default template among the invoicing settings of the business that prefills a draft, like the default currency of `ls-business-invoice-defaults`, in its own branch. Open: whether a draft may still choose another template, and whether the selector on the detail page stays.
 
+### Today's date is taken in UTC
+- **Where:** `ClockInterface::now()` (in `app.timezone`, UTC) where it stands for a business date: `GetIssueInvoiceFormHandler` (suggested issue date and number series), `GuestInvoiceCreateForm`, `SendInvoiceRemindersHandler`, `SendInvoiceReminderHandler`, `InvoiceListPresenter::isOverdue()`
+- **Problem:** business dates follow `app.schedule_timezone` (Europe/Prague), which only the entity limit quota window uses (`EntityLimit`). Between midnight and 01:00 (02:00 in summer) Prague time the issue dialog suggests yesterday's date, on 1 January the previous year's date and number; reminders and the overdue mark count days from the UTC date.
+- **Fix (decided 2026-11-27 to be done once for the whole app, not per screen):** one way to get today's date in `app.schedule_timezone` through the time port, used wherever the code means a calendar day; stored timestamps stay in UTC. Fits with `ls-invoice-reminders-statistics`, which reworks the reminders.
+
 ## Step 13: Expenses as received documents
 
 ### Expenses are not modelled as received documents
