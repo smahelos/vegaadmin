@@ -39,7 +39,7 @@ The goal is that:
 
 ### 3.2 Issuing
 
-- Issuing opens a dialog with the number, the issue date and the tax point date.
+- Issuing opens a dialog with the number, the issue date and the tax point date. The dialog is offered on the draft's detail, on the draft's row in the invoice list and by "Save and issue" in the draft's edit form, which saves the draft and opens the dialog on its detail.
 - The number is prefilled with the next number of the series (3.4); the user may enter any other unused number in the `InvoiceNumber` format.
 - The issue date is prefilled with today and may be changed; an empty tax point date is prefilled with the issue date. The due date is the issue date plus the due days.
 - Issuing copies the supplier business's VAT payer flag and register entry to the document, stores the VAT lines by rate, renders the PDF in the document's language and template, and stores it with its hash.
@@ -49,7 +49,7 @@ The goal is that:
 ### 3.3 Issued document
 
 - An issued document is never changed and never deleted, by the user, the admin or a console command.
-- The user can open the edit form of an issued invoice: every field is shown read-only with the note "Issued document – changes only by a corrective document" and a link to create one. Only the payment status can be changed.
+- Opening the edit form of an issued invoice leads to its detail with the note "Issued document – changes only by a corrective document" (with a link to create one once corrective documents exist). Only the payment status can be changed, on the detail: "Mark as paid" and "Mark as unpaid".
 - "Save to contacts" and "Link to an existing contact" are offered only on drafts.
 - A download returns the stored PDF. If its hash does not match, the download fails with an error and the mismatch is logged as critical.
 - Every issued document offers "Copy to a new draft", which creates a draft with the same parties, lines and settings and no number.
@@ -170,7 +170,7 @@ To be confirmed before production (step 24), not before delivering this document
 | A08 | Downloading an issued document returns the stored PDF byte for byte; after the business, the template, the translations or the user's language change, the download is unchanged. |
 | A09 | A stored PDF whose hash does not match is not returned; the error is logged as critical. |
 | A10 | Every attempt to change an issued document other than its payment status is refused, through the frontend form, the admin and the Domain; an issued document cannot be deleted. |
-| A11 | The edit form of an issued invoice shows all fields read-only and allows only the payment status to change. |
+| A11 | Opening the edit form of an issued invoice leads to its detail with the note "Issued document – changes only by a corrective document"; the detail allows only the payment status to change, to paid and back to unpaid. |
 | A12 | "Save to contacts" and "Link to an existing contact" are not offered on an issued document. |
 | A13 | A payer's issued invoice prints the base and VAT for each rate; a non-payer's prints no VAT and states "Not a VAT payer". |
 | A14 | A change of the business's VAT payer flag or register entry changes drafts and later issued documents, never an issued one. |
@@ -186,7 +186,7 @@ To be confirmed before production (step 24), not before delivering this document
 | A24 | The amount owed of an invoice is its total plus all its corrective documents; an invoice whose case totals zero is labelled "Fully corrected" and gets no reminder. |
 | A25 | Reminders and the overdue count include only issued, unpaid invoices past their due date with an amount owed above zero, and state the amount owed. |
 | A26 | Revenue counts the tax base of issued documents in the period of their tax point date or day of correction, corrective documents with their sign; drafts are not counted. |
-| A27 | The admin shows documents and their stored PDFs read-only and offers no create, edit, issue or delete. |
+| A27 | The admin shows documents read-only and offers no create, edit, issue or delete; it downloads their stored PDFs. |
 | A28 | The monthly invoice quota is checked at issue and counts issued invoices; drafts and corrective documents do not count. |
 | A29 | `db:archive` and the archive policies no longer exist; documents older than 36 months stay readable with their PDFs. |
 | A30 | The guest invoice is not stored, its number is free and prefilled from the current year of the clock. |
@@ -200,8 +200,9 @@ To be confirmed before production (step 24), not before delivering this document
 | `ls-invoice-page-dtos` | typed page DTOs of the invoice pages; no product behaviour | — |
 | `ls-business-invoice-settings` | 6 (first three fields: stored on the business, set in the forms and registration) | A31 (first part) |
 | `ls-vat-by-rate` | VAT computed and printed by rate; a non-payer's lines carry rate 0 | A13 |
-| `ls-invoice-issue` | 3, 5 (without corrective documents), 7 (admin, quota) | A01–A07, A10–A12, A14–A16, A25 (without corrective documents), A26 (invoices), A27, A28, A30 |
-| `ls-invoice-stored-pdf` | 3.2 and 3.3 (stored PDF, hash, download) | A07 (PDF part), A08, A09 |
+| `ls-invoice-issue` | 3 (without the stored PDF), 5 (payment status of issued invoices), 7 (admin read-only, quota) | A01–A07 (without the PDF part), A10–A12, A14–A16, A27 (without the PDF), A28, A30 |
+| `ls-invoice-stored-pdf` | 3.2 and 3.3 (stored PDF, hash, download), 7 (admin PDF download) | A07 (PDF part), A08, A09, A27 (PDF download) |
+| `ls-invoice-reminders-statistics` | 5 (reminders, overdue count and revenue of issued invoices, without corrective documents) | A25 (without corrective documents), A26 (invoices) |
 | `ls-corrective-documents` | 4, 5 (amount owed, statistics with corrective documents) | A17–A26 |
 | `ls-business-invoice-defaults` | 6 (last two fields) | A31 (second part) |
 

@@ -27,7 +27,8 @@ Business rules in plain PHP. Allowed dependencies: `architecture.md`.
 
 ## Invoices
 
-- Invoice number: four-digit year followed by the yearly sequence padded to at least four digits, sequence capped at 999999 so the number fits the 10-digit variable symbol of QR payments (`InvoiceNumber`). Unique per user and year; the next number is derived from the highest existing one through `InvoiceNumber`, never by string ordering.
+- Invoice number: four-digit year followed by the yearly sequence padded to at least four digits, sequence capped at 999999 so the number fits the 10-digit variable symbol of QR payments (`InvoiceNumber`). A draft has none: the number is given at issue, its year is the year of the issue date, and it is unique per user across years and document types (one series, D-050, unique index `(user_id, invoice_vs)`). The next number is derived from the highest existing one of the year through `InvoiceNumber`, never by string ordering.
+- An issued invoice is locked: only its payment status changes (D-050); everything else, deleting included, refuses with `InvoiceIssuedException`. A draft is changed and deleted freely. The totals of an issued payer's invoice come from its stored VAT lines (`InvoiceTotals::fromVatLines()`).
 - Line items are the source of truth for totals; an invoice's subtotal, VAT and total are derived from them.
 - VAT is computed by rate, never per line (`InvoiceTotals`): the VAT of a rate is the unrounded sum of price × quantity of its lines times the rate, rounded once to 2 places half up; the base of the rate is the same sum rounded separately. Subtotal, VAT and total are the sums of the rounded rates. A supplier that is not a VAT payer uses only rate 0 (`InvoiceTotals::forSupplier()`).
 

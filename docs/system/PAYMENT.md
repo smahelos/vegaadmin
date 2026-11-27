@@ -63,7 +63,7 @@ Callers: Invoice's `InvoicePdfRenderer` (only when the invoice is paid by bank t
 
 ## Payment methods and banks
 
-- An invoice and an expense name their payment method (`payment_method_id`). `PaymentMethodCode::BANK_ACCOUNT` decides whether the invoice needs a bank account (`InvoiceRequest`, `Admin\InvoiceRequest`) and a QR code; Invoice reads the methods through `PaymentMethodDtoReadRepositoryInterface`. Labels are `payment_methods.methods.*` in `lang/*/payment_methods.php`.
+- An invoice and an expense name their payment method (`payment_method_id`). `PaymentMethodCode::BANK_ACCOUNT` decides whether the invoice needs a bank account (`InvoiceRequest`) and a QR code; Invoice reads the methods through `PaymentMethodDtoReadRepositoryInterface`. Labels are `payment_methods.methods.*` in `lang/*/payment_methods.php`.
 - The bank account forms of Party offer the banks of the owner's country through `BankApplicationService` (`ProvidesPartyOptions`); `BankAccountRule` validates the number through `BankAccount`.
 - Analytics counts invoices by payment method (`GetPaymentMethods`).
 

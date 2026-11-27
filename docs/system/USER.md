@@ -1,6 +1,6 @@
 # User context
 
-Status: maintained map of the code on `main`, last checked 2026-11-21. Start with [the system overview](OVERVIEW.md). The rules for permissions and limits are in `rules/permissions.md`; this page says where they live in the code.
+Status: maintained map of the code on `main`, last checked 2026-11-27. Start with [the system overview](OVERVIEW.md). The rules for permissions and limits are in `rules/permissions.md`; this page says where they live in the code.
 
 Accounts, their roles and permissions, the entity limits of the plan roles, and the user's locale. Composition root: `UserServiceProvider`. Decisions: `docs/adr/D-047-entity-limits.md`, `docs/adr/D-048-permission-checks.md`, `docs/adr/D-049-grants.md`. Behaviour: `docs/prd/PRD_PERMISSIONS.md`, `docs/prd/PRD_ENTITY_LIMITS.md`, `docs/prd/PRD_GRANTS.md`.
 
@@ -23,7 +23,7 @@ Commands in `app/Application/User/Commands/`, queries in `app/Application/User/Q
 | `CreateUser`, `UpdateUser` | `Admin\UserCrudController` (`store`, `update`) | `user.create`, `user.update` | roles and direct permissions are written through `UserWriteRepositoryInterface`; `PlanRoleAssignments` records a changed plan role, which restarts the monthly quota |
 | `AssignRole` | Artisan command `AssignUserRole` | system | the operator's role assignment, also through `PlanRoleAssignments` |
 | `SearchUsers` | `Api\UserController`, route `api.admin.users.search` | all owners, `user.view` | the owner lookup of admin forms |
-| `GetEntityUsage` | `EntityUsageController` (`admin.entity-usage.show`), the `EntityUsage` view component (`<x-entity-usage>` on the frontend create and list pages and the dashboard), the admin user detail | any create or update permission of a limited entity | counts only, never records |
+| `GetEntityUsage` | `EntityUsageController` (`admin.entity-usage.show`), the `EntityUsage` view component (`<x-entity-usage>` on the frontend create and list pages, the invoice issue dialog and the dashboard), the admin user detail | any create or update permission of a limited entity | counts only, never records |
 
 Not through a use case:
 
@@ -43,7 +43,7 @@ Every use case declares its access in its static `access()` (`Access`). The gate
 | Which entities are limited, capacity or monthly quota | `LimitedEntity` (the value is its `role_limits` column) |
 | The check, inside the creating transaction | `EntityLimit::assertCanCreate()`, which locks the owner's `users` row |
 | The limit of the owner's plan role | `RoleLimitReadRepositoryInterface`, read from `GrantStore` |
-| The usage, counted from the entity's own rows | `LimitedEntityCounterInterface` (`EloquentLimitedEntityCounter`) |
+| The usage, counted from the entity's own rows | `LimitedEntityCounterInterface` (`EloquentLimitedEntityCounter`; invoices by `issued_at`, as Invoice's `IssueInvoiceHandler` checks the quota) |
 | Refusal | `EntityLimitExceededException`; `ExceptionHandling` shows the entity's `<file>.messages.limit_exceeded` translation, Livewire forms catch it themselves |
 | Usage for display | `EntityLimit::usage()` through `GetEntityUsage` |
 | The limits per role, edited in the admin | `RoleLimitCrudController`, `RoleLimitFormFields`, `RoleLimitRequest` |

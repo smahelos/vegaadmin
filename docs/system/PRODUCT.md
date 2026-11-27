@@ -9,7 +9,7 @@ The user's own catalogue of products with a price, currency, VAT rate and catego
 | Entity | Table | Code |
 |---|---|---|
 | Product | `products`, owned by a user; `slug` unique per user | `App\Models\Product`, `ProductDTO`, `ProductId`, `ProductWriteData`, `ProductSearch`, `ProductSort`; ports `ProductDtoReadRepositoryInterface` and `ProductDtoWriteRepositoryInterface` (`EloquentProductDtoRepository`, mapper `EloquentProductMapper`) |
-| Catalogue product | `products`: the active products of one currency, as offered by the admin invoice editor | `CatalogProductDTO`; port `CatalogProductReadRepositoryInterface` (`EloquentCatalogProductRepository`, mapper `EloquentCatalogProductMapper`) |
+| Catalogue product | `products`, as an invoice line links them | port `CatalogProductReadRepositoryInterface` (`EloquentCatalogProductRepository`) |
 | Product category | `product_categories` (reference data without an owner, the same for every user) | `App\Models\ProductCategory`; no DTO, no port |
 | Invoice line | `invoice_products` | Invoice's entity, written with the invoice ([INVOICE.md](INVOICE.md#entities)) |
 
@@ -30,7 +30,7 @@ Commands in `app/Application/Product/Commands/`, queries in `app/Application/Pro
 
 "With owner" is `Access::permissionWithOwner()` (`rules/permissions.md`). `CreateProductHandler` calls `EntityLimit::assertCanCreate()` for `LimitedEntity::PRODUCT`; a product is a capacity limit, so deleting one frees a place (D-047). The `create` rate limiter is registered in `RouteServiceProvider`. `DeleteProduct` removes the image file after the commit, so it implements `CallsOutsideDatabaseInterface` and opens its own transaction.
 
-The admin invoice editor reads the catalogue through Invoice's `ListInvoiceCatalogProducts` (`InvoiceItemsController`): up to 50 active products of the invoice's currency. The frontend picker `ProductListSelect` lists every product of the owner, active or not and in any currency, and leaves out those already on the invoice (`ProductSearch::$excluded`, sent by `resources/js/product-selector.js`); a line in another currency than the invoice is then refused by `InvoiceItemInput` ("The invoice product picker offers products the invoice refuses" in [TECH_DEBT](../TECH_DEBT.md)).
+The frontend picker `ProductListSelect` lists every product of the owner, active or not and in any currency, and leaves out those already on the invoice (`ProductSearch::$excluded`, sent by `resources/js/product-selector.js`); a line in another currency than the invoice is then refused by `InvoiceItemInput` ("The invoice product picker offers products the invoice refuses" in [TECH_DEBT](../TECH_DEBT.md)).
 
 Product categories have no use cases: `Admin\ProductCategoryCrudController` writes them through the model, with the `product.*` permissions ("Product and expense categories share their entity's permissions" in [TECH_DEBT](../TECH_DEBT.md)); `ProductCategoryRequest` validates them.
 
