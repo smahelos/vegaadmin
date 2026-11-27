@@ -19,7 +19,7 @@ use LogicException;
 
 /**
  * The parties are the stored ones, as the copied invoice prints them; the VAT payer flag is the business's current
- * one, as on any draft.
+ * one, as on any draft, so a business that stopped paying VAT gets the lines at rate 0.
  */
 final class CopyInvoiceHandler
 {
@@ -48,6 +48,7 @@ final class CopyInvoiceHandler
             template: $source->template,
             language: $source->language,
         );
+        $vatPayer = $business->invoicing->vatPayer;
         $lines = [];
         foreach ($source->items as $item) {
             $lines[] = new InvoiceProductWriteData(
@@ -55,7 +56,7 @@ final class CopyInvoiceHandler
                 quantity: $item->quantity,
                 unit: $item->unit,
                 price: $item->price,
-                taxRate: $item->taxRate,
+                taxRate: $vatPayer ? $item->taxRate : '0',
                 productId: $item->productId,
                 category: $item->category,
                 description: $item->description,
@@ -73,7 +74,7 @@ final class CopyInvoiceHandler
                     $data,
                     $parties->withSupplierLogo($logo),
                     $lines,
-                    $business->invoicing->vatPayer,
+                    $vatPayer,
                 ),
             ),
         );

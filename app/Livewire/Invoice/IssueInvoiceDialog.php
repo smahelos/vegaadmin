@@ -9,6 +9,7 @@ use App\Application\Invoice\Queries\GetIssueInvoiceForm;
 use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\Exceptions\InvoiceNumberYearException;
+use App\Domain\Invoice\Exceptions\NonPayerVatRateException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\User\Exceptions\EntityLimitExceededException;
@@ -123,6 +124,15 @@ final class IssueInvoiceDialog extends Component
                 $id,
                 'error',
                 __('invoices.messages.issued_locked'),
+            );
+
+            return;
+        } catch (NonPayerVatRateException) {
+            // The business stopped paying VAT after the draft was saved; the lines are fixed in the draft's form
+            $this->toDetail(
+                $id,
+                'error',
+                __('invoices.validation.non_payer_vat_rate'),
             );
 
             return;

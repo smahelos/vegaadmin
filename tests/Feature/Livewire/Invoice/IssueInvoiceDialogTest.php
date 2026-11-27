@@ -10,6 +10,7 @@ use App\Domain\User\Enums\Permission;
 use App\Livewire\Invoice\IssueInvoiceDialog;
 use App\Models\Business;
 use App\Models\Invoice;
+use App\Models\InvoiceProduct;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\App;
@@ -171,6 +172,39 @@ final class IssueInvoiceDialogTest extends TestCase
         $component->assertRedirect(
             route('frontend.invoice.show', ['locale' => App::getLocale(), 'id' => $issued->id]),
         );
+    }
+
+    #[Test]
+    public function a_vat_rate_of_a_business_that_stopped_paying_vat_returns_to_the_detail(): void
+    {
+        // setUp's business is a non-payer, so a line with a rate stands for a business changed after the save
+        $invoiceProductFactory = InvoiceProduct::factory();
+        $invoiceProductFactory->create(
+            [
+                'invoice_id' => $this->draft->id,
+                'product_id' => null,
+                'is_custom_product' => true,
+                'name' => 'Konzultace',
+                'quantity' => '1',
+                'price' => '100',
+                'currency' => $this->draft->payment_currency,
+                'tax_rate' => '21',
+            ],
+        );
+        $this->actingAs($this->user, 'web');
+
+        $component = Livewire::test(IssueInvoiceDialog::class);
+        $component->dispatch('open-issue-dialog', id: $this->draft->id);
+        $component->call('issue');
+
+        $component->assertRedirect(
+            route('frontend.invoice.show', ['locale' => App::getLocale(), 'id' => $this->draft->id]),
+        );
+        $this->assertSame(
+            __('invoices.validation.non_payer_vat_rate'),
+            session('error'),
+        );
+        $this->assertNull($this->draft->fresh()->issued_at);
     }
 
     #[Test]

@@ -317,6 +317,26 @@ final class InvoiceIssuingTest extends TestCase
     }
 
     #[Test]
+    public function a_copy_for_a_business_that_stopped_paying_vat_has_rate_zero(): void
+    {
+        $source = $this->draft();
+        $this->issue($source, '20260001');
+        $this->business->update(['is_vat_payer' => false]);
+        $owner = $this->idOf($this->user);
+
+        $copy = $this->runAs(
+            $owner,
+            new CopyInvoice(
+                $owner,
+                InvoiceId::fromInt($source->id),
+            ),
+        );
+
+        $this->assertSame('0.00', $copy->items[0]->taxRate);
+        $this->assertSame('100', $copy->totalAmount->amount);
+    }
+
+    #[Test]
     public function the_pdf_of_a_draft_is_named_by_its_id_and_printed_in_the_document_language(): void
     {
         $draft = $this->draft();
