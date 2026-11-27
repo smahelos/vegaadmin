@@ -29,13 +29,15 @@ return new class extends Migration
             },
         );
 
-        // No stored invoice is converted to an issued one (D-050): every existing row becomes a draft
+        // No stored invoice is converted to an issued one (D-050): every existing row becomes an unpaid draft,
+        // which also clears the 'cancelled' status InvoiceStatus no longer has
         $invoices = DB::table('invoices');
         $invoices->update(
             [
                 'invoice_vs' => null,
                 'issue_date' => null,
                 'tax_point_date' => null,
+                'payment_status' => 'pending',
             ],
         );
 
