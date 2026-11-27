@@ -36,6 +36,6 @@ final readonly class CreateInvoice extends OwnedUseCase implements CallsOutsideD
 
     public static function access(): Access
     {
-        return Access::permissionWithOwner(Permission::INVOICE_CREATE);
+        return Access::permission(Permission::INVOICE_CREATE);
     }
 }

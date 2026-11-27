@@ -74,6 +74,7 @@ return [
         'save_customer_to_contacts' => 'Kunden in Kontakte speichern',
         'is_vat_payer' => 'Umsatzsteuerpflichtig',
         'item_base' => 'Bemessungsgrundlage',
+        'document_language' => 'Belegsprache',
     ],
     'hints' => [
         'invoice_vs' => 'Sie können die vorgeschlagene Rechnungsnummer an Ihr Nummerierungssystem anpassen.',
@@ -85,10 +86,12 @@ return [
         'due_in' => '',
         'payment_amount' => '',
         'payment_currency' => '',
-        'status' => '',
         'invoice_text' => '',
         'invoice_logo' => 'Laden Sie ein Logo hoch, das auf der Rechnung angezeigt werden soll (JPEG, PNG, GIF, SVG, max. 2MB)',
         'template' => 'Wählen Sie eine Vorlage für die PDF-Rechnung aus',
+        'document_language' => 'In dieser Sprache wird das Rechnungs-PDF gedruckt.',
+        'issue' => 'Mit der Ausstellung wird die Rechnung gesperrt: Nummer, Daten und Lieferantenangaben ändern sich nicht mehr. Weitere Änderungen sind nur über einen Korrekturbeleg möglich.',
+        'issue_tax_point_date' => 'Wenn Sie es leer lassen, wird das Ausstellungsdatum verwendet.',
     ],
     'placeholders' => [
         'select_status' => 'Status auswählen...',
@@ -145,6 +148,10 @@ return [
         'reload_contact' => 'Kontaktdaten laden',
         'clear_contact' => 'Kontakt entfernen',
         'use_contact' => 'Diesen Kontakt verwenden',
+        'issue' => 'Rechnung ausstellen',
+        'copy' => 'In einen neuen Entwurf kopieren',
+        'mark_as_unpaid' => 'Als unbezahlt markieren',
+        'save_and_issue' => 'Speichern und ausstellen',
     ],
     'messages' => [
         'id_required' => 'Rechnungs-ID ist erforderlich.',
@@ -172,7 +179,6 @@ return [
         'expires_in_soon' => 'Der Link läuft bald ab',
         'invoice_deleted' => 'Rechnung wurde erfolgreich gelöscht.',
         'invoice_sent' => 'Rechnung wurde erfolgreich gesendet.',
-        'marked_as_paid' => 'Die Rechnung wurde als bezahlt markiert.',
         'status_not_found' => 'Status "bezahlt" wurde nicht gefunden.',
         'no_image' => 'Kein Bild',
         'no_invoices' => 'Keine Rechnungen gefunden.',
@@ -191,6 +197,13 @@ return [
         'no_contacts_found' => 'Kein Kontakt gefunden.',
         'contact_exists' => 'Der Kontakt :name mit derselben ID-Nummer existiert bereits.',
         'not_vat_payer' => 'Nicht umsatzsteuerpflichtig',
+        'issued' => 'Die Rechnung wurde ausgestellt.',
+        'copied' => 'Aus der Rechnung wurde ein neuer Entwurf erstellt.',
+        'status_set' => 'Der Zahlungsstatus wurde geändert.',
+        'issued_locked' => 'Ausgestellter Beleg – Änderungen nur über einen Korrekturbeleg.',
+        'issued_note' => 'Die Rechnung ist ausgestellt und gesperrt. Nur der Zahlungsstatus kann sich ändern, andere Änderungen nur über einen Korrekturbeleg.',
+        'draft_without_status' => 'Ein Entwurf hat keinen Zahlungsstatus. Stellen Sie die Rechnung zuerst aus.',
+        'due_after_issue' => ':days Tage nach Ausstellung',
     ],
     'validation' => [
         'item_currency' => 'Die Währung der Position muss der Währung der Rechnung entsprechen.',
@@ -203,6 +216,8 @@ return [
         'invalid_iban' => 'IBAN ist ungültig',
         'invalid_vat_id' => 'Umsatzsteuer-ID ist ungültig',
         'non_payer_vat_rate' => 'Ein Nichtsteuerpflichtiger gibt bei allen Positionen den Steuersatz 0 % an.',
+        'number_taken' => 'Ein anderer Ihrer Belege hat bereits diese Nummer. Die nächste freie Nummer ist :suggestion.',
+        'number_year' => 'Die Rechnungsnummer muss zur Reihe des Jahres des Ausstellungsdatums gehören. Vorgeschlagene Nummer: :suggestion.',
     ],
     'vat_lines' => [
         'titles' => [
@@ -218,8 +233,8 @@ return [
     'statuses' => [
         'paid' => 'Bezahlt',
         'pending' => 'Ausstehend',
-        'cancelled' => 'Storniert',
         'overdue' => 'Überfällig',
+        'draft' => 'Entwurf',
     ],
     'qr_code_info' => 'Verwenden Sie den QR-Code für die Zahlung',
     'defaults' => [
@@ -255,6 +270,9 @@ return [
         'empty' => 'Sie haben noch keine Rechnungen.',
         'empty_message' => 'Erstellen Sie Ihre erste Rechnung, indem Sie auf die Schaltfläche unten klicken.',
         'create_free_invoice' => 'Kostenlose Rechnung erstellen',
+        'draft' => 'Rechnungsentwurf',
+        'issue' => 'Rechnung ausstellen',
+        'draft_preview' => 'Entwurf – kein Steuerbeleg',
     ],
     'labels' => [
         'created_at' => 'Ausstellungsdatum',

@@ -78,31 +78,27 @@ final readonly class InvoiceNumber
     }
 
     /**
-     * Create next invoice number based on current year
+     * The number after the highest one of the year's series, or its first number.
+     *
+     * @param  string|null  $lastNumber  The highest number of the series of $year
      */
-    public static function generateNext(?string $lastNumber = null): self
+    public static function generateNext(int $year, ?string $lastNumber): self
     {
-        $currentYear = (int) date('Y');
-
-        if (!$lastNumber) {
-            return self::fromYearAndSequence($currentYear, 1);
+        if ($lastNumber === null) {
+            return self::fromYearAndSequence($year, 1);
         }
 
-        $lastInvoice = new self($lastNumber);
-
-        // If it's a new year, start from 1
-        if ($lastInvoice->year() < $currentYear) {
-            return self::fromYearAndSequence($currentYear, 1);
-        }
-
-        if ($lastInvoice->sequence() >= self::MAX_SEQUENCE) {
+        $last = new self($lastNumber);
+        if ($last->year() !== $year) {
             throw new InvalidArgumentException(
-                "Invoice number sequence for year {$currentYear} is exhausted",
+                "Invoice number {$lastNumber} is not of the series of {$year}",
             );
         }
+        if ($last->sequence() >= self::MAX_SEQUENCE) {
+            throw new InvalidArgumentException("Invoice number sequence for year {$year} is exhausted");
+        }
 
-        // Otherwise increment sequence
-        return self::fromYearAndSequence($currentYear, $lastInvoice->sequence() + 1);
+        return self::fromYearAndSequence($year, $last->sequence() + 1);
     }
 
     public function year(): int

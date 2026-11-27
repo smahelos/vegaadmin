@@ -93,7 +93,6 @@ services:
                 - %currentWorkingDirectory%/routes/
             providers: %currentWorkingDirectory%/app/Providers/
             files:
-                - %currentWorkingDirectory%/app/Http/Requests/Admin/InvoiceRequest.php
                 - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceDueReminder.php
                 - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceOverdueReminder.php
                 - %currentWorkingDirectory%/app/Infrastructure/Notifications/Invoice/Messages/InvoiceUpcomingDueReminder.php

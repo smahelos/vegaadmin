@@ -7,16 +7,16 @@ namespace Tests\Feature\Application\Invoice;
 use App\Application\Invoice\Commands\CreateGuestInvoice;
 use App\Application\Invoice\Commands\CreateInvoice;
 use App\Application\Invoice\Commands\DeleteGuestInvoice;
-use App\Application\Invoice\Commands\MarkInvoicePaid;
 use App\Application\Invoice\Commands\SaveInvoiceCustomerToContacts;
+use App\Application\Invoice\Commands\SetInvoiceStatus;
 use App\Application\Invoice\Commands\SetInvoiceTemplate;
 use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
 use App\Application\Invoice\DTO\InvoicePartySelection;
 use App\Application\Invoice\Queries\GetGuestInvoicePdf;
 use App\Application\Invoice\Queries\GetInvoice;
-use App\Application\Invoice\Queries\GetInvoiceCreateForm;
 use App\Application\Invoice\Queries\GetInvoicePdf;
+use App\Application\Invoice\Queries\GetIssueInvoiceForm;
 use App\Application\Invoice\Queries\ListInvoiceFilters;
 use App\Application\Invoice\Queries\ListInvoices;
 use App\Application\Shared\UseCase\Actor;
@@ -77,10 +77,11 @@ final class InvoiceUseCasesTest extends TestCase
     {
         $user = $this->frontendUser();
         $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
+        $draftFactory = $invoiceFactory->draft();
+        $invoice = $draftFactory->create(
             [
                 'user_id' => $user->id,
-                'invoice_vs' => '20260001',
+                'due_in' => 30,
                 'payment_currency' => 'CZK',
             ],
         );
@@ -93,7 +94,7 @@ final class InvoiceUseCasesTest extends TestCase
                 new UpdateInvoice(
                     $this->idOf($user),
                     InvoiceId::fromInt($invoice->id),
-                    $this->invoiceWriteData('20260002'),
+                    $this->invoiceWriteData(),
                     $this->parties(
                         BusinessId::fromInt($invoice->business_id),
                         new DocumentPartyDTO(
@@ -113,7 +114,7 @@ final class InvoiceUseCasesTest extends TestCase
         } catch (QueryException) {
         }
 
-        $this->assertSame('20260001', $invoice->fresh()->invoice_vs);
+        $this->assertSame(30, $invoice->fresh()->due_in);
         $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
         $invoiceProductValues = $invoiceProductQuery->pluck('id');
         $this->assertSame(
@@ -217,7 +218,8 @@ final class InvoiceUseCasesTest extends TestCase
     {
         $user = $this->frontendUser();
         $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
+        $draftFactory = $invoiceFactory->draft();
+        $invoice = $draftFactory->create(
             [
                 'user_id' => $user->id,
                 'payment_currency' => 'CZK',
@@ -280,7 +282,7 @@ final class InvoiceUseCasesTest extends TestCase
                 $this->idOf($user),
                 new CreateInvoice(
                     $this->idOf($user),
-                    $this->invoiceWriteData('20260042'),
+                    $this->invoiceWriteData(),
                     $this->parties(
                         BusinessId::fromInt($business->id),
                         new DocumentPartyDTO(
@@ -434,6 +436,7 @@ final class InvoiceUseCasesTest extends TestCase
         $businessFactory = $businessFactory->connection('contact_race');
         $business = $businessFactory->create(['user_id' => $owner->id]);
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->draft();
         $invoiceFactory = $invoiceFactory->connection('contact_race');
         $paymentMethodQuery = PaymentMethod::on('contact_race');
         $paymentMethodQuery->where('slug', 'cash');
@@ -483,26 +486,19 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_owner_sets_the_template_and_marks_the_invoice_paid(): void
+    public function the_owner_sets_the_template_of_a_draft(): void
     {
         $user = $this->frontendUser();
         $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(['user_id' => $user->id]);
-        $id = InvoiceId::fromInt($invoice->id);
+        $draftFactory = $invoiceFactory->draft();
+        $invoice = $draftFactory->create(['user_id' => $user->id]);
 
         $this->runAs(
             $this->idOf($user),
             new SetInvoiceTemplate(
                 $this->idOf($user),
-                $id,
+                InvoiceId::fromInt($invoice->id),
                 InvoiceTemplate::MODERN,
-            ),
-        );
-        $this->runAs(
-            $this->idOf($user),
-            new MarkInvoicePaid(
-                $this->idOf($user),
-                $id,
             ),
         );
 
@@ -511,7 +507,6 @@ final class InvoiceUseCasesTest extends TestCase
             [
                 'id' => $invoice->id,
                 'template' => InvoiceTemplate::MODERN->value,
-                'payment_status' => InvoiceStatus::PAID->value,
             ],
         );
     }
@@ -528,9 +523,10 @@ final class InvoiceUseCasesTest extends TestCase
 
         $this->runAs(
             $this->idOf($other),
-            new MarkInvoicePaid(
+            new SetInvoiceStatus(
                 $this->idOf($other),
                 InvoiceId::fromInt($invoice->id),
+                InvoiceStatus::PAID,
             ),
         );
     }
@@ -549,7 +545,6 @@ final class InvoiceUseCasesTest extends TestCase
             new GetInvoicePdf(
                 $this->idOf($user),
                 InvoiceId::fromInt($invoice->id),
-                'en',
             ),
         );
 
@@ -572,7 +567,6 @@ final class InvoiceUseCasesTest extends TestCase
             new GetInvoicePdf(
                 $this->idOf($other),
                 InvoiceId::fromInt($invoice->id),
-                'cs',
             ),
         );
     }
@@ -659,7 +653,7 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_create_form_suggests_starts_sequence_for_user_without_invoices(): void
+    public function the_issue_dialog_suggests_starts_sequence_for_user_without_invoices(): void
     {
         $now = CarbonImmutable::now();
         $year = $now->year;
@@ -672,7 +666,7 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_create_form_suggests_continues_sequence_of_current_year(): void
+    public function the_issue_dialog_suggests_continues_sequence_of_current_year(): void
     {
         $now = CarbonImmutable::now();
         $year = $now->year;
@@ -688,7 +682,7 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_create_form_suggests_restarts_sequence_after_non_standard_last_number(): void
+    public function the_issue_dialog_suggests_restarts_sequence_after_non_standard_last_number(): void
     {
         $now = CarbonImmutable::now();
         $year = $now->year;
@@ -703,7 +697,7 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_create_form_suggests_continues_past_9999(): void
+    public function the_issue_dialog_suggests_continues_past_9999(): void
     {
         $now = CarbonImmutable::now();
         $year = $now->year;
@@ -719,7 +713,7 @@ final class InvoiceUseCasesTest extends TestCase
     }
 
     #[Test]
-    public function the_create_form_suggests_ignores_non_standard_numbers(): void
+    public function the_issue_dialog_suggests_ignores_non_standard_numbers(): void
     {
         $now = CarbonImmutable::now();
         $year = $now->year;
@@ -770,15 +764,18 @@ final class InvoiceUseCasesTest extends TestCase
 
     private function suggestedNumber(User $user): string
     {
+        $invoiceFactory = Invoice::factory();
+        $draftFactory = $invoiceFactory->draft();
+        $draft = $draftFactory->create(['user_id' => $user->id]);
         $form = $this->runAs(
             $this->idOf($user),
-            new GetInvoiceCreateForm(
+            new GetIssueInvoiceForm(
                 $this->idOf($user),
+                InvoiceId::fromInt($draft->id),
             ),
         );
-        $this->assertNotNull($form->suggestedNumber);
 
-        return $form->suggestedNumber;
+        return $form->number->value;
     }
 
     private function search(?BusinessId $businessId): InvoiceSearch
@@ -912,7 +909,8 @@ final class InvoiceUseCasesTest extends TestCase
     private function contactToLink(User $user, array $attributes): ?DuplicatePartyDTO
     {
         $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
+        $draftFactory = $invoiceFactory->draft();
+        $invoice = $draftFactory->create(
             $attributes + ['user_id' => $user->id, 'customer_registration_country' => 'CZ'],
         );
         $detail = $this->runAs(

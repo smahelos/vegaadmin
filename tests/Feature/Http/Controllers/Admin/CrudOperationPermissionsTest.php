@@ -13,7 +13,6 @@ use App\Models\Contact;
 use App\Models\CronTask;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
-use App\Models\Invoice;
 use App\Models\Page;
 use App\Models\PageCategory;
 use App\Models\PaymentMethod;
@@ -104,11 +103,6 @@ final class CrudOperationPermissionsTest extends TestCase
                 'expense-category',
                 Permission::EXPENSE_VIEW,
                 ExpenseCategory::class,
-            ],
-            'invoice' => [
-                'invoice',
-                Permission::INVOICE_VIEW,
-                Invoice::class,
             ],
             'page' => [
                 'page',

@@ -32,35 +32,27 @@ final class InvoiceNumberTest extends TestCase
     }
 
     #[Test]
-    public function generates_next_number_for_new_sequence(): void
+    public function generates_next_number_of_the_year(): void
     {
-        $currentYear = (int) date('Y');
-        $invoiceNumber = InvoiceNumber::generateNext($currentYear . '0005');
+        $invoiceNumber = InvoiceNumber::generateNext(2025, '20250005');
 
-        $this->assertEquals($currentYear, $invoiceNumber->year());
-        $this->assertEquals(6, $invoiceNumber->sequence());
+        $this->assertSame('20250006', $invoiceNumber->value);
     }
 
     #[Test]
-    public function restarts_sequence_when_last_number_is_from_previous_year(): void
+    public function refuses_a_last_number_of_another_year(): void
     {
-        $currentYear = (int) date('Y');
-        $invoiceNumber = InvoiceNumber::generateNext(($currentYear - 1) . '0005');
+        $this->expectException(InvalidArgumentException::class);
 
-        $this->assertEquals($currentYear, $invoiceNumber->year());
-        $this->assertEquals(1, $invoiceNumber->sequence());
+        InvoiceNumber::generateNext(2026, '20250005');
     }
 
     #[Test]
-    public function generates_first_number_when_no_last_number(): void
+    public function generates_first_number_of_a_year_without_numbers(): void
     {
-        $invoiceNumber = InvoiceNumber::generateNext();
+        $invoiceNumber = InvoiceNumber::generateNext(2024, null);
 
-        $this->assertEquals(
-            (int) date('Y'),
-            $invoiceNumber->year(),
-        );
-        $this->assertEquals(1, $invoiceNumber->sequence());
+        $this->assertSame('20240001', $invoiceNumber->value);
     }
 
     #[Test]
@@ -129,10 +121,9 @@ final class InvoiceNumberTest extends TestCase
     #[Test]
     public function continues_with_five_digit_sequence_after_9999(): void
     {
-        $currentYear = (int) date('Y');
-        $invoiceNumber = InvoiceNumber::generateNext($currentYear . '9999');
+        $invoiceNumber = InvoiceNumber::generateNext(2025, '20259999');
 
-        $this->assertSame($currentYear . '10000', $invoiceNumber->value);
+        $this->assertSame('202510000', $invoiceNumber->value);
         $this->assertSame(10000, $invoiceNumber->sequence());
     }
 
@@ -161,13 +152,9 @@ final class InvoiceNumberTest extends TestCase
     #[Test]
     public function throws_when_yearly_sequence_is_exhausted(): void
     {
-        $currentYear = (int) date('Y');
-
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage(
-            "Invoice number sequence for year {$currentYear} is exhausted",
-        );
+        $this->expectExceptionMessage('Invoice number sequence for year 2025 is exhausted');
 
-        InvoiceNumber::generateNext($currentYear . '999999');
+        InvoiceNumber::generateNext(2025, '2025999999');
     }
 }

@@ -222,7 +222,7 @@ final class AuthorizingUseCaseRunnerTest extends TestCase
     #[Test]
     public function any_of_the_declared_permissions_suffices(): void
     {
-        $admin = $this->backendUser(Permission::INVOICE_UPDATE);
+        $admin = $this->backendUser(Permission::EXPENSE_UPDATE);
         $owner = $this->frontendUser();
         $useCases = app(AuthorizingUseCaseRunnerInterface::class);
 

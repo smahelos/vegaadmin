@@ -7,10 +7,12 @@ namespace App\Application\Invoice\Queries;
 use App\Application\Invoice\DTO\DetailInvoiceDTO;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\DTO\DuplicatePartyDTO;
 use App\Domain\Party\Enums\DuplicateReason;
+use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Services\DuplicateFinder;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
@@ -22,6 +24,7 @@ final class GetInvoiceHandler
         private readonly ContactReadRepositoryInterface $contacts,
         private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
         private readonly DuplicateFinder $duplicates,
+        private readonly BusinessReadRepositoryInterface $businesses,
     ) {}
 
     public function handle(GetInvoice $query, ReadScope $scope): DetailInvoiceDTO
@@ -31,9 +34,9 @@ final class GetInvoiceHandler
         $parties = $invoice->parties;
         $contact = null;
         $contactToLink = null;
-        if ($parties->contactId === null) {
+        if ($parties->contactId === null && $invoice->issue === null) {
             $contactToLink = $this->contactToLink($parties, $scope);
-        } else {
+        } elseif ($parties->contactId !== null) {
             $contact = $this->contacts->findById($parties->contactId, $scope);
         }
         $paymentMethod = null;
@@ -41,11 +44,26 @@ final class GetInvoiceHandler
             $paymentMethod = $this->paymentMethods->findById($invoice->paymentMethodId);
         }
 
+        $issue = $invoice->issue;
+        if ($issue !== null) {
+            return new DetailInvoiceDTO(
+                $invoice,
+                $paymentMethod?->code,
+                $contact,
+                null,
+                $issue->vatPayer,
+            );
+        }
+        // A draft follows the business until it is issued (D-050, point 6)
+        $business = $this->businesses->findById($parties->businessId, $scope)
+            ?? throw new BusinessNotFoundException($parties->businessId);
+
         return new DetailInvoiceDTO(
             $invoice,
             $paymentMethod?->code,
             $contact,
             $contactToLink,
+            $business->invoicing->vatPayer,
         );
     }
 

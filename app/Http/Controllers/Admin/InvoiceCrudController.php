@@ -4,57 +4,36 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Application\Invoice\Commands\CreateInvoice;
-use App\Application\Invoice\Commands\UpdateInvoice;
-use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
-use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
-use App\Application\Shared\Money\Presenters\CurrencyOptionsPresenter;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
-use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\User\Enums\Permission;
-use App\Http\Requests\Admin\InvoiceRequest;
-use App\Http\Requests\Party\AdminDocumentPartyInput;
-use App\Infrastructure\Forms\Invoice\AdminInvoiceFormFields;
 use App\Infrastructure\Forms\User\OwnerFormFields;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Backpack\CRUD\app\Http\Controllers\CrudController;
-use Backpack\CRUD\app\Http\Controllers\Operations\CreateOperation;
-use Backpack\CRUD\app\Http\Controllers\Operations\DeleteOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ListOperation;
 use Backpack\CRUD\app\Http\Controllers\Operations\ShowOperation;
-use Backpack\CRUD\app\Http\Controllers\Operations\UpdateOperation;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanel;
 use Backpack\CRUD\app\Library\CrudPanel\CrudPanelFacade as CRUD;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\App;
-use Prologue\Alerts\Facades\Alert;
 
 /**
- * Invoice management controller
+ * Read-only: the owner creates, issues and deletes invoices on the frontend, and an issued invoice changes only
+ * by a corrective document (D-050).
  *
  * @property-read CrudPanel $crud
  */
 final class InvoiceCrudController extends CrudController
 {
-    use CreateOperation;
-    use DeleteOperation;
     use GatesCrudOperations;
     use ListOperation;
     use NarrowsCrudTypes;
     use ShowOperation;
-    use UpdateOperation;
 
     public function __construct(
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
-        private readonly CountryOptionsPresenter $countries,
-        private readonly CurrencyOptionsPresenter $currencies,
-        private readonly InvoiceProductWriteDataAssembler $products,
     ) {
         parent::__construct();
-        $throttle = $this->middleware('throttle:create');
-        $throttle->only('store');
     }
 
     /**
@@ -74,9 +53,6 @@ final class InvoiceCrudController extends CrudController
             [
                 'list' => Permission::INVOICE_VIEW,
                 'show' => Permission::INVOICE_VIEW,
-                'create' => Permission::INVOICE_CREATE,
-                'update' => Permission::INVOICE_UPDATE,
-                'delete' => Permission::INVOICE_DELETE,
             ],
         );
     }
@@ -94,9 +70,26 @@ final class InvoiceCrudController extends CrudController
             OwnerFormFields::names(),
         );
 
+        $statuses = [];
+        foreach (InvoiceStatus::cases() as $status) {
+            $statuses[$status->value] = __('invoices.statuses.' . $status->value);
+        }
         CRUD::addFilter(
-            AdminInvoiceFormFields::statusFilter(),
-            AdminInvoiceFormFields::statusOptions(),
+            [
+                'name' => 'payment_status',
+                'type' => 'select2',
+                'label' => __('invoices.fields.status'),
+            ],
+            $statuses,
+            function (string $value): void {
+                // A draft stores a pending status, but has no payment status until it is issued
+                CRUD::addClause('whereNotNull', 'issued_at');
+                CRUD::addClause(
+                    'where',
+                    'payment_status',
+                    $value,
+                );
+            },
         );
 
         CRUD::addFilter(
@@ -159,7 +152,11 @@ final class InvoiceCrudController extends CrudController
             __('invoices.fields.status'),
         );
         $column->value(
-            function ($entry) {
+            function (Invoice $entry): string {
+                if ($entry->issued_at === null) {
+                    return __('invoices.statuses.draft');
+                }
+
                 return __('invoices.statuses.' . $entry->payment_status->value);
             },
         );
@@ -230,7 +227,11 @@ final class InvoiceCrudController extends CrudController
             __('invoices.fields.status'),
         );
         $column->value(
-            function ($entry) {
+            function (Invoice $entry): string {
+                if ($entry->issued_at === null) {
+                    return __('invoices.statuses.draft');
+                }
+
                 return __('invoices.statuses.' . $entry->payment_status->value);
             },
         );
@@ -270,79 +271,5 @@ final class InvoiceCrudController extends CrudController
         $column->label(
             __('general.common.updated_at'),
         );
-    }
-
-    protected function setupCreateOperation(): void
-    {
-        $this->setupForm(true);
-    }
-
-    protected function setupUpdateOperation(): void
-    {
-        $this->setupForm(false);
-    }
-
-    public function store(): RedirectResponse
-    {
-        $this->crud->hasAccessOrFail('create');
-        $request = $this->validatedRequest(InvoiceRequest::class);
-        $invoice = $this->useCases->run(
-            $this->admin(),
-            new CreateInvoice(
-                $request->owner(),
-                $request->toWriteData(),
-                $request->partySelection(),
-                $request->products($this->products),
-            ),
-        );
-
-        return $this->saved('invoices.messages.created', $invoice->id->value);
-    }
-
-    public function update(): RedirectResponse
-    {
-        $this->crud->hasAccessOrFail('update');
-        $stored = $this->currentEntry(Invoice::class);
-        // The owner field is disabled on edit (AdminInvoiceFormFields), so the stored owner is validated and kept
-        $httpRequest = $this->crud->getRequest();
-        $httpRequest->merge(['user_id' => $stored->user_id]);
-        $httpRequest->attributes->set(AdminDocumentPartyInput::STORED_CONTACT, $stored->contact_id);
-        $request = $this->validatedRequest(InvoiceRequest::class);
-        $invoice = $this->useCases->run(
-            $this->admin(),
-            new UpdateInvoice(
-                $request->owner(),
-                InvoiceId::fromInt((int) $this->crud->getCurrentEntryId()),
-                $request->toWriteData(),
-                $request->partySelection(),
-                $request->products($this->products),
-            ),
-        );
-
-        return $this->saved('invoices.messages.updated', $invoice->id->value);
-    }
-
-    private function setupForm(bool $create): void
-    {
-        CRUD::setValidation(InvoiceRequest::class);
-        $countries = $this->countries->options(App::getLocale());
-        CRUD::addFields(
-            (new AdminInvoiceFormFields)->fields(
-                $countries,
-                $this->currencies->options(App::getLocale()),
-                $create ? null : CRUD::getCurrentEntry(),
-            ),
-        );
-    }
-
-    private function saved(string $message, int $id): RedirectResponse
-    {
-        $alerts = Alert::success(
-            __($message),
-        );
-        $alerts->flash();
-        $this->crud->setSaveAction();
-
-        return $this->crud->performSaveAction($id);
     }
 }

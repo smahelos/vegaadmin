@@ -248,7 +248,6 @@
         paid: @js(__('invoices.statuses.paid')),
         pending: @js(__('invoices.statuses.pending')),
         overdue: @js(__('invoices.statuses.overdue')),
-        cancelled: @js(__('invoices.statuses.cancelled')),
         noData: @js(__('dashboard.charts.no_data')),
     };
 

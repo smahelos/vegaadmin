@@ -86,12 +86,35 @@ final class EntityLimitTest extends TestCase
     }
 
     #[Test]
+    public function the_invoice_quota_counts_issued_invoices_not_drafts(): void
+    {
+        $owner = $this->ownerWithLimits(['invoices' => 1]);
+        $invoiceFactory = Invoice::factory();
+        $draftFactory = $invoiceFactory->draft();
+        $draftFactory->create(
+            ['user_id' => $owner->id, 'created_at' => '2026-11-05 08:00:00'],
+        );
+        $this->assertAllowed($owner, LimitedEntity::INVOICE);
+
+        // Created last month, issued this month
+        $invoiceFactory->create(
+            [
+                'user_id' => $owner->id,
+                'created_at' => '2026-10-20 08:00:00',
+                'issued_at' => '2026-11-02 08:00:00',
+            ],
+        );
+
+        $this->assertRefused($owner, LimitedEntity::INVOICE);
+    }
+
+    #[Test]
     public function refuses_the_invoice_over_the_monthly_quota(): void
     {
         $owner = $this->ownerWithLimits(['invoices' => 2]);
         $invoiceFactory = Invoice::factory(2);
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-11-02 08:00:00'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-11-02 08:00:00'],
         );
 
         $this->assertRefused($owner, LimitedEntity::INVOICE);
@@ -104,13 +127,13 @@ final class EntityLimitTest extends TestCase
         $invoiceFactory = Invoice::factory();
         // 23:59 on 31 October in Prague
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-10-31 22:59:59'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-10-31 22:59:59'],
         );
         $this->assertAllowed($owner, LimitedEntity::INVOICE);
 
         // 00:30 on 1 November in Prague
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-10-31 23:30:00'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-10-31 23:30:00'],
         );
         $this->assertRefused($owner, LimitedEntity::INVOICE);
     }
@@ -123,12 +146,12 @@ final class EntityLimitTest extends TestCase
         $owner->save();
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-11-10 11:59:59'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-11-10 11:59:59'],
         );
         $this->assertAllowed($owner, LimitedEntity::INVOICE);
 
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-11-10 12:00:00'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-11-10 12:00:00'],
         );
         $this->assertRefused($owner, LimitedEntity::INVOICE);
     }
@@ -199,10 +222,10 @@ final class EntityLimitTest extends TestCase
         $owner = $this->ownerWithLimits(['invoices' => 2, 'products' => null]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-11-02 08:00:00'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-11-02 08:00:00'],
         );
         $invoiceFactory->create(
-            ['user_id' => $owner->id, 'created_at' => '2026-10-30 08:00:00'],
+            ['user_id' => $owner->id, 'issued_at' => '2026-10-30 08:00:00'],
         );
         $limits = $this->limits();
         $ownerId = UserId::fromInt($owner->id);

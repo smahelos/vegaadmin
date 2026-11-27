@@ -263,3 +263,8 @@ label:has(+ select[required]) {
 
     /* Další prvky... */
 }
+
+/* Alpine hides an element until it initialises (an x-show dialog closed on load) */
+[x-cloak] {
+    display: none !important;
+}

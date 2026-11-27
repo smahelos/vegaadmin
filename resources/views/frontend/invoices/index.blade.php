@@ -1,5 +1,6 @@
 @extends('layouts.frontend')
 
+@use('App\Application\Invoice\Commands\IssueInvoice')
 @use('App\Domain\User\Enums\LimitedEntity')
 
 @section('content')
@@ -24,5 +25,9 @@
         </div>
     </div>
 </div>
+
+@allowed(IssueInvoice::class)
+@livewire('invoice.issue-invoice-dialog')
+@endallowed
 
 @endsection

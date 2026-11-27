@@ -17,6 +17,8 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
     public function findById(InvoiceId $id, AllOwnersScope $scope): ?ReminderInvoiceDTO
     {
         $query = Invoice::query();
+        // A draft has no due date and is never sent to the customer
+        $query->whereNotNull('issued_at');
         $invoice = $query->find($id->value);
 
         return $invoice === null ? null : EloquentReminderInvoiceMapper::toDTO($invoice);
@@ -26,6 +28,7 @@ final class EloquentInvoiceReminderRepository implements InvoiceReminderReadRepo
     {
         $statuses = array_map(static fn (InvoiceStatus $status): string => $status->value, InvoiceStatus::unpaid());
         $query = Invoice::query();
+        $query->whereNotNull('issued_at');
         $query->whereIn('payment_status', $statuses);
         $invoices = $query->lazyById();
 

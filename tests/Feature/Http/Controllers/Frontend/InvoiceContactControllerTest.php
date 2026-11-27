@@ -207,6 +207,7 @@ final class InvoiceContactControllerTest extends TestCase
     private function invoiceOf(User $user): Invoice
     {
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->draft();
 
         return $invoiceFactory->create(
             [

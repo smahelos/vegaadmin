@@ -110,9 +110,11 @@ final class EloquentLimitedEntityCounter implements LimitedEntityCounterInterfac
         $storedZone = new DateTimeZone(
             config('app.timezone'),
         );
+        // An invoice counts when it is issued, so a deleted draft never took a place (D-050)
+        $column = $entity === LimitedEntity::INVOICE ? 'issued_at' : 'created_at';
         $query->where('user_id', $owner->value);
         $query->where(
-            'created_at',
+            $column,
             '>=',
             $since->setTimezone($storedZone),
         );

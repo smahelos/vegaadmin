@@ -37,6 +37,8 @@ class Invoice extends Model
         'due_in' => 'integer',
         'payment_amount' => 'decimal:2',
         'payment_status' => InvoiceStatus::class,
+        'issued_at' => 'immutable_datetime',
+        'is_vat_payer' => 'boolean',
     ];
 
     /*
@@ -88,6 +90,14 @@ class Invoice extends Model
     public function invoiceProducts(): HasMany
     {
         return $this->hasMany(InvoiceProduct::class);
+    }
+
+    /**
+     * @return HasMany<VatLine, $this>
+     */
+    public function vatLines(): HasMany
+    {
+        return $this->hasMany(VatLine::class);
     }
 
     /**

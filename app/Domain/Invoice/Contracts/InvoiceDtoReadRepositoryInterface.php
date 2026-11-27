@@ -19,6 +19,6 @@ interface InvoiceDtoReadRepositoryInterface
     /** Locks and rereads the invoice in the surrounding transaction; null outside the scope. */
     public function findByIdForUpdate(InvoiceId $id, WriteScope $scope): ?InvoiceDTO;
 
-    /** Highest invoice number of the owner and year in the standard format (see InvoiceNumber), null if none. */
+    /** Highest number of the owner's series of the year (see InvoiceNumber), null if none. */
     public function findLastInvoiceNumber(ReadScope $scope, int $year): ?string;
 }

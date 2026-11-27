@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ __('invoices.titles.invoice') }} {{ $invoice->number }}</title>
+    <title>@if($invoice->draft){{ __('invoices.titles.draft_preview') }}@else{{ __('invoices.titles.invoice') }} {{ $invoice->number }}@endif</title>
     <style>
         @page {
             margin: 15mm 10mm;
@@ -243,8 +243,12 @@
 <body>
     <div class="header">
         <div class="header-content">
+            @if($invoice->draft)
+            <div class="invoice-title">{{ __('invoices.titles.draft_preview') }}</div>
+            @else
             <div class="invoice-title">{{ __('invoices.titles.invoice') }}</div>
             <div class="invoice-number">{{ __('invoices.placeholders.number') }}: {{ $invoice->number }}</div>
+            @endif
         </div>
 
         @if($logoPath)
@@ -283,6 +287,9 @@
                 @if(!empty($supplier->vatNumber))
                 <p>{{ __('parties.fields.vat_number') }}: {{ $supplier->vatNumber }}</p>
                 @endif
+                @if($invoice->registerEntry)
+                <p>{{ $invoice->registerEntry }}</p>
+                @endif
                 @unless($invoice->vatPayer)
                 <p>{{ __('invoices.messages.not_vat_payer') }}</p>
                 @endunless
@@ -317,22 +324,28 @@
         <div class="section-title">{{ __('invoices.sections.invoice_details') }}</div>
         <div class="clearfix">
             <div class="col-left">
+                @if($issueDateFormatted)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.issue_date') }}:</span>
                     <span class="info-value">{{ $issueDateFormatted }}</span>
                 </div>
+                @endif
+                @if($taxPointDateFormatted)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.tax_point_date') }}:</span>
                     <span class="info-value">{{ $taxPointDateFormatted }}</span>
                 </div>
+                @endif
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.due_in') }}:</span>
                     <span class="info-value">{{ $dueDays ?? '0' }} {{ __('invoices.units.days') }}</span>
                 </div>
+                @if($dueDateFormatted)
                 <div class="info-row">
                     <span class="info-label red">{{ __('invoices.fields.due_date') }}:</span>
                     <span class="info-value red">{{ $dueDateFormatted }}</span>
                 </div>
+                @endif
             </div>
 
             <div class="col-right">
@@ -477,10 +490,12 @@
                     <span class="info-value">{{ $paymentAmountFormatted }}</span>
                 </div>
 
+                @if($invoice->number)
                 <div class="info-row">
                     <span class="info-label">{{ __('invoices.fields.invoice_vs') }}:</span>
                     <span class="info-value">{{ $invoice->number }}</span>
                 </div>
+                @endif
             </div>
         </div>
         @if(isset($hasQrCode) && $hasQrCode && !empty($qrCode))

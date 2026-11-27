@@ -42,6 +42,8 @@ final class EloquentInvoiceListRepository implements InvoiceListReadRepositoryIn
             );
         }
         if ($search->status !== null) {
+            // A draft stores a pending status, but has no payment status until it is issued
+            $query->whereNotNull('issued_at');
             $query->where('payment_status', $search->status->value);
         }
         if ($search->businessId !== null) {

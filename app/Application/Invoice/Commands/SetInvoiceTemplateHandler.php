@@ -4,24 +4,21 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Commands;
 
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
-use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
 final class SetInvoiceTemplateHandler
 {
     public function __construct(
-        private readonly InvoiceDtoReadRepositoryInterface $invoices,
+        private readonly InvoiceService $invoiceService,
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriter,
     ) {}
 
     public function handle(SetInvoiceTemplate $command, WriteScope $scope): void
     {
-        if ($this->invoices->findById($command->id, $scope->read) === null) {
-            throw new InvoiceNotFoundException('Invoice not accessible for user');
-        }
-
+        // The template is fixed at issue (D-050, point 3)
+        $this->invoiceService->draftForUpdate($scope, $command->id);
         $this->invoiceWriter->setTemplate(
             $command->id,
             $scope,

@@ -75,7 +75,8 @@ try {
    }
  };
  let fixtures;
- for(const [documentType,role] of [['invoice','customer'],['expense','supplier']]) {
+ // Invoices are issued on the frontend; the admin only lists and shows them (D-050)
+ for(const [documentType,role] of [['expense','supplier']]) {
    console.log('Checking',documentType);await go(`/admin/${documentType}/create`);await ready();
    if(!fixtures) {
      fixtures=await evaluate(`(async()=>{
@@ -88,7 +89,6 @@ try {
    }
    await evaluate(`jQuery('[name=user_id]').val(${JSON.stringify(fixtures.owner)}).trigger('change');true`);
    await select('business_id',fixtures.businesses[0]);
-   assert(await evaluate('!document.querySelector("[name=invoice_logo]")'), 'Admin invoice must not offer its own logo upload');
    await select('contact_id',fixtures.contacts[0]);
    await compareProfile(role,fixtures.contacts[0].profile);
    if(documentType==='expense') assert(await evaluate('!document.querySelector("[name=supplier_logo]").disabled'), 'A contact-backed expense must allow its own supplier logo upload');
@@ -99,13 +99,7 @@ try {
    await evaluate(`jQuery('[name=contact_id]').append(new Option(${JSON.stringify(last.name)},${JSON.stringify(String(last.id))},true,true)).trigger('change');true`);
    await waitFor(`document.querySelector('[name=${role}_name]').value===${JSON.stringify(last.name)}`);
    await compareProfile(role,last.profile);
-   if(documentType==='invoice') {
-     await waitFor('!!jQuery("[name=bank_account_id]").val() && !!jQuery("[name=account_number]").val()');
-     assert(await evaluate('document.querySelector("[name=bank_account_id]").required'),'Invoice account must be required for transfer');
-     await evaluate(`jQuery('[name=payment_method_id]').val(jQuery('[name=payment_method_id] option').filter(function(){return this.value && this.value!==String(jQuery('[name=bank_account_id]').data('bank-transfer-method'))}).first().val()).trigger('change');true`);
-     assert(await evaluate('!jQuery("[name=bank_account_id]").prop("required") && !jQuery("[data-document-section=account]").is(":visible")'),'Cash must hide bank details');
-     await evaluate(`jQuery('[name=payment_method_id]').val(String(jQuery('[name=bank_account_id]').data('bank-transfer-method'))).trigger('change');true`);
-   } else {
+   {
      const uploadCheck=await evaluate(`(async()=>{
        const form=document.querySelector('main form');
        const data=new FormData(form);
@@ -164,6 +158,15 @@ try {
    await screenshot(`${documentType}-edit`);
    console.log('profile and snapshot regression passed',documentType);
  }
+ await go('/admin/invoice');
+ await waitFor('document.readyState === "complete" && !!document.querySelector("table")');
+ assert(await evaluate('!document.querySelector("a[href$=\'/invoice/create\']") && !document.querySelector("a[href$=\'/edit\']")'),'Admin invoices must be read-only');
+ await go('/admin/product/create');await waitFor('!!document.querySelector("[name=name]")');
+ assert(await evaluate('!document.querySelector("[name=supplier_id]")'),'Product create must have no supplier selector');
+ await go('/admin/product');await waitFor('document.querySelector("a[href$=\'/edit\']")');
+ const productEdit=await evaluate('new URL(document.querySelector("a[href$=\'/edit\']").href).pathname');
+ await go(productEdit);await waitFor('!!document.querySelector("[name=name]")');
+ assert(await evaluate('!document.querySelector("[name=supplier_id]")'),'Product edit must have no supplier selector');
  assert(exceptions.length===0,'Browser JavaScript errors: '+exceptions.join(', '));
  console.log('All document form browser checks passed; no documents were saved.');
 } finally {ws?.close();chrome.kill();await chromeExit;await rm(profile,{recursive:true,force:true});}

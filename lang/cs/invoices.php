@@ -74,6 +74,7 @@ return [
         'save_customer_to_contacts' => 'Uložit odběratele do kontaktů',
         'is_vat_payer' => 'Plátce DPH',
         'item_base' => 'Základ',
+        'document_language' => 'Jazyk dokladu',
     ],
     'hints' => [
         'invoice_vs' => 'Navrhované číslo faktury můžete přizpůsobit vašemu číslování.',
@@ -85,10 +86,12 @@ return [
         'due_in' => '',
         'payment_amount' => '',
         'payment_currency' => '',
-        'status' => '',
         'invoice_text' => '',
         'invoice_logo' => 'Nahrajte logo pro fakturu (JPEG, PNG, GIF, SVG, max. 2MB)',
         'template' => 'Vyberte šablonu pro generování PDF faktury',
+        'document_language' => 'V tomto jazyce se vytiskne PDF faktury.',
+        'issue' => 'Vystavením se faktura uzamkne: číslo, data a údaje dodavatele se už nezmění. Další změny jsou možné jen opravným dokladem.',
+        'issue_tax_point_date' => 'Když ho nevyplníte, použije se datum vystavení.',
     ],
     'placeholders' => [
         'select_status' => 'Vyberte stav...',
@@ -145,6 +148,10 @@ return [
         'reload_contact' => 'Načíst údaje kontaktu',
         'clear_contact' => 'Odebrat kontakt',
         'use_contact' => 'Použít tento kontakt',
+        'issue' => 'Vystavit fakturu',
+        'copy' => 'Kopírovat do nového konceptu',
+        'mark_as_unpaid' => 'Označit jako nezaplacené',
+        'save_and_issue' => 'Uložit a vystavit',
     ],
     'messages' => [
         'id_required' => 'ID faktury je povinné.',
@@ -172,7 +179,6 @@ return [
         'expires_in_soon' => 'Platnost odkazu brzy vyprší',
         'invoice_deleted' => 'Faktura byla úspěšně smazána.',
         'invoice_sent' => 'Faktura byla úspěšně odeslána.',
-        'marked_as_paid' => 'Faktura byla označena jako zaplacená.',
         'status_not_found' => 'Status "zaplaceno" nebyl nalezen.',
         'no_image' => 'Žádný obrázek',
         'no_invoices' => 'Zatím nemáte žádné faktury.',
@@ -191,6 +197,13 @@ return [
         'no_contacts_found' => 'Žádný kontakt nenalezen.',
         'contact_exists' => 'Kontakt :name se stejným IČO už existuje.',
         'not_vat_payer' => 'Neplátce DPH',
+        'issued' => 'Faktura byla vystavena.',
+        'copied' => 'Podle faktury byl vytvořen nový koncept.',
+        'status_set' => 'Stav platby byl změněn.',
+        'issued_locked' => 'Vystavený doklad – změny jen opravným dokladem.',
+        'issued_note' => 'Faktura je vystavená a uzamčená. Měnit lze jen stav platby, ostatní změny jen opravným dokladem.',
+        'draft_without_status' => 'Koncept nemá stav platby. Fakturu nejdřív vystavte.',
+        'due_after_issue' => ':days dní po vystavení',
     ],
     'validation' => [
         'item_currency' => 'Měna položky musí být stejná jako měna faktury.',
@@ -203,6 +216,8 @@ return [
         'invalid_iban' => 'IBAN je neplatný',
         'invalid_vat_id' => 'Daňové identifikační číslo je neplatné',
         'non_payer_vat_rate' => 'Neplátce DPH uvádí u všech položek sazbu 0 %.',
+        'number_taken' => 'Toto číslo už má jiný váš doklad. Další volné číslo je :suggestion.',
+        'number_year' => 'Číslo faktury musí patřit do řady roku data vystavení. Navrhované číslo je :suggestion.',
     ],
     'vat_lines' => [
         'titles' => [
@@ -218,8 +233,8 @@ return [
     'statuses' => [
         'paid' => 'Zaplaceno',
         'pending' => 'Čeká na zaplacení',
-        'cancelled' => 'Stornováno',
         'overdue' => 'Po splatnosti',
+        'draft' => 'Koncept',
     ],
     'qr_code_info' => 'Pro platbu použijte QR kód',
     'defaults' => [
@@ -255,6 +270,9 @@ return [
         'empty' => 'Zatím nemáte žádné faktury',
         'empty_message' => 'Vytvořte svou první fakturu kliknutím na tlačítko níže.',
         'create_free_invoice' => 'Vytvořit bezplatnou fakturu',
+        'draft' => 'Koncept faktury',
+        'issue' => 'Vystavit fakturu',
+        'draft_preview' => 'Koncept – není daňový doklad',
     ],
     'labels' => [
         'created_at' => 'Datum vystavení',

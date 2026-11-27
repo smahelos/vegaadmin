@@ -18,9 +18,9 @@ class InvoiceCreateFieldSetFactory
     /**
      * Build FieldSetDTO from legacy trait output.
      */
-    public function build(array $paymentMethods): FieldSetDTO
+    public function build(array $paymentMethods, bool $guest): FieldSetDTO
     {
-        $raw = $this->getInvoiceFields($paymentMethods);
+        $raw = $this->getInvoiceFields($paymentMethods, $guest);
         $fields = [];
         foreach ($raw as $item) {
             $fields[] = new FieldDTO(

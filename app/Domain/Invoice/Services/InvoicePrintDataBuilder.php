@@ -9,6 +9,7 @@ use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\DTO\PrintableInvoiceItemDTO;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Party\DTO\PartyPrintDTO;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -25,8 +26,9 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         private readonly PaymentMethodDtoReadRepositoryInterface $paymentMethods,
     ) {}
 
-    public function build(InvoiceDTO $invoice, bool $vatPayer): PrintableInvoiceDTO
+    public function build(InvoiceDTO $invoice, InvoicingSettings $business): PrintableInvoiceDTO
     {
+        $issue = $invoice->issue;
         $items = [];
         foreach ($invoice->items as $item) {
             $items[] = new PrintableInvoiceItemDTO(
@@ -42,28 +44,36 @@ final class InvoicePrintDataBuilder implements InvoicePrintDataBuilderInterface
         $supplier = $invoice->parties->supplier;
         $customer = $invoice->parties->customer;
         $currency = $invoice->totalAmount->currency;
+        $dueDate = null;
+        if ($issue !== null) {
+            $dueDate = InvoiceDueDate::fromIssueDateAndDays($issue->date, $invoice->dueIn);
+        }
+        $number = $issue?->number->value;
 
         return new PrintableInvoiceDTO(
             id: $invoice->id,
-            number: $invoice->number,
-            issueDate: $invoice->issueDate,
-            taxPointDate: $invoice->taxPointDate,
-            dueDate: InvoiceDueDate::fromIssueDateAndDays($invoice->issueDate, $invoice->dueIn),
+            number: $number,
+            issueDate: $issue?->date,
+            taxPointDate: $issue?->taxPointDate,
+            dueDate: $dueDate,
+            dueIn: $invoice->dueIn,
             currency: $currency->value,
             template: $invoice->template,
             items: $items,
             totals: $invoice->totals,
-            vatPayer: $vatPayer,
+            vatPayer: $issue?->vatPayer ?? $business->vatPayer,
             totalAmount: $invoice->totalAmount,
             supplier: PartyPrintDTO::fromDocumentParty($supplier),
             customer: PartyPrintDTO::fromDocumentParty($customer),
             account: $invoice->parties->account,
             supplierLogo: $invoice->parties->supplierLogo,
-            variableSymbol: new VariableSymbol($invoice->number),
+            variableSymbol: $number === null ? null : new VariableSymbol($number),
             constantSymbol: $invoice->constantSymbol,
             specificSymbol: $invoice->specificSymbol,
             paymentMethod: $this->paymentMethod($invoice->paymentMethodId),
             notes: $invoice->text,
+            draft: $issue === null,
+            registerEntry: $issue === null ? $business->registerEntry : $issue->registerEntry,
         );
     }
 

@@ -37,7 +37,7 @@ final class EloquentInvoiceListMapper
                 Currency::from($invoice->payment_currency),
             ),
             dueDate: $dueDate,
-            status: $invoice->payment_status,
+            status: $invoice->issued_at === null ? null : $invoice->payment_status,
             paymentMethod: PaymentMethodCode::tryFrom($invoice->paymentMethod?->slug ?? ''),
         );
     }

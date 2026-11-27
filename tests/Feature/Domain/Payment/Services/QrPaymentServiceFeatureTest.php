@@ -7,6 +7,7 @@ namespace Tests\Feature\Domain\Payment\Services;
 use App\Application\Payment\Mappers\QrPaymentMapper;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Party\DTO\DocumentAccountDTO;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Payment\Contracts\QrCodeRendererInterface;
 use App\Domain\Payment\Services\QrPaymentService;
 use App\Domain\Payment\ValueObjects\BankAccount;
@@ -14,6 +15,7 @@ use App\Domain\Payment\ValueObjects\VariableSymbol;
 use App\Domain\Shared\Geography\Enums\Country;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\BankAccount as StoredBankAccount;
 use App\Models\Business;
@@ -136,7 +138,14 @@ final class QrPaymentServiceFeatureTest extends TestCase
         $invoice->load('invoiceProducts');
         $stored = $invoiceMapper->toDto($invoice);
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilderInterface::class);
-        $printable = $invoicePrintDataBuilder->build($stored, true);
+        $printable = $invoicePrintDataBuilder->build(
+            $stored,
+            new InvoicingSettings(
+                true,
+                null,
+                Language::CS,
+            ),
+        );
         $qrPaymentMapper = app(QrPaymentMapper::class);
         $payment = $qrPaymentMapper->fromPrintableInvoice($printable);
         $renderer = $this->createMock(QrCodeRendererInterface::class);

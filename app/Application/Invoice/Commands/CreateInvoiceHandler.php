@@ -6,29 +6,27 @@ namespace App\Application\Invoice\Commands;
 
 use App\Application\Invoice\Services\InvoicePartiesAssembler;
 use App\Application\Invoice\Services\InvoiceProductOwnership;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Services\DocumentLogoService;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
-use App\Domain\User\Enums\LimitedEntity;
-use App\Domain\User\Services\EntityLimit;
 
 /**
- * A customer saved to the contacts is created with the invoice or not at all.
+ * Creates a draft; a customer saved to the contacts is created with it or not at all. The monthly quota counts
+ * issued invoices, so it is checked at issue (D-050).
  */
 final class CreateInvoiceHandler
 {
     public function __construct(
-        private readonly InvoiceServiceInterface $invoiceService,
+        private readonly InvoiceService $invoiceService,
         private readonly DocumentLogoService $logos,
         private readonly InvoiceProductOwnership $productOwnership,
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly InvoicePartiesAssembler $parties,
         private readonly TransactionBoundaryInterface $transactions,
-        private readonly EntityLimit $limits,
     ) {}
 
     public function handle(CreateInvoice $command, WriteScope $scope): InvoiceDTO
@@ -44,8 +42,6 @@ final class CreateInvoiceHandler
             null,
             fn (?string $logo): InvoiceDTO => $this->transactions->transaction(
                 function () use ($command, $scope, $logo, $business): InvoiceDTO {
-                    $this->limits->assertCanCreate($command->owner, LimitedEntity::INVOICE);
-
                     $documentParties = $this->parties->assemble(
                         $scope,
                         $command->parties,

@@ -3,7 +3,6 @@
 namespace Tests\Feature\Http\Controllers\Frontend;
 
 use App\Application\Invoice\Contracts\TemporaryInvoiceStoreInterface;
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Models\PaymentMethod;
 use App\Models\User;
@@ -54,7 +53,6 @@ class InvoiceControllerGuestFeatureTest extends TestCase
                 'payment_currency',
                 'issue_date',
                 'due_in',
-                'status',
                 'template',
                 'invoice-products',
             ],
@@ -220,7 +218,6 @@ class InvoiceControllerGuestFeatureTest extends TestCase
             'issue_date' => $now->format('Y-m-d'),
             'tax_point_date' => $now->format('Y-m-d'),
             'due_in' => 14,
-            'status' => InvoiceStatus::PENDING->value,
             'template' => 'default',
             'supplier_name' => 'Supplier Test',
             'supplier_street' => 'Street 1',

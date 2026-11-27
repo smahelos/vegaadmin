@@ -8,8 +8,6 @@ use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Expense;
-use App\Models\Invoice;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\Support\BuildsExpenseInput;
 use Tests\Support\BuildsInvoiceInput;
@@ -29,17 +27,10 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $this->actingAs($this->adminUser, 'backpack');
     }
 
-    /** @return array<string, array{string, string}> */
-    public static function documents(): array
-    {
-        return ['invoice' => ['invoice', 'customer'], 'expense' => ['expense', 'supplier']];
-    }
-
     #[Test]
-    #[DataProvider('documents')]
-    public function changing_the_counterparty_identity_requires_another_contact_or_a_one_off_party(string $type, string $role): void
+    public function changing_the_counterparty_identity_requires_another_contact_or_a_one_off_party(): void
     {
-        [$business, $account] = $this->issuerOf($this->adminUser);
+        [$business] = $this->issuerOf($this->adminUser);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(
             [
@@ -48,56 +39,46 @@ final class AdminDocumentSnapshotsTest extends TestCase
                 'company_number' => 'HRB 123',
             ],
         );
-        $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $modelFactory = $model::factory();
+        $modelFactory = Expense::factory();
         $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
-                $role . '_registration_country' => 'DE',
-                $role . '_company_number' => 'HRB 123',
+                'supplier_registration_country' => 'DE',
+                'supplier_company_number' => 'HRB 123',
             ],
         );
-        if ($type === 'invoice') {
-            $data = $this->invoiceInput(
-                $business,
-                $account,
-                ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
-            );
-        } else {
-            $data = $this->expenseInput($business);
-        }
+        $data = $this->expenseInput($business);
         $data['user_id'] = $this->adminUser->id;
         $data['contact_id'] = $contact->id;
-        $data[$role . '_registration_country'] = 'DE';
-        $data[$role . '_company_number'] = 'HRB 999';
+        $data['supplier_registration_country'] = 'DE';
+        $data['supplier_company_number'] = 'HRB 999';
 
-        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
-        $httpResponse->assertSessionHasErrors($role . '_company_number');
+        $httpResponse = $this->put('/admin/expense/' . $document->id, $data);
+        $httpResponse->assertSessionHasErrors('supplier_company_number');
         $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 123',
-            $freshDocument->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute('supplier_company_number'),
         );
         $this->assertSame($contact->id, $freshDocument->contact_id);
 
         $data['contact_id'] = null;
-        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse = $this->put('/admin/expense/' . $document->id, $data);
         $httpResponse->assertSessionHasNoErrors();
         $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 999',
-            $freshDocument->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute('supplier_company_number'),
         );
         $this->assertNull($freshDocument->contact_id);
     }
 
     #[Test]
-    #[DataProvider('documents')]
-    public function a_contact_identity_correction_preserves_the_documents_historical_identity(string $type, string $role): void
+    public function a_contact_identity_correction_preserves_the_documents_historical_identity(): void
     {
-        [$business, $account] = $this->issuerOf($this->adminUser);
+        [$business] = $this->issuerOf($this->adminUser);
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(
             [
@@ -107,51 +88,41 @@ final class AdminDocumentSnapshotsTest extends TestCase
                 'archived_at' => now(),
             ],
         );
-        $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $modelFactory = $model::factory();
+        $modelFactory = Expense::factory();
         $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
-                $role . '_registration_country' => 'DE',
-                $role . '_company_number' => 'HRB 123',
+                'supplier_registration_country' => 'DE',
+                'supplier_company_number' => 'HRB 123',
             ],
         );
-        if ($type === 'invoice') {
-            $data = $this->invoiceInput(
-                $business,
-                $account,
-                ['invoice_vs' => $document->invoice_vs, 'payment_amount' => '0'],
-            );
-        } else {
-            $data = $this->expenseInput($business);
-        }
+        $data = $this->expenseInput($business);
         $data['user_id'] = $this->adminUser->id;
         $data['contact_id'] = $contact->id;
-        $data[$role . '_registration_country'] = 'DE';
-        $data[$role . '_company_number'] = 'HRB 123';
-        $data[$role . '_name'] = 'Document-only correction';
+        $data['supplier_registration_country'] = 'DE';
+        $data['supplier_company_number'] = 'HRB 123';
+        $data['supplier_name'] = 'Document-only correction';
 
-        $httpResponse = $this->put('/admin/' . $type . '/' . $document->id, $data);
+        $httpResponse = $this->put('/admin/expense/' . $document->id, $data);
         $httpResponse->assertSessionHasNoErrors();
 
         $freshDocument = $document->fresh();
         $this->assertSame(
             'HRB 123',
-            $freshDocument->getAttribute($role . '_company_number'),
+            $freshDocument->getAttribute('supplier_company_number'),
         );
         $this->assertSame(
             'Document-only correction',
-            $freshDocument->getAttribute($role . '_name'),
+            $freshDocument->getAttribute('supplier_name'),
         );
         $this->assertSame($contact->id, $freshDocument->contact_id);
         $this->assertSame('HRB 999', $contact->fresh()->company_number);
     }
 
     #[Test]
-    #[DataProvider('documents')]
-    public function opening_edit_keeps_the_document_snapshot_even_when_its_sources_are_archived(string $type, string $role): void
+    public function opening_edit_keeps_the_document_snapshot_even_when_its_sources_are_archived(): void
     {
         $businessFactory = Business::factory();
         $business = $businessFactory->create(
@@ -161,30 +132,27 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $contact = $contactFactory->create(
             ['user_id' => $this->adminUser->id, 'name' => 'Changed contact source'],
         );
-        $accountOwner = $type === 'invoice' ? $business : $contact;
         $bankAccountFactory = BankAccount::factory();
-        $bankAccountFactory = $bankAccountFactory->ownedBy($accountOwner);
+        $bankAccountFactory = $bankAccountFactory->ownedBy($contact);
         $account = $bankAccountFactory->create(['archived_at' => now()]);
         $business->update(['archived_at' => now()]);
         $contact->update(['archived_at' => now()]);
-        $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $businessRole = $role === 'customer' ? 'supplier' : 'customer';
-        $modelFactory = $model::factory();
+        $modelFactory = Expense::factory();
         $document = $modelFactory->create(
             [
                 'user_id' => $this->adminUser->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
                 'bank_account_id' => $account->id,
-                $role . '_name' => 'Saved counterparty correction',
-                $role . '_street' => 'Saved street 12',
-                $role . '_email' => 'saved@example.test',
-                $businessRole . '_name' => 'Saved business snapshot',
+                'supplier_name' => 'Saved counterparty correction',
+                'supplier_street' => 'Saved street 12',
+                'supplier_email' => 'saved@example.test',
+                'customer_name' => 'Saved business snapshot',
                 'account_number' => '2001234561',
             ],
         );
 
-        $httpResponse = $this->get('/admin/' . $type . '/' . $document->id . '/edit');
+        $httpResponse = $this->get('/admin/expense/' . $document->id . '/edit');
         $httpResponse = $httpResponse->assertOk();
         $httpResponse = $httpResponse->assertSee('value="Saved counterparty correction"', false);
         $httpResponse = $httpResponse->assertSee('value="Saved street 12"', false);
@@ -195,14 +163,13 @@ final class AdminDocumentSnapshotsTest extends TestCase
         $freshDocument = $document->fresh();
         $this->assertSame(
             'Saved counterparty correction',
-            $freshDocument->getAttribute($role . '_name'),
+            $freshDocument->getAttribute('supplier_name'),
         );
         $this->assertSame('Changed contact source', $contact->fresh()->name);
     }
 
     #[Test]
-    #[DataProvider('documents')]
-    public function a_validation_redirect_keeps_the_stored_reference_separate_from_the_new_selection(string $type, string $role): void
+    public function a_validation_redirect_keeps_the_stored_reference_separate_from_the_new_selection(): void
     {
         $contactFactory = Contact::factory();
         $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
@@ -212,16 +179,15 @@ final class AdminDocumentSnapshotsTest extends TestCase
                 'name' => "O'Conner & Sons <Trading>",
             ],
         );
-        $model = $type === 'invoice' ? Invoice::class : Expense::class;
-        $modelFactory = $model::factory();
+        $modelFactory = Expense::factory();
         $document = $modelFactory->create(
             ['user_id' => $this->adminUser->id, 'contact_id' => $contact->id],
         );
 
         $httpClient = $this->withSession(
-            ['_old_input' => ['contact_id' => $changed->id, $role . '_name' => 'Typed before validation']],
+            ['_old_input' => ['contact_id' => $changed->id, 'supplier_name' => 'Typed before validation']],
         );
-        $httpResponse = $httpClient->get('/admin/' . $type . '/' . $document->id . '/edit');
+        $httpResponse = $httpClient->get('/admin/expense/' . $document->id . '/edit');
         $httpResponse = $httpResponse->assertOk();
         $httpResponse = $httpResponse->assertSee('value="Typed before validation"', false);
         $httpResponse = $httpResponse->assertSee(

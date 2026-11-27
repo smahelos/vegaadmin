@@ -17,6 +17,7 @@ use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Tax\Contracts\TaxDtoReadRepositoryInterface;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Http\Requests\Invoice\InvoiceItemInput;
 use App\Http\Requests\Invoice\InvoiceWriteDataInput;
 use App\Http\Requests\Party\DocumentPartyInput;
@@ -95,6 +96,9 @@ final class InvoiceRequest extends FormRequest
 
         return [
             ...InvoiceWriteDataInput::rules(),
+            ...($this->isGuestStore() ? InvoiceWriteDataInput::guestRules() : []),
+            // The guest invoice is printed in the guest's language
+            'document_language' => $this->isGuestStore() ? ['exclude'] : ['required', Rule::enum(Language::class)],
             // Ensure only allowed file types are accepted; allow SVG as image format
             'invoice_logo' => $this->isGuestStore() ? 'nullable|file|mimes:jpeg,jpg,png,gif,svg,webp|max:' . $maxFileSize : ['exclude'],
             // A signed-in user's invoice takes the flag of its business
@@ -312,7 +316,6 @@ final class InvoiceRequest extends FormRequest
             [
                 'payment_method_id',
                 'due_in',
-                'status',
             ] as $field
         ) {
             if (!$this->filled($field) && $this->has($field . '_fallback')) {

@@ -2,32 +2,19 @@
 
 namespace App\Infrastructure\Forms\Invoice;
 
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Models\PaymentMethod;
 
 trait InvoiceFormFields
 {
-    /** @return array<string, string> status labels by value */
-    public static function statusOptions(): array
-    {
-        $statuses = [];
-        foreach (InvoiceStatus::cases() as $status) {
-            $statuses[$status->value] = __('invoices.statuses.' . $status->value);
-        }
-
-        return $statuses;
-    }
-
     /**
-     * Get invoice form field definitions; the parties come from the party picker
+     * Get invoice form field definitions; the parties come from the party picker. A draft gets its number and
+     * dates at issue; the guest invoice is never issued, so its form has them.
      *
      * @param  array  $paymentMethods  Payment method options for dropdowns
      */
-    protected function getInvoiceFields(array $paymentMethods = []): array
+    protected function getInvoiceFields(array $paymentMethods = [], bool $guest = false): array
     {
-        $statuses = self::statusOptions();
-
-        return [
+        $fields = [
             // INVOICE data
             // we want to have Supplier logo at first place
             [
@@ -50,15 +37,7 @@ trait InvoiceFormFields
                 'type' => 'text',
                 'required' => true,
                 'hint' => __('invoices.hints.invoice_vs'),
-            ],
-            [
-                'name' => 'status',
-                'label' => __('invoices.fields.status'),
-                'type' => 'select_from_array',
-                'options' => $statuses,
-                'default' => InvoiceStatus::PENDING->value,
-                'required' => true,
-                'hint' => __('invoices.hints.status'),
+                'guest' => true,
             ],
             [
                 'name' => 'invoice_ks',
@@ -76,17 +55,25 @@ trait InvoiceFormFields
                 'name' => 'issue_date',
                 'label' => __('invoices.fields.issue_date'),
                 'type' => 'date',
-                'default' => date('Y-m-d'),
                 'hint' => __('invoices.hints.issue_date'),
                 'required' => true,
+                'guest' => true,
             ],
             [
                 'name' => 'tax_point_date',
                 'label' => __('invoices.fields.tax_point_date'),
                 'type' => 'date',
                 'hint' => __('invoices.hints.tax_point_date'),
-                'default' => date('Y-m-d'),
                 'required' => true,
+                'guest' => true,
+            ],
+            [
+                'name' => 'document_language',
+                'label' => __('invoices.fields.document_language'),
+                'type' => 'select_from_array',
+                'hint' => __('invoices.hints.document_language'),
+                'required' => true,
+                'guest' => false,
             ],
             [
                 'name' => 'payment_method_id',
@@ -137,5 +124,12 @@ trait InvoiceFormFields
                 'hint' => __('invoices.hints.invoice_text'),
             ],
         ];
+
+        return array_values(
+            array_filter(
+                $fields,
+                static fn (array $field): bool => ($field['guest'] ?? $guest) === $guest,
+            ),
+        );
     }
 }

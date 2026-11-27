@@ -119,7 +119,7 @@ final class DevelopmentDataSeederTest extends TestCase
     }
 
     #[Test]
-    public function gives_every_frontend_account_numbered_invoices_whose_lines_sum_to_their_total(): void
+    public function gives_every_frontend_account_one_draft_and_numbered_issued_invoices_whose_lines_sum_to_their_total(): void
     {
         $this->seed(DevelopmentDataSeeder::class);
         $invoiceMapper = app(EloquentInvoiceMapper::class);
@@ -140,8 +140,17 @@ final class DevelopmentDataSeederTest extends TestCase
                 continue;
             }
 
-            $this->assertNotEmpty($invoices, $email);
-            $numbers = $invoices->map(
+            $drafts = $invoices->whereNull('issued_at');
+            $this->assertCount(
+                1,
+                $drafts,
+                $email,
+            );
+            $draft = $drafts->first();
+            $this->assertNull($draft->invoice_vs, $email);
+            $issued = $invoices->whereNotNull('issued_at');
+            $this->assertNotEmpty($issued, $email);
+            $numbers = $issued->map(
                 fn (Invoice $invoice): string => $invoice->invoice_vs,
             );
             $uniqueNumbers = $numbers->unique();
@@ -156,7 +165,7 @@ final class DevelopmentDataSeederTest extends TestCase
                 $oneOff,
                 $email,
             );
-            foreach ($invoices as $invoice) {
+            foreach ($issued as $invoice) {
                 $this->assertSame(
                     $invoice->issue_date->format('Y'),
                     substr(
@@ -178,8 +187,8 @@ final class DevelopmentDataSeederTest extends TestCase
             }
             // Dated when issued, so the seeded invoices leave the current month's quota free
             $this->assertFalse(
-                $invoices->contains(
-                    fn (Invoice $invoice): bool => $invoice->created_at->greaterThan($invoice->issue_date->endOfDay()),
+                $issued->contains(
+                    fn (Invoice $invoice): bool => $invoice->issued_at->greaterThan($invoice->issue_date->endOfDay()),
                 ),
                 $email,
             );

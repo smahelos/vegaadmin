@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Feature\Domain\Invoice\Services;
 
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Payment\Enums\PaymentMethodCode;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
 use App\Models\PaymentMethod;
@@ -32,7 +34,14 @@ final class InvoicePrintDataBuilderTest extends TestCase
         $dto = $invoiceMapper->toDto($invoice);
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
-        $printData = $invoicePrintDataBuilder->build($dto, true);
+        $printData = $invoicePrintDataBuilder->build(
+            $dto,
+            new InvoicingSettings(
+                true,
+                null,
+                Language::CS,
+            ),
+        );
 
         $this->assertSame(
             '2026-09-30',

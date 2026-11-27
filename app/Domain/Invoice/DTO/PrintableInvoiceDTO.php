@@ -23,6 +23,8 @@ final readonly class PrintableInvoiceDTO
     /**
      * @param  array<int, PrintableInvoiceItemDTO>  $items
      * @param  bool  $vatPayer  A non-payer's invoice states no VAT
+     * @param  bool  $draft  A draft's preview is no tax document: it has no number, dates or QR payment
+     * @param  string|null  $registerEntry  The supplier's entry in a public register
      */
     public function __construct(
         public InvoiceId $id,
@@ -30,6 +32,7 @@ final readonly class PrintableInvoiceDTO
         public ?DateTimeImmutable $issueDate,
         public ?DateTimeImmutable $taxPointDate,
         public ?InvoiceDueDate $dueDate,
+        public int $dueIn,
         public string $currency,
         public InvoiceTemplate $template,
         public array $items,
@@ -45,5 +48,7 @@ final readonly class PrintableInvoiceDTO
         public ?string $specificSymbol,
         public ?PaymentMethodCode $paymentMethod,
         public ?string $notes,
+        public bool $draft,
+        public ?string $registerEntry,
     ) {}
 }

@@ -126,14 +126,23 @@ final class CheckInvoicePaymentStatusFeatureTest extends TestCase
     }
 
     #[Test]
-    public function skips_paid_cancelled_and_other_due_dates(): void
+    public function skips_paid_drafts_and_other_due_dates(): void
     {
         $notifier = $this->captureReminders();
-        foreach ([InvoiceStatus::PAID, InvoiceStatus::CANCELLED] as $status) {
-            $this->dueInvoice(
-                ['payment_status' => $status->value],
-            );
-        }
+        $this->dueInvoice(
+            ['payment_status' => InvoiceStatus::PAID->value],
+        );
+        // A draft has no issue date, so it has no due date to remind of
+        $this->dueInvoice(
+            [
+                'invoice_vs' => null,
+                'issue_date' => null,
+                'tax_point_date' => null,
+                'issued_at' => null,
+                'issued_by' => null,
+                'is_vat_payer' => null,
+            ],
+        );
         $this->dueInvoice(['due_in' => 12]);
         $this->assertSame(
             0,

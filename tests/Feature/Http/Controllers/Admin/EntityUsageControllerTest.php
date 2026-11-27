@@ -123,7 +123,6 @@ final class EntityUsageControllerTest extends TestCase
 
         foreach (
             [
-                'invoice' => 'invoices',
                 'expense' => 'expenses',
                 'business' => 'businesses',
                 'contact' => 'contacts',

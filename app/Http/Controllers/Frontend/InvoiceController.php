@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Application\Invoice\Commands\CopyInvoice;
 use App\Application\Invoice\Commands\CreateGuestInvoice;
 use App\Application\Invoice\Commands\CreateInvoice;
 use App\Application\Invoice\Commands\DeleteGuestInvoice;
-use App\Application\Invoice\Commands\MarkInvoicePaid;
+use App\Application\Invoice\Commands\DeleteInvoice;
+use App\Application\Invoice\Commands\SetInvoiceStatus;
 use App\Application\Invoice\Commands\SetInvoiceTemplate;
 use App\Application\Invoice\Commands\UpdateInvoice;
 use App\Application\Invoice\Contracts\InvoiceRequestAssemblerInterface;
@@ -24,8 +26,11 @@ use App\Application\Invoice\Queries\GetInvoicePdf;
 use App\Application\Invoice\Services\GuestInvoiceCreateForm;
 use App\Application\Invoice\Services\InvoiceProductWriteDataAssembler;
 use App\Application\Shared\Geography\Presenters\CountryOptionsPresenter;
+use App\Application\Shared\Translation\Presenters\LanguageOptionsPresenter;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
+use App\Domain\Invoice\Enums\InvoiceStatus;
+use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\ValueObjects\UserId;
@@ -56,6 +61,7 @@ final class InvoiceController extends Controller
         private readonly InvoiceDetailPresenter $details,
         private readonly InvoiceFormPresenter $forms,
         private readonly InvoiceProductWriteDataAssembler $products,
+        private readonly LanguageOptionsPresenter $languages,
     ) {}
 
     public function index(): View
@@ -91,16 +97,30 @@ final class InvoiceController extends Controller
         );
     }
 
-    public function edit(string $locale, int $id): View
+    public function edit(string $locale, int $id): View|RedirectResponse
     {
         $owner = $this->owner();
-        $editable = $this->useCases->run(
-            Actor::user($owner),
-            new GetInvoiceForEdit(
-                $owner,
-                InvoiceId::fromInt($id),
-            ),
-        );
+        try {
+            $editable = $this->useCases->run(
+                Actor::user($owner),
+                new GetInvoiceForEdit(
+                    $owner,
+                    InvoiceId::fromInt($id),
+                ),
+            );
+        } catch (InvoiceIssuedException) {
+            // The detail shows an issued invoice read-only with the one change it allows, the payment status
+            $redirector = redirect();
+            $redirect = $redirector->route(
+                'frontend.invoice.show',
+                ['locale' => $locale, 'id' => $id],
+            );
+
+            return $redirect->with(
+                'error',
+                __('invoices.messages.issued_locked'),
+            );
+        }
         $invoice = $editable->invoice;
 
         return view(
@@ -117,7 +137,7 @@ final class InvoiceController extends Controller
     public function store(InvoiceRequest $request): RedirectResponse
     {
         $owner = $this->owner();
-        $this->useCases->run(
+        $invoice = $this->useCases->run(
             Actor::user($owner),
             new CreateInvoice(
                 $owner,
@@ -127,10 +147,11 @@ final class InvoiceController extends Controller
             ),
         );
 
+        // The detail offers the preview PDF and issuing of the new draft
         $redirector = redirect();
         $redirect = $redirector->route(
-            'frontend.invoices',
-            ['locale' => App::getLocale()],
+            'frontend.invoice.show',
+            ['locale' => App::getLocale(), 'id' => $invoice->id->value],
         );
 
         return $redirect->with(
@@ -178,8 +199,11 @@ final class InvoiceController extends Controller
         );
     }
 
-    public function show(string $locale, int $id): View
-    {
+    public function show(
+        string $locale,
+        int $id,
+        Request $request,
+    ): View {
         $owner = $this->owner();
         $detail = $this->useCases->run(
             Actor::user($owner),
@@ -197,8 +221,9 @@ final class InvoiceController extends Controller
                 'invoice' => $invoice,
                 'parties' => $invoice->parties,
                 'presenter' => $this->details,
-                'statusColor' => $this->statuses->color($invoice->status),
+                'statusColor' => $this->statuses->color($invoice->issue === null ? null : $invoice->status),
                 'countries' => $this->countries->options($locale),
+                'openIssueDialog' => $request->boolean('issue'),
             ],
         );
     }
@@ -214,7 +239,6 @@ final class InvoiceController extends Controller
             new GetInvoicePdf(
                 $owner,
                 InvoiceId::fromInt($id),
-                $request->get('lang'),
             ),
         );
 
@@ -233,8 +257,13 @@ final class InvoiceController extends Controller
                 $request->get('lang'),
             ),
         );
+        $response = $this->pdfResponse($pdf, $request);
 
-        return $this->pdfResponse($pdf, $request);
+        return $response->cookie(
+            'locale',
+            $pdf->locale,
+            60 * 24 * 30,
+        );
     }
 
     public function update(
@@ -254,10 +283,15 @@ final class InvoiceController extends Controller
             ),
         );
 
+        $parameters = ['id' => $invoice->id->value, 'locale' => $locale];
+        // "Save and issue": the detail opens the issue dialog of the saved draft
+        if ($request->boolean('issue')) {
+            $parameters['issue'] = 1;
+        }
         $redirector = redirect();
         $redirect = $redirector->route(
             'frontend.invoice.show',
-            ['id' => $invoice->id->value, 'locale' => $locale],
+            $parameters,
         );
 
         return $redirect->with(
@@ -299,14 +333,64 @@ final class InvoiceController extends Controller
         );
     }
 
-    public function markAsPaid(string $locale, int $id): RedirectResponse
+    public function copy(string $locale, int $invoice): RedirectResponse
+    {
+        $owner = $this->owner();
+        $draft = $this->useCases->run(
+            Actor::user($owner),
+            new CopyInvoice(
+                $owner,
+                InvoiceId::fromInt($invoice),
+            ),
+        );
+
+        $redirector = redirect();
+        $redirect = $redirector->route(
+            'frontend.invoice.edit',
+            ['locale' => $locale, 'id' => $draft->id->value],
+        );
+
+        return $redirect->with(
+            'success',
+            __('invoices.messages.copied'),
+        );
+    }
+
+    public function destroy(string $locale, int $invoice): RedirectResponse
     {
         $owner = $this->owner();
         $this->useCases->run(
             Actor::user($owner),
-            new MarkInvoicePaid(
+            new DeleteInvoice(
                 $owner,
-                InvoiceId::fromInt($id),
+                InvoiceId::fromInt($invoice),
+            ),
+        );
+
+        $redirector = redirect();
+        $redirect = $redirector->route(
+            'frontend.invoices',
+            ['locale' => $locale],
+        );
+
+        return $redirect->with(
+            'success',
+            __('invoices.messages.deleted'),
+        );
+    }
+
+    public function setStatus(
+        string $locale,
+        int $invoice,
+        InvoiceStatus $status,
+    ): RedirectResponse {
+        $owner = $this->owner();
+        $this->useCases->run(
+            Actor::user($owner),
+            new SetInvoiceStatus(
+                $owner,
+                InvoiceId::fromInt($invoice),
+                $status,
             ),
         );
 
@@ -314,7 +398,7 @@ final class InvoiceController extends Controller
 
         return $redirect->with(
             'success',
-            __('invoices.messages.marked_as_paid'),
+            __('invoices.messages.status_set'),
         );
     }
 
@@ -351,16 +435,11 @@ final class InvoiceController extends Controller
             $request->has('preview') ? HeaderUtils::DISPOSITION_INLINE : HeaderUtils::DISPOSITION_ATTACHMENT,
             $pdf->filename,
         );
-        $response = new Response(
+
+        return new Response(
             $pdf->content,
             200,
             ['Content-Type' => 'application/pdf', 'Content-Disposition' => $disposition],
-        );
-
-        return $response->cookie(
-            'locale',
-            $pdf->locale,
-            60 * 24 * 30,
         );
     }
 
@@ -378,6 +457,8 @@ final class InvoiceController extends Controller
             'taxRates' => $form->taxRates,
             'userLoggedIn' => $form->userLoggedIn,
             'suggestedNumber' => $form->suggestedNumber,
+            'languages' => $this->languages->options(App::getLocale()),
+            'documentLanguage' => $form->documentLanguage?->value ?? App::getLocale(),
         ];
     }
 }

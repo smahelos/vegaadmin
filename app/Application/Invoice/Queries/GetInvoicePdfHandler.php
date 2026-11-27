@@ -12,7 +12,6 @@ use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
-use App\Domain\User\Contracts\Locale;
 
 final class GetInvoicePdfHandler
 {
@@ -21,7 +20,6 @@ final class GetInvoicePdfHandler
         private readonly InvoicePrintDataBuilderInterface $printData,
         private readonly BusinessReadRepositoryInterface $businesses,
         private readonly InvoicePdfRendererInterface $renderer,
-        private readonly Locale $locale,
     ) {}
 
     public function handle(GetInvoicePdf $query, ReadScope $scope): PdfInvoiceDTO
@@ -29,18 +27,15 @@ final class GetInvoicePdfHandler
         $invoice = $this->invoices->findById($query->id, $scope)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
         $businessId = $invoice->parties->businessId;
-        // Until issuing stores the flag on the invoice (D-050, point 6), it is the business's current one
+        // A draft prints the business's current settings, an issued invoice the ones copied at issue (D-050, point 6)
         $business = $this->businesses->findById($businessId, $scope)
             ?? throw new BusinessNotFoundException($businessId);
         $printable = $this->printData->build(
             $invoice,
-            $business->invoicing->vatPayer,
+            $business->invoicing,
         );
-        // An unsupported requested language would break the formatters, so it falls back to the current one
-        $locale = $this->locale->determineLocale(
-            $query->locale,
-            $this->locale->getLocale(),
-        );
+        // The document is in its own language, whoever downloads it (D-050, point 3)
+        $locale = $invoice->language->value;
         $pdf = $this->renderer->render($printable, $locale);
 
         return new PdfInvoiceDTO(

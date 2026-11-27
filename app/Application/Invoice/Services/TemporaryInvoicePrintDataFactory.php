@@ -68,6 +68,7 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
             issueDate: $issue,
             taxPointDate: $this->toImmutable($invoiceData['tax_point_date'] ?? null),
             dueDate: $dueDate,
+            dueIn: (int) ($invoiceData['due_in'] ?? 0),
             currency: $currency->value,
             template: InvoiceTemplate::from($invoiceData['template']),
             items: $items,
@@ -85,6 +86,8 @@ final class TemporaryInvoicePrintDataFactory implements TemporaryInvoicePrintDat
                 PaymentMethodId::fromInt((int) $invoiceData['payment_method_id']),
             )?->code,
             notes: $invoiceData['invoice_text'] ?? null,
+            draft: false,
+            registerEntry: null,
         );
     }
 

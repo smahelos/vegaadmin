@@ -11,30 +11,30 @@ use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\ValueObjects\Money;
-use DateTimeImmutable;
+use App\Domain\Shared\Translation\Enums\Language;
 
 final readonly class InvoiceDTO
 {
     /**
-     * @param  InvoiceTotals  $totals  Computed from the lines
+     * @param  InvoiceTotals  $totals  Computed from the lines of a draft, stored at issue for an issued invoice
      * @param  Money  $totalAmount  The stored amount to pay
      * @param  list<InvoiceProductDTO>  $items
+     * @param  InvoiceIssue|null  $issue  Null for a draft
      */
     public function __construct(
         public InvoiceId $id,
         public DocumentParties $parties,
-        public string $number,
         public ?string $constantSymbol,
         public ?string $specificSymbol,
-        public DateTimeImmutable $issueDate,
-        public DateTimeImmutable $taxPointDate,
         public int $dueIn,
         public InvoiceTotals $totals,
         public Money $totalAmount,
         public ?PaymentMethodId $paymentMethodId,
         public ?string $text,
         public InvoiceTemplate $template,
+        public Language $language,
         public InvoiceStatus $status,
         public array $items,
+        public ?InvoiceIssue $issue,
     ) {}
 }

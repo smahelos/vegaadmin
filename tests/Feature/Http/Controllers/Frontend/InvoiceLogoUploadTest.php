@@ -7,6 +7,7 @@ namespace Tests\Feature\Http\Controllers\Frontend;
 use App\Domain\User\Enums\Permission;
 use App\Models\BankAccount;
 use App\Models\Business;
+use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\Permission as PermissionModel;
 use Illuminate\Http\UploadedFile;
@@ -47,7 +48,6 @@ final class InvoiceLogoUploadTest extends TestCase
     #[Test]
     public function a_signed_in_invoice_uses_a_private_copy_of_the_selected_business_logo(): void
     {
-        $number = $this->invoiceNumber();
         $disk = Storage::disk('public');
         $disk->put('parties/logo.png', 'business logo contents');
         $this->business->update(['logo' => 'parties/logo.png']);
@@ -56,15 +56,13 @@ final class InvoiceLogoUploadTest extends TestCase
         $response = $this->post(
             $url,
             $this->invoiceData(
-                $number,
                 [
                     'invoice_logo' => $fileFactory->image('unrelated.png'),
                 ],
             ),
         );
         $response->assertRedirect();
-        $invoiceQuery = Invoice::where('invoice_vs', $number);
-        $invoice = $invoiceQuery->sole();
+        $invoice = $this->latestInvoice();
         $this->assertNotSame($this->business->logo, $invoice->supplier_logo);
         $this->assertSame(
             'business logo contents',
@@ -80,7 +78,7 @@ final class InvoiceLogoUploadTest extends TestCase
         $copy = $invoice->supplier_logo;
         $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData($number),
+            $this->invoiceData(),
         );
         $httpResponse->assertRedirect();
         $this->assertSame($copy, $invoice->fresh()->supplier_logo);
@@ -90,7 +88,7 @@ final class InvoiceLogoUploadTest extends TestCase
         );
         $httpResponse = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
-            $this->invoiceData($number, ['reload_business' => '1']),
+            $this->invoiceData(['reload_business' => '1']),
         );
         $httpResponse->assertRedirect();
         $this->assertNull($invoice->fresh()->supplier_logo);
@@ -106,7 +104,8 @@ final class InvoiceLogoUploadTest extends TestCase
         $httpResponse = $httpResponse->assertOk();
         $httpResponse->assertDontSee('name="invoice_logo"', false);
         $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
+        $draftFactory = $invoiceFactory->draft();
+        $invoice = $draftFactory->create(
             ['user_id' => $this->user->id, 'business_id' => $this->business->id],
         );
         $httpResponse = $this->get(
@@ -116,16 +115,160 @@ final class InvoiceLogoUploadTest extends TestCase
         $httpResponse->assertDontSee('name="invoice_logo"', false);
     }
 
+    #[Test]
+    public function changing_the_business_replaces_the_copy_and_clears_it_when_the_business_has_no_logo(): void
+    {
+        $this->business->update(
+            ['logo' => $this->sourceLogo('first.png')],
+        );
+        $httpResponse = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData(),
+        );
+        $httpResponse->assertSessionHasNoErrors();
+        $invoice = $this->latestInvoice();
+        $oldCopy = $invoice->supplier_logo;
+        $this->assertNotNull($oldCopy);
+        [$second, $secondAccount] = $this->issuerOf($this->user);
+
+        $httpResponse = $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
+            $this->invoiceData(
+                ['business_id' => $second->id, 'bank_account_id' => $secondAccount->id],
+            ),
+        );
+
+        $httpResponse->assertSessionHasNoErrors();
+        $this->assertNull($invoice->fresh()->supplier_logo);
+        $disk = Storage::disk('public');
+        $disk->assertMissing($oldCopy);
+        $disk->assertExists($this->business->logo);
+    }
+
+    #[Test]
+    public function documents_with_the_same_source_have_independent_files(): void
+    {
+        $this->business->update(
+            ['logo' => $this->sourceLogo('shared.png')],
+        );
+        $url = route('frontend.invoice.store', ['locale' => 'cs']);
+        $httpResponse = $this->post($url, $this->invoiceData());
+        $httpResponse->assertSessionHasNoErrors();
+        $first = $this->latestInvoice();
+        $httpResponse = $this->post($url, $this->invoiceData());
+        $httpResponse->assertSessionHasNoErrors();
+        $second = $this->latestInvoice();
+        $this->assertNotSame($first->supplier_logo, $second->supplier_logo);
+        [$withoutLogo, $otherAccount] = $this->issuerOf($this->user);
+
+        $httpResponse = $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $first->id]),
+            $this->invoiceData(
+                ['business_id' => $withoutLogo->id, 'bank_account_id' => $otherAccount->id],
+            ),
+        );
+
+        $httpResponse->assertSessionHasNoErrors();
+        $disk = Storage::disk('public');
+        $disk->assertMissing($first->supplier_logo);
+        $disk->assertExists($second->supplier_logo);
+        $disk->assertExists($this->business->logo);
+    }
+
+    #[Test]
+    public function a_failed_save_removes_its_new_logo_copy(): void
+    {
+        $this->business->update(
+            ['logo' => $this->sourceLogo('business.png')],
+        );
+        // The typed customer is not registered under the contact's number, so the save fails after the copy
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+
+        $httpResponse = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData(['contact_id' => $contact->id]),
+        );
+
+        $httpResponse->assertSessionHasErrors('customer_company_number');
+        $disk = Storage::disk('public');
+        $this->assertSame(
+            [],
+            $disk->allFiles('documents/logos'),
+        );
+        $disk->assertExists($this->business->logo);
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $this->assertFalse($invoiceQuery->exists());
+    }
+
+    #[Test]
+    public function a_failed_replacement_keeps_the_saved_logo_and_cleans_only_the_new_copy(): void
+    {
+        $this->business->update(
+            ['logo' => $this->sourceLogo('before.png')],
+        );
+        $httpResponse = $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $this->invoiceData(),
+        );
+        $httpResponse->assertSessionHasNoErrors();
+        $invoice = $this->latestInvoice();
+        [$nextBusiness, $nextAccount] = $this->issuerOf($this->user);
+        $nextBusiness->update(
+            ['logo' => $this->sourceLogo('after.png')],
+        );
+        $contactFactory = Contact::factory();
+        $contact = $contactFactory->create(['user_id' => $this->user->id]);
+
+        $httpResponse = $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
+            $this->invoiceData(
+                [
+                    'business_id' => $nextBusiness->id,
+                    'bank_account_id' => $nextAccount->id,
+                    'contact_id' => $contact->id,
+                ],
+            ),
+        );
+
+        $httpResponse->assertSessionHasErrors('customer_company_number');
+        $this->assertSame($invoice->supplier_logo, $invoice->fresh()->supplier_logo);
+        $disk = Storage::disk('public');
+        $this->assertSame(
+            [$invoice->supplier_logo],
+            $disk->allFiles('documents/logos'),
+        );
+        $disk->assertExists($nextBusiness->logo);
+    }
+
     /**
      * @param  array<string, mixed>  $overrides
      * @return array<string, mixed>
      */
-    private function invoiceData(string $number, array $overrides = []): array
+    private function invoiceData(array $overrides = []): array
     {
         return $this->invoiceInput(
             $this->business,
             $this->account,
-            ['invoice_vs' => $number, ...$overrides],
+            $overrides,
         );
+    }
+
+    /** A draft has no number yet, so the stored invoice is found as the newest of the user. */
+    private function latestInvoice(): Invoice
+    {
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoiceQuery->orderByDesc('id');
+
+        return $invoiceQuery->firstOrFail();
+    }
+
+    private function sourceLogo(string $name): string
+    {
+        $path = 'sources/' . $name;
+        $disk = Storage::disk('public');
+        $disk->put($path, $name);
+
+        return $path;
     }
 }

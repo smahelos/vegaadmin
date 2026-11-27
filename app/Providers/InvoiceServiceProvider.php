@@ -16,10 +16,8 @@ use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceListReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoicePrintDataBuilderInterface;
 use App\Domain\Invoice\Contracts\InvoiceReminderReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\Notifications\Contracts\InvoiceReminderNotifierInterface;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
-use App\Domain\Invoice\Services\InvoiceService;
 use App\Infrastructure\Notifications\Invoice\LaravelInvoiceReminderNotifier;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\InvoiceObserver;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Observers\TaxObserver;
@@ -50,11 +48,6 @@ class InvoiceServiceProvider extends ServiceProvider
      */
     private function registerDomainServices(): void
     {
-        $this->app->bind(
-            InvoiceServiceInterface::class,
-            InvoiceService::class,
-        );
-
         $this->app->bind(
             InvoicePrintDataBuilderInterface::class,
             InvoicePrintDataBuilder::class,

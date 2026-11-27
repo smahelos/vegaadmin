@@ -232,14 +232,11 @@ final class InvoiceRequestFeatureTest extends TestCase
     public function validation_fails_when_required_fields_missing(): void
     {
         $requiredFields = [
-            'invoice_vs',
             'payment_method_id',
             'payment_currency',
-            'issue_date',
-            'tax_point_date',
             'due_in',
-            'status',
             'template',
+            'document_language',
             'business_id',
         ];
 
@@ -253,6 +250,46 @@ final class InvoiceRequestFeatureTest extends TestCase
                 "Should have error for missing {$field}",
             );
         }
+        // The guest invoice is never issued, so the guest enters the number and the dates
+        $guestData = $this->guestInvoiceInput(['invoice-products' => [$this->item()]]);
+        foreach (
+            [
+                'invoice_vs',
+                'issue_date',
+                'tax_point_date',
+            ] as $field
+        ) {
+            $invalidData = $guestData;
+            unset($invalidData[$field]);
+
+            $this->assertArrayHasKey(
+                $field,
+                $this->errors($invalidData, guest: true),
+                "Should have error for missing guest {$field}",
+            );
+        }
+    }
+
+    #[Test]
+    public function a_draft_ignores_a_submitted_number_and_dates(): void
+    {
+        $request = $this->validator(
+            [
+                'invoice_vs' => 'not a number',
+                'issue_date' => 'not a date',
+            ] + $this->validInvoiceData,
+            null,
+            false,
+        );
+
+        $errors = $request->errors();
+        $this->assertSame(
+            [],
+            $errors->toArray(),
+        );
+        $validated = $request->validated();
+        $this->assertArrayNotHasKey('invoice_vs', $validated);
+        $this->assertArrayNotHasKey('issue_date', $validated);
     }
 
     #[Test]
@@ -410,21 +447,9 @@ final class InvoiceRequestFeatureTest extends TestCase
     }
 
     #[Test]
-    public function validation_fails_with_an_expense_status(): void
-    {
-        $data = ['status' => 'paid-expense'] + $this->validInvoiceData;
-
-        $this->assertSame(
-            ['status'],
-            array_keys(
-                $this->errors($data),
-            ),
-        );
-    }
-
-    #[Test]
     public function the_number_must_be_an_invoice_number_that_fits_the_variable_symbol(): void
     {
+        $guestData = $this->guestInvoiceInput(['invoice-products' => [$this->item()]]);
         foreach (
             [
                 'FV-2026/1',
@@ -436,14 +461,14 @@ final class InvoiceRequestFeatureTest extends TestCase
             $this->assertSame(
                 ['invoice_vs'],
                 array_keys(
-                    $this->errors(['invoice_vs' => $number] + $this->validInvoiceData),
+                    $this->errors(['invoice_vs' => $number] + $guestData, guest: true),
                 ),
                 "{$number} should be rejected",
             );
         }
         $this->assertSame(
             [],
-            $this->errors(['invoice_vs' => '2026123456'] + $this->validInvoiceData),
+            $this->errors(['invoice_vs' => '2026123456'] + $guestData, guest: true),
         );
     }
 

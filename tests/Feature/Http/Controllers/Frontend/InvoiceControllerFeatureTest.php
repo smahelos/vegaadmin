@@ -39,9 +39,10 @@ class InvoiceControllerFeatureTest extends TestCase
             PermissionModel::findByName(Permission::INVOICE_UPDATE->value, 'web'),
         );
 
-        // Create test invoice
+        // A draft: only a draft is edited
         $invoiceFactory = Invoice::factory();
-        $this->invoice = $invoiceFactory->create(
+        $draftFactory = $invoiceFactory->draft();
+        $this->invoice = $draftFactory->create(
             [
                 'user_id' => $this->user->id,
                 'template' => 'default',
@@ -281,11 +282,15 @@ class InvoiceControllerFeatureTest extends TestCase
         );
 
         $response->assertSessionHas('success');
-        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoiceQuery->where('invoice_ks', '0308');
         $invoice = $invoiceQuery->sole();
-        $this->assertSame('0308', $invoice->invoice_ks);
+        // A draft until issued: no number, no dates
+        $this->assertNull($invoice->issued_at);
+        $this->assertNull($invoice->invoice_vs);
+        $this->assertNull($invoice->issue_date);
         $this->assertSame('modern', $invoice->template);
-        $this->assertSame(InvoiceStatus::PENDING, $invoice->payment_status);
+        $this->assertSame('cs', $invoice->document_language);
         $this->assertSame('100.00', $invoice->payment_amount);
 
         $response = $this->put(
@@ -295,8 +300,7 @@ class InvoiceControllerFeatureTest extends TestCase
                 [
                     'invoice_ks' => null,
                     'invoice_text' => null,
-                    'status' => InvoiceStatus::PAID->value,
-                    'issue_date' => '2026-01-15',
+                    'document_language' => 'de',
                     'due_in' => 30,
                 ],
             ),
@@ -307,12 +311,48 @@ class InvoiceControllerFeatureTest extends TestCase
         $this->assertNull($invoice->invoice_ks);
         $this->assertNull($invoice->invoice_text);
         $this->assertSame('modern', $invoice->template);
-        $this->assertSame(InvoiceStatus::PAID, $invoice->payment_status);
-        $this->assertSame(
-            '2026-01-15',
-            $invoice->issue_date->format('Y-m-d'),
-        );
+        $this->assertSame('de', $invoice->document_language);
         $this->assertSame(30, $invoice->due_in);
+    }
+
+    #[Test]
+    public function save_and_issue_returns_to_the_detail_with_the_issue_dialog_open(): void
+    {
+        $this->actingAs($this->user, 'web');
+        [$business, $account] = $this->issuerOf($this->user);
+        $data = $this->invoiceInput($business, $account);
+        $this->post(
+            route('frontend.invoice.store', ['locale' => 'cs']),
+            $data,
+        );
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoiceQuery->whereNull('issued_at');
+        $invoiceQuery->latest('id');
+        $draft = $invoiceQuery->firstOrFail();
+
+        $response = $this->put(
+            route('frontend.invoice.update', ['locale' => 'cs', 'id' => $draft->id]),
+            [...$data, 'issue' => '1'],
+        );
+
+        $response->assertRedirect(
+            route('frontend.invoice.show', [
+                'locale' => 'cs',
+                'id' => $draft->id,
+                'issue' => 1,
+            ]),
+        );
+        $detail = $this->get(
+            route('frontend.invoice.show', [
+                'locale' => 'cs',
+                'id' => $draft->id,
+                'issue' => 1,
+            ]),
+        );
+        $detail->assertSee(
+            __('invoices.titles.issue'),
+        );
+        $this->assertNull($draft->fresh()->issued_at);
     }
 
     #[Test]
@@ -342,14 +382,56 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function mark_as_paid_updates_status(): void
+    public function the_status_of_an_issued_invoice_is_set_and_unset(): void
+    {
+        $issued = $this->issuedInvoice();
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->put(
+            route(
+                'frontend.invoices.set-status',
+                [
+                    'locale' => 'en',
+                    'invoice' => $issued->id,
+                    'status' => InvoiceStatus::PAID->value,
+                ],
+            ),
+        );
+
+        $response->assertSessionHas('success');
+        $this->assertSame(InvoiceStatus::PAID, $issued->fresh()->payment_status);
+        $response = $this->put(
+            route(
+                'frontend.invoices.set-status',
+                [
+                    'locale' => 'en',
+                    'invoice' => $issued->id,
+                    'status' => InvoiceStatus::PENDING->value,
+                ],
+            ),
+        );
+        $response->assertSessionHas('success');
+        $this->assertSame(InvoiceStatus::PENDING, $issued->fresh()->payment_status);
+    }
+
+    #[Test]
+    public function a_draft_has_no_payment_status_to_set(): void
     {
         $this->actingAs($this->user, 'web');
-        $this->put(
-            route('frontend.invoice.mark-as-paid', ['locale' => 'en', 'id' => $this->invoice->id]),
+
+        $response = $this->put(
+            route(
+                'frontend.invoices.set-status',
+                [
+                    'locale' => 'en',
+                    'invoice' => $this->invoice->id,
+                    'status' => InvoiceStatus::PAID->value,
+                ],
+            ),
         );
-        $this->invoice->refresh();
-        $this->assertSame(InvoiceStatus::PAID, $this->invoice->payment_status);
+
+        $response->assertSessionMissing('success');
+        $this->assertSame(InvoiceStatus::PENDING, $this->invoice->fresh()->payment_status);
     }
 
     #[Test]
@@ -374,14 +456,69 @@ class InvoiceControllerFeatureTest extends TestCase
     }
 
     #[Test]
-    public function show_view_displays_the_invoice(): void
+    public function show_view_offers_issuing_a_draft(): void
     {
+        $this->user->givePermissionTo(
+            PermissionModel::findByName(Permission::INVOICE_DELETE->value, 'web'),
+        );
         $this->actingAs($this->user, 'web');
         $response = $this->get(
             route('frontend.invoice.show', ['locale' => 'en', 'id' => $this->invoice->id]),
         );
+        // The page renders in the user's language, which the locale middleware has set by now
+        $locale = App::getLocale();
         $response->assertStatus(200);
-        $response->assertSee($this->invoice->invoice_vs);
+        $response->assertSee(
+            __('invoices.titles.draft'),
+        );
+        // The Livewire snapshot names the component
+        $response->assertSee('invoice.issue-invoice-dialog', false);
+        $response->assertSee(
+            route('frontend.invoices.destroy', ['locale' => $locale, 'invoice' => $this->invoice->id]),
+            false,
+        );
+    }
+
+    #[Test]
+    public function show_view_of_an_issued_invoice_offers_only_the_payment_status_and_a_copy(): void
+    {
+        $issued = $this->issuedInvoice();
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.invoice.show', ['locale' => 'en', 'id' => $issued->id]),
+        );
+
+        $locale = App::getLocale();
+        $response->assertOk();
+        $response->assertSee($issued->invoice_vs);
+        $response->assertSee(
+            __('invoices.messages.issued_note'),
+        );
+        $response->assertSee(
+            route('frontend.invoices.copy', ['locale' => $locale, 'invoice' => $issued->id]),
+            false,
+        );
+        $response->assertDontSee('invoice.issue-invoice-dialog', false);
+        $response->assertDontSee(
+            route('frontend.invoice.edit', ['locale' => $locale, 'id' => $issued->id]),
+            false,
+        );
+    }
+
+    #[Test]
+    public function editing_an_issued_invoice_redirects_to_its_detail(): void
+    {
+        $issued = $this->issuedInvoice();
+        $this->actingAs($this->user, 'web');
+
+        $response = $this->get(
+            route('frontend.invoice.edit', ['locale' => 'en', 'id' => $issued->id]),
+        );
+
+        $response->assertRedirect(
+            route('frontend.invoice.show', ['locale' => 'en', 'id' => $issued->id]),
+        );
     }
 
     #[Test]
@@ -461,9 +598,8 @@ class InvoiceControllerFeatureTest extends TestCase
         $response->assertOk();
         $response->assertViewHas(
             'values',
-            fn (array $values): bool => $values['invoice_vs'] === $this->invoice->invoice_vs
-                && $values['issue_date'] === $this->invoice->issue_date->format('Y-m-d')
-                && $values['status'] === InvoiceStatus::PENDING->value,
+            fn (array $values): bool => $values['document_language'] === 'cs'
+                && !array_key_exists('invoice_vs', $values),
         );
         $response->assertViewHas(
             'items',
@@ -480,9 +616,10 @@ class InvoiceControllerFeatureTest extends TestCase
     #[Test]
     public function download_without_preview_sets_attachment_disposition(): void
     {
+        $issued = $this->issuedInvoice();
         $this->actingAs($this->user, 'web');
         $response = $this->get(
-            route('frontend.invoice.download', ['locale' => 'en', 'id' => $this->invoice->id]),
+            route('frontend.invoice.download', ['locale' => 'en', 'id' => $issued->id]),
         );
         $response->assertOk();
         $this->assertTrue(
@@ -494,7 +631,7 @@ class InvoiceControllerFeatureTest extends TestCase
             ),
         );
         $this->assertStringContainsString(
-            $this->invoice->invoice_vs,
+            $issued->invoice_vs,
             $response->headers->get('content-disposition'),
         );
     }
@@ -524,11 +661,20 @@ class InvoiceControllerFeatureTest extends TestCase
             $invoiceData,
         );
         $httpResponse->assertSessionHasErrors('customer_company_number');
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $invoiceData['invoice_vs']]);
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoiceQuery->whereKeyNot($this->invoice->id);
+        $this->assertFalse($invoiceQuery->exists());
         $contactQuery = Contact::where('user_id', $this->user->id);
         $this->assertSame(
             1,
             $contactQuery->count(),
         );
+    }
+
+    private function issuedInvoice(): Invoice
+    {
+        $invoiceFactory = Invoice::factory();
+
+        return $invoiceFactory->create(['user_id' => $this->user->id]);
     }
 }

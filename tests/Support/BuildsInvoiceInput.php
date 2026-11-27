@@ -5,19 +5,18 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Domain\Invoice\DTO\InvoiceWriteData;
-use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Models\Address;
 use App\Models\BankAccount;
 use App\Models\Business;
 use App\Models\PaymentMethod;
 use App\Models\User;
 use Carbon\CarbonImmutable;
-use DateTimeImmutable;
 
 /**
  * The input of the invoice form: a signed-in user selects a business and its account and enters the customer,
@@ -60,6 +59,7 @@ trait BuildsInvoiceInput
     ): array {
         return $overrides + [
             ...$this->invoiceDetailsInput(),
+            'document_language' => Language::CS->value,
             'business_id' => $business->id,
             'bank_account_id' => $account?->id,
             ...$this->partyInput('customer', 'Odběratel s.r.o.'),
@@ -72,8 +72,13 @@ trait BuildsInvoiceInput
      */
     private function guestInvoiceInput(array $overrides = []): array
     {
+        $now = CarbonImmutable::now();
+
         return $overrides + [
             ...$this->invoiceDetailsInput(),
+            'invoice_vs' => $this->invoiceNumber(),
+            'issue_date' => $now->toDateString(),
+            'tax_point_date' => $now->toDateString(),
             ...$this->partyInput('supplier', 'Dodavatel s.r.o.'),
             ...$this->partyInput('customer', 'Odběratel s.r.o.'),
             'account_number' => '2001234561',
@@ -104,40 +109,31 @@ trait BuildsInvoiceInput
     private function invoiceDetailsInput(): array
     {
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
-        $now = CarbonImmutable::now();
 
         return [
-            'invoice_vs' => $this->invoiceNumber(),
             'payment_method_id' => $paymentMethodQuery->firstOrFail()->id,
-            'status' => InvoiceStatus::PENDING->value,
             'template' => InvoiceTemplate::DEFAULT->value,
-            'issue_date' => $now->toDateString(),
-            'tax_point_date' => $now->toDateString(),
             'due_in' => 14,
             'payment_currency' => 'CZK',
             'invoice-products' => json_encode([$this->invoiceItem()]),
         ];
     }
 
-    /** What the form would send for an invoice in CZK paid by bank transfer, as the requests build it. */
-    private function invoiceWriteData(?string $number = null): InvoiceWriteData
+    /** What the form would send for a draft in CZK paid by bank transfer, as the requests build it. */
+    private function invoiceWriteData(): InvoiceWriteData
     {
         $paymentMethodQuery = PaymentMethod::where('slug', PaymentMethodCode::BANK_ACCOUNT->value);
         $paymentMethod = $paymentMethodQuery->firstOrFail();
-        $today = new DateTimeImmutable('today');
 
         return new InvoiceWriteData(
-            number: new InvoiceNumber($number ?? $this->invoiceNumber()),
             constantSymbol: null,
             specificSymbol: null,
-            issueDate: $today,
-            taxPointDate: $today,
             dueIn: 14,
             currency: Currency::CZK,
-            status: InvoiceStatus::PENDING,
             paymentMethodId: PaymentMethodId::fromInt($paymentMethod->id),
             text: null,
             template: InvoiceTemplate::DEFAULT,
+            language: Language::CS,
         );
     }
 
