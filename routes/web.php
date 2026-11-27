@@ -12,6 +12,7 @@ use App\Application\Product\Commands\CreateProduct;
 use App\Application\Product\Commands\UpdateProduct;
 use App\Application\User\Commands\ChangePassword;
 use App\Application\User\Commands\UpdateProfile;
+use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Http\Controllers\Frontend\Auth\LoginController;
 use App\Http\Controllers\Frontend\Auth\RegisterController;
 use App\Http\Controllers\Frontend\BusinessController;
@@ -81,8 +82,20 @@ $registrar->group(
                         $route->middleware('allowed:' . UpdateInvoice::class);
                         $route = Route::get('/invoice/{id}/download', [InvoiceController::class, 'download']);
                         $route->name('frontend.invoice.download');
-                        $route = Route::put('/invoice/{id}/mark-as-paid', [InvoiceController::class, 'markAsPaid']);
-                        $route->name('frontend.invoice.mark-as-paid');
+                        $route = Route::post('/invoices/{invoice}/copy', [InvoiceController::class, 'copy']);
+                        $route->whereNumber('invoice');
+                        $route->name('frontend.invoices.copy');
+                        $route->middleware('throttle:create');
+                        $route = Route::delete('/invoices/{invoice}', [InvoiceController::class, 'destroy']);
+                        $route->whereNumber('invoice');
+                        $route->name('frontend.invoices.destroy');
+                        $route = Route::put('/invoices/{invoice}/status/{status}', [InvoiceController::class, 'setStatus']);
+                        $route->whereNumber('invoice');
+                        $route->whereIn(
+                            'status',
+                            array_column(InvoiceStatus::cases(), 'value'),
+                        );
+                        $route->name('frontend.invoices.set-status');
                         $route = Route::put('/invoice/{id}/set-template/{template}', [InvoiceController::class, 'setTemplate']);
                         $route->name('frontend.invoice.set-template');
                         $route->middleware('allowed:' . SetInvoiceTemplate::class);

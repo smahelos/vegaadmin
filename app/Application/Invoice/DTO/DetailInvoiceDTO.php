@@ -11,7 +11,8 @@ use App\Domain\Payment\Enums\PaymentMethodCode;
 
 /**
  * The invoice detail page. The contact only tells whether the customer is linked to the address book;
- * without a link, the contact with the customer's Czech company number is offered instead of a duplicate.
+ * without a link, the contact with the customer's Czech company number is offered instead of a duplicate, only
+ * on a draft. A draft has the business's current VAT payer flag.
  */
 final readonly class DetailInvoiceDTO
 {
@@ -20,5 +21,6 @@ final readonly class DetailInvoiceDTO
         public ?PaymentMethodCode $paymentMethod,
         public ?ContactDTO $contact,
         public ?DuplicatePartyDTO $contactToLink,
+        public bool $vatPayer,
     ) {}
 }

@@ -8,6 +8,7 @@ use App\Application\Invoice\DTO\EditableInvoiceDTO;
 use App\Application\Invoice\DTO\InvoiceFormDTO;
 use App\Application\Invoice\Form\InvoiceCreateFieldSetFactory;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
+use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Payment\Contracts\PaymentMethodDtoReadRepositoryInterface;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
@@ -26,10 +27,14 @@ final class GetInvoiceForEditHandler
     {
         $invoice = $this->invoices->findById($query->id, $scope)
             ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        // An issued invoice changes only by a corrective document (D-050, point 3)
+        if ($invoice->issue !== null) {
+            throw new InvoiceIssuedException('An issued invoice cannot be edited');
+        }
         $paymentMethods = $this->paymentMethods->getAllForDropdown();
 
         $form = new InvoiceFormDTO(
-            fields: $this->fieldSets->build($paymentMethods),
+            fields: $this->fieldSets->build($paymentMethods, false),
             paymentMethods: $paymentMethods,
             taxRates: $this->taxes->getDphRatesForDropdown(),
             userLoggedIn: true,

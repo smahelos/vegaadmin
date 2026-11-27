@@ -1,3 +1,5 @@
+@use('App\Application\Invoice\Commands\IssueInvoice')
+@use('App\Domain\Invoice\Enums\InvoiceStatus')
 <div>
     <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div>
@@ -151,7 +153,7 @@
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 @foreach($invoices as $invoice)
                 <tr>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number }}
+                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number ?? __('invoices.placeholders.not_available') }}
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         @if($invoice->contactId?->value)
@@ -184,7 +186,11 @@
                     <td
                         class="px-4 py-4 whitespace-nowrap text-sm bg-{{ $statusPresenter->color($invoice->status) }}-100 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:bg-{{ $statusPresenter->color($invoice->status) }}-700 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                            @if($invoice->status === null)
+                            {{ __('invoices.statuses.draft') }}
+                            @else
                             {{ __('invoices.statuses.' . $invoice->status->value) }}
+                            @endif
                         </span>
                     </td>
                     <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -192,32 +198,37 @@
                             title="{{ __('invoices.actions.show') }}" class="text-indigo-500 hover:text-[#490BF4] mr-3">
                             <i class="fas fa-eye"></i>
                         </a>
+                        @if($invoice->status === null)
                         <a href="{{ route('frontend.invoice.edit', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
                             title="{{ __('invoices.actions.edit') }}"
                             class="text-yellow-600 hover:text-yellow-900 mr-3">
                             <i class="fas fa-pencil-alt"></i>
                         </a>
+                        @allowed(IssueInvoice::class)
+                        <button type="button" x-data
+                            x-on:click="$dispatch('open-issue-dialog', { id: {{ $invoice->id->value }} })"
+                            title="{{ __('invoices.actions.issue') }}" aria-label="{{ __('invoices.actions.issue') }}"
+                            class="text-emerald-600 hover:text-emerald-800 mr-3 cursor-pointer">
+                            <i class="fas fa-stamp"></i>
+                        </button>
+                        @endallowed
+                        @endif
                         <a href="{{ route('frontend.invoice.download', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
                             title="{{ __('invoices.actions.download') }}"
                             class="text-fuchsia-600 hover:text-fuchsia-900">
                             <i class="fas fa-download"></i>
                         </a>
 
-                        <!-- Button to mark invoice as paid -->
-                        @if($invoice->status !== \App\Domain\Invoice\Enums\InvoiceStatus::PAID)
-                        <form method="POST" action="{{ route('frontend.invoice.mark-as-paid', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
+                        @if($invoice->status === InvoiceStatus::PENDING)
+                        <form method="POST" action="{{ route('frontend.invoices.set-status', ['invoice' => $invoice->id->value, 'status' => InvoiceStatus::PAID->value, 'locale' => App::getLocale()]) }}"
                             class="inline">
                             @csrf
                             @method('PUT')
-                            <button type="submit" class="text-emerald-600 hover:text-emerald-800 pl-2"
-                                title="{{ __('invoices.actions.mark_as_paid') }}">
+                            <button type="submit" class="text-emerald-600 hover:text-emerald-800 pl-2 cursor-pointer"
+                                title="{{ __('invoices.actions.mark_as_paid') }}" aria-label="{{ __('invoices.actions.mark_as_paid') }}">
                                 <i class="fas fa-check-circle"></i>
                             </button>
                         </form>
-                        @else
-                        <span class="text-gray-400 cursor-not-allowed pl-2">
-                            <i class="fas fa-check-circle"></i>
-                        </span>
                         @endif
                     </td>
                 </tr>

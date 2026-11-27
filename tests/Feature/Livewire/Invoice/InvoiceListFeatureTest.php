@@ -10,6 +10,7 @@ use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Sequence;
 use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -53,6 +54,35 @@ final class InvoiceListFeatureTest extends TestCase
                 fn ($row): int => $row->id->value,
                 $component->viewData('businesses'),
             ),
+        );
+    }
+
+    #[Test]
+    public function a_draft_is_listed_as_a_draft_and_has_no_payment_status_to_filter(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $draftFactory = $invoiceFactory->draft();
+        $draft = $draftFactory->create(['user_id' => $this->user->id]);
+        $issued = $invoiceFactory->create(['user_id' => $this->user->id]);
+
+        $component = Livewire::test(InvoiceList::class);
+        $component->assertSee(
+            __('invoices.statuses.draft'),
+        );
+        $invoices = $component->viewData('invoices');
+        $draftRow = $invoices->firstWhere('id.value', $draft->id);
+        $this->assertNull($draftRow?->status);
+        $this->assertNull($draftRow?->number);
+        // Only a draft opens the issue dialog
+        $component->assertSeeHtml("open-issue-dialog', { id: " . $draft->id . ' }');
+        $component->assertDontSeeHtml("open-issue-dialog', { id: " . $issued->id . ' }');
+
+        $component->set('status', InvoiceStatus::PENDING->value);
+        $invoices = $component->viewData('invoices');
+        $invoiceIds = $invoices->map(fn ($row): int => $row->id->value);
+        $this->assertSame(
+            [$issued->id],
+            $invoiceIds->all(),
         );
     }
 
@@ -247,12 +277,15 @@ final class InvoiceListFeatureTest extends TestCase
         $contact = $contactFactory->create(['user_id' => $this->user->id]);
         $invoiceFactory = Invoice::factory();
         $invoiceFactory = $invoiceFactory->count(12);
+        // A number is unique per owner
+        $invoiceFactory = $invoiceFactory->sequence(
+            fn (Sequence $sequence): array => ['invoice_vs' => 'PAGE-' . $sequence->index],
+        );
         $invoiceFactory->create(
             [
                 'user_id' => $this->user->id,
                 'business_id' => $business->id,
                 'contact_id' => $contact->id,
-                'invoice_vs' => 'PAGE-001',
                 'payment_status' => InvoiceStatus::PAID->value,
             ],
         );

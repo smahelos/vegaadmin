@@ -123,6 +123,48 @@ final class MoneyFormatterTest extends TestCase
         );
     }
 
+    /** @return iterable<string, array{string, string, string, string}> */
+    public static function documentAmounts(): iterable
+    {
+        yield 'cs CZK' => [
+            'cs',
+            'CZK',
+            '12345.6',
+            '12' . self::NBSP . '345,60' . self::NBSP . 'Kč',
+        ];
+        yield 'cs EUR' => [
+            'cs',
+            'EUR',
+            '500',
+            '500,00' . self::NBSP . '€',
+        ];
+        yield 'en CZK' => [
+            'en',
+            'CZK',
+            '1234.5',
+            '1,234.50' . self::NBSP . 'CZK',
+        ];
+    }
+
+    #[Test]
+    #[DataProvider('documentAmounts')]
+    public function a_document_writes_the_currency_after_the_amount(
+        string $locale,
+        string $currency,
+        string $amount,
+        string $formatted,
+    ): void {
+        $money = Money::fromString(
+            $amount,
+            Currency::from($currency),
+        );
+
+        $this->assertSame(
+            $formatted,
+            $this->formatter->formatWithCurrencyAfter($money, $locale),
+        );
+    }
+
     #[Test]
     public function formats_in_the_current_locale_when_none_is_given(): void
     {

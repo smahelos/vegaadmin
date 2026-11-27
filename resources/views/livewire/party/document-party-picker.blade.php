@@ -38,8 +38,9 @@
                 <input type="hidden" name="reload_business" value="{{ $reloadBusiness ? 1 : 0 }}">
 
                 @if ($business)
-                    {{-- The item editor reads the flag; until issuing stores it, an invoice takes the business's current one --}}
-                    <input type="checkbox" id="supplier-vat-payer" hidden disabled @checked($business->invoicing->vatPayer)>
+                    {{-- The item editor reads the flag and the document language; until issuing stores the flag, an invoice takes the business's current one --}}
+                    <input type="checkbox" id="supplier-vat-payer" hidden disabled @checked($business->invoicing->vatPayer)
+                        data-business-id="{{ $business->id->value }}" data-document-language="{{ $business->invoicing->documentLanguage->value }}">
                     @if ($businessChanged)
                         <div class="rounded-sm border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200">
                             <p>{{ __('invoices.messages.business_changed') }}</p>

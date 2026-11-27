@@ -74,6 +74,7 @@ return [
         'save_customer_to_contacts' => 'Save the customer to contacts',
         'is_vat_payer' => 'VAT payer',
         'item_base' => 'Tax base',
+        'document_language' => 'Document language',
     ],
     'hints' => [
         'invoice_vs' => 'You can customize the suggested invoice number to match your numbering system.',
@@ -85,10 +86,12 @@ return [
         'due_in' => '',
         'payment_amount' => '',
         'payment_currency' => '',
-        'status' => '',
         'invoice_text' => '',
         'invoice_logo' => 'Upload your invoice logo (max 2MB, formats: jpeg, jpg, png, gif, svg)',
         'template' => 'Select a template for PDF invoice generation',
+        'document_language' => 'The invoice PDF is printed in this language.',
+        'issue' => 'Issuing locks the invoice: its number, dates and supplier details no longer change. Further changes are possible only through a corrective document.',
+        'issue_tax_point_date' => 'If left empty, the issue date is used.',
     ],
     'placeholders' => [
         'select_status' => 'Select status...',
@@ -145,6 +148,10 @@ return [
         'reload_contact' => 'Load contact details',
         'clear_contact' => 'Remove contact',
         'use_contact' => 'Use this contact',
+        'issue' => 'Issue invoice',
+        'copy' => 'Copy to a new draft',
+        'mark_as_unpaid' => 'Mark as unpaid',
+        'save_and_issue' => 'Save and issue',
     ],
     'messages' => [
         'id_required' => 'Invoice ID is required.',
@@ -172,7 +179,6 @@ return [
         'expires_in_soon' => 'Link will expire soon',
         'invoice_deleted' => 'Invoice was successfully deleted.',
         'invoice_sent' => 'Invoice was successfully sent.',
-        'marked_as_paid' => 'Invoice has been marked as paid.',
         'status_not_found' => 'Status "paid" not found.',
         'no_image' => 'No image',
         'no_invoices' => 'You don’t have any invoices yet.',
@@ -191,6 +197,13 @@ return [
         'no_contacts_found' => 'No contact found.',
         'contact_exists' => 'The contact :name with the same company number already exists.',
         'not_vat_payer' => 'Not a VAT payer',
+        'issued' => 'The invoice has been issued.',
+        'copied' => 'A new draft has been created from the invoice.',
+        'status_set' => 'The payment status has been changed.',
+        'issued_locked' => 'Issued document – changes only through a corrective document.',
+        'issued_note' => 'The invoice is issued and locked. Only its payment status can change; other changes need a corrective document.',
+        'draft_without_status' => 'A draft has no payment status. Issue the invoice first.',
+        'due_after_issue' => ':days days after issue',
     ],
     'validation' => [
         'item_currency' => 'The item currency must match the invoice currency.',
@@ -203,6 +216,8 @@ return [
         'invalid_iban' => 'IBAN is invalid',
         'invalid_vat_id' => 'VAT ID is invalid',
         'non_payer_vat_rate' => 'A non-VAT payer uses the 0 % rate on all items.',
+        'number_taken' => 'Another of your documents already has this number. The next free number is :suggestion.',
+        'number_year' => 'The invoice number must belong to the series of the year of the issue date. Suggested number: :suggestion.',
     ],
     'vat_lines' => [
         'titles' => [
@@ -218,8 +233,8 @@ return [
     'statuses' => [
         'paid' => 'Paid',
         'pending' => 'Pending',
-        'cancelled' => 'Cancelled',
         'overdue' => 'Overdue',
+        'draft' => 'Draft',
     ],
     'qr_code_info' => 'Use the QR code for payment',
     'defaults' => [
@@ -255,6 +270,9 @@ return [
         'empty' => 'You don’t have any invoices yet.',
         'empty_message' => 'Create your first invoice by clicking the button below.',
         'create_free_invoice' => 'Create Free Invoice',
+        'draft' => 'Draft invoice',
+        'issue' => 'Issue invoice',
+        'draft_preview' => 'Draft – not a tax document',
     ],
     'labels' => [
         'created_at' => 'Issue Date',

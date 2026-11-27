@@ -18,7 +18,6 @@ final readonly class GetInvoicePdf extends OwnedUseCase implements QueryInterfac
     public function __construct(
         UserId $owner,
         public InvoiceId $id,
-        public ?string $locale,
     ) {
         parent::__construct($owner);
     }

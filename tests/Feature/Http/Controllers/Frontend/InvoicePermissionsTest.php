@@ -30,10 +30,10 @@ final class InvoicePermissionsTest extends TestCase
                 'frontend.invoice.update',
                 [],
             ],
-            'mark as paid' => [
+            'set status' => [
                 'PUT',
-                'frontend.invoice.mark-as-paid',
-                [],
+                'frontend.invoices.set-status',
+                ['status' => 'paid'],
             ],
             'set template' => [
                 'PUT',
@@ -82,6 +82,7 @@ final class InvoicePermissionsTest extends TestCase
     ): void {
         $user = $this->userWith([Permission::INVOICE_CREATE]);
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->draft();
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $user->id,
@@ -113,6 +114,7 @@ final class InvoicePermissionsTest extends TestCase
     {
         $user = $this->userWith([Permission::INVOICE_UPDATE]);
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->draft();
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $user->id,
@@ -142,6 +144,7 @@ final class InvoicePermissionsTest extends TestCase
     {
         $user = $this->userWith([Permission::INVOICE_UPDATE]);
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->draft();
         $invoice = $invoiceFactory->create(
             [
                 'user_id' => $user->id,

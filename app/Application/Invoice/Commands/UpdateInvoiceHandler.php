@@ -7,9 +7,9 @@ namespace App\Application\Invoice\Commands;
 use App\Application\Invoice\Services\InvoicePartiesAssembler;
 use App\Application\Invoice\Services\InvoiceProductOwnership;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
-use App\Domain\Invoice\Contracts\InvoiceServiceInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Party\Contracts\BusinessReadRepositoryInterface;
 use App\Domain\Party\Exceptions\BusinessNotFoundException;
 use App\Domain\Party\Services\DocumentLogoService;
@@ -17,12 +17,13 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Database\Contracts\TransactionBoundaryInterface;
 
 /**
- * The invoice and its lines are replaced together; a failure leaves the stored invoice untouched.
+ * The draft and its lines are replaced together; a failure leaves the stored invoice untouched. An issued
+ * invoice is refused by the Domain.
  */
 final class UpdateInvoiceHandler
 {
     public function __construct(
-        private readonly InvoiceServiceInterface $invoiceService,
+        private readonly InvoiceService $invoiceService,
         private readonly DocumentLogoService $logos,
         private readonly InvoiceProductOwnership $productOwnership,
         private readonly BusinessReadRepositoryInterface $businesses,

@@ -29,6 +29,6 @@ final class InvoiceListPresenter
 
     public function isOverdue(InvoiceListDTO $invoice): bool
     {
-        return $invoice->status->isUnpaid() && $invoice->dueDate !== null && $invoice->dueDate->daysUntil($this->clock->now()) < 0;
+        return $invoice->status?->isUnpaid() === true && $invoice->dueDate !== null && $invoice->dueDate->daysUntil($this->clock->now()) < 0;
     }
 }

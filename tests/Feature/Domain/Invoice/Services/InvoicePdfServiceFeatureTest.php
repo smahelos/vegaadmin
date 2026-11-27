@@ -7,11 +7,13 @@ namespace Tests\Feature\Domain\Invoice\Services;
 use App\Application\Invoice\Contracts\TemporaryInvoicePrintDataFactoryInterface;
 use App\Domain\Invoice\DTO\PrintableInvoiceDTO;
 use App\Domain\Invoice\Services\InvoicePrintDataBuilder;
+use App\Domain\Party\DTO\InvoicingSettings;
 use App\Domain\Payment\Contracts\QrPaymentServiceInterface;
 use App\Domain\Payment\DTO\QrPaymentDTO;
 use App\Domain\Payment\Enums\PaymentMethodCode;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\Enums\Currency;
+use App\Domain\Shared\Translation\Enums\Language;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Infrastructure\Renderers\Invoice\InvoicePdfRenderer;
 use App\Models\Business;
@@ -186,7 +188,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertStringContainsString('Mar 5, 2026', $english);
         $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertStringContainsString(
-            $moneyFormatter->format($print->totalAmount, 'en'),
+            $moneyFormatter->formatWithCurrencyAfter($print->totalAmount, 'en'),
             $english,
         );
     }
@@ -237,7 +239,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $this->assertNotNull($lastCell);
         $moneyFormatter = app(MoneyFormatterInterface::class);
         $this->assertSame(
-            $moneyFormatter->format($print->totals->subtotal, 'cs'),
+            $moneyFormatter->formatWithCurrencyAfter($print->totals->subtotal, 'cs'),
             trim($lastCell->textContent),
         );
         $this->assertStringContainsString('Saved supplier', $html);
@@ -292,6 +294,13 @@ final class InvoicePdfServiceFeatureTest extends TestCase
 
         $invoicePrintDataBuilder = app(InvoicePrintDataBuilder::class);
 
-        return $invoicePrintDataBuilder->build($dto, true);
+        return $invoicePrintDataBuilder->build(
+            $dto,
+            new InvoicingSettings(
+                true,
+                null,
+                Language::CS,
+            ),
+        );
     }
 }

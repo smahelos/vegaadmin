@@ -107,10 +107,12 @@ export default class InvoiceItemManager {
                     if (el.id === 'supplier-vat-payer') {
                         this.updateJsonData();
                         this.updateTotalAmount();
+                        this.applyDocumentLanguage(el);
                     }
                 });
             });
         };
+        this.supplierId = document.getElementById('supplier-vat-payer')?.dataset.businessId;
         // The editor starts after Livewire, so its init events have usually passed already
         if (window.Livewire) {
             watchVatPayer();
@@ -463,6 +465,18 @@ export default class InvoiceItemManager {
     }
 
     // Without the flag (no business selected yet) the rates stay editable
+    // A newly picked supplier brings its document language; a language chosen by hand stays until then
+    applyDocumentLanguage(flag) {
+        const businessId = flag.dataset.businessId;
+        const language = flag.dataset.documentLanguage;
+        const select = document.getElementById('document_language');
+        if (!select || !language || businessId === this.supplierId) {
+            return;
+        }
+        this.supplierId = businessId;
+        select.value = language;
+    }
+
     vatPayer() {
         const flag = document.getElementById('supplier-vat-payer');
 
@@ -477,6 +491,17 @@ export default class InvoiceItemManager {
         });
         document.querySelectorAll('#invoice-items-container .non-payer-column').forEach((column) => {
             column.hidden = vatPayer;
+        });
+        // On desktop the name takes the width of the hidden rate column
+        document.querySelectorAll('#invoice-items-container .item-name-column').forEach((column) => {
+            column.classList.toggle('lg:col-span-9', !vatPayer);
+        });
+        // Below desktop the total fills the rest of the row the rate column left empty
+        document.querySelectorAll('#invoice-items-container .item-total-column').forEach((column) => {
+            column.classList.toggle('col-span-2', vatPayer);
+            column.classList.toggle('col-span-4', !vatPayer);
+            column.classList.toggle('md:col-span-4', vatPayer);
+            column.classList.toggle('md:col-span-7', !vatPayer);
         });
         // The rates a payer entered come back when the flag returns
         this.itemsContainer.querySelectorAll('.item-tax').forEach((select) => {

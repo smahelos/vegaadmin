@@ -13,7 +13,6 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Models\Address;
 use App\Models\Contact;
 use App\Models\Expense;
-use App\Models\Invoice;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -37,97 +36,6 @@ final class DocumentSupplierLogoTest extends TestCase
         $this->setUpAdminTestEnvironment();
         $this->actingAs($this->adminUser, 'backpack');
         Storage::fake('public');
-    }
-
-    #[Test]
-    public function an_invoice_copies_its_business_logo_and_keeps_the_file_after_the_source_is_replaced(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(
-            ['logo' => $this->sourceLogo('business.png')],
-        );
-        $data = $this->invoiceInput(
-            $business,
-            $account,
-            ['user_id' => $this->adminUser->id, 'payment_amount' => '100'],
-        );
-        $httpResponse = $this->post('/admin/invoice', $data);
-        $httpResponse = $httpResponse->assertSessionHasNoErrors();
-        $httpResponse->assertRedirect();
-        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
-        $invoice = $invoiceQuery->sole();
-        $copy = $invoice->supplier_logo;
-        $this->assertOwnCopy($business->logo, $copy);
-        $httpResponse = $this->get('/admin/invoice/' . $invoice->id . '/show');
-        $httpResponse = $httpResponse->assertOk();
-        $httpResponse->assertSee($copy);
-        $disk = Storage::disk('public');
-        $disk->delete($business->logo);
-        $business->update(
-            ['logo' => $this->sourceLogo('new.png')],
-        );
-        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse = $httpResponse->assertSessionHasNoErrors();
-        $httpResponse->assertRedirect();
-        $this->assertSame($copy, $invoice->fresh()->supplier_logo);
-        $disk->assertExists($copy);
-    }
-
-    #[Test]
-    public function changing_the_business_replaces_the_invoice_copy_and_clears_it_when_the_business_has_no_logo(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(
-            ['logo' => $this->sourceLogo('first.png')],
-        );
-        $data = $this->invoiceInput(
-            $business,
-            $account,
-            ['user_id' => $this->adminUser->id, 'payment_amount' => '100'],
-        );
-        $httpResponse = $this->post('/admin/invoice', $data);
-        $httpResponse->assertSessionHasNoErrors();
-        $invoiceQuery = Invoice::where('invoice_vs', $data['invoice_vs']);
-        $invoice = $invoiceQuery->sole();
-        $oldCopy = $invoice->supplier_logo;
-        [$second, $secondAccount] = $this->issuerOf($this->adminUser);
-        $data['business_id'] = $second->id;
-        $data['bank_account_id'] = $secondAccount->id;
-        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $data);
-        $httpResponse->assertSessionHasNoErrors();
-        $this->assertNull($invoice->fresh()->supplier_logo);
-        $disk = Storage::disk('public');
-        $disk->assertMissing($oldCopy);
-        $disk->assertExists($business->logo);
-    }
-
-    #[Test]
-    public function a_failed_invoice_save_removes_its_new_logo_copy(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(
-            ['logo' => $this->sourceLogo('business.png')],
-        );
-        $contactFactory = Contact::factory();
-        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
-        $data = $this->invoiceInput(
-            $business,
-            $account,
-            [
-                'user_id' => $this->adminUser->id,
-                'payment_amount' => '100',
-                'contact_id' => $contact->id,
-            ],
-        );
-        $httpResponse = $this->post('/admin/invoice', $data);
-        $httpResponse->assertSessionHasErrors('contact_id');
-        $disk = Storage::disk('public');
-        $this->assertSame(
-            [],
-            $disk->allFiles('documents/logos'),
-        );
-        $disk->assertExists($business->logo);
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $data['invoice_vs']]);
     }
 
     #[Test]
@@ -389,79 +297,6 @@ final class DocumentSupplierLogoTest extends TestCase
         $httpResponse->assertSessionHasNoErrors();
         $this->assertNull($contact->fresh()->logo);
         $disk->assertMissing($second);
-    }
-
-    #[Test]
-    public function documents_with_the_same_source_have_independent_files(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(
-            ['logo' => $this->sourceLogo('shared.png')],
-        );
-        $firstInput = $this->invoiceInput(
-            $business,
-            $account,
-            ['user_id' => $this->adminUser->id, 'payment_amount' => '100'],
-        );
-        $secondInput = $this->invoiceInput(
-            $business,
-            $account,
-            ['user_id' => $this->adminUser->id, 'payment_amount' => '100'],
-        );
-        $httpResponse = $this->post('/admin/invoice', $firstInput);
-        $httpResponse->assertSessionHasNoErrors();
-        $httpResponse = $this->post('/admin/invoice', $secondInput);
-        $httpResponse->assertSessionHasNoErrors();
-        $invoiceQuery = Invoice::where('invoice_vs', $firstInput['invoice_vs']);
-        $first = $invoiceQuery->sole();
-        $invoiceQuery = Invoice::where('invoice_vs', $secondInput['invoice_vs']);
-        $second = $invoiceQuery->sole();
-        $this->assertNotSame($first->supplier_logo, $second->supplier_logo);
-        [$withoutLogo, $otherAccount] = $this->issuerOf($this->adminUser);
-        $firstInput['business_id'] = $withoutLogo->id;
-        $firstInput['bank_account_id'] = $otherAccount->id;
-        $httpResponse = $this->put('/admin/invoice/' . $first->id, $firstInput);
-        $httpResponse->assertSessionHasNoErrors();
-        $disk = Storage::disk('public');
-        $disk->assertMissing($first->supplier_logo);
-        $disk->assertExists($second->supplier_logo);
-        $disk->assertExists($business->logo);
-    }
-
-    #[Test]
-    public function a_failed_replacement_keeps_the_saved_logo_and_cleans_only_the_new_copy(): void
-    {
-        [$business, $account] = $this->issuerOf($this->adminUser);
-        $business->update(
-            ['logo' => $this->sourceLogo('before.png')],
-        );
-        $input = $this->invoiceInput(
-            $business,
-            $account,
-            ['user_id' => $this->adminUser->id, 'payment_amount' => '100'],
-        );
-        $httpResponse = $this->post('/admin/invoice', $input);
-        $httpResponse->assertSessionHasNoErrors();
-        $invoiceQuery = Invoice::where('invoice_vs', $input['invoice_vs']);
-        $invoice = $invoiceQuery->sole();
-        [$nextBusiness, $nextAccount] = $this->issuerOf($this->adminUser);
-        $nextBusiness->update(
-            ['logo' => $this->sourceLogo('after.png')],
-        );
-        $contactFactory = Contact::factory();
-        $contact = $contactFactory->create(['user_id' => $this->adminUser->id]);
-        $input['business_id'] = $nextBusiness->id;
-        $input['bank_account_id'] = $nextAccount->id;
-        $input['contact_id'] = $contact->id;
-        $httpResponse = $this->put('/admin/invoice/' . $invoice->id, $input);
-        $httpResponse->assertSessionHasErrors('contact_id');
-        $this->assertSame($invoice->supplier_logo, $invoice->fresh()->supplier_logo);
-        $disk = Storage::disk('public');
-        $this->assertSame(
-            [$invoice->supplier_logo],
-            $disk->allFiles('documents/logos'),
-        );
-        $disk->assertExists($nextBusiness->logo);
     }
 
     #[Test]

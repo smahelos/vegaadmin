@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace App\Domain\Invoice\Contracts;
 
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceIssue;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\VatLine;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
@@ -24,6 +27,7 @@ interface InvoiceDtoWriteRepositoryInterface
         DocumentParties $parties,
         Money $total,
         array $lines,
+        InvoiceStatus $status,
     ): InvoiceDTO;
 
     /**
@@ -39,6 +43,23 @@ interface InvoiceDtoWriteRepositoryInterface
         Money $total,
         array $lines,
     ): InvoiceDTO;
+
+    /**
+     * Stores what issuing fixed and the VAT lines by rate.
+     *
+     * @param  list<VatLine>  $vatLines
+     *
+     * @throws InvoiceNumberTakenException when another document of the owner has the number
+     */
+    public function issue(
+        InvoiceId $id,
+        WriteScope $scope,
+        InvoiceIssue $issue,
+        array $vatLines,
+    ): InvoiceDTO;
+
+    /** Deletes the invoice with its lines. */
+    public function delete(InvoiceId $id, WriteScope $scope): void;
 
     public function setTemplate(
         InvoiceId $id,

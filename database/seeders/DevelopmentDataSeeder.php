@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
+use App\Application\Invoice\Commands\IssueInvoice;
+use App\Application\Shared\UseCase\Actor;
+use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
+use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
 use App\Domain\Payment\Enums\PaymentMethodCode;
@@ -14,6 +18,7 @@ use App\Domain\Product\ValueObjects\ProductId;
 use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
+use App\Domain\User\ValueObjects\UserId;
 use App\Infrastructure\Authorization\PermissionCatalog;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\BankAccount;
@@ -93,6 +98,10 @@ final class DevelopmentDataSeeder extends Seeder
     private const DUE_IN_DAYS = 14;
 
     private Randomizer $random;
+
+    public function __construct(
+        private readonly AuthorizingUseCaseRunnerInterface $useCases,
+    ) {}
 
     public function run(): void
     {
@@ -637,8 +646,9 @@ final class DevelopmentDataSeeder extends Seeder
     }
 
     /**
-     * One to three invoices a month from the default business, numbered per year in issue order: the first
-     * two to a one-off customer that is not in the contacts, the others to the customers.
+     * One to three invoices a month from the default business, issued through the use case and numbered per
+     * year in issue order; the newest one stays a draft. The first two go to a one-off customer that is not in
+     * the contacts, the others to the customers.
      *
      * @param  non-empty-list<Contact>  $customers
      * @param  non-empty-list<InvoiceProductWriteData>  $catalog
@@ -692,7 +702,10 @@ final class DevelopmentDataSeeder extends Seeder
         $invoiceMapper = new EloquentInvoiceMapper;
         $invoiceQuery = Invoice::query();
         $lineQuery = InvoiceProduct::query();
+        $owner = UserId::fromInt($user->id);
+        $actor = Actor::user($owner);
         $sequences = [];
+        $drafts = [];
 
         for ($monthsBack = self::MONTHS - 1; $monthsBack >= 0; $monthsBack--) {
             $month = $today->modify('first day of this month');
@@ -709,9 +722,6 @@ final class DevelopmentDataSeeder extends Seeder
                     continue;
                 }
 
-                $year = (int) $date->format('Y');
-                $sequences[$year] = ($sequences[$year] ?? 0) + 1;
-                $number = InvoiceNumber::fromYearAndSequence($year, $sequences[$year]);
                 $lines = [];
                 for ($i = $this->random->getInt(1, 3); $i > 0; $i--) {
                     $product = $catalog[$this->random->getInt(
@@ -740,20 +750,15 @@ final class DevelopmentDataSeeder extends Seeder
                         count($contactCustomers) - 1,
                     )];
                 }
-                $status = $this->invoiceStatus($date, $today);
 
-                // Created when issued, so the seeded invoices do not use up the current month's quota
                 $invoice = $invoiceQuery->create(
                     [
                         'user_id' => $user->id,
                         ...$supplier,
                         ...$customer,
                         'payment_method_id' => $bankTransfer,
-                        'invoice_vs' => $number->value,
-                        'issue_date' => $date->format('Y-m-d'),
-                        'tax_point_date' => $date->format('Y-m-d'),
                         'due_in' => self::DUE_IN_DAYS,
-                        'payment_status' => $status->value,
+                        'payment_status' => InvoiceStatus::PENDING->value,
                         'payment_amount' => $total->amount,
                         'payment_currency' => Currency::CZK->value,
                         'created_at' => $date,
@@ -768,7 +773,33 @@ final class DevelopmentDataSeeder extends Seeder
                         ],
                     );
                 }
+                $drafts[] = [$invoice, $date];
             }
+        }
+
+        array_pop($drafts);
+        foreach ($drafts as [$invoice, $date]) {
+            $year = (int) $date->format('Y');
+            $sequences[$year] = ($sequences[$year] ?? 0) + 1;
+            $this->useCases->run(
+                $actor,
+                new IssueInvoice(
+                    $owner,
+                    InvoiceId::fromInt($invoice->id),
+                    InvoiceNumber::fromYearAndSequence($year, $sequences[$year]),
+                    $date,
+                    null,
+                ),
+            );
+            // Issued on the issue date, so the seeded invoices do not use up the current month's quota
+            $invoice->forceFill(
+                [
+                    'issued_at' => $date,
+                    'payment_status' => $this->invoiceStatus($date, $today)->value,
+                    'updated_at' => $date,
+                ],
+            );
+            $invoice->save();
         }
     }
 
@@ -784,11 +815,7 @@ final class DevelopmentDataSeeder extends Seeder
             return $roll <= 30 ? InvoiceStatus::PAID : InvoiceStatus::PENDING;
         }
 
-        return match (true) {
-            $roll <= 75 => InvoiceStatus::PAID,
-            $roll <= 95 => InvoiceStatus::PENDING,
-            default => InvoiceStatus::CANCELLED,
-        };
+        return $roll <= 80 ? InvoiceStatus::PAID : InvoiceStatus::PENDING;
     }
 
     /**

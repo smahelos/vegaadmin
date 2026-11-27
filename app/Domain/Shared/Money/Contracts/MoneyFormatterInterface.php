@@ -34,4 +34,9 @@ interface MoneyFormatterInterface
         ?int $minFraction = null,
         ?int $maxFraction = null,
     ): string;
+
+    /**
+     * The amount followed by the currency symbol or code, as Czech documents write it (12 346,00 Kč, 500,00 €).
+     */
+    public function formatWithCurrencyAfter(Money $money, string $locale): string;
 }

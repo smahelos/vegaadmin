@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Presenters;
 
-use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceIssue;
 use App\Domain\Invoice\ValueObjects\InvoiceDueDate;
 use App\Domain\Shared\Money\Contracts\MoneyFormatterInterface;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -36,9 +36,13 @@ final class InvoiceDetailPresenter
         return $this->dates->formatDate($date, $locale);
     }
 
-    public function dueDate(InvoiceDTO $invoice, string $locale): string
-    {
-        $dueDate = InvoiceDueDate::fromIssueDateAndDays($invoice->issueDate, $invoice->dueIn);
+    /** Only an issued invoice has a due date; a draft is due the given days after its issue. */
+    public function dueDate(
+        InvoiceIssue $issue,
+        int $dueIn,
+        string $locale,
+    ): string {
+        $dueDate = InvoiceDueDate::fromIssueDateAndDays($issue->date, $dueIn);
 
         return $this->dates->formatDate($dueDate->date(), $locale);
     }

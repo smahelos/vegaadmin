@@ -7,12 +7,15 @@ namespace App\Infrastructure\Persistence\Eloquent\Invoice\Repositories;
 use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
 use App\Domain\Invoice\DTO\InvoiceDTO;
+use App\Domain\Invoice\DTO\InvoiceIssue;
 use App\Domain\Invoice\DTO\InvoiceProductWriteData;
 use App\Domain\Invoice\DTO\InvoiceWriteData;
 use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
+use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\ValueObjects\VatLine;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
@@ -20,18 +23,21 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Infrastructure\Persistence\Eloquent\Invoice\Mappers\EloquentInvoiceMapper;
 use App\Models\Invoice;
+use Illuminate\Database\UniqueConstraintViolationException;
 use InvalidArgumentException;
 
 final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInterface, InvoiceDtoWriteRepositoryInterface
 {
+    private const RELATIONS = ['invoiceProducts', 'vatLines'];
+
     public function __construct(
         private readonly EloquentInvoiceMapper $mapper,
     ) {}
 
     public function findById(InvoiceId $id, ReadScope $scope): ?InvoiceDTO
     {
-        // The mapper reads the lines
-        $query = Invoice::with('invoiceProducts');
+        // The mapper reads the lines and the VAT lines
+        $query = Invoice::with(self::RELATIONS);
         $query->where('user_id', $scope->owner->value);
         $model = $query->find($id->value);
 
@@ -41,7 +47,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
     public function findByIdForUpdate(InvoiceId $id, WriteScope $scope): ?InvoiceDTO
     {
         $query = Invoice::query();
-        $query->with('invoiceProducts');
+        $query->with(self::RELATIONS);
         $query->whereKey($id->value);
         $query->where('user_id', $scope->owner->value);
         $query->lockForUpdate();
@@ -58,6 +64,7 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         DocumentParties $parties,
         Money $total,
         array $lines,
+        InvoiceStatus $status,
     ): InvoiceDTO {
         $attributes = $this->mapper->toAttributes(
             $data,
@@ -65,10 +72,11 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
             $total,
         );
         $attributes['user_id'] = $scope->owner->value;
+        $attributes['payment_status'] = $status->value;
 
         $model = Invoice::create($attributes);
         $this->createLines($model, $lines);
-        $model->load('invoiceProducts');
+        $model->load(self::RELATIONS);
 
         return $this->mapper->toDto($model);
     }
@@ -94,9 +102,47 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         $lineQuery = $model->invoiceProducts();
         $lineQuery->delete();
         $this->createLines($model, $lines);
-        $model->load('invoiceProducts');
+        $model->load(self::RELATIONS);
 
         return $this->mapper->toDto($model);
+    }
+
+    /** @param  list<VatLine>  $vatLines */
+    public function issue(
+        InvoiceId $id,
+        WriteScope $scope,
+        InvoiceIssue $issue,
+        array $vatLines,
+    ): InvoiceDTO {
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->findOrFail($id->value);
+        try {
+            $model->update(
+                $this->mapper->toIssueAttributes($issue),
+            );
+        } catch (UniqueConstraintViolationException $e) {
+            throw new InvoiceNumberTakenException(previous: $e);
+        }
+        $relation = $model->vatLines();
+        foreach ($vatLines as $vatLine) {
+            $relation->create(
+                $this->mapper->toVatLineAttributes($vatLine),
+            );
+        }
+        $model->load(self::RELATIONS);
+
+        return $this->mapper->toDto($model);
+    }
+
+    public function delete(InvoiceId $id, WriteScope $scope): void
+    {
+        // The lines and VAT lines go with the invoice (foreign keys with cascade). The model is deleted, not the query,
+        // so InvoiceObserver publishes UserDataChanged
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->findOrFail($id->value);
+        $model->delete();
     }
 
     public function setTemplate(

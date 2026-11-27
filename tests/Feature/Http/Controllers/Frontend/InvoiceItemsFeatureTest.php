@@ -56,7 +56,6 @@ final class InvoiceItemsFeatureTest extends TestCase
     #[Test]
     public function a_stored_invoice_amounts_to_the_sum_of_its_lines_in_cents(): void
     {
-        $number = $this->invoiceNumber();
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
             $this->invoiceData(
@@ -76,13 +75,11 @@ final class InvoiceItemsFeatureTest extends TestCase
                         ],
                     ),
                 ],
-                number: $number,
             ),
         );
 
         $response->assertSessionHas('success');
-        $invoiceQuery = Invoice::where('invoice_vs', $number);
-        $invoice = $invoiceQuery->firstOrFail();
+        $invoice = $this->storedInvoice();
         // 373.95 + 44.87 and 224.01 + 47.04; the typed payment amount 1 is ignored
         $this->assertSame('689.87', $invoice->fresh()->payment_amount);
         $invoiceProductQuery = InvoiceProduct::where('invoice_id', $invoice->id);
@@ -97,15 +94,13 @@ final class InvoiceItemsFeatureTest extends TestCase
     #[Test]
     public function updating_an_invoice_replaces_its_lines_and_recomputes_the_amount(): void
     {
-        $number = $this->invoiceNumber();
         $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
             $this->invoiceData([
                 $this->item(), $this->item(),
-            ], number: $number),
+            ]),
         );
-        $invoiceQuery = Invoice::where('invoice_vs', $number);
-        $invoice = $invoiceQuery->firstOrFail();
+        $invoice = $this->storedInvoice();
 
         $response = $this->put(
             route('frontend.invoice.update', ['locale' => 'cs', 'id' => $invoice->id]),
@@ -117,7 +112,6 @@ final class InvoiceItemsFeatureTest extends TestCase
                         'tax_rate' => '21',
                     ],
                 )],
-                number: $number,
             ),
         );
 
@@ -132,7 +126,6 @@ final class InvoiceItemsFeatureTest extends TestCase
     #[Test]
     public function lines_of_one_rate_are_rounded_once_for_the_rate(): void
     {
-        $number = $this->invoiceNumber();
         $line = $this->item(
             [
                 'quantity' => '1.5',
@@ -141,15 +134,14 @@ final class InvoiceItemsFeatureTest extends TestCase
         );
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
-            $this->invoiceData([$line, $line], number: $number),
+            $this->invoiceData([$line, $line]),
         );
 
         $response->assertSessionHas('success');
-        $invoiceQuery = Invoice::where('invoice_vs', $number);
         // Base 2 x 0.045 = 0.09 and VAT 0.0189 of the rate; rounding each line would give 0.10 + 0.02
         $this->assertSame(
             '0.11',
-            $invoiceQuery->value('payment_amount'),
+            $this->storedInvoice()->payment_amount,
         );
     }
 
@@ -157,64 +149,66 @@ final class InvoiceItemsFeatureTest extends TestCase
     public function a_business_that_is_not_a_vat_payer_charges_no_vat(): void
     {
         $this->business->update(['is_vat_payer' => false]);
-        $number = $this->invoiceNumber();
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
-            $this->invoiceData([$this->item()], number: $number),
+            $this->invoiceData([$this->item()]),
         );
 
         $response->assertSessionHasErrors(['invoice-products']);
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $number]);
+        $this->assertDatabaseMissing('invoices', ['user_id' => $this->user->id]);
 
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
             $this->invoiceData(
                 [$this->item(['tax_rate' => '0'])],
-                number: $number,
             ),
         );
 
         $response->assertSessionHas('success');
-        $invoiceQuery = Invoice::where('invoice_vs', $number);
         $this->assertSame(
             '100.00',
-            $invoiceQuery->value('payment_amount'),
+            $this->storedInvoice()->payment_amount,
         );
     }
 
     #[Test]
     public function an_invoice_with_an_invalid_item_is_not_stored(): void
     {
-        $number = $this->invoiceNumber();
         $response = $this->post(
             route('frontend.invoice.store', ['locale' => 'cs']),
             $this->invoiceData(
                 [
                     $this->item(['tax_rate' => '17']),
                 ],
-                number: $number,
             ),
         );
 
         $response->assertSessionHasErrors(['invoice-products.0.tax_rate']);
-        $this->assertDatabaseMissing('invoices', ['invoice_vs' => $number]);
+        $this->assertDatabaseMissing('invoices', ['user_id' => $this->user->id]);
     }
 
     /**
      * @param  list<array<string, string>>  $items
      * @return array<string, mixed>
      */
-    private function invoiceData(array $items, string $number): array
+    private function invoiceData(array $items): array
     {
         return $this->invoiceInput(
             $this->business,
             $this->account,
             [
-                'invoice_vs' => $number,
                 'payment_amount' => 1,
                 'invoice-products' => json_encode($items),
             ],
         );
+    }
+
+    private function storedInvoice(): Invoice
+    {
+        $invoiceQuery = Invoice::where('user_id', $this->user->id);
+        $invoiceQuery->latest('id');
+
+        return $invoiceQuery->firstOrFail();
     }
 
     /**

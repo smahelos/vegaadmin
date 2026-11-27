@@ -8,13 +8,13 @@ use App\Domain\Invoice\Enums\InvoiceStatus;
 
 final class InvoiceStatusPresenter
 {
-    /** Tailwind colour name of the status, which views combine into classes (`bg-green-100`). */
-    public function color(InvoiceStatus $status): string
+    /** Tailwind colour name of the status, which views combine into classes (`bg-green-100`); null is a draft. */
+    public function color(?InvoiceStatus $status): string
     {
         return match ($status) {
+            null => 'gray',
             InvoiceStatus::PAID => 'green',
             InvoiceStatus::PENDING => 'yellow',
-            InvoiceStatus::CANCELLED => 'gray',
         };
     }
 }

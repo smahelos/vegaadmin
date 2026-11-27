@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\CronTask;
 use App\Models\Expense;
-use App\Models\Invoice;
 use App\Models\Subscription;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
@@ -29,12 +28,6 @@ class AdminDatepickerFieldTest extends TestCase
                 'expense',
                 Expense::class,
                 'expense_date',
-                '2026-03-15',
-            ],
-            'invoice date' => [
-                'invoice',
-                Invoice::class,
-                'issue_date',
                 '2026-03-15',
             ],
             'date and time' => [

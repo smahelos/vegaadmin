@@ -8,22 +8,17 @@ use App\Application\Invoice\DTO\EditableInvoiceItemDTO;
 use App\Domain\Invoice\DTO\InvoiceDTO;
 
 /**
- * The stored invoice as the values of the edit form, keyed by the request keys of InvoiceRequest.
+ * The stored draft as the values of the edit form, keyed by the request keys of InvoiceRequest.
  */
 final class InvoiceFormPresenter
 {
-    private const string DATE_INPUT = 'Y-m-d';
-
     /** @return array<string, string> */
     public function values(InvoiceDTO $invoice): array
     {
         return [
-            'invoice_vs' => $invoice->number,
             'invoice_ks' => $invoice->constantSymbol ?? '',
             'invoice_ss' => $invoice->specificSymbol ?? '',
-            'status' => $invoice->status->value,
-            'issue_date' => $invoice->issueDate->format(self::DATE_INPUT),
-            'tax_point_date' => $invoice->taxPointDate->format(self::DATE_INPUT),
+            'document_language' => $invoice->language->value,
             'payment_method_id' => $invoice->paymentMethodId === null ? '' : (string) $invoice->paymentMethodId->value,
             'due_in' => (string) $invoice->dueIn,
             'payment_amount' => $invoice->totalAmount->amount,

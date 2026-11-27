@@ -26,7 +26,7 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 
 | Scenario | Principal tests |
 |---|---|
-| A01 shared contacts and products | `Http/Controllers/Frontend/SharedProductCatalogTest`, `Http/Controllers/Admin/InvoiceItemsControllerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
+| A01 shared contacts and products | `Http/Controllers/Frontend/SharedProductCatalogTest`, `Livewire/Product/ProductListSelectFeatureTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
 | A02 optional profile fields and clearing | `Application/Party/ContactUseCasesTest`, `Livewire/Party/ContactFormTest` |
 | A03 registration country | `tests/Unit/Domain/Party/ValueObjects/RegistrationNumberTest.php`, `Livewire/Party/ContactFormTest` |
 | A04 Czech constraint and foreign warnings | `Database/Migrations/BusinessAndContactConstraintTest`, `Application/Party/ContactUseCasesTest` |
@@ -53,7 +53,7 @@ These are the principal regression locations for PRD A01–A29. A row identifies
 | A25 document-only email and account data | `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/ExpenseCrudControllerTest`; sending an invoice by email remains separate work |
 | A26 archived references during editing | `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Livewire/Party/DocumentPartyPickerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
 | A27 restoring defaults | `Application/Party/BusinessUseCasesTest` |
-| A28 company change, lines and counterparty identity | `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Http/Controllers/Admin/InvoiceItemsControllerTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
+| A28 company change, lines and counterparty identity | `Http/Controllers/Admin/InvoiceCrudControllerTest`, `Http/Controllers/Admin/AdminDocumentSnapshotsTest`, `Http/Controllers/Frontend/InvoiceItemsFeatureTest`, `Http/Controllers/Frontend/InvoiceContactControllerTest`, `Application/Invoice/Services/InvoicePartiesAssemblerTest` |
 | A29 same identity across entity kinds | `Application/Party/BusinessUseCasesTest`, `Database/Migrations/BusinessAndContactConstraintTest` |
 
 ## Source review against A01–A29

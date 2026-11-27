@@ -5,8 +5,6 @@ declare(strict_types=1);
 use App\Application\Invoice\Queries\ListDocumentBankAccounts;
 use App\Application\Invoice\Queries\ListDocumentBusinesses;
 use App\Application\Invoice\Queries\ListDocumentContacts;
-use App\Application\Invoice\Queries\ListInvoiceCatalogProducts;
-use App\Application\Invoice\Queries\PreviewInvoiceTotals;
 use App\Application\Party\Commands\ArchiveBankAccount;
 use App\Application\Party\Commands\ArchiveBusiness;
 use App\Application\Party\Commands\ArchiveContact;
@@ -30,7 +28,6 @@ use App\Http\Controllers\Admin\EntityUsageController;
 use App\Http\Controllers\Admin\ExpenseCategoryCrudController;
 use App\Http\Controllers\Admin\ExpenseCrudController;
 use App\Http\Controllers\Admin\InvoiceCrudController;
-use App\Http\Controllers\Admin\InvoiceItemsController;
 use App\Http\Controllers\Admin\MysqlOptimizationLogCrudController;
 use App\Http\Controllers\Admin\PageCategoryCrudController;
 use App\Http\Controllers\Admin\PageCrudController;
@@ -75,12 +72,6 @@ Route::group(
         $route->name('admin.entity-usage.show');
         // `allowed` names the use case the action runs through the gate: change them together
         $route->middleware('allowed:' . GetEntityUsage::class);
-        $route = Route::get('invoice-items/catalog', [InvoiceItemsController::class, 'catalog']);
-        $route->name('admin.invoice-items.catalog');
-        $route->middleware('allowed:' . ListInvoiceCatalogProducts::class);
-        $route = Route::post('invoice-items/preview', [InvoiceItemsController::class, 'preview']);
-        $route->name('admin.invoice-items.preview');
-        $route->middleware('allowed:' . PreviewInvoiceTotals::class);
         Route::crud('invoice', InvoiceCrudController::class);
         // Each `allowed` below names the use case its action runs through the gate: change them together
         Route::crud('business', BusinessCrudController::class);

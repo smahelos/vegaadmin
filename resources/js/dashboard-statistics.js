@@ -243,8 +243,7 @@ class DashboardStatistics {
             const statusColors = {
                 'paid': 'rgba(16, 185, 129, 0.7)',  // green
                 'pending': 'rgba(251, 191, 36, 0.7)',  // yellow
-                'overdue': 'rgba(239, 68, 68, 0.7)',   // red
-                'cancelled': 'rgba(156, 163, 175, 0.7)'    // gray
+                'overdue': 'rgba(239, 68, 68, 0.7)'   // red
             };
 
             console.log('Invoice status data (raw):', data);

@@ -30,16 +30,16 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
 
     public function render(PrintableInvoiceDTO $data, string $locale): PdfDocument
     {
-        $paymentAmountFormatted = $this->moneyFormatter->format($data->totalAmount, $locale);
+        $paymentAmountFormatted = $this->moneyFormatter->formatWithCurrencyAfter($data->totalAmount, $locale);
         $totals = $data->totals;
         $vatLinesFormatted = [];
         foreach ($totals->vatLines as $vatLine) {
             $vatLineTotal = $vatLine->total();
             $vatLinesFormatted[] = [
                 'rate_formatted' => $this->numberFormatter->format($vatLine->rate, $locale),
-                'base_formatted' => $this->moneyFormatter->format($vatLine->base, $locale),
-                'vat_formatted' => $this->moneyFormatter->format($vatLine->vat, $locale),
-                'total_formatted' => $this->moneyFormatter->format($vatLineTotal, $locale),
+                'base_formatted' => $this->moneyFormatter->formatWithCurrencyAfter($vatLine->base, $locale),
+                'vat_formatted' => $this->moneyFormatter->formatWithCurrencyAfter($vatLine->vat, $locale),
+                'total_formatted' => $this->moneyFormatter->formatWithCurrencyAfter($vatLineTotal, $locale),
             ];
         }
 
@@ -49,16 +49,21 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
                 'name' => $item->name,
                 'quantity_formatted' => $this->numberFormatter->format($item->quantity, $locale),
                 'unit' => $item->unit->value,
-                'price_formatted' => $this->moneyFormatter->format($item->price, $locale),
+                'price_formatted' => $this->moneyFormatter->formatWithCurrencyAfter($item->price, $locale),
                 'tax_rate_formatted' => $this->numberFormatter->format($item->taxRate, $locale),
-                'base_formatted' => $this->moneyFormatter->format($item->base, $locale),
+                'base_formatted' => $this->moneyFormatter->formatWithCurrencyAfter($item->base, $locale),
                 'currency' => $data->currency,
             ];
         }
 
         $qrCode = null;
         $hasQr = false;
-        if ($data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT && $data->account !== null) {
+        // A draft is no tax document and has no variable symbol to pay with (D-050, point 2)
+        if (
+            $data->paymentMethod === PaymentMethodCode::BANK_ACCOUNT
+            && $data->account !== null
+            && $data->variableSymbol !== null
+        ) {
             $qrPayload = $this->qrPaymentMapper->fromPrintableInvoice($data);
             $qrCode = $this->qrPaymentService->generateQrCodeBase64($qrPayload);
             $hasQr = !empty($qrCode);
@@ -77,7 +82,7 @@ final class InvoicePdfRenderer implements InvoicePdfRendererInterface
             'issueDateFormatted' => $this->formatDate($data->issueDate, $locale),
             'taxPointDateFormatted' => $this->formatDate($data->taxPointDate, $locale),
             'dueDateFormatted' => $this->formatDate($data->dueDate?->date(), $locale),
-            'dueDays' => $data->dueDate?->days,
+            'dueDays' => $data->dueIn,
             'customer' => $data->customer,
             'supplier' => $data->supplier,
             'accountNumber' => $data->account?->account->number,

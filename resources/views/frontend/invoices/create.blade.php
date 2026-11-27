@@ -2,7 +2,6 @@
 @extends('layouts.frontend')
 
 @use('App\Domain\Payment\Enums\PaymentMethodCode')
-@use('App\Domain\User\Enums\LimitedEntity')
 @use('Carbon\CarbonImmutable')
 {{-- Taken before the payment method options are replaced by their labels below --}}
 @php
@@ -73,8 +72,9 @@ if (!function_exists('renderCreateInputAttributes')) {
 $fieldDescription = getCreateFieldByName($fields, 'invoice_text');
 
 // Fields to determine start and end of sections
+// A guest enters the number and the dates; a draft gets them at issue and has a document language instead
 $sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
-$sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
+$sectionEndFields = ['invoice_vs', 'tax_point_date', 'document_language', 'payment_currency'];
 
 $storeRoute = $userLoggedIn ? 'frontend.invoice.store' : 'frontend.invoice.store.guest';
 $formAction = route($storeRoute, ['locale' => App::getLocale()]);
@@ -98,12 +98,6 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
     </div>
     @endif
 </div>
-
-@auth
-<div class="mb-6">
-    <x-entity-usage :entity="LimitedEntity::INVOICE" />
-</div>
-@endauth
 
 <form id="invoice-form" method="POST" action="{{ $formAction }}" enctype="multipart/form-data"
     data-user-logged-in="{{ $userLoggedIn ? 'true' : 'false' }}"
@@ -192,11 +186,11 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                             @enderror
                         </div>
 
-                        @elseif($field['name'] === 'status')
+                        @elseif($field['name'] === 'document_language')
                         <div class="md:col-span-1">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id" :selected="old($field['name'], $field['default'])"
-                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$field['options']"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], $documentLanguage)"
+                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$languages"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
 
@@ -321,7 +315,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                 <div id="invoice-items-container">
                     <!-- Invoice items header -->
                     <div class="grid-cols-4 md:grid-cols-12 lg:grid-cols-24 gap-4 mb-2 hidden lg:grid">
-                        <div class="col-span-4 md:col-span-6 text-sm font-medium text-gray-600 dark:text-gray-400">{{
+                        <div class="item-name-column col-span-4 md:col-span-6 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_name') }}</div>
                         <div class="col-span-4 md:col-span-2 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_quantity') }}</div>
@@ -341,7 +335,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                     <!-- Template for invoice item -->
                     <div class="invoice-item-template hidden">
                         <div class="invoice-item grid grid-cols-4 md:grid-cols-12 lg:grid-cols-24 gap-4 mb-3">
-                            <div class="col-span-4 md:col-span-6">
+                            <div class="item-name-column col-span-4 md:col-span-6">
                                 <label
                                     class="block text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
                                     __('invoices.placeholders.item_name') }}</label>
@@ -404,7 +398,7 @@ $formAction = route($storeRoute, ['locale' => App::getLocale()]);
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-span-2 md:col-span-4 lg:col-span-3">
+                            <div class="item-total-column col-span-2 md:col-span-4 lg:col-span-3">
                                 <label
                                     class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden"><span class="vat-rate-column">{{ __('invoices.fields.item_base') }}</span><span class="non-payer-column" hidden>{{ __('invoices.fields.total') }}</span></label>
                                 <input type="text"

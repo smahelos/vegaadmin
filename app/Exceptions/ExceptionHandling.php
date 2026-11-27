@@ -3,7 +3,9 @@
 namespace App\Exceptions;
 
 use App\Domain\Expense\Exceptions\ExpenseNotFoundException;
+use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Exceptions\InvoiceNotIssuedException;
 use App\Domain\Invoice\Exceptions\NonPayerVatRateException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
@@ -149,6 +151,20 @@ class ExceptionHandling
                 $request,
                 'invoice-products',
                 __('invoices.validation.non_payer_vat_rate'),
+            ),
+        );
+
+        // An issued invoice changes only its payment status; a draft has none to change
+        $exceptions->render(
+            fn (InvoiceIssuedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+                $request,
+                __('invoices.messages.issued_locked'),
+            ),
+        );
+        $exceptions->render(
+            fn (InvoiceNotIssuedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+                $request,
+                __('invoices.messages.draft_without_status'),
             ),
         );
 

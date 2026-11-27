@@ -24,6 +24,8 @@ final readonly class InvoiceProductDTO
         public Unit $unit,
         public Money $price,
         public string $taxRate,
+        public ?string $category = null,
+        public ?string $description = null,
     ) {}
 
     /** Price times quantity, rounded half up to cents, as the line prints it; VAT is computed by rate (InvoiceTotals). */

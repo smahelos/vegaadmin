@@ -38,6 +38,6 @@ final readonly class UpdateInvoice extends OwnedUseCase implements CallsOutsideD
 
     public static function access(): Access
     {
-        return Access::permissionWithOwner(Permission::INVOICE_UPDATE);
+        return Access::permission(Permission::INVOICE_UPDATE);
     }
 }

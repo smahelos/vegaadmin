@@ -4,7 +4,6 @@ namespace Tests\Feature\Http\Controllers\Admin;
 
 use App\Models\Contact;
 use App\Models\Expense;
-use App\Models\Invoice;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 use Tests\Traits\CreatesAdminTestEnvironment;
@@ -112,64 +111,6 @@ class AdminSelect2FieldsTest extends TestCase
             '<option value="' . $contact->id . '" selected>' . $contact->name . '</option>',
             false,
         );
-    }
-
-    #[Test]
-    public function invoice_date_and_payment_fields_keep_their_types(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-
-        $httpResponse = $this->get('/admin/invoice/create');
-        $httpResponse = $httpResponse->assertOk();
-        $content = $httpResponse->getContent();
-
-        $this->assertStringContainsString(
-            'name="issue_date" value="' . date('Y-m-d') . '" data-datepicker-value',
-            $content,
-        );
-        $this->assertStringContainsString(
-            'name="tax_point_date" value="' . date('Y-m-d') . '" data-datepicker-value',
-            $content,
-        );
-        $this->assertSelect2Field(
-            $content,
-            'payment_method_id',
-            'bpFieldInitBillexSelect2',
-        );
-        $this->assertSelect2Field(
-            $content,
-            'due_in',
-            'bpFieldInitBillexSelect2',
-        );
-        $this->assertSelect2Field(
-            $content,
-            'payment_currency',
-            'bpFieldInitBillexSelect2',
-        );
-    }
-
-    #[Test]
-    public function invoice_edit_form_keeps_stored_payment_values(): void
-    {
-        $this->actingAs($this->adminUser, 'backpack');
-        $invoiceFactory = Invoice::factory();
-        $invoice = $invoiceFactory->create(
-            [
-                'user_id' => $this->adminUser->id,
-                'tax_point_date' => '2026-09-30',
-                'due_in' => 21,
-            ],
-        );
-
-        $httpResponse = $this->get("/admin/invoice/{$invoice->id}/edit");
-        $httpResponse = $httpResponse->assertOk();
-        $content = $httpResponse->getContent();
-
-        $this->assertStringContainsString(
-            'name="tax_point_date" value="2026-09-30" data-datepicker-value',
-            $content,
-        );
-        $this->assertMatchesRegularExpression('/<option value="21"\s+selected/', $content);
     }
 
     #[Test]

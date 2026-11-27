@@ -2,17 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Application\Invoice\Commands;
+namespace App\Application\Invoice\Queries;
 
+use App\Application\Invoice\DTO\IssueInvoiceFormDTO;
 use App\Application\Shared\UseCase\Access;
-use App\Application\Shared\UseCase\Contracts\CommandInterface;
+use App\Application\Shared\UseCase\Contracts\QueryInterface;
 use App\Application\Shared\UseCase\OwnedUseCase;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\User\Enums\Permission;
 use App\Domain\User\ValueObjects\UserId;
 
-/** @implements CommandInterface<null> */
-final readonly class MarkInvoicePaid extends OwnedUseCase implements CommandInterface
+/**
+ * Opens the issue dialog of a draft, so it asks for the permission `IssueInvoice` does.
+ *
+ * @implements QueryInterface<IssueInvoiceFormDTO>
+ */
+final readonly class GetIssueInvoiceForm extends OwnedUseCase implements QueryInterface
 {
     public function __construct(
         UserId $owner,

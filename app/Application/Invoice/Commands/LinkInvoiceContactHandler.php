@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Application\Invoice\Commands;
 
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
-use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Party\Contracts\ContactReadRepositoryInterface;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\ContactIdentityChangedException;
@@ -19,7 +18,7 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 final class LinkInvoiceContactHandler
 {
     public function __construct(
-        private readonly InvoiceDtoReadRepositoryInterface $invoices,
+        private readonly InvoiceService $invoiceService,
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriter,
         private readonly ContactReadRepositoryInterface $contacts,
     ) {}
@@ -29,8 +28,8 @@ final class LinkInvoiceContactHandler
      */
     public function handle(LinkInvoiceContact $command, WriteScope $scope): void
     {
-        $invoice = $this->invoices->findById($command->id, $scope->read)
-            ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        // Only a draft's customer may change its contact (D-050, point 3)
+        $invoice = $this->invoiceService->draftForUpdate($scope, $command->id);
         $contact = $this->contacts->findById($command->contactId, $scope->read)
             ?? throw new ContactNotFoundException($command->contactId);
         if ($contact->isArchived()) {

@@ -77,9 +77,43 @@ final readonly class InvoiceTotals
     }
 
     /**
-     * Totals of the lines a supplier writes: a supplier that is not a VAT payer may only use rate 0.
+     * Totals of an issued document from the VAT lines stored at issue (D-050, point 7).
      *
-     * @param  list<InvoiceProductWriteData>  $lines
+     * @param  list<VatLine>  $vatLines
+     *
+     * @throws InvalidArgumentException when a line is in another currency than the document or a rate is not a decimal
+     */
+    public static function fromVatLines(Currency $currency, array $vatLines): self
+    {
+        $byRate = [];
+        foreach ($vatLines as $vatLine) {
+            $rate = self::normalizedRate($vatLine->rate);
+            $byRate[$rate] = new VatLine(
+                $rate,
+                $vatLine->base,
+                $vatLine->vat,
+            );
+        }
+        krsort($byRate, SORT_NUMERIC);
+
+        $subtotal = Money::fromString('0', $currency);
+        $tax = $subtotal;
+        foreach ($byRate as $vatLine) {
+            $subtotal = $subtotal->add($vatLine->base);
+            $tax = $tax->add($vatLine->vat);
+        }
+
+        return new self(
+            array_values($byRate),
+            $subtotal,
+            $tax,
+        );
+    }
+
+    /**
+     * Totals of the lines a supplier writes or issues: a supplier that is not a VAT payer may only use rate 0.
+     *
+     * @param  list<InvoiceProductWriteData|InvoiceProductDTO>  $lines
      *
      * @throws NonPayerVatRateException when a non-payer's line has a non-zero rate
      * @throws InvalidArgumentException when a line is in another currency than the invoice or a rate is not a decimal

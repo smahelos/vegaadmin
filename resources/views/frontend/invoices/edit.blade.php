@@ -1,3 +1,4 @@
+@use('App\Application\Invoice\Commands\IssueInvoice')
 @use('App\Application\Product\Queries\ListProducts')
 @extends('layouts.frontend')
 
@@ -25,8 +26,8 @@ return null;
 $fieldDescription = getEditFieldByName($fields, 'invoice_text');
 
 // Fields for the start and end of the section
-$sectionStartFields = ['invoice_vs', 'invoice_ks', 'payment_method_id'];
-$sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
+$sectionStartFields = ['invoice_ks', 'payment_method_id'];
+$sectionEndFields = ['document_language', 'payment_currency'];
 
 @endphp
 
@@ -76,32 +77,11 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                     <!-- Start 4 col parent grid -->
                     <div class="md:col-span-6 grid grid-cols-1">
 
-                        @elseif($field['name'] === 'invoice_vs')
-                        <!-- Invoice number -->
-                        <div class="md:col-span-3 mb-5">
-                            <label for="invoice_vs"
-                                class="block text-base font-medium text-gray-900 dark:text-white mb-2">
-                                {{ $field['label'] }} <span class="text-red-500">*</span>
-                            </label>
-                            <input type="text" name="invoice_vs" id="invoice_vs" required
-                                value="{{ old('invoice_vs', $values['invoice_vs']) }}"
-                                class="form-input block w-full rounded-sm border-blue-100 focus:border-indigo-600 focus:ring-indigo-600 text-base px-4 py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:border-indigo-500 dark:focus:ring-indigo-500">
-                            @if(isset($field['hint']) && $field['hint'] !== '')
-                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                                {{ $field['hint'] }}
-                            </p>
-                            @endif
-                            @error('invoice_vs')
-                            <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        @elseif($field['name'] === 'status')
-                        <div class="md:col-span-1 mb-5">
+                        @elseif($field['name'] === 'document_language')
+                        <div class="md:col-span-1">
                             <x-select name="{{ $field['name'] }}" label="{{ $field['label'] }}"
-                                id="{{ $field['name'] }}" valueField="id"
-                                :selected="old($field['name'], $values['status'])"
-                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$field['options']"
+                                id="{{ $field['name'] }}" :selected="old($field['name'], $values['document_language'])"
+                                required="{{ isset($field['required']) ? $field['required'] : ''}}" :options="$languages"
                                 hint="{{ $field['hint'] }}" class="bg-blue-50" labelClass="" />
                         </div>
 
@@ -233,7 +213,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                 <div id="invoice-items-container">
                     <!-- Head of items table -->
                     <div class="grid-cols-4 md:grid-cols-12 lg:grid-cols-24 gap-4 mb-2 hidden lg:grid">
-                        <div class="col-span-4 md:col-span-6 text-sm font-medium text-gray-600 dark:text-gray-400">{{
+                        <div class="item-name-column col-span-4 md:col-span-6 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_name') }}</div>
                         <div class="col-span-4 md:col-span-2 text-sm font-medium text-gray-600 dark:text-gray-400">{{
                             __('invoices.placeholders.item_quantity') }}</div>
@@ -253,7 +233,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                     <!-- Template for invoice item -->
                     <div class="invoice-item-template hidden">
                         <div class="invoice-item grid grid-cols-4 md:grid-cols-12 lg:grid-cols-24 gap-4 mb-3">
-                            <div class="col-span-4 md:col-span-6">
+                            <div class="item-name-column col-span-4 md:col-span-6">
                                 <label
                                     class="block text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden">{{
                                     __('invoices.placeholders.item_name') }}</label>
@@ -315,7 +295,7 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-span-2 md:col-span-4 lg:col-span-3">
+                            <div class="item-total-column col-span-2 md:col-span-4 lg:col-span-3">
                                 <label
                                     class="block col-span-2 md:col-span-3 text-base font-medium text-gray-600 dark:text-gray-400 mb-2 lg:hidden"><span class="vat-rate-column">{{ __('invoices.fields.item_base') }}</span><span class="non-payer-column" hidden>{{ __('invoices.fields.total') }}</span></label>
                                 <input type="text"
@@ -412,12 +392,20 @@ $sectionEndFields = ['status', 'tax_point_date', 'payment_currency'];
             </button>
         </div>
 
-        <div class="flex">
+        <div class="flex flex-wrap gap-4">
             <button type="submit"
                 class="inline-flex items-center px-6 py-4 md:px-12 md:py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-indigo-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-[#490BF4] hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 cursor-pointer transition-colors duration-200">
                 <i class="fas fa-save mr-2"></i>
                 {{ __('invoices.actions.update') }}
             </button>
+            {{-- Enter submits with the first submit button: the plain save stays first --}}
+            @allowed(IssueInvoice::class)
+            <button type="submit" name="issue" value="1"
+                class="inline-flex items-center px-6 py-4 md:px-8 md:py-6 border border-transparent rounded-sm dark:shadow-md shadow-xl shadow-emerald-600/30 dark:shadow-gray-900/30 text-lg font-semibold text-white hover:text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 cursor-pointer transition-colors duration-200">
+                <i class="fas fa-stamp mr-2"></i>
+                {{ __('invoices.actions.save_and_issue') }}
+            </button>
+            @endallowed
         </div>
     </div>
 

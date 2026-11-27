@@ -57,10 +57,23 @@ final class MoneyFormatter implements MoneyFormatterInterface
         );
     }
 
+    public function formatWithCurrencyAfter(Money $money, string $locale): string
+    {
+        return $this->formatInternal(
+            $money,
+            $locale,
+            null,
+            null,
+            false,
+            true,
+        );
+    }
+
     /**
      * Number in the separators of the locale, preceded by the currency: a one-character symbol
      * without a space ("€48,00"), otherwise the code and a space ("CZK 48,00"); formatWithCode()
-     * always uses the code.
+     * always uses the code. With the currency after, the token follows the number after a no-break space, so a
+     * narrow column never separates them.
      */
     private function formatInternal(
         Money $money,
@@ -68,6 +81,7 @@ final class MoneyFormatter implements MoneyFormatterInterface
         ?int $minFraction,
         ?int $maxFraction,
         bool $forceCode,
+        bool $currencyAfter = false,
     ): string {
         $locale = $locale ?: $this->locale->getLocale();
         $min = $minFraction ?? self::DEFAULT_MIN_FRACTION;
@@ -113,6 +127,10 @@ final class MoneyFormatter implements MoneyFormatterInterface
                 $currencyToken = $symbol;
                 $useSymbol = true;
             }
+        }
+
+        if ($currencyAfter) {
+            return $numberFormatted . "\u{00A0}" . $currencyToken;
         }
 
         // Build final string

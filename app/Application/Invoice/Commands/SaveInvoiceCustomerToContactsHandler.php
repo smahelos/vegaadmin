@@ -7,9 +7,8 @@ namespace App\Application\Invoice\Commands;
 use App\Application\Party\Commands\CreateContact;
 use App\Application\Shared\UseCase\Actor;
 use App\Application\Shared\UseCase\Contracts\AuthorizingUseCaseRunnerInterface;
-use App\Domain\Invoice\Contracts\InvoiceDtoReadRepositoryInterface;
 use App\Domain\Invoice\Contracts\InvoiceDtoWriteRepositoryInterface;
-use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
+use App\Domain\Invoice\Services\InvoiceService;
 use App\Domain\Party\DTO\ContactWriteData;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 
@@ -20,15 +19,15 @@ use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 final class SaveInvoiceCustomerToContactsHandler
 {
     public function __construct(
-        private readonly InvoiceDtoReadRepositoryInterface $invoices,
+        private readonly InvoiceService $invoiceService,
         private readonly InvoiceDtoWriteRepositoryInterface $invoiceWriter,
         private readonly AuthorizingUseCaseRunnerInterface $useCases,
     ) {}
 
     public function handle(SaveInvoiceCustomerToContacts $command, WriteScope $scope): void
     {
-        $invoice = $this->invoices->findByIdForUpdate($command->id, $scope)
-            ?? throw new InvoiceNotFoundException('Invoice not accessible for user');
+        // Only a draft's customer may change its contact (D-050, point 3)
+        $invoice = $this->invoiceService->draftForUpdate($scope, $command->id);
         if ($invoice->parties->contactId !== null) {
             return;
         }
