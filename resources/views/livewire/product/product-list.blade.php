@@ -25,14 +25,10 @@
                 @endphp
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        @allowed(UpdateProduct::class)
-                            <x-list-link href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
-                                title="{{ __('products.actions.edit') }}">
-                                {{ $product->name }}
-                            </x-list-link>
-                        @else
+                        <x-list-link href="{{ route('frontend.product.show', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
+                            title="{{ __('products.actions.view') }}">
                             {{ $product->name }}
-                        @endallowed
+                        </x-list-link>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->price ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->tax['name'] ?? '—' }}</td>
