@@ -268,3 +268,8 @@ label:has(+ select[required]) {
 [x-cloak] {
     display: none !important;
 }
+
+/* Search fields have their own reset button; hide the browser's native clear button */
+input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+}
