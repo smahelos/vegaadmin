@@ -10,7 +10,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('name')">
-                            {{ __('products.fields.name') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.name') }}</span>
                             @if($orderBy === 'name')
                                 <span class="ml-1">
                                     @if($orderAsc)
@@ -27,7 +27,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('price')">
-                            {{ __('products.fields.price') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.price') }}</span>
                             @if($orderBy === 'price')
                                 <span class="ml-1">
                                     @if($orderAsc)
@@ -44,7 +44,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('tax_id')">
-                            {{ __('products.fields.tax_id') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.tax_id') }}</span>
                             @if($orderBy === 'tax_id')
                                 <span class="ml-1">
                                     @if($orderAsc)
@@ -61,7 +61,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden md:table-cell">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('category_id')">
-                            {{ __('products.fields.category_id') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.category_id') }}</span>
                             @if($orderBy === 'category_id')
                                 <span class="ml-1">
                                     @if($orderAsc)
@@ -78,7 +78,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden lg:table-cell">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('is_default')">
-                            {{ __('products.fields.is_default') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.is_default') }}</span>
                             @if($orderBy === 'is_default')
                                 <span class="ml-1">
                                     @if($orderAsc)
@@ -95,7 +95,7 @@
                     <th scope="col"
                         class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden lg:table-cell">
                         <div class="flex items-center cursor-pointer" wire:click="sortBy('invoices')">
-                            {{ __('products.titles.invoices') }}
+                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.titles.invoices') }}</span>
                             @if($orderBy === 'invoices')
                                 <span class="ml-1">
                                     @if($orderAsc)

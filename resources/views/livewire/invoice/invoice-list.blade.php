@@ -8,7 +8,7 @@
         </div>
         <div>
             <label for="invoice-business" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('businesses.entity.singular') }}</label>
-            <select id="invoice-business" wire:model.live="businessId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
+            <select id="invoice-business" wire:model.live="businessId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
                 <option value="">{{ __('invoices.filters.all_businesses') }}</option>
                 @foreach($businesses as $business)
                     <option value="{{ $business->id->value }}">{{ $business->name }}{{ $business->archived ? ' (' . __('invoices.filters.archived') . ')' : '' }}</option>
@@ -17,7 +17,7 @@
         </div>
         <div>
             <label for="invoice-contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('contacts.entity.singular') }}</label>
-            <select id="invoice-contact" wire:model.live="contactId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
+            <select id="invoice-contact" wire:model.live="contactId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
                 <option value="">{{ __('invoices.filters.all_contacts') }}</option>
                 @foreach($contacts as $contact)
                     <option value="{{ $contact->id->value }}">{{ $contact->name }}{{ $contact->archived ? ' (' . __('invoices.filters.archived') . ')' : '' }}</option>
@@ -27,14 +27,14 @@
         <div>
             <label for="invoice-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('invoices.fields.status') }}</label>
             <div class="mt-1 flex gap-2">
-                <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200">
+                <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
                     <option value="">{{ __('invoices.filters.all_statuses') }}</option>
                     @foreach($statuses as $invoiceStatus)
                         <option value="{{ $invoiceStatus->value }}">{{ __('invoices.statuses.' . $invoiceStatus->value) }}</option>
                     @endforeach
                 </select>
                 <x-icon-button icon="fa-filter-circle-xmark" :label="__('invoices.filters.reset')"
-                    wire:click="resetFilters" class="shrink-0" />
+                    wire:click="resetFilters" tone="red" class="shrink-0" />
             </div>
         </div>
     </div>
@@ -153,22 +153,22 @@
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 @foreach($invoices as $invoice)
                 <tr>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number ?? __('invoices.placeholders.not_available') }}
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number ?? __('invoices.placeholders.not_available') }}
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         @if($invoice->contactId?->value)
                         <a href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $invoice->contactId?->value]) }}"
-                            class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
+                            class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
                             {{ $invoice->customerName }}
                         </a>
                         @else
                         {{ $invoice->customerName }}
                         @endif
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         {{ $presenter->amount($invoice, App::getLocale()) }}
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm hidden md:table-cell
+                    <td class="px-6 py-4 whitespace-nowrap text-sm hidden md:table-cell
                         @if($presenter->isOverdue($invoice))
                              text-red-600 font-medium bg-red-100 dark:text-white dark:bg-red-900">
                         @else
@@ -176,7 +176,7 @@
                         @endif
                         {{ $presenter->dueDate($invoice, App::getLocale()) }}
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         @if($invoice->paymentMethod)
                         {{ __('payment_methods.methods.' . $invoice->paymentMethod->value) }}
                         @else
@@ -184,7 +184,7 @@
                         @endif
                     </td>
                     <td
-                        class="px-4 py-4 whitespace-nowrap text-sm bg-{{ $statusPresenter->color($invoice->status) }}-100 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:bg-{{ $statusPresenter->color($invoice->status) }}-700 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
+                        class="px-6 py-4 whitespace-nowrap text-sm bg-{{ $statusPresenter->color($invoice->status) }}-100 text-{{ $statusPresenter->color($invoice->status) }}-800 dark:bg-{{ $statusPresenter->color($invoice->status) }}-700 dark:text-{{ $statusPresenter->color($invoice->status) }}-200">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
                             @if($invoice->status === null)
                             {{ __('invoices.statuses.draft') }}
@@ -193,7 +193,7 @@
                             @endif
                         </span>
                     </td>
-                    <td class="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
                             title="{{ __('invoices.actions.show') }}" class="text-indigo-500 hover:text-[#490BF4] mr-3">
                             <i class="fas fa-eye"></i>

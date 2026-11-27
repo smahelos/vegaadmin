@@ -13,6 +13,7 @@
         'bg-emerald-200 dark:bg-emerald-500 hover:bg-emerald-500 dark:hover:bg-emerald-700 hover:text-white' => $tone === 'emerald',
         'bg-yellow-200 dark:bg-yellow-500 hover:bg-yellow-500 dark:hover:bg-yellow-700 hover:text-white' => $tone === 'yellow',
         'bg-orange-200 dark:bg-orange-500 hover:bg-orange-400 dark:hover:bg-orange-700 hover:text-white' => $tone === 'orange',
+        'bg-red-500 hover:bg-red-600 text-white' => $tone === 'red',
     ]) }}>
     <i class="fas {{ $icon }}"></i>
 </{{ $href ? 'a' : 'button' }}>

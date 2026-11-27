@@ -24,7 +24,7 @@
                     </span>
                 @else
                     <button type="button" wire:click="previousPage('{{ $paginator->getPageName() }}')" wire:loading.attr="disabled"
-                        class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] transition-colors duration-200"
+                        class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] cursor-pointer transition-colors duration-200"
                         rel="prev" aria-label="{{ __('general.pagination.previous') }}">
                         <i class="fas fa-chevron-left py-1"></i>
                     </button>
@@ -45,7 +45,7 @@
                             @else
                                 <button type="button" wire:key="paginator-{{ $paginator->getPageName() }}-page-{{ $page }}"
                                     wire:click="gotoPage({{ $page }}, '{{ $paginator->getPageName() }}')"
-                                    class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] transition-colors duration-200">{{ $page }}</button>
+                                    class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] cursor-pointer transition-colors duration-200">{{ $page }}</button>
                             @endif
                         @endforeach
                     @endif
@@ -53,7 +53,7 @@
 
                 @if ($paginator->hasMorePages())
                     <button type="button" wire:click="nextPage('{{ $paginator->getPageName() }}')" wire:loading.attr="disabled"
-                        class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] transition-colors duration-200"
+                        class="relative inline-flex items-center justify-center px-4 py-2 bg-indigo-50 text-[#490BF4] hover:text-white hover:bg-[#490BF4] dark:text-white dark:bg-indigo-500 text-sm font-semibold rounded-sm min-w-[40px] cursor-pointer transition-colors duration-200"
                         rel="next" aria-label="{{ __('general.pagination.next') }}">
                         <i class="fas fa-chevron-right py-1"></i>
                     </button>
