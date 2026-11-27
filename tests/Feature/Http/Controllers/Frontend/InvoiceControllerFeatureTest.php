@@ -9,6 +9,7 @@ use App\Domain\Shared\Money\Enums\Currency;
 use App\Domain\Shared\Money\ValueObjects\Money;
 use App\Domain\Shared\Unit\Enums\Unit;
 use App\Domain\User\Enums\Permission;
+use App\Models\Business;
 use App\Models\Contact;
 use App\Models\Invoice;
 use App\Models\InvoiceProduct;
@@ -48,6 +49,26 @@ class InvoiceControllerFeatureTest extends TestCase
                 'template' => 'default',
             ],
         );
+    }
+
+    #[Test]
+    public function the_create_form_takes_the_document_language_of_the_business_it_opens_with(): void
+    {
+        $businessFactory = Business::factory();
+        $default = $businessFactory->create(['user_id' => $this->user->id, 'document_language' => 'cs']);
+        $other = $businessFactory->create(['user_id' => $this->user->id, 'document_language' => 'de']);
+        $this->user->update(['default_business_id' => $default->id]);
+        $this->actingAs($this->user, 'web');
+
+        $defaultResponse = $this->get(
+            route('frontend.invoice.create', ['locale' => 'en']),
+        );
+        $otherResponse = $this->get(
+            route('frontend.invoice.create', ['locale' => 'en', 'business_id' => $other->id]),
+        );
+
+        $defaultResponse->assertViewHas('documentLanguage', 'cs');
+        $otherResponse->assertViewHas('documentLanguage', 'de');
     }
 
     #[Test]

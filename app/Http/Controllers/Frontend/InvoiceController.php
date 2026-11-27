@@ -33,6 +33,7 @@ use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Party\ValueObjects\BusinessId;
 use App\Domain\User\ValueObjects\UserId;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Invoice\SetInvoiceTemplateRequest;
@@ -72,9 +73,13 @@ final class InvoiceController extends Controller
     public function create(Request $request): View
     {
         $owner = $this->owner();
+        $businessId = $request->integer('business_id') ?: null;
         $form = $this->useCases->run(
             Actor::user($owner),
-            new GetInvoiceCreateForm($owner),
+            new GetInvoiceCreateForm(
+                $owner,
+                $businessId === null ? null : BusinessId::fromInt($businessId),
+            ),
         );
 
         return view(
@@ -82,7 +87,7 @@ final class InvoiceController extends Controller
             [
                 ...$this->formView($form),
                 'contactId' => $request->integer('contact_id') ?: null,
-                'businessId' => $request->integer('business_id') ?: null,
+                'businessId' => $businessId,
             ],
         );
     }

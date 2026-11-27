@@ -112,7 +112,7 @@ export default class InvoiceItemManager {
                 });
             });
         };
-        this.supplierLanguage = document.getElementById('supplier-vat-payer')?.dataset.documentLanguage;
+        this.supplierId = document.getElementById('supplier-vat-payer')?.dataset.businessId;
         // The editor starts after Livewire, so its init events have usually passed already
         if (window.Livewire) {
             watchVatPayer();
@@ -467,12 +467,13 @@ export default class InvoiceItemManager {
     // Without the flag (no business selected yet) the rates stay editable
     // A newly picked supplier brings its document language; a language chosen by hand stays until then
     applyDocumentLanguage(flag) {
+        const businessId = flag.dataset.businessId;
         const language = flag.dataset.documentLanguage;
         const select = document.getElementById('document_language');
-        if (!select || !language || language === this.supplierLanguage) {
+        if (!select || !language || businessId === this.supplierId) {
             return;
         }
-        this.supplierLanguage = language;
+        this.supplierId = businessId;
         select.value = language;
     }
 

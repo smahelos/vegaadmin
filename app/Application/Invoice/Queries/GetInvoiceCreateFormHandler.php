@@ -23,9 +23,9 @@ final class GetInvoiceCreateFormHandler
     public function handle(GetInvoiceCreateForm $query, ReadScope $scope): InvoiceFormDTO
     {
         $paymentMethods = $this->paymentMethods->getAllForDropdown();
-        // The draft's document language starts as the default business's (D-050, point 6)
-        $defaultId = $this->businesses->findDefaultId($scope);
-        $business = $defaultId === null ? null : $this->businesses->findById($defaultId, $scope);
+        // The draft's document language starts as its supplier's (D-050, point 6), the business the picker selects
+        $businessId = $query->businessId ?? $this->businesses->findDefaultId($scope);
+        $business = $businessId === null ? null : $this->businesses->findById($businessId, $scope);
 
         return new InvoiceFormDTO(
             fields: $this->fieldSets->build($paymentMethods, false),
