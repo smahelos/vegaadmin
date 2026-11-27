@@ -153,7 +153,11 @@
             <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
                 @foreach($invoices as $invoice)
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $invoice->number ?? __('invoices.placeholders.not_available') }}
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
+                           title="{{ __('invoices.actions.show') }}" class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
+                            {{ $invoice->number ?? __('invoices.placeholders.not_available') }}
+                        </a>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         @if($invoice->contactId?->value)

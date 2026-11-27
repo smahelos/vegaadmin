@@ -120,7 +120,16 @@
                     $confirmDeleteTxt = __('products.messages.confirm_delete')
                 @endphp
                 <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">{{ $product->name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                        @allowed(UpdateProduct::class)
+                            <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
+                               title="{{ __('products.actions.edit') }}" class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
+                                {{ $product->name }}
+                            </a>
+                        @else
+                            {{ $product->name }}
+                        @endallowed
+                    </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->price ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">{{ $product->tax['name'] ?? '—' }}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $product->category['name'] ?? '—' }}</td>
