@@ -253,7 +253,7 @@ final class InvoicePdfServiceFeatureTest extends TestCase
         $print = $this->printable($this->invoice());
         $invoicePdfRenderer = app(InvoicePdfRenderer::class);
         $pdf = $invoicePdfRenderer->render($print, 'cs');
-        $this->assertStringStartsWith('%PDF-', $pdf->output());
+        $this->assertStringStartsWith('%PDF-', $pdf);
     }
 
     private function invoice(): Invoice

@@ -15,9 +15,11 @@ use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
+use App\Domain\Invoice\ValueObjects\StoredPdf;
 use App\Domain\Invoice\ValueObjects\VatLine;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
+use App\Domain\Shared\Authorization\ValueObjects\AllOwnersScope;
 use App\Domain\Shared\Authorization\ValueObjects\ReadScope;
 use App\Domain\Shared\Authorization\ValueObjects\WriteScope;
 use App\Domain\Shared\Money\ValueObjects\Money;
@@ -34,11 +36,13 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
         private readonly EloquentInvoiceMapper $mapper,
     ) {}
 
-    public function findById(InvoiceId $id, ReadScope $scope): ?InvoiceDTO
+    public function findById(InvoiceId $id, ReadScope|AllOwnersScope $scope): ?InvoiceDTO
     {
         // The mapper reads the lines and the VAT lines
         $query = Invoice::with(self::RELATIONS);
-        $query->where('user_id', $scope->owner->value);
+        if ($scope instanceof ReadScope) {
+            $query->where('user_id', $scope->owner->value);
+        }
         $model = $query->find($id->value);
 
         return $model === null ? null : $this->mapper->toDto($model);
@@ -130,6 +134,22 @@ final class EloquentInvoiceDtoRepository implements InvoiceDtoReadRepositoryInte
                 $this->mapper->toVatLineAttributes($vatLine),
             );
         }
+        $model->load(self::RELATIONS);
+
+        return $this->mapper->toDto($model);
+    }
+
+    public function storePdf(
+        InvoiceId $id,
+        WriteScope $scope,
+        StoredPdf $pdf,
+    ): InvoiceDTO {
+        $query = Invoice::query();
+        $query->where('user_id', $scope->owner->value);
+        $model = $query->findOrFail($id->value);
+        $model->update(
+            $this->mapper->toPdfAttributes($pdf),
+        );
         $model->load(self::RELATIONS);
 
         return $this->mapper->toDto($model);

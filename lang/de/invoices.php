@@ -203,6 +203,7 @@ return [
         'issued_locked' => 'Ausgestellter Beleg – Änderungen nur über einen Korrekturbeleg.',
         'issued_note' => 'Die Rechnung ist ausgestellt und gesperrt. Nur der Zahlungsstatus kann sich ändern, andere Änderungen nur über einen Korrekturbeleg.',
         'draft_without_status' => 'Ein Entwurf hat keinen Zahlungsstatus. Stellen Sie die Rechnung zuerst aus.',
+        'pdf_damaged' => 'Das gespeicherte PDF der Rechnung ist beschädigt oder fehlt. Bitte wenden Sie sich an den Support.',
         'due_after_issue' => ':days Tage nach Ausstellung',
     ],
     'validation' => [

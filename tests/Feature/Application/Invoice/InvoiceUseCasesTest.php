@@ -536,9 +536,8 @@ final class InvoiceUseCasesTest extends TestCase
     {
         $user = $this->frontendUser();
         $invoiceFactory = Invoice::factory();
+        $invoiceFactory = $invoiceFactory->withStoredPdf();
         $invoice = $invoiceFactory->create(['user_id' => $user->id, 'payment_currency' => 'EUR']);
-        $invoiceProductFactory = InvoiceProduct::factory();
-        $invoiceProductFactory->create(['invoice_id' => $invoice->id, 'currency' => 'EUR']);
 
         $pdf = $this->runAs(
             $this->idOf($user),

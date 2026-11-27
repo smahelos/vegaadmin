@@ -12,6 +12,7 @@ use App\Domain\Invoice\Enums\InvoiceStatus;
 use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\Exceptions\InvoiceNumberTakenException;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
+use App\Domain\Invoice\ValueObjects\StoredPdf;
 use App\Domain\Invoice\ValueObjects\VatLine;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Party\ValueObjects\ContactId;
@@ -56,6 +57,13 @@ interface InvoiceDtoWriteRepositoryInterface
         WriteScope $scope,
         InvoiceIssue $issue,
         array $vatLines,
+    ): InvoiceDTO;
+
+    /** Stores the PDF rendered at issue, inside the issuing transaction. */
+    public function storePdf(
+        InvoiceId $id,
+        WriteScope $scope,
+        StoredPdf $pdf,
     ): InvoiceDTO;
 
     /** Deletes the invoice with its lines. */

@@ -13,6 +13,7 @@ use App\Domain\Invoice\Enums\InvoiceTemplate;
 use App\Domain\Invoice\ValueObjects\InvoiceId;
 use App\Domain\Invoice\ValueObjects\InvoiceNumber;
 use App\Domain\Invoice\ValueObjects\InvoiceTotals;
+use App\Domain\Invoice\ValueObjects\StoredPdf;
 use App\Domain\Invoice\ValueObjects\VatLine;
 use App\Domain\Party\DTO\DocumentParties;
 use App\Domain\Payment\ValueObjects\PaymentMethodId;
@@ -111,6 +112,17 @@ final class EloquentInvoiceMapper
     /**
      * @return array<string, mixed>
      */
+    public function toPdfAttributes(StoredPdf $pdf): array
+    {
+        return [
+            'pdf_path' => $pdf->path,
+            'pdf_hash' => $pdf->hash,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function toVatLineAttributes(VatLine $vatLine): array
     {
         return [
@@ -154,7 +166,19 @@ final class EloquentInvoiceMapper
             issuedBy: UserId::fromInt((int) $model->issued_by),
             vatPayer: (bool) $model->is_vat_payer,
             registerEntry: $model->register_entry,
+            pdf: $this->toPdf($model),
         );
+    }
+
+    private function toPdf(Invoice $model): ?StoredPdf
+    {
+        $path = $model->pdf_path;
+        $hash = $model->pdf_hash;
+        if ($path === null || $hash === null) {
+            return null;
+        }
+
+        return new StoredPdf($path, $hash);
     }
 
     private function toItem(InvoiceProduct $line): InvoiceProductDTO

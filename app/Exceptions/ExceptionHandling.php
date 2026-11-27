@@ -6,6 +6,7 @@ use App\Domain\Expense\Exceptions\ExpenseNotFoundException;
 use App\Domain\Invoice\Exceptions\InvoiceIssuedException;
 use App\Domain\Invoice\Exceptions\InvoiceNotFoundException;
 use App\Domain\Invoice\Exceptions\InvoiceNotIssuedException;
+use App\Domain\Invoice\Exceptions\InvoicePdfDamagedException;
 use App\Domain\Invoice\Exceptions\NonPayerVatRateException;
 use App\Domain\Party\Exceptions\ArchivedReferenceSelectedException;
 use App\Domain\Party\Exceptions\BankAccountArchivedException;
@@ -165,6 +166,15 @@ class ExceptionHandling
             fn (InvoiceNotIssuedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
                 $request,
                 __('invoices.messages.draft_without_status'),
+            ),
+        );
+        // StoredInvoicePdf logs the damaged file as critical with its context, so it is not reported again
+        $exceptions->dontReport(InvoicePdfDamagedException::class);
+        // The handler logged the damaged file as critical; the user is told without a re-rendered copy
+        $exceptions->render(
+            fn (InvoicePdfDamagedException $e, Request $request): JsonResponse|RedirectResponse => self::back(
+                $request,
+                __('invoices.messages.pdf_damaged'),
             ),
         );
 
