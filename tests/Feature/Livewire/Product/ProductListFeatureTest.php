@@ -85,6 +85,32 @@ class ProductListFeatureTest extends TestCase
     }
 
     #[Test]
+    public function product_name_links_to_the_detail_without_update_permission(): void
+    {
+        $productFactory = Product::factory();
+        $product = $productFactory->create(['user_id' => $this->user->id]);
+
+        $this->actingAs($this->user);
+
+        $component = Livewire::test(ProductList::class);
+        $application = app();
+        $url = route(
+            'frontend.product.show',
+            ['id' => $product->id, 'locale' => $application->getLocale()],
+        );
+        $this->assertMatchesRegularExpression(
+            '#<a [^>]*href="' . preg_quote(
+                e($url),
+                '#',
+            ) . '"[^>]*>\s*' . preg_quote(
+                e($product->name),
+                '#',
+            ) . '\s*</a>#',
+            $component->html(),
+        );
+    }
+
+    #[Test]
     public function component_handles_search_by_name(): void
     {
         $productFactory = Product::factory();

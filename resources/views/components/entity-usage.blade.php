@@ -1,4 +1,4 @@
-<div class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
     @if ($usage === null)
         <div class="text-sm font-medium text-gray-900 dark:text-white">{{ $label }}</div>
         <p class="mt-2 text-xs text-red-600 dark:text-red-400">{{ __('role_limits.usage.unavailable') }}</p>

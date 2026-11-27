@@ -17,14 +17,10 @@
 </div>
 @endauth
 
-<div class="grid grid-cols-1 gap-6">
-    <div class="bg-white overflow-hidden shadow-2xl dark:shadow-md shadow-indigo-600/30 rounded-md mb-20 dark:shadow-gray-900/30 dark:bg-gray-800">
-        <div class="p-3">
-            <!-- Livewire component -->
-            @livewire('invoice.invoice-list')
-        </div>
-    </div>
-</div>
+<x-form.card class="mb-20">
+    <!-- Livewire component -->
+    @livewire('invoice.invoice-list')
+</x-form.card>
 
 @allowed(IssueInvoice::class)
 @livewire('invoice.issue-invoice-dialog')

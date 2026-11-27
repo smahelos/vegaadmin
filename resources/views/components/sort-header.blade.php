@@ -7,7 +7,7 @@
 
 <th scope="col" {{ $attributes->merge(['class' => 'px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider']) }}>
     <button type="button" class="flex items-center cursor-pointer uppercase" wire:click="sortBy('{{ $key }}')">
-        {{ $label }}
+        <span class="hover:text-green-600 dark:hover:text-green-400">{{ $label }}</span>
         <span class="ml-1">
             @if ($orderBy !== $key)
                 <i class="fas fa-sort text-gray-400"></i>

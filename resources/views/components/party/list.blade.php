@@ -15,11 +15,19 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
         <div class="flex gap-2">
             <button type="button" wire:click="showArchived(false)"
-                class="px-4 py-2 rounded-sm text-sm font-semibold {{ $archived ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200' : 'bg-[#490BF4] text-white' }}">
+                @class([
+                    'px-4 py-2 rounded-sm text-sm font-semibold transition-colors duration-200',
+                    'bg-[#490BF4] text-white' => ! $archived,
+                    'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-[#490BF4] hover:text-white hover:cursor-pointer' => $archived,
+                ])>
                 {{ __('parties.filters.active') }}
             </button>
             <button type="button" wire:click="showArchived(true)"
-                class="px-4 py-2 rounded-sm text-sm font-semibold {{ $archived ? 'bg-[#490BF4] text-white' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200' }}">
+                @class([
+                    'px-4 py-2 rounded-sm text-sm font-semibold transition-colors duration-200',
+                    'bg-[#490BF4] text-white' => $archived,
+                    'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-[#490BF4] hover:text-white hover:cursor-pointer' => ! $archived,
+                ])>
                 {{ __('parties.filters.archived') }}
             </button>
         </div>
@@ -28,10 +36,8 @@
                 aria-label="{{ __('parties.placeholders.search') }}"
                 class="form-input w-full md:w-72 rounded-sm border-blue-100 bg-blue-50 px-4 py-2 text-base dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600">
             @if ($search !== '')
-                <button type="button" wire:click="resetFilters" class="px-3 text-gray-500 hover:text-gray-900 dark:text-gray-300"
-                    title="{{ __('parties.actions.reset_filters') }}" aria-label="{{ __('parties.actions.reset_filters') }}">
-                    <i class="fas fa-times"></i>
-                </button>
+                <x-icon-button icon="fa-filter-circle-xmark" :label="__('parties.actions.reset_filters')"
+                    wire:click="resetFilters" tone="red" />
             @endif
         </div>
     </div>
@@ -52,8 +58,7 @@
                     @foreach ($parties as $party)
                         <tr wire:key="party-{{ $party->id->value }}">
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                <a href="{{ route($showRoute, ['locale' => App::getLocale(), $routeKey => $party->id->value]) }}"
-                                    class="hover:text-[#490BF4]">{{ $party->profile->name }}</a>
+                                <x-list-link href="{{ route($showRoute, ['locale' => App::getLocale(), $routeKey => $party->id->value]) }}">{{ $party->profile->name }}</x-list-link>
                                 @if ($defaultId !== null && $defaultId->equals($party->id))
                                     <span class="ml-2 rounded-sm bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">{{ __('businesses.fields.default') }}</span>
                                 @endif

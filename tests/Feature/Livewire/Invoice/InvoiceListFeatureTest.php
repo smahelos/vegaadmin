@@ -360,6 +360,26 @@ final class InvoiceListFeatureTest extends TestCase
     }
 
     #[Test]
+    public function links_the_invoice_number_to_the_invoice_detail(): void
+    {
+        $invoiceFactory = Invoice::factory();
+        $invoice = $invoiceFactory->create(['user_id' => $this->user->id, 'invoice_vs' => 'DETAIL-001']);
+        $component = Livewire::test(InvoiceList::class);
+        $application = app();
+        $url = route(
+            'frontend.invoice.show',
+            ['id' => $invoice->id, 'locale' => $application->getLocale()],
+        );
+        $this->assertMatchesRegularExpression(
+            '#<a [^>]*href="' . preg_quote(
+                e($url),
+                '#',
+            ) . '"[^>]*>\s*DETAIL-001\s*</a>#',
+            $component->html(),
+        );
+    }
+
+    #[Test]
     public function searches_invoice_numbers_and_links_stored_customers_to_contacts(): void
     {
         $contactFactory = Contact::factory();
