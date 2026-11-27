@@ -27,7 +27,7 @@
     <select
         name="{{ $name }}"
         id="{{ $id }}"
-        class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer {{ $class }}"
+        class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 enabled:cursor-pointer {{ $class }}"
         data-selected="{{ $selected }}"
         @if($required) required @endif
     >

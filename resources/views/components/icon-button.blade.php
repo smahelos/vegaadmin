@@ -7,7 +7,8 @@
 
 <{{ $href ? 'a' : 'button' }} @if ($href) href="{{ $href }}" @else type="button" @endif
     title="{{ $label }}" aria-label="{{ $label }}" {{ $attributes->class([
-        'px-4 py-2 inline-block rounded-sm text-sm font-medium text-gray-700 dark:text-gray-200 cursor-pointer transition-colors disabled:opacity-50',
+        'px-4 py-2 inline-block rounded-sm text-sm font-medium cursor-pointer transition-colors disabled:opacity-50',
+        'text-gray-700 dark:text-gray-200' => $tone !== 'red',
         'bg-gray-200 dark:bg-gray-800 hover:bg-white dark:hover:bg-gray-600' => $tone === 'gray',
         'bg-pink-300 dark:bg-pink-500 hover:bg-pink-500 dark:hover:bg-pink-800 hover:text-white' => $tone === 'pink',
         'bg-emerald-200 dark:bg-emerald-500 hover:bg-emerald-500 dark:hover:bg-emerald-700 hover:text-white' => $tone === 'emerald',

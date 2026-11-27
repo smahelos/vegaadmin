@@ -7,108 +7,12 @@
         <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead class="">
                 <tr>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('name')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.name') }}</span>
-                            @if($orderBy === 'name')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('price')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.price') }}</span>
-                            @if($orderBy === 'price')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('tax_id')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.tax_id') }}</span>
-                            @if($orderBy === 'tax_id')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden md:table-cell">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('category_id')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.category_id') }}</span>
-                            @if($orderBy === 'category_id')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden lg:table-cell">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('is_default')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.fields.is_default') }}</span>
-                            @if($orderBy === 'is_default')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
-                    <th scope="col"
-                        class="px-6 py-3 text-left text-xs font-semibold text-[#490BF4] dark:text-indigo-400 uppercase tracking-wider hidden lg:table-cell">
-                        <div class="flex items-center cursor-pointer" wire:click="sortBy('invoices')">
-                            <span class="hover:text-green-600 dark:hover:text-green-400">{{ __('products.titles.invoices') }}</span>
-                            @if($orderBy === 'invoices')
-                                <span class="ml-1">
-                                    @if($orderAsc)
-                                        <i class="fas fa-sort-up text-green-600"></i>
-                                    @else
-                                        <i class="fas fa-sort-down text-green-600"></i>
-                                    @endif
-                                </span>
-                            @else
-                                <span class="ml-1"><i class="fas fa-sort text-gray-400"></i></span>
-                            @endif
-                        </div>
-                    </th>
+                    <x-sort-header key="name" :label="__('products.fields.name')" :order-by="$orderBy" :order-asc="$orderAsc" />
+                    <x-sort-header key="price" :label="__('products.fields.price')" :order-by="$orderBy" :order-asc="$orderAsc" />
+                    <x-sort-header key="tax_id" :label="__('products.fields.tax_id')" :order-by="$orderBy" :order-asc="$orderAsc" />
+                    <x-sort-header key="category_id" :label="__('products.fields.category_id')" :order-by="$orderBy" :order-asc="$orderAsc" class="hidden md:table-cell" />
+                    <x-sort-header key="is_default" :label="__('products.fields.is_default')" :order-by="$orderBy" :order-asc="$orderAsc" class="hidden lg:table-cell" />
+                    <x-sort-header key="invoices" :label="__('products.titles.invoices')" :order-by="$orderBy" :order-asc="$orderAsc" class="hidden lg:table-cell" />
                     <th scope="col"
                         class="px-6 py-3 text-right text-xs font-bold text-green-600 uppercase tracking-wider">{{
                         __('products.actions.actions') }}</th>
@@ -122,10 +26,10 @@
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
                         @allowed(UpdateProduct::class)
-                            <a href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
-                               title="{{ __('products.actions.edit') }}" class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
+                            <x-list-link href="{{ route('frontend.product.edit', ['id' => $product->id, 'locale' => App::getLocale()]) }}"
+                                title="{{ __('products.actions.edit') }}">
                                 {{ $product->name }}
-                            </a>
+                            </x-list-link>
                         @else
                             {{ $product->name }}
                         @endallowed

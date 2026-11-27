@@ -8,7 +8,7 @@
         </div>
         <div>
             <label for="invoice-business" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('businesses.entity.singular') }}</label>
-            <select id="invoice-business" wire:model.live="businessId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
+            <select id="invoice-business" wire:model.live="businessId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 enabled:cursor-pointer">
                 <option value="">{{ __('invoices.filters.all_businesses') }}</option>
                 @foreach($businesses as $business)
                     <option value="{{ $business->id->value }}">{{ $business->name }}{{ $business->archived ? ' (' . __('invoices.filters.archived') . ')' : '' }}</option>
@@ -17,7 +17,7 @@
         </div>
         <div>
             <label for="invoice-contact" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('contacts.entity.singular') }}</label>
-            <select id="invoice-contact" wire:model.live="contactId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
+            <select id="invoice-contact" wire:model.live="contactId" class="form-select mt-1 block w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 enabled:cursor-pointer">
                 <option value="">{{ __('invoices.filters.all_contacts') }}</option>
                 @foreach($contacts as $contact)
                     <option value="{{ $contact->id->value }}">{{ $contact->name }}{{ $contact->archived ? ' (' . __('invoices.filters.archived') . ')' : '' }}</option>
@@ -27,7 +27,7 @@
         <div>
             <label for="invoice-status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('invoices.fields.status') }}</label>
             <div class="mt-1 flex gap-2">
-                <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 hover:cursor-pointer">
+                <select id="invoice-status" wire:model.live="status" class="form-select block min-w-0 w-full rounded-sm border-blue-100 dark:border-gray-600 focus:border-indigo-600 focus:ring-indigo-600 text-base py-2 bg-blue-50 dark:bg-gray-700 dark:text-gray-200 enabled:cursor-pointer">
                     <option value="">{{ __('invoices.filters.all_statuses') }}</option>
                     @foreach($statuses as $invoiceStatus)
                         <option value="{{ $invoiceStatus->value }}">{{ __('invoices.statuses.' . $invoiceStatus->value) }}</option>
@@ -154,17 +154,16 @@
                 @foreach($invoices as $invoice)
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                        <a href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
-                           title="{{ __('invoices.actions.show') }}" class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
+                        <x-list-link href="{{ route('frontend.invoice.show', ['id' => $invoice->id->value, 'locale' => App::getLocale()]) }}"
+                            title="{{ __('invoices.actions.show') }}">
                             {{ $invoice->number ?? __('invoices.placeholders.not_available') }}
-                        </a>
+                        </x-list-link>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         @if($invoice->contactId?->value)
-                        <a href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $invoice->contactId?->value]) }}"
-                            class="text-[#490BF4] hover:text-green-600 dark:text-indigo-400 dark:hover:text-green-400">
+                        <x-list-link href="{{ route('frontend.contacts.show', ['locale' => App::getLocale(), 'contact' => $invoice->contactId?->value]) }}">
                             {{ $invoice->customerName }}
-                        </a>
+                        </x-list-link>
                         @else
                         {{ $invoice->customerName }}
                         @endif
